@@ -538,16 +538,21 @@
   </button>
 
   <h2>센터 찾기</h2>
+  <div class="opts" id="help-centers-chips" style="margin-bottom:11px"></div>
   <div id="help-centers"></div>
 
   <h2>병원 찾기</h2>
+  <div class="opts" id="help-hosp-chips" style="margin-bottom:11px"></div>
   <div id="help-hosp"></div>
+  <p class="tiny" style="margin:6px 0 0">
+    [지도 보기]를 누르면 그 곳 이름으로 지도가 열립니다.
+    사시는 지역을 내 정보에 적어두시면 그 지역이 먼저 나옵니다.
+  </p>
 
   <div class="sep"></div>
   <p class="tiny">
     자조모임은 각 단체의 공식 사이트로 연결됩니다. 모임 시간과 장소는
-    거기에서 확인하세요. <b>우리 지역 모임과 센터는 내 정보 → 자원 목록</b>에
-    직접 채워 넣으면 이 화면에 함께 나옵니다.
+    거기에서 확인하세요.
     링크가 열리지 않으면 전화로 문의하시면 됩니다.
     방문 전에 운영 시간과 연락처를 한 번 더 확인해주세요.
   </p>
@@ -590,13 +595,13 @@
 
   <div class="card">
     <h3>복약</h3>
-    <p class="muted" style="margin:-4px 0 11px">약 이름과 복용 시간을 적어두면 홈에서 체크할 수 있습니다.</p>
-    <div id="me-meds"></div>
-    <div class="row" style="margin-top:10px">
-      <input id="me-med-n" class="grow" placeholder="약 이름">
-      <input id="me-med-t" style="width:104px" placeholder="08:00">
-      <button class="btn sec sm" id="me-med-add" style="width:auto;padding:11px 15px">추가</button>
-    </div>
+    <p class="muted" style="margin:-4px 0 11px">
+      하루에 몇 번 드시는지 고른 다음, 챙기는 때를 표시해두세요.
+      홈 화면에서 그날 먹었는지 체크할 수 있습니다.
+    </p>
+    <div class="opts" id="me-med-cnt"></div>
+    <div id="me-meds" style="margin-top:13px"></div>
+    <p class="tiny" id="me-med-hint" style="margin:9px 0 0"></p>
     <p class="tiny" style="margin:11px 0 0">
       약에 대한 설명이나 복용 판단은 이 앱이 하지 않습니다.
       처방한 의사나 약사에게 확인하세요.
@@ -604,15 +609,22 @@
   </div>
 
   <div class="card">
-    <h3>자원 목록 (선택)</h3>
+    <h3>자원 목록</h3>
     <p class="muted" style="margin:-4px 0 11px">
-      구글 스프레드시트에 자조모임·센터·병원 목록을 두면 앱이 그것을 읽어옵니다.
-      비워두면 기본 목록을 씁니다.
+      모임·센터·병원 목록은 앱을 열 때마다 자동으로 받아옵니다.
+      따로 하실 일은 없습니다.
     </p>
-    <input id="me-sheet" placeholder="Apps Script 웹앱 주소">
-    <div style="height:9px"></div>
-    <button class="btn sec sm" id="me-sheet-save">연결하고 새로 받기</button>
-    <p class="tiny" id="me-sheet-st" style="margin:10px 0 0"></p>
+    <p class="tiny" id="me-sheet-st"></p>
+    <div style="height:11px"></div>
+    <button class="btn sec sm" id="me-sheet-save">지금 새로 받기</button>
+    <div style="height:11px"></div>
+    <button class="btn ghost sm" id="me-sheet-more">주소 직접 넣기</button>
+    <div id="me-sheet-box" class="hide" style="margin-top:11px">
+      <input id="me-sheet" placeholder="Apps Script 웹앱 주소">
+      <p class="tiny" style="margin:8px 0 0">
+        비워두고 [지금 새로 받기] 를 누르면 기본 주소로 돌아갑니다.
+      </p>
+    </div>
   </div>
 
   <div class="card">
@@ -662,14 +674,20 @@
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v16';
+const BUILD = 'v17';
 const KEY = 'ohg.v1';
+
+/* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
+   여기에 주소를 적어두면 앱을 처음 여는 사람도 따로 연결하지 않고
+   모임·센터·병원 목록을 바로 받습니다. 주소가 바뀌면 이 한 줄만 고치면 됩니다.
+   비워두면 앱 안의 기본 목록을 씁니다. */
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwNj9eYnGNH-ZlNrOdjRry9EXR6Q6Z_oLq1chc2zhscbppOkipjkMjEkcZOqPL9SQ/exec';
 
 /* ── 저장 ── */
 const BLANK = {
   ver: 1, started: false,
   types: [], dates: {}, cum: {}, goal: '',
-  hours: [], meds: [], medLog: [], area: '',
+  hours: [], meds: [], medCnt: 0, medLog: [], area: '',
   moods: [], halts: [], urges: [], nights: [], relapses: [],
   sheet: '', res: null, resAt: 0, theme: ''
 };
@@ -679,8 +697,33 @@ function load(){
   try{
     const r = localStorage.getItem(KEY);
     if(!r) return JSON.parse(JSON.stringify(BLANK));
-    return Object.assign(JSON.parse(JSON.stringify(BLANK)), JSON.parse(r));
+    return migrate(Object.assign(JSON.parse(JSON.stringify(BLANK)), JSON.parse(r)));
   }catch(e){ return JSON.parse(JSON.stringify(BLANK)); }
+}
+
+/* v16 까지는 복약을 '약 이름 + 시간' 으로 적었습니다.
+   v17 부터는 아침·점심·저녁·자기 전으로 바뀌었으니, 예전에 적어둔 것을
+   시간을 보고 알맞은 때로 옮겨 줍니다. 옮기지 않으면 화면이 비어 보입니다. */
+function migrate(s){
+  const old = (s.meds || []).filter(m => m && m.n !== undefined && m.s === undefined);
+  if(old.length){
+    const slotOf = t => {
+      const h = parseInt(String(t || '').split(':')[0], 10);
+      if(isNaN(h)) return '아침';
+      if(h < 11) return '아침';
+      if(h < 15) return '점심';
+      if(h < 21) return '저녁';
+      return '자기전';
+    };
+    const kept = [];
+    old.forEach(m => {
+      const k = slotOf(m.t);
+      if(!kept.some(x => x.s === k)) kept.push({ s: k, t: m.t || '' });
+    });
+    s.meds = kept.concat((s.meds || []).filter(m => m && m.s !== undefined));
+    if(!s.medCnt) s.medCnt = s.meds.length;
+  }
+  return s;
 }
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(S)); }
@@ -688,6 +731,15 @@ function save(){
 }
 
 /* ── 상수 ── */
+/* 복약은 약 이름이 아니라 '언제 먹는 약인지' 로 관리합니다.
+   이름을 적게 하면 오타·중복이 생기고, 무엇보다 이 앱이 알 필요가 없습니다. */
+const MEDSLOT = [
+  {k:'아침',   l:'아침 약',    d:'08:00'},
+  {k:'점심',   l:'점심 약',    d:'12:30'},
+  {k:'저녁',   l:'저녁 약',    d:'18:30'},
+  {k:'자기전', l:'자기 전 약', d:'21:30'}
+];
+
 const TYPES = [
   {k:'alcohol',  n:'알코올', v:'단주',   i:'alcohol'},
   {k:'gambling', n:'도박',   v:'단도박', i:'gamble'},
@@ -780,9 +832,46 @@ const GROUPS = [
 const NEARBY = [
   {n:'중독관리통합지원센터', q:'중독관리통합지원센터', i:'center'},
   {n:'정신건강복지센터',     q:'정신건강복지센터',     i:'center'},
-  {n:'알코올 전문병원',      q:'알코올전문병원',       i:'hosp'},
   {n:'정신건강의학과',       q:'정신건강의학과',       i:'hosp'}
 ];
+/* '알코올전문병원' 이라는 검색어는 뺐습니다. 지도가 간판에 그 낱말이 든 곳을
+   아무렇게나 긁어와서, 200km 밖 병원을 '가까운 순' 으로 내놓았습니다.
+   전문병원은 아래 목록의 실제 이름으로 각각 지도를 엽니다. */
+
+/* 이름 그대로 지도에서 찾습니다. 지역이 적혀 있으면 앞에 붙여 헛다리를 줄입니다.
+   지도는 네이버 하나로 통일했습니다 — 카카오맵은 안 열린다는 말을 여러 번 들었습니다. */
+function mapQ(x){ return ((x.a ? String(x.a).split(/[ ·,]/)[0] + ' ' : '') + x.n).trim(); }
+function mapURL(q){ return 'https://map.naver.com/p/search/' + encodeURIComponent(q); }
+
+/* 센터·병원의 갈래.
+   k 는 그 갈래가 다루는 회복 영역이다. 빈 배열은 '영역을 가리지 않는다'는 뜻.
+   자조모임과 같은 방식으로, 기본은 내 영역에 맞는 것만 보여주고
+   [전체] 를 누르면 나머지도 볼 수 있게 한다.
+   g 는 시트 탭 이름의 뒷부분(센터_중독통합 → 중독통합)이다. */
+const PLACECAT = [
+  {g:'중독통합',     l:'중독센터',   k:[]},
+  {g:'정신건강복지', l:'정신건강',   k:[]},
+  {g:'스마트쉼',     l:'스마트쉼',   k:[]},
+  {g:'함께한걸음',   l:'한걸음',     k:['약물']},
+  {g:'알코올',       l:'알코올',     k:['알코올']},
+  {g:'마약치료',     l:'마약·약물',  k:['약물']}
+];
+/* 시트가 아직 g 를 안 보내주는 동안에도 이름·설명을 보고 갈래를 짐작한다 */
+function catOf(x){
+  if(x.g){ const c = PLACECAT.filter(p => p.g === x.g)[0]; return c ? c.l : x.g; }
+  const s = (x.n || '') + ' ' + (x.d || '');
+  if(s.indexOf('중독관리통합') >= 0) return '중독센터';
+  if(s.indexOf('함께한걸음') >= 0 || s.indexOf('마약퇴치') >= 0) return '한걸음';
+  if(s.indexOf('스마트쉼') >= 0) return '스마트쉼';
+  if(s.indexOf('정신건강복지') >= 0) return '정신건강';
+  if(s.indexOf('마약') >= 0 || s.indexOf('약물') >= 0) return '마약·약물';
+  if(s.indexOf('알코올') >= 0) return '알코올';
+  return '';
+}
+function catKinds(l){ const c = PLACECAT.filter(p => p.l === l)[0]; return c ? c.k : []; }
+
+/* 센터·병원 화면의 지금 상태. '' 는 내 영역, '*' 는 전체. */
+const PL = { centers: { cat:'', near: true }, hosp: { cat:'', near: false } };
 
 /* 가족·보호자 모임 — 당사자 모임과 반드시 나눠서 보여준다.
    가족이 당사자 모임 목록을 뒤지게 하면 안 된다. */
@@ -798,17 +887,17 @@ const FAMILY = [
 
 const CENTERS = [
   {n:'중독관리통합지원센터 찾기', d:'국립정신건강정보포털 · 전국 시설 목록', t:'1577-0199',
-   w:'https://www.mentalhealth.go.kr/portal/health/fac/PotalHealthFacListTab2.do'},
+   w:'https://www.mentalhealth.go.kr/portal/health/fac/PotalHealthFacListTab2.do', x:1},
   {n:'함께한걸음센터', d:'마약류 중독 재활 · 전국 17곳', t:'1342',
-   w:'https://www.drugfree.or.kr/'},
+   w:'https://www.drugfree.or.kr/', x:1},
   {n:'스마트쉼센터', d:'인터넷·스마트폰 과의존 상담', t:'1599-0075',
-   w:'https://www.iapc.or.kr/'}
+   w:'https://www.iapc.or.kr/', x:1}
 ];
+/* x:1 은 '실제 장소가 아니라 안내 창구' 라는 표시다. 지도 단추를 달지 않는다 —
+   '중독 전문병원 찾기' 를 지도에서 찾으면 아무 데도 안 나온다. */
 const HOSP = [
-  /* TODO 링크 없음 — 국립정신건강정보포털의 의료기관 탭 주소를 확인해서 w 에 넣을 것.
-     확인 전까지는 전화만 둔다. 죽은 링크보다 없는 편이 낫다. */
-  {n:'중독 전문병원 · 정신건강의학과 찾기', d:'가까운 의료기관은 전화로 안내받을 수 있습니다', t:'129'},
-  {n:'정신건강 상담전화', d:'지역 정신건강복지센터로 연결 · 24시간', t:'1577-0199'}
+  {n:'중독 전문병원 · 정신건강의학과 찾기', d:'가까운 의료기관은 전화로 안내받을 수 있습니다', t:'129', x:1},
+  {n:'정신건강 상담전화', d:'지역 정신건강복지센터로 연결 · 24시간', t:'1577-0199', x:1}
 ];
 
 
@@ -1030,21 +1119,25 @@ function drawHome(){
 
   /* 복약 */
   if((S.meds || []).length){
+    /* 정해둔 때 순서로 — 아침 약이 저녁 약 밑에 있으면 눈에 안 들어옵니다 */
+    const ord = MEDSLOT.map(x => x.k);
+    const list = S.meds.slice().sort((x, y) => ord.indexOf(x.s) - ord.indexOf(y.s));
     const done = todayRec(S.medLog).map(m => m.n);
     let html = '<div class="card tight"><h3>오늘 복약</h3>';
-    S.meds.forEach((m, i) => {
-      const ok = done.includes(m.n);
+    list.forEach(m => {
+      const slot = MEDSLOT.filter(x => x.k === m.s)[0] || { l: m.s };
+      const ok = done.includes(m.s);
       html += '<div class="sp" style="padding:6px 0"><span>' +
-        ico(ok ? 'check' : 'box', 'ic-i') + esc(m.n) +
+        ico(ok ? 'check' : 'box', 'ic-i') + esc(slot.l) +
         (m.t ? ' <span class="tiny">' + esc(m.t) + '</span>' : '') + '</span>' +
         (ok ? '<span class="tiny">완료</span>'
-            : '<button class="btn sec sm" style="width:auto;padding:7px 13px" data-med="' + i + '">체크</button>') +
+            : '<button class="btn sec sm" style="width:auto;padding:7px 13px" data-med="' + esc(m.s) + '">체크</button>') +
         '</div>';
     });
     html += '</div>';
     a.insertAdjacentHTML('beforeend', html);
     a.querySelectorAll('[data-med]').forEach(b => b.onclick = () => {
-      S.medLog.push({ t: Date.now(), n: S.meds[+b.dataset.med].n });
+      S.medLog.push({ t: Date.now(), n: b.dataset.med });
       save(); drawHome();
     });
   }
@@ -1800,10 +1893,7 @@ function drawHelp(){
     '<div class="help"><span class="ic">' + ico(x.i) + '</span>' +
     '<span class="b"><b>' + esc(x.n) + '</b><span>지금 있는 곳에서 가까운 순으로</span></span>' +
     '<span class="acts">' +
-    '<a class="go" target="_blank" rel="noopener" href="https://map.kakao.com/?q=' +
-      encodeURIComponent(x.q) + '">카카오맵</a>' +
-    '<a class="go" target="_blank" rel="noopener" href="https://map.naver.com/p/search/' +
-      encodeURIComponent(x.q) + '">네이버</a>' +
+    '<a class="go" target="_blank" rel="noopener" href="' + mapURL(x.q) + '">지도 보기</a>' +
     '</span></div>').join('');
 
   const lines = (R.lines && R.lines.length) ? R.lines : LINES;
@@ -1813,33 +1903,102 @@ function drawHelp(){
     '<span class="b"><b>' + esc(l.n) + ' · ' + esc(l.t) + '</b><span>' + esc(l.d || '') + '</span></span>' +
     '<span class="go">전화</span></a>').join('');
 
-  /* 링크가 죽어도 전화는 걸리도록, 둘 다 있으면 둘 다 보여준다 */
-  const card = (x, icon) => {
+  /* 링크가 죽어도 전화는 걸리도록, 둘 다 있으면 둘 다 보여준다.
+     map 을 켜면 그 곳 '이름' 으로 지도를 연다 — 낱말 검색과 달리 헛것이 안 나온다. */
+  const card = (x, icon, map) => {
     const acts =
       (x.t ? '<a class="go" href="tel:' + esc(String(x.t).replace(/[^0-9+\-]/g, '')) + '">전화</a>' : '') +
-      (x.w ? '<a class="go" href="' + esc(x.w) + '" target="_blank" rel="noopener">열기</a>' : '');
+      (x.w ? '<a class="go" href="' + esc(x.w) + '" target="_blank" rel="noopener">열기</a>' : '') +
+      (map && !x.x ? '<a class="go" target="_blank" rel="noopener" href="' +
+             mapURL(mapQ(x)) + '">지도 보기</a>' : '');
     return '<div class="help">' +
       '<span class="ic">' + ico(icon) + '</span>' +
-      '<span class="b"><b>' + esc(x.n) + '</b><span>' + esc(x.d || '') + '</span></span>' +
+      /* 설명에 이미 '광주 서구…' 라고 적혀 있으면 지역을 또 붙이지 않는다 */
+      '<span class="b"><b>' + esc(x.n) + '</b><span>' +
+      esc((x.a && x.d && String(x.d).indexOf(String(x.a)) >= 0)
+          ? x.d : [x.a, x.d].filter(Boolean).join(' · ')) + '</span></span>' +
       '<span class="acts">' + acts + '</span></div>';
   };
 
-  /* 지역이 적힌 줄은 내 지역 것만 남긴다. 지역이 빈 줄은 전국 공통으로 본다. */
-  const mine = x => !x.a || !S.area || String(x.a).indexOf(S.area) >= 0;
-  const pick = (sheet, built) => ((sheet && sheet.length) ? sheet : built).filter(mine);
+  fillPlaces('centers', (R.centers && R.centers.length) ? R.centers : CENTERS, 'center');
+  fillPlaces('hosp',    (R.hosp    && R.hosp.length)    ? R.hosp    : HOSP,    'hosp');
 
-  const centers = pick(R.centers, CENTERS);
-  const hosp = pick(R.hosp, HOSP);
+  /* ── 센터·병원 목록 ──
+     자조모임과 같은 방식으로 거릅니다. 기본은 '내 영역 + 내 지역',
+     [전체] 와 지역 칩으로 넓혀볼 수 있습니다.
+     목록이 40줄이 넘어가면 칩 없이는 아무도 자기 것을 못 찾습니다. */
+  function fillPlaces(key, raw, icon){
+    const st = PL[key];
+    const box = $('#help-' + key), chips = $('#help-' + key + '-chips');
 
-  const fill = (sel, list, icon) => {
-    $(sel).innerHTML = list.length
-      ? list.map(x => card(x, icon)).join('')
-      : '<p class="tiny" style="padding:4px 2px">' +
-        (S.area ? esc(S.area) + ' 지역으로 등록된 곳이 없습니다. 내 정보에서 지역을 바꾸거나 자원 목록에 추가해주세요.'
-                : '등록된 곳이 없습니다.') + '</p>';
-  };
-  fill('#help-centers', centers, 'center');
-  fill('#help-hosp', hosp, 'hosp');
+    /* 같은 곳이 두 번 실린 것은 하나로 합칩니다 — 탭이 겹치면 흔히 생깁니다 */
+    const seen = {}, list = [];
+    raw.forEach(x => {
+      const id = String(x.n || '').replace(/\s/g, '') + '|' +
+                 String(x.t || '').replace(/[^0-9]/g, '');
+      if(seen[id]) return;
+      seen[id] = 1; list.push(x);
+    });
+
+    /* 자료에 실제로 있는 갈래만 칩으로 만듭니다 */
+    const cats = [];
+    list.forEach(x => { const c = catOf(x); if(c && cats.indexOf(c) < 0) cats.push(c); });
+    cats.sort((a, b) => {
+      const i = PLACECAT.map(p => p.l).indexOf(a), j = PLACECAT.map(p => p.l).indexOf(b);
+      return (i < 0 ? 99 : i) - (j < 0 ? 99 : j);
+    });
+
+    const mine = myKinds();
+    /* 내 영역에 맞는 갈래인가. 영역을 안 고른 사람에게는 다 보여줍니다. */
+    const forMe = c => {
+      const k = catKinds(c);
+      return !k.length || !mine.length || k.some(x => mine.indexOf(x) >= 0);
+    };
+    const inArea = x => !x.a || !S.area || String(x.a).indexOf(S.area) >= 0;
+
+    chips.innerHTML = '';
+    if(cats.length > 1){
+      const add = (v, l) => {
+        const b = el('button', 'opt' + (st.cat === v ? ' on' : ''), l);
+        b.onclick = () => { st.cat = v; drawHelp(); };
+        chips.appendChild(b);
+      };
+      const hasMine = mine.length && cats.some(c => !forMe(c));
+      if(hasMine) add('', '내 영역');
+      /* '내 영역' 칩이 없으면 기본값('')이 곧 전체다. 아무 칩도 안 켜져 보이면 안 된다. */
+      const b0 = el('button', 'opt' + ((st.cat === '*' || (!hasMine && !st.cat)) ? ' on' : ''), '전체');
+      b0.onclick = () => { st.cat = '*'; drawHelp(); };
+      chips.appendChild(b0);
+      cats.forEach(c => add(c, c));
+    }
+    if(S.area){
+      const b = el('button', 'opt' + (st.near ? ' on' : ''), S.area + '만');
+      b.onclick = () => { st.near = !st.near; drawHelp(); };
+      chips.appendChild(b);
+    }
+
+    let rows = list.filter(x => {
+      const c = catOf(x);
+      if(st.cat === '*' || cats.length <= 1) return true;
+      if(st.cat) return c === st.cat;
+      return !c || forMe(c);
+    });
+
+    /* 내 지역만 보기. 내 지역에 하나도 없으면 발길을 돌리게 두지 말고 전국을 보여줍니다. */
+    let note = '';
+    if(st.near && S.area){
+      const m = rows.filter(inArea);
+      if(m.length) rows = m;
+      else note = '<p class="tiny" style="padding:2px 2px 8px">' + esc(S.area) +
+                  ' 지역에 등록된 곳이 없어 전국 목록을 보여드립니다.</p>';
+    }
+    rows = rows.slice().sort((a, b) => (inArea(b) ? 1 : 0) - (inArea(a) ? 1 : 0));
+
+    box.innerHTML = rows.length
+      ? note + rows.map(x => card(x, icon, true)).join('')
+      : '<p class="tiny" style="padding:4px 2px">등록된 곳이 없습니다. ' +
+        '[전체]를 눌러보시거나, 내 정보에서 지역을 바꿔보세요.</p>';
+  }
 }
 
 /* 자원 시트 받아오기 — 공개 자료만 오갑니다. 회복 기록은 절대 보내지 않습니다 */
@@ -1848,7 +2007,9 @@ function fetchRes(url){
   return fetch(url, { method: 'GET' })
     .then(r => r.json())
     .then(j => {
-      S.res = { lines: j.lines || [], groups: j.groups || [], centers: j.centers || [], hosp: j.hosp || [] };
+      /* family 를 빠뜨리면 가족모임 화면이 기본 4줄로 되돌아갑니다. 한 번 당했습니다. */
+      S.res = { lines: j.lines || [], groups: j.groups || [], family: j.family || [],
+                centers: j.centers || [], hosp: j.hosp || [] };
       S.resAt = Date.now();
       save();
       return S.res;
@@ -1894,8 +2055,10 @@ function drawMe(){
     ab.appendChild(b);
   });
 
+  /* 시간 순으로 둡니다. 점심 무렵을 맨 뒤에 두었더니 눈으로 훑기가 어려웠습니다. */
   const hb = $('#me-hours'); hb.innerHTML = '';
-  [[18,'저녁 6시'],[19,'7시'],[20,'8시'],[21,'9시'],[22,'10시'],[23,'11시'],[0,'자정'],[13,'점심 무렵']].forEach(([h,l]) => {
+  [[13,'점심 무렵'],[17,'오후 5시'],[18,'저녁 6시'],[19,'7시'],[20,'8시'],
+   [21,'9시'],[22,'10시'],[23,'11시'],[0,'자정'],[1,'새벽 1시']].forEach(([h,l]) => {
     const b = el('button', 'opt' + ((S.hours||[]).includes(h) ? ' on' : ''), l);
     b.onclick = () => {
       S.hours = S.hours || [];
@@ -1906,41 +2069,89 @@ function drawMe(){
     hb.appendChild(b);
   });
 
-  const mb = $('#me-meds'); mb.innerHTML = '';
-  if(!(S.meds || []).length) mb.innerHTML = '<p class="tiny">등록된 약이 없습니다.</p>';
-  (S.meds || []).forEach((m, i) => {
-    const r = el('div', 'sp');
-    r.style.padding = '6px 0';
-    r.innerHTML = '<span>' + esc(m.n) + (m.t ? ' <span class="tiny">' + esc(m.t) + '</span>' : '') + '</span>';
-    const x = el('button', 'tiny', '삭제');
-    x.style.color = 'var(--bad)';
-    x.onclick = () => { S.meds.splice(i,1); save(); drawMe(); };
-    r.appendChild(x);
-    mb.appendChild(r);
-  });
+  drawMed();
 
   $('#me-sheet').value = S.sheet || '';
   $('#me-sheet-st').textContent = S.resAt
-    ? '마지막으로 받은 때: ' + new Date(S.resAt).toLocaleString('ko-KR')
-    : '연결하지 않았습니다. 기본 목록을 쓰고 있습니다.';
+    ? '마지막으로 받았습니다 — ' + new Date(S.resAt).toLocaleString('ko-KR') +
+      ' (모임 ' + (((S.res||{}).groups||[]).length + ((S.res||{}).family||[]).length) +
+      ' · 센터 ' + (((S.res||{}).centers||[]).length) +
+      ' · 병원 ' + (((S.res||{}).hosp||[]).length) + ')'
+    : (SHEET_URL || S.sheet)
+      ? '아직 받지 못했습니다. 인터넷이 되는 곳에서 앱을 다시 열어보세요.'
+      : '앱 안의 기본 목록을 쓰고 있습니다.';
 
   $('#me-ver').textContent = '오늘 한 걸음 ' + BUILD;
 }
 
+/* ── 복약 ──
+   약 이름은 묻지 않습니다. 이 앱이 알 필요가 없고, 이름을 적게 하면
+   오타와 중복만 생깁니다. '하루 몇 번' 과 '언제' 만 있으면 체크는 됩니다. */
+function drawMed(){
+  const cb = $('#me-med-cnt'); cb.innerHTML = '';
+  [[0,'안 먹습니다'],[1,'1일 1회'],[2,'1일 2회'],[3,'1일 3회'],[4,'1일 4회']].forEach(([n,l]) => {
+    const b = el('button', 'opt' + ((S.medCnt || 0) === n ? ' on' : ''), l);
+    b.onclick = () => {
+      S.medCnt = n;
+      if(!n) S.meds = [];
+      save(); drawMed();
+    };
+    cb.appendChild(b);
+  });
+
+  const mb = $('#me-meds'); mb.innerHTML = '';
+  const hint = $('#me-med-hint');
+  if(!(S.medCnt || 0)){
+    hint.textContent = '';
+    return;
+  }
+
+  S.meds = S.meds || [];
+  MEDSLOT.forEach(s => {
+    const cur = S.meds.filter(m => m.s === s.k)[0];
+    const r = el('div', 'sp');
+    r.style.padding = '5px 0';
+
+    const b = el('button', 'opt' + (cur ? ' on' : ''),
+      ico(cur ? 'check' : 'box') + '<span>' + s.l + '</span>');
+    b.style.flex = '1';
+    b.style.justifyContent = 'flex-start';
+    b.onclick = () => {
+      if(cur) S.meds = S.meds.filter(m => m.s !== s.k);
+      else S.meds.push({ s: s.k, t: s.d });
+      save(); drawMed();
+    };
+    r.appendChild(b);
+
+    if(cur){
+      const t = el('input');
+      t.type = 'time';
+      t.value = cur.t || s.d;
+      t.style.width = '138px';   /* 오전/오후 표시가 잘리지 않을 만큼 */
+      t.onchange = () => { cur.t = t.value; save(); };
+      r.appendChild(t);
+    }
+    mb.appendChild(r);
+  });
+
+  const n = S.meds.length, want = S.medCnt;
+  hint.textContent = n === want
+    ? '하루 ' + want + '번, 다 정하셨습니다.'
+    : n < want
+      ? '하루 ' + want + '번 중 ' + n + '개를 정하셨습니다. ' + (want - n) + '개 더 골라주세요.'
+      : '하루 ' + want + '번인데 ' + n + '개를 고르셨습니다. 횟수를 다시 보시겠어요?';
+}
+
 $('#me-goal-save').onclick = () => { S.goal = $('#me-goal').value.trim(); save(); toast('저장했습니다.'); };
 
-$('#me-med-add').onclick = () => {
-  const n = $('#me-med-n').value.trim();
-  if(!n){ toast('약 이름을 적어주세요.'); return; }
-  S.meds = S.meds || [];
-  S.meds.push({ n: n, t: $('#me-med-t').value.trim() });
-  $('#me-med-n').value = ''; $('#me-med-t').value = '';
-  save(); drawMe();
+$('#me-sheet-more').onclick = () => {
+  $('#me-sheet-box').classList.toggle('hide');
 };
 
 $('#me-sheet-save').onclick = () => {
-  const u = $('#me-sheet').value.trim();
-  S.sheet = u; save();
+  const typed = $('#me-sheet').value.trim();
+  S.sheet = typed; save();
+  const u = typed || SHEET_URL;
   if(!u){ S.res = null; S.resAt = 0; save(); drawMe(); toast('기본 목록으로 돌아갔습니다.'); return; }
   $('#me-sheet-st').textContent = '받아오는 중…';
   fetchRes(u)
@@ -2005,9 +2216,16 @@ function boot(){
   drawUrge();
   if(S.started){ go('home'); } else { go('intro'); }
 
-  /* 시트가 연결돼 있으면 하루 한 번만 조용히 갱신합니다 */
-  if(S.sheet && Date.now() - (S.resAt || 0) > 86400000){
-    fetchRes(S.sheet).then(() => { if(cur === 'help') drawHelp(); }).catch(() => {});
+  /* 자원 목록은 앱을 열 때마다 조용히 새로 받습니다.
+     사용자가 따로 '연결' 을 해야 목록이 나오는 것은 앱의 잘못입니다.
+     못 받으면 지난번에 받아둔 목록으로 그냥 갑니다 — 화면은 멀쩡히 돌아갑니다. */
+  const su = S.sheet || SHEET_URL;
+  if(su){
+    fetchRes(su).then(() => {
+      if(cur === 'help') drawHelp();
+      if(cur === 'meet') drawMeet();
+      if(cur === 'me')   drawMe();
+    }).catch(() => {});
   }
 
   if('serviceWorker' in navigator){
