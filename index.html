@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f2f7f6">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>오늘한걸음</title>
+<style>
+  :root{
+    --bg:#f2f7f6; --bg2:#e6f0ee; --panel:#ffffff; --line:#dde7e5;
+    --tx:#1f2a28; --dim:#6b7b78; --faint:#9aa8a5;
+    --acc:#2f7d6e; --acc2:#48a08e; --accbg:#e3f1ed;
+    --warn:#c8791f; --warnbg:#fdf1e0;
+    --bad:#b8443c; --badbg:#fbeae8;
+    --ok:#2f7d6e;
+    --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
+    --r:16px;
+  }
+  body.dark{
+    --bg:#121917; --bg2:#18211f; --panel:#1b2523; --line:#2a3634;
+    --tx:#e3ebe9; --dim:#93a3a0; --faint:#6d7d7a;
+    --acc:#6fc3ae; --acc2:#8ad4c1; --accbg:#1d302c;
+    --warn:#e0a55c; --warnbg:#2e2519;
+    --bad:#e08a82; --badbg:#2e1c1a;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden}
+  body{background:var(--bg);color:var(--tx);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+    -webkit-font-smoothing:antialiased}
+  button,input,select,textarea{font:inherit;color:inherit}
+  button{background:none;border:none;cursor:pointer;padding:0}
+  /* 링크도 카드·버튼 모양을 그대로 쓰므로 브라우저 기본 밑줄·파란색을 끕니다 */
+  a{color:inherit;text-decoration:none;-webkit-text-decoration:none}
+  a:visited{color:inherit}
+  input,textarea,select{background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:11px 12px;outline:none;width:100%}
+  input:focus,textarea:focus{border-color:var(--acc)}
+  textarea{resize:vertical;min-height:76px;line-height:1.55}
+
+  /* ── 뼈대 ── */
+  #app{height:100%;display:flex;flex-direction:column}
+  #view{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .pg{display:none;padding:calc(var(--st) + 14px) 16px 26px;max-width:640px;margin:0 auto}
+  .pg.on{display:block}
+  .pg h1{font-size:22px;margin:2px 0 16px;letter-spacing:-.4px}
+  .pg h2{font-size:15px;margin:22px 0 9px;color:var(--dim);font-weight:600}
+
+  /* ── 하단 탭 ── */
+  #tabs{flex:0 0 auto;display:flex;background:var(--panel);
+    border-top:1px solid var(--line);padding-bottom:var(--sb)}
+  #tabs button{flex:1;padding:9px 2px 7px;color:var(--faint);
+    display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px}
+  #tabs button.on{color:var(--acc);font-weight:600}
+  #tabs svg{width:23px;height:23px;stroke:currentColor;fill:none;
+    stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ── 조각들 ── */
+  .card{background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--r);padding:16px;margin-bottom:12px}
+  .card.tight{padding:13px 14px}
+  .card h3{margin:0 0 10px;font-size:15px;font-weight:600}
+  .muted{color:var(--dim);font-size:13px;line-height:1.6}
+  .tiny{color:var(--faint);font-size:12px;line-height:1.55}
+  .row{display:flex;gap:9px;align-items:center}
+  .row.wrap{flex-wrap:wrap}
+  .grow{flex:1;min-width:0}
+  .sp{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+  .btn{display:block;width:100%;padding:14px;border-radius:13px;
+    background:var(--acc);color:#fff;font-weight:600;font-size:15px;text-align:center}
+  .btn.sec{background:var(--accbg);color:var(--acc)}
+  .btn.ghost{background:none;border:1px solid var(--line);color:var(--dim);font-weight:500}
+  .btn.danger{background:var(--bad)}
+  .btn:active{opacity:.82}
+  .btn.sm{padding:10px;font-size:14px;border-radius:11px}
+
+  /* 지금 위험해요 */
+  #panic{display:block;width:100%;padding:19px;border-radius:17px;
+    background:linear-gradient(135deg,#c8791f,#b8622a);color:#fff;
+    box-shadow:0 5px 18px rgba(184,98,42,.28);margin:4px 0 14px}
+  #panic b{display:block;font-size:19px;font-weight:700;letter-spacing:-.3px}
+  #panic span{display:block;font-size:13px;opacity:.9;margin-top:3px}
+  #panic:active{transform:scale(.985)}
+
+  /* 회복일 */
+  .days{background:linear-gradient(150deg,var(--accbg),var(--bg2));
+    border:1px solid var(--line);border-radius:var(--r);padding:17px;margin-bottom:12px}
+  .dayrow{display:flex;align-items:baseline;gap:8px;padding:5px 0}
+  .dayrow+.dayrow{border-top:1px solid var(--line);margin-top:5px;padding-top:10px}
+  .dayrow .nm{font-size:14px;color:var(--dim);min-width:52px}
+  .dayrow .n{font-size:31px;font-weight:700;color:var(--acc);letter-spacing:-1px;
+    font-variant-numeric:tabular-nums}
+  .dayrow .u{font-size:14px;color:var(--dim)}
+  .dayrow .cum{margin-left:auto;font-size:12px;color:var(--faint);text-align:right}
+
+  /* 선택 칩 */
+  .opts{display:flex;gap:8px;flex-wrap:wrap}
+  .opt{padding:10px 14px;border-radius:12px;border:1.5px solid var(--line);
+    background:var(--panel);color:var(--dim);font-size:14px}
+  .opt.on{border-color:var(--acc);background:var(--accbg);color:var(--acc);font-weight:600}
+  .opt.wide{flex:1;min-width:calc(50% - 4px);text-align:left}
+
+  /* HALT */
+  .halt{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .halt button{padding:12px 4px;border-radius:13px;border:1.5px solid var(--line);
+    background:var(--panel);display:flex;flex-direction:column;align-items:center;gap:5px}
+  .halt button.on{border-color:var(--warn);background:var(--warnbg)}
+  .halt .e{font-size:21px;line-height:1}
+  .halt .l{font-size:12px;color:var(--dim)}
+  .halt button.on .l{color:var(--warn);font-weight:600}
+
+  /* 감정 */
+  .moods{display:flex;justify-content:space-between;gap:5px}
+  .moods button{flex:1;padding:9px 2px;border-radius:12px;border:1.5px solid transparent;
+    display:flex;flex-direction:column;align-items:center;gap:4px}
+  .moods button.on{border-color:var(--acc);background:var(--accbg)}
+  .moods .e{font-size:25px;line-height:1}
+  .moods .l{font-size:11px;color:var(--faint)}
+
+  /* 강도 슬라이더 */
+  .lv{margin:6px 0 2px}
+  .lv input[type=range]{-webkit-appearance:none;width:100%;height:30px;background:none;padding:0;border:none}
+  .lv input[type=range]::-webkit-slider-runnable-track{height:7px;border-radius:99px;
+    background:linear-gradient(90deg,var(--acc2),var(--warn),var(--bad))}
+  .lv input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:27px;height:27px;
+    border-radius:99px;background:#fff;border:2.5px solid var(--acc);margin-top:-10px;
+    box-shadow:0 2px 7px #0002}
+  .lv input[type=range]::-moz-range-track{height:7px;border-radius:99px;
+    background:linear-gradient(90deg,var(--acc2),var(--warn),var(--bad))}
+  .lv input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:99px;
+    background:#fff;border:2.5px solid var(--acc)}
+  .lvn{text-align:center;font-size:34px;font-weight:700;color:var(--acc);
+    letter-spacing:-1px;font-variant-numeric:tabular-nums}
+
+  /* 타이머 */
+  #tmwrap{text-align:center;padding:8px 0 4px}
+  .ring{position:relative;width:238px;height:238px;margin:0 auto}
+  .ring svg{transform:rotate(-90deg);width:238px;height:238px}
+  .ring circle{fill:none;stroke-width:9;stroke-linecap:round}
+  .ring .bgc{stroke:var(--line)}
+  .ring .fgc{stroke:var(--acc);transition:stroke-dashoffset .95s linear}
+  .ring .mid{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:2px}
+  .ring .t{font-size:47px;font-weight:700;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+  .ring .s{font-size:13px;color:var(--dim)}
+
+  /* 호흡 */
+  #breath{text-align:center;padding:6px 0 4px}
+  .bwrap{height:216px;display:flex;align-items:center;justify-content:center}
+  .bcirc{width:150px;height:150px;border-radius:50%;
+    background:radial-gradient(circle,var(--accbg),var(--bg2));
+    border:2px solid var(--acc2);display:flex;align-items:center;justify-content:center;
+    color:var(--acc);font-weight:600;font-size:17px;
+    transition:transform 4s cubic-bezier(.4,0,.4,1)}
+  .bcirc.in{transform:scale(1.34)}
+  .bcirc.out{transform:scale(.82);transition-duration:6s}
+
+  /* 목록 */
+  .item{display:flex;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
+  .item:last-child{border-bottom:none}
+  .item .w{flex:0 0 62px;font-size:12px;color:var(--faint);line-height:1.4;padding-top:2px}
+  .item .b{flex:1;min-width:0}
+  .item .b b{font-weight:600;font-size:14px}
+  .item .b p{margin:3px 0 0;font-size:13px;color:var(--dim);word-break:break-word}
+  .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;
+    background:var(--accbg);color:var(--acc);font-weight:600;margin-left:5px}
+  .badge.w{background:var(--warnbg);color:var(--warn)}
+  .badge.b{background:var(--badbg);color:var(--bad)}
+
+  /* 도움 카드 */
+  .help{display:flex;gap:12px;align-items:center;padding:14px;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:9px}
+  .help .ic{flex:0 0 42px;height:42px;border-radius:12px;display:flex;
+    align-items:center;justify-content:center;font-size:19px;background:var(--accbg)}
+  .help.urgent .ic{background:var(--badbg)}
+  .help .b{flex:1;min-width:0}
+  .help .b b{display:block;font-size:15px;font-weight:600}
+  .help .b span{display:block;font-size:12.5px;color:var(--dim);margin-top:1px}
+  .help .go{flex:0 0 auto;padding:9px 14px;border-radius:11px;
+    background:var(--accbg);color:var(--acc);font-weight:600;font-size:13px}
+  .help.urgent .go{background:var(--bad);color:#fff}
+
+  /* 통계 */
+  .bars{display:flex;align-items:flex-end;gap:2px;height:96px;margin:10px 0 4px}
+  .bars .bar{flex:1;background:var(--accbg);border-radius:3px 3px 0 0;min-height:2px;position:relative}
+  .bars .bar.hi{background:var(--acc)}
+  .axis{display:flex;justify-content:space-between;font-size:10px;color:var(--faint)}
+  .hbar{margin:9px 0}
+  .hbar .lb{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+  .hbar .tr{height:9px;border-radius:99px;background:var(--bg2);overflow:hidden}
+  .hbar .fl{height:100%;background:var(--acc);border-radius:99px}
+  .kpi{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .kpi div{background:var(--bg2);border-radius:13px;padding:13px;text-align:center}
+  .kpi b{display:block;font-size:25px;font-weight:700;color:var(--acc);letter-spacing:-.8px}
+  .kpi span{font-size:12px;color:var(--dim)}
+
+  /* 모달 */
+  #mod{position:fixed;inset:0;background:#0007;display:none;z-index:60;
+    align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+  #mod.on{display:flex}
+  #modbox{background:var(--bg);width:100%;max-width:640px;max-height:92%;
+    border-radius:20px 20px 0 0;overflow-y:auto;
+    padding:18px 16px calc(var(--sb) + 20px);animation:up .22s ease}
+  @keyframes up{from{transform:translateY(24px);opacity:.4}}
+  #modbox h2{margin:0 0 4px;font-size:19px;color:var(--tx);font-weight:700}
+  .grab{width:38px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 14px}
+
+  .note{background:var(--accbg);border-radius:13px;padding:13px 14px;
+    font-size:13.5px;line-height:1.65;color:var(--acc)}
+  .note.w{background:var(--warnbg);color:var(--warn)}
+  .note.b{background:var(--badbg);color:var(--bad)}
+  .quote{background:var(--bg2);border-radius:13px;padding:15px 16px;
+    font-size:15px;line-height:1.7;text-align:center;color:var(--tx)}
+  .sep{height:1px;background:var(--line);margin:16px 0}
+  .link{color:var(--acc);font-weight:600}
+  .hide{display:none!important}
+  .cen{text-align:center}
+  .empty{text-align:center;color:var(--faint);font-size:13.5px;padding:30px 10px;line-height:1.7}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="view">
+
+<!-- ══════════ 온보딩 ══════════ -->
+<section class="pg" id="p-intro">
+  <div style="padding:34px 0 20px;text-align:center">
+    <div style="font-size:44px">🌱</div>
+    <h1 style="font-size:29px;margin:12px 0 6px">오늘한걸음</h1>
+    <p class="muted" style="font-size:15px">오늘 한걸음이면 충분합니다.<br>혼자가 아닙니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>회복하고 있는 영역</h3>
+    <p class="muted" style="margin:-4px 0 11px">여러 개를 고를 수 있습니다.</p>
+    <div class="opts" id="ob-types"></div>
+  </div>
+
+  <div class="card" id="ob-dates-card" style="display:none">
+    <h3>회복 시작일</h3>
+    <p class="muted" style="margin:-4px 0 11px">기억나는 날짜를 넣어주세요. 나중에 고칠 수 있습니다.</p>
+    <div id="ob-dates"></div>
+  </div>
+
+  <button class="btn" id="ob-go">시작하기</button>
+  <p class="tiny cen" style="margin-top:14px">
+    기록은 이 기기 안에만 저장됩니다.<br>어디로도 전송되지 않습니다.
+  </p>
+</section>
+
+<!-- ══════════ 홈 ══════════ -->
+<section class="pg" id="p-home">
+  <div class="sp" style="margin-bottom:12px">
+    <h1 style="margin:0">오늘한걸음</h1>
+    <button id="theme-tg" class="tiny" style="color:var(--faint)">◐</button>
+  </div>
+
+  <div class="days" id="home-days"></div>
+
+  <button id="panic">
+    <b>지금 위험해요</b>
+    <span>한 번 누르면 바로 도와드립니다</span>
+  </button>
+
+  <div id="home-alert"></div>
+
+  <div class="card">
+    <h3>지금 상태는 어떤가요?</h3>
+    <p class="muted" style="margin:-4px 0 11px">해당하는 것을 모두 눌러주세요.</p>
+    <div class="halt" id="home-halt"></div>
+    <div id="halt-tip" style="margin-top:11px"></div>
+  </div>
+
+  <div class="card">
+    <h3>오늘 기분</h3>
+    <div class="moods" id="home-mood"></div>
+  </div>
+
+  <div class="quote" id="home-quote"></div>
+
+  <div style="height:12px"></div>
+  <button class="btn sec" id="go-night">자기 전 하루 마무리 →</button>
+  <div style="height:9px"></div>
+  <button class="btn ghost" id="go-relapse">다시 시작하기</button>
+</section>
+
+<!-- ══════════ 위기 분기 ══════════ -->
+<section class="pg" id="p-panic">
+  <h1>지금 어떤 상태인가요?</h1>
+  <p class="muted" style="margin:-10px 0 18px">가장 가까운 것을 눌러주세요.</p>
+
+  <button class="help" id="pk-urge" style="width:100%;text-align:left">
+    <span class="ic">🌊</span>
+    <span class="b"><b>술·도박 생각이 올라와요</b>
+      <span>충동은 파도처럼 지나갑니다. 같이 버텨봐요</span></span>
+    <span class="go">시작</span>
+  </button>
+
+  <button class="help urgent" id="pk-with" style="width:100%;text-align:left">
+    <span class="ic">🚑</span>
+    <span class="b"><b>몸이 이상해요</b>
+      <span>손떨림·식은땀·경련·환각이 있다면 응급 상황입니다</span></span>
+    <span class="go">확인</span>
+  </button>
+
+  <button class="help urgent" id="pk-life" style="width:100%;text-align:left">
+    <span class="ic">🆘</span>
+    <span class="b"><b>죽고 싶어요</b>
+      <span>지금 바로 사람과 연결해 드립니다</span></span>
+    <span class="go">연결</span>
+  </button>
+
+  <div style="height:8px"></div>
+  <button class="btn ghost" onclick="go('home')">돌아가기</button>
+</section>
+
+<!-- ══════════ 충동 대응 ══════════ -->
+<section class="pg" id="p-urge">
+  <h1>지금 충동이 얼마나 센가요?</h1>
+  <div class="card">
+    <div class="lvn" id="ur-n">5</div>
+    <div class="lv"><input type="range" id="ur-r" min="0" max="10" value="5"></div>
+    <div class="axis"><span>0 · 없음</span><span>10 · 견디기 힘듦</span></div>
+  </div>
+
+  <div class="card">
+    <h3>어떤 생각이 드나요?</h3>
+    <p class="muted" style="margin:-4px 0 11px">재발 직전에 자주 떠오르는 생각들입니다.</p>
+    <div class="opts" id="ur-th"></div>
+  </div>
+
+  <button class="btn" id="ur-start">5분만 같이 버텨보기</button>
+  <div style="height:9px"></div>
+  <button class="btn sec" id="ur-help">지금 사람에게 도움 받기</button>
+  <div style="height:9px"></div>
+  <button class="btn ghost" onclick="go('home')">괜찮아졌어요</button>
+</section>
+
+<!-- ══════════ 타이머 ══════════ -->
+<section class="pg" id="p-timer">
+  <div id="tmwrap">
+    <div class="ring">
+      <svg viewBox="0 0 238 238">
+        <circle class="bgc" cx="119" cy="119" r="106"></circle>
+        <circle class="fgc" id="tm-arc" cx="119" cy="119" r="106"></circle>
+      </svg>
+      <div class="mid">
+        <div class="t" id="tm-t">5:00</div>
+        <div class="s" id="tm-s">1단계 · 첫 5분</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="quote" id="tm-msg" style="margin:16px 0 12px"></div>
+
+  <div id="breath" class="card hide">
+    <div class="bwrap"><div class="bcirc" id="bc">들이쉬기</div></div>
+    <p class="muted cen" style="margin:12px 0 0">4초 들이쉬고 · 6초 내쉬기</p>
+  </div>
+
+  <button class="btn sec" id="tm-breath">호흡 같이 하기</button>
+  <div style="height:9px"></div>
+  <button class="btn sec" id="tm-help">도움 찾기</button>
+  <div style="height:9px"></div>
+  <button class="btn ghost" id="tm-stop">그만두기</button>
+</section>
+
+<!-- ══════════ 타이머 종료 ══════════ -->
+<section class="pg" id="p-after">
+  <div class="cen" style="padding:22px 0 6px">
+    <div style="font-size:42px">🌊</div>
+    <h1 style="margin:12px 0 4px" id="af-h">파도를 넘겼습니다</h1>
+    <p class="muted" id="af-p"></p>
+  </div>
+
+  <div class="card">
+    <h3>지금 충동은 어느 정도인가요?</h3>
+    <div class="lvn" id="af-n">5</div>
+    <div class="lv"><input type="range" id="af-r" min="0" max="10" value="5"></div>
+    <div class="axis"><span>0 · 없음</span><span>10 · 견디기 힘듦</span></div>
+  </div>
+
+  <div id="af-cmp"></div>
+
+  <button class="btn" id="af-more">조금 더 버텨보기</button>
+  <div style="height:9px"></div>
+  <button class="btn sec" id="af-help">사람에게 도움 받기</button>
+  <div style="height:9px"></div>
+  <button class="btn ghost" id="af-done">마치기</button>
+</section>
+
+<!-- ══════════ 자기 전 ══════════ -->
+<section class="pg" id="p-night">
+  <h1>오늘 하루, 수고하셨습니다</h1>
+
+  <div class="card">
+    <h3>오늘 기분은 어땠나요?</h3>
+    <div class="moods" id="ni-mood"></div>
+  </div>
+
+  <div class="card">
+    <h3>오늘 충동이 있었나요?</h3>
+    <div class="opts" id="ni-urge"></div>
+  </div>
+
+  <div class="card">
+    <h3>오늘 하루를 지켰나요?</h3>
+    <div class="opts" id="ni-kept"></div>
+    <p class="tiny" style="margin:10px 0 0">어떤 답이든 괜찮습니다. 기록하는 것 자체가 회복입니다.</p>
+  </div>
+
+  <div class="card">
+    <h3>한 줄 메모 <span class="tiny" style="font-weight:400">(선택)</span></h3>
+    <textarea id="ni-note" placeholder="오늘 어떤 하루였나요"></textarea>
+  </div>
+
+  <button class="btn" id="ni-save">저장하고 마치기</button>
+  <div style="height:9px"></div>
+  <button class="btn ghost" onclick="go('home')">다음에 할게요</button>
+</section>
+
+<!-- ══════════ 다시 시작 ══════════ -->
+<section class="pg" id="p-relapse">
+  <div class="note" style="margin-bottom:16px">
+    실수는 회복 과정의 일부입니다.<br>
+    여기까지 온 시간은 사라지지 않습니다. 오늘 다시 시작하면 됩니다.
+  </div>
+
+  <h1 style="font-size:20px">무슨 일이 있었는지 알아봅시다</h1>
+
+  <div class="card">
+    <h3>어떤 영역인가요?</h3>
+    <div class="opts" id="rl-type"></div>
+  </div>
+
+  <div class="card">
+    <h3>그때 어떤 상태였나요?</h3>
+    <div class="halt" id="rl-halt"></div>
+  </div>
+
+  <div class="card">
+    <h3>어떤 상황이었나요? <span class="tiny" style="font-weight:400">(선택)</span></h3>
+    <textarea id="rl-note" placeholder="어디에서, 누구와, 어떤 일이 있었는지"></textarea>
+  </div>
+
+  <div class="card">
+    <h3>회복 시작일</h3>
+    <div class="opts" id="rl-when"></div>
+    <p class="tiny" style="margin:11px 0 0">
+      연속 일수는 새로 세지만, <b>누적 회복일은 그대로 유지됩니다.</b>
+      지금까지 지켜온 날들은 없어지지 않습니다.
+    </p>
+  </div>
+
+  <button class="btn" id="rl-save">기록하고 다시 시작</button>
+  <div style="height:9px"></div>
+  <button class="btn ghost" onclick="go('home')">돌아가기</button>
+</section>
+
+<!-- ══════════ 기록 ══════════ -->
+<section class="pg" id="p-rec">
+  <h1>기록</h1>
+  <div class="opts" id="rec-tab" style="margin-bottom:14px"></div>
+  <div id="rec-body"></div>
+</section>
+
+<!-- ══════════ 도움 ══════════ -->
+<section class="pg" id="p-help">
+  <h1>도움 찾기</h1>
+
+  <div class="note b" style="margin-bottom:16px">
+    지금 생명이 위험하거나 몸에 이상이 있다면 망설이지 말고 <b>119</b>에 전화하세요.
+  </div>
+
+  <h2>24시간 상담전화</h2>
+  <div id="help-lines"></div>
+
+  <h2>자조모임</h2>
+  <div id="help-groups"></div>
+
+  <h2>중독관리통합지원센터</h2>
+  <div id="help-centers"></div>
+
+  <h2>중독 전문병원</h2>
+  <div id="help-hosp"></div>
+
+  <div class="sep"></div>
+  <p class="tiny">
+    목록은 이 앱에 기본으로 담긴 자료입니다. 방문 전에 운영 시간과 연락처를
+    한 번 더 확인해주세요. 내 정보 → 자원 목록에서 직접 추가할 수 있습니다.
+  </p>
+</section>
+
+<!-- ══════════ 내 정보 ══════════ -->
+<section class="pg" id="p-me">
+  <h1>내 정보</h1>
+
+  <div class="card">
+    <h3>회복하고 있는 영역</h3>
+    <div class="opts" id="me-types"></div>
+    <div id="me-dates" style="margin-top:14px"></div>
+  </div>
+
+  <div class="card">
+    <h3>회복 목표 <span class="tiny" style="font-weight:400">(선택)</span></h3>
+    <textarea id="me-goal" placeholder="무엇을 위해 회복하고 있나요"></textarea>
+    <div style="height:9px"></div>
+    <button class="btn sec sm" id="me-goal-save">저장</button>
+  </div>
+
+  <div class="card">
+    <h3>위험한 시간대</h3>
+    <p class="muted" style="margin:-4px 0 11px">
+      예전에 주로 마시거나 하던 시간을 골라두면, 그 시간에 앱을 열었을 때
+      홈 화면에서 먼저 챙겨드립니다.
+    </p>
+    <div class="opts" id="me-hours"></div>
+  </div>
+
+  <div class="card">
+    <h3>복약</h3>
+    <p class="muted" style="margin:-4px 0 11px">약 이름과 복용 시간을 적어두면 홈에서 체크할 수 있습니다.</p>
+    <div id="me-meds"></div>
+    <div class="row" style="margin-top:10px">
+      <input id="me-med-n" class="grow" placeholder="약 이름">
+      <input id="me-med-t" style="width:104px" placeholder="08:00">
+      <button class="btn sec sm" id="me-med-add" style="width:auto;padding:11px 15px">추가</button>
+    </div>
+    <p class="tiny" style="margin:11px 0 0">
+      약에 대한 설명이나 복용 판단은 이 앱이 하지 않습니다.
+      처방한 의사나 약사에게 확인하세요.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>자원 목록 (선택)</h3>
+    <p class="muted" style="margin:-4px 0 11px">
+      구글 스프레드시트에 자조모임·센터·병원 목록을 두면 앱이 그것을 읽어옵니다.
+      비워두면 기본 목록을 씁니다.
+    </p>
+    <input id="me-sheet" placeholder="Apps Script 웹앱 주소">
+    <div style="height:9px"></div>
+    <button class="btn sec sm" id="me-sheet-save">연결하고 새로 받기</button>
+    <p class="tiny" id="me-sheet-st" style="margin:10px 0 0"></p>
+  </div>
+
+  <div class="card">
+    <h3>내 기록</h3>
+    <p class="muted" style="margin:-4px 0 11px">
+      기록은 이 기기의 브라우저 안에만 있습니다. 브라우저 데이터를 지우면
+      함께 사라지니, 가끔 파일로 내보내 두세요.
+    </p>
+    <button class="btn sec sm" id="me-export">파일로 내보내기</button>
+    <div style="height:9px"></div>
+    <button class="btn ghost sm" id="me-import">파일에서 불러오기</button>
+    <input type="file" id="me-file" accept="application/json" class="hide">
+    <div style="height:9px"></div>
+    <button class="btn ghost sm" id="me-wipe" style="color:var(--bad);border-color:var(--bad)">전체 지우기</button>
+  </div>
+
+  <div class="card">
+    <h3>홈 화면에 추가하기</h3>
+    <p class="muted" style="margin:-4px 0 0">
+      아이폰은 사파리에서 <b>공유 → 홈 화면에 추가</b>,
+      안드로이드는 크롬 메뉴에서 <b>홈 화면에 추가</b>를 누르면
+      앱처럼 열리고 인터넷 없이도 씁니다.
+    </p>
+  </div>
+
+  <div class="note w">
+    이 앱은 치료를 대신하지 않습니다. 회복을 돕는 도구입니다.
+    필요할 때는 반드시 전문가와 연결되세요.
+  </div>
+  <p class="tiny cen" style="margin-top:14px" id="me-ver"></p>
+</section>
+
+  </div><!-- /view -->
+
+  <nav id="tabs">
+    <button data-t="home"><svg viewBox="0 0 24 24"><path d="M3 10.2 12 3l9 7.2V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>홈</button>
+    <button data-t="rec"><svg viewBox="0 0 24 24"><path d="M5 3h11l4 4v14H5z"/><path d="M9 12h7M9 16h5M9 8h4"/></svg>기록</button>
+    <button data-t="help"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 21 11c0 5.4-7 10-7 10z"/></svg>도움</button>
+    <button data-t="me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>내정보</button>
+  </nav>
+</div>
+
+<div id="mod"><div id="modbox"><div class="grab"></div><div id="modin"></div></div></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   오늘한걸음 — 중독 회복 지원 웹앱
+   기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
+   ═══════════════════════════════════════════════════════ */
+const BUILD = 'v1';
+const KEY = 'ohg.v1';
+
+/* ── 저장 ── */
+const BLANK = {
+  ver: 1, started: false,
+  types: [], dates: {}, cum: {}, goal: '',
+  hours: [], meds: [], medLog: [],
+  moods: [], halts: [], urges: [], nights: [], relapses: [],
+  sheet: '', res: null, resAt: 0, theme: ''
+};
+let S = load();
+
+function load(){
+  try{
+    const r = localStorage.getItem(KEY);
+    if(!r) return JSON.parse(JSON.stringify(BLANK));
+    return Object.assign(JSON.parse(JSON.stringify(BLANK)), JSON.parse(r));
+  }catch(e){ return JSON.parse(JSON.stringify(BLANK)); }
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch(e){ toast('저장 공간이 부족합니다. 내 정보에서 오래된 기록을 내보내주세요.'); }
+}
+
+/* ── 상수 ── */
+const TYPES = [
+  {k:'alcohol', n:'알코올', v:'단주', e:'🍺'},
+  {k:'gambling', n:'도박',  v:'단도박', e:'🎰'},
+  {k:'drug',    n:'약물',   v:'단약', e:'💊'},
+  {k:'etc',     n:'기타',   v:'회복', e:'🌱'}
+];
+const HALT = [
+  {k:'h', e:'🍚', l:'배고픔', tip:'뭐라도 좀 드세요. 배고픔은 충동을 크게 키웁니다.'},
+  {k:'a', e:'🔥', l:'화남',   tip:'잠시 자리를 옮겨보세요. 호흡을 같이 해도 좋습니다.'},
+  {k:'l', e:'🌙', l:'외로움', tip:'오늘 모임이 있는지 봐두면 좋겠습니다. 도움 찾기에 있습니다.'},
+  {k:'t', e:'😪', l:'피곤함', tip:'무리하지 마세요. 피곤할 때 판단이 가장 흐려집니다.'}
+];
+const MOODS = [
+  {v:5, e:'😄', l:'좋음'}, {v:4, e:'🙂', l:'괜찮음'}, {v:3, e:'😐', l:'그저그럼'},
+  {v:2, e:'😟', l:'힘듦'}, {v:1, e:'😢', l:'많이힘듦'}
+];
+const THOUGHTS = [
+  '딱 한 잔만', '이번 한 번만', '괜찮을 것 같다', '나는 조절할 수 있다',
+  '오늘은 특별한 날이니까', '아무도 모를 거야', '이 정도는 괜찮아', '스트레스 때문에 어쩔 수 없어'
+];
+const QUOTES = [
+  '오늘 하루만 버텨봅시다.',
+  '충동은 파도처럼 지나갑니다. 넘기면 잦아듭니다.',
+  '완벽할 필요는 없습니다. 다시 시작하면 됩니다.',
+  '오늘 한걸음이면 충분합니다.',
+  '지금 이 순간을 넘긴 것만으로 충분히 잘하고 있습니다.',
+  '혼자가 아닙니다. 도움을 청하는 것은 용기입니다.',
+  '어제보다 오늘, 오늘보다 내일. 조금씩이면 됩니다.',
+  '무너진 날이 있어도 여기까지 온 시간은 사라지지 않습니다.',
+  '배고프고 화나고 외롭고 피곤할 때, 나를 먼저 돌봐주세요.',
+  '회복은 직선이 아닙니다. 굽어도 앞으로 가고 있습니다.'
+];
+const STAGES = [
+  {sec:300,  n:'1단계 · 첫 5분',  msg:'가장 중요한 5분입니다. 지금은 아무것도 결정하지 않아도 됩니다.'},
+  {sec:900,  n:'2단계 · 15분',   msg:'잘 버티고 있습니다. 충동은 이미 정점을 지나고 있을 겁니다.'},
+  {sec:1800, n:'3단계 · 30분',   msg:'큰 파도를 넘고 있습니다. 이 경험은 다음번에 큰 힘이 됩니다.'}
+];
+
+/* 기본 자원 — 시트를 연결하지 않아도 앱이 작동하도록 내장합니다 */
+const LINES = [
+  {n:'자살예방 상담전화', t:'109', d:'24시간 · 무료 · 죽고 싶은 마음이 들 때', u:1},
+  {n:'응급 신고', t:'119', d:'손떨림·경련·환각 등 금단 증상이 있을 때', u:1},
+  {n:'정신건강 상담전화', t:'1577-0199', d:'24시간 · 지역 정신건강복지센터 연결'},
+  {n:'도박문제 헬프라인', t:'1336', d:'24시간 · 한국도박문제예방치유원'},
+  {n:'보건복지상담센터', t:'129', d:'복지·의료 서비스 안내'},
+  {n:'마약류 중독 상담', t:'1899-0893', d:'식약처 · 상담 및 치료 연계 안내'}
+];
+const GROUPS = [
+  {n:'AA 한국연합 (알코올)', d:'전국 온·오프라인 모임', w:'https://www.aakorea.org'},
+  {n:'GA 한국 (도박)', d:'단도박 모임 안내', w:'https://www.dandobak.or.kr'},
+  {n:'NA 한국 (약물)', d:'익명의 약물중독자들', w:'https://www.nakorea.or.kr'},
+  {n:'Al-Anon (가족)', d:'알코올 문제가 있는 가족·친구를 위한 모임', w:'https://alanonkorea.or.kr'}
+];
+const CENTERS = [
+  {n:'중독관리통합지원센터 찾기', d:'전국 센터 목록 · 무료 상담과 사례관리',
+   w:'https://www.mohw.go.kr/menu.es?mid=a10706040100'}
+];
+const HOSP = [
+  {n:'정신건강 의료기관 찾기', d:'국립정신건강센터 · 지역별 검색',
+   w:'https://www.mentalhealth.go.kr'}
+];
+
+/* ── 도구 ── */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const el = (t,c,h) => { const n=document.createElement(t); if(c)n.className=c; if(h!=null)n.innerHTML=h; return n; };
+const pad = n => String(n).padStart(2,'0');
+/* 날짜는 반드시 '이 기기의 시간'으로 셉니다.
+   toISOString() 은 UTC 라서 새벽 0~9시 기록이 전날로 밀립니다. 여러 번 당하는 자리입니다. */
+const ymd = v => { const d = new Date(v); return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); };
+const today = () => ymd(Date.now());
+const esc = s => String(s==null?'':s).replace(/[<>&"]/g, m => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[m]));
+
+function daysBetween(from, to){
+  if(!from) return 0;
+  const a = new Date(from + 'T00:00:00'), b = new Date((to||today()) + 'T00:00:00');
+  return Math.max(0, Math.round((b-a)/86400000));
+}
+function typeOf(k){ return TYPES.find(t=>t.k===k) || TYPES[3]; }
+function when(ts){
+  const d = new Date(ts);
+  const dd = daysBetween(ymd(d), today());
+  const hm = pad(d.getHours()) + ':' + pad(d.getMinutes());
+  if(dd === 0) return '오늘\n' + hm;
+  if(dd === 1) return '어제\n' + hm;
+  if(dd < 7) return dd + '일 전\n' + hm;
+  return (d.getMonth()+1) + '/' + d.getDate() + '\n' + hm;
+}
+
+let toastT;
+function toast(msg){
+  let t = $('#toast');
+  if(!t){
+    t = el('div', null, '');
+    t.id = 'toast';
+    t.style.cssText = 'position:fixed;left:50%;bottom:calc(var(--sb) + 78px);transform:translateX(-50%);'+
+      'background:#1f2a28ee;color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;z-index:90;'+
+      'max-width:86%;text-align:center;line-height:1.5;box-shadow:0 4px 16px #0003';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>{ t.style.display='none'; }, 2600);
+}
+
+function modal(html){
+  $('#modin').innerHTML = html;
+  $('#mod').classList.add('on');
+}
+function closeModal(){ $('#mod').classList.remove('on'); }
+$('#mod').addEventListener('click', e => { if(e.target.id === 'mod') closeModal(); });
+
+/* ── 라우팅 ── */
+const TABBED = ['home','rec','help','me'];
+let cur = 'home';
+
+function go(p){
+  $$('.pg').forEach(n => n.classList.remove('on'));
+  const t = $('#p-' + p);
+  if(t) t.classList.add('on');
+  cur = p;
+  $('#tabs').style.display = (p === 'intro') ? 'none' : 'flex';
+  $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === p));
+  $('#view').scrollTop = 0;
+  if(p === 'home') drawHome();
+  if(p === 'rec')  drawRec();
+  if(p === 'help') drawHelp();
+  if(p === 'me')   drawMe();
+  if(p === 'relapse') drawRelapse();
+  if(p === 'night')   drawNight();
+  if(p === 'urge')    drawUrge();
+}
+$$('#tabs button').forEach(b => b.onclick = () => go(b.dataset.t));
+
+/* ══════════ 온보딩 ══════════ */
+let obTypes = [], obDates = {};
+
+function drawIntro(){
+  const box = $('#ob-types');
+  box.innerHTML = '';
+  TYPES.forEach(t => {
+    const b = el('button', 'opt wide' + (obTypes.includes(t.k) ? ' on' : ''), t.e + ' ' + t.n);
+    b.onclick = () => {
+      const i = obTypes.indexOf(t.k);
+      if(i < 0){ obTypes.push(t.k); if(!obDates[t.k]) obDates[t.k] = today(); }
+      else { obTypes.splice(i,1); }
+      drawIntro();
+    };
+    box.appendChild(b);
+  });
+
+  $('#ob-dates-card').style.display = obTypes.length ? 'block' : 'none';
+  const d = $('#ob-dates');
+  d.innerHTML = '';
+  obTypes.forEach(k => {
+    const t = typeOf(k);
+    const r = el('div', 'row', '<div class="grow">' + t.e + ' ' + esc(t.v) + ' 시작일</div>');
+    const inp = el('input');
+    inp.type = 'date';
+    inp.style.width = '156px';
+    inp.value = obDates[k] || today();
+    inp.max = today();
+    inp.onchange = () => { obDates[k] = inp.value; };
+    r.appendChild(inp);
+    r.style.marginBottom = '9px';
+    d.appendChild(r);
+  });
+}
+
+$('#ob-go').onclick = () => {
+  if(!obTypes.length){ toast('회복하고 있는 영역을 하나 이상 골라주세요.'); return; }
+  S.types = obTypes.slice();
+  S.dates = {};
+  S.cum = {};
+  obTypes.forEach(k => { S.dates[k] = obDates[k] || today(); S.cum[k] = 0; });
+  S.started = true;
+  save();
+  go('home');
+};
+
+/* ══════════ 홈 ══════════ */
+function todayRec(arr){
+  const t = today();
+  return arr.filter(r => ymd(r.t) === t);
+}
+
+function drawHome(){
+  /* 회복일 */
+  const d = $('#home-days');
+  d.innerHTML = '';
+  if(!S.types.length){
+    d.innerHTML = '<p class="muted cen" style="margin:6px 0">내 정보에서 회복 영역을 골라주세요.</p>';
+  }
+  S.types.forEach(k => {
+    const t = typeOf(k), n = daysBetween(S.dates[k]);
+    const cum = (S.cum[k] || 0) + n;
+    const r = el('div', 'dayrow');
+    r.innerHTML = '<span class="nm">' + esc(t.v) + '</span>' +
+      '<span class="n">' + n + '</span><span class="u">일째</span>' +
+      (cum > n ? '<span class="cum">누적 ' + cum + '일</span>' : '');
+    d.appendChild(r);
+  });
+
+  /* 위험 시간대 안내 */
+  const h = new Date().getHours();
+  const a = $('#home-alert');
+  a.innerHTML = '';
+  if((S.hours || []).includes(h)){
+    a.innerHTML = '<div class="note w" style="margin-bottom:12px">' +
+      '지금은 예전에 자주 마시거나 하던 시간대입니다.<br>오늘은 어떻게 보내고 계신가요?</div>';
+  } else if(!todayRec(S.moods).length && h >= 20){
+    a.innerHTML = '<div class="note" style="margin-bottom:12px">' +
+      '오늘 아직 기분 체크를 안 하셨네요. 자기 전에 잠깐만요.</div>';
+  }
+
+  /* 복약 */
+  if((S.meds || []).length){
+    const done = todayRec(S.medLog).map(m => m.n);
+    let html = '<div class="card tight"><h3>오늘 복약</h3>';
+    S.meds.forEach((m, i) => {
+      const ok = done.includes(m.n);
+      html += '<div class="sp" style="padding:6px 0"><span>' +
+        (ok ? '✅ ' : '⬜ ') + esc(m.n) +
+        (m.t ? ' <span class="tiny">' + esc(m.t) + '</span>' : '') + '</span>' +
+        (ok ? '<span class="tiny">완료</span>'
+            : '<button class="btn sec sm" style="width:auto;padding:7px 13px" data-med="' + i + '">체크</button>') +
+        '</div>';
+    });
+    html += '</div>';
+    a.insertAdjacentHTML('beforeend', html);
+    a.querySelectorAll('[data-med]').forEach(b => b.onclick = () => {
+      S.medLog.push({ t: Date.now(), n: S.meds[+b.dataset.med].n });
+      save(); drawHome();
+    });
+  }
+
+  /* HALT */
+  const last = todayRec(S.halts).slice(-1)[0];
+  const on = last ? last.v : [];
+  const hb = $('#home-halt');
+  hb.innerHTML = '';
+  HALT.forEach(x => {
+    const b = el('button', on.includes(x.k) ? 'on' : '',
+      '<span class="e">' + x.e + '</span><span class="l">' + x.l + '</span>');
+    b.onclick = () => {
+      const v = on.slice(), i = v.indexOf(x.k);
+      if(i < 0) v.push(x.k); else v.splice(i,1);
+      if(last) last.v = v;
+      else S.halts.push({ t: Date.now(), v: v });
+      save(); drawHome();
+    };
+    hb.appendChild(b);
+  });
+  const tip = $('#halt-tip');
+  tip.innerHTML = on.length
+    ? '<div class="note w">' + HALT.filter(x => on.includes(x.k)).map(x => esc(x.tip)).join('<br>') + '</div>'
+    : '';
+
+  /* 감정 */
+  const m = todayRec(S.moods).slice(-1)[0];
+  const mb = $('#home-mood');
+  mb.innerHTML = '';
+  MOODS.forEach(x => {
+    const b = el('button', (m && m.v === x.v) ? 'on' : '',
+      '<span class="e">' + x.e + '</span><span class="l">' + x.l + '</span>');
+    b.onclick = () => {
+      if(m) m.v = x.v;
+      else S.moods.push({ t: Date.now(), v: x.v });
+      save(); drawHome(); toast('기록했습니다.');
+    };
+    mb.appendChild(b);
+  });
+
+  /* 오늘의 말 — 날짜에 따라 고정되게 */
+  const seed = Math.floor(Date.now() / 86400000);
+  $('#home-quote').textContent = QUOTES[seed % QUOTES.length];
+}
+
+$('#panic').onclick = () => go('panic');
+$('#go-night').onclick = () => go('night');
+$('#go-relapse').onclick = () => go('relapse');
+
+$('#theme-tg').onclick = () => {
+  S.theme = (S.theme === 'dark') ? '' : 'dark';
+  document.body.classList.toggle('dark', S.theme === 'dark');
+  save();
+};
+
+/* ══════════ 위기 분기 ══════════ */
+$('#pk-urge').onclick = () => go('urge');
+
+$('#pk-with').onclick = () => modal(
+  '<h2>지금 확인해주세요</h2>' +
+  '<p class="muted" style="margin:6px 0 14px">아래 중 하나라도 있다면 <b>의학적 응급 상황</b>입니다. ' +
+  '앱의 호흡이나 음악으로 넘길 수 있는 상태가 아닙니다.</p>' +
+  '<div class="note b" style="margin-bottom:14px">' +
+  '손이 심하게 떨림 · 식은땀 · 구토 · 심한 불안<br>' +
+  '경련(발작) · 헛것이 보이거나 들림 · 시간과 장소를 모르겠음<br>' +
+  '가슴이 심하게 뛰거나 아픔</div>' +
+  '<a class="btn danger" href="tel:119">119 전화하기</a>' +
+  '<div style="height:9px"></div>' +
+  '<a class="btn sec" href="tel:1577-0199">정신건강 상담전화 1577-0199</a>' +
+  '<div style="height:9px"></div>' +
+  '<button class="btn ghost" onclick="closeModal()">해당하지 않습니다</button>' +
+  '<p class="tiny" style="margin-top:13px">술을 갑자기 끊었을 때 오는 금단 증상은 생명을 위협할 수 있습니다. ' +
+  '판단이 서지 않으면 119에 물어보는 것이 안전합니다.</p>'
+);
+
+$('#pk-life').onclick = () => modal(
+  '<h2>혼자 견디지 않아도 됩니다</h2>' +
+  '<p class="muted" style="margin:6px 0 14px">지금 바로 이야기할 수 있는 곳이 있습니다. ' +
+  '24시간 열려 있고 무료입니다.</p>' +
+  '<a class="btn danger" href="tel:109">109 · 자살예방 상담전화</a>' +
+  '<div style="height:9px"></div>' +
+  '<a class="btn sec" href="tel:1577-0199">1577-0199 · 정신건강 상담전화</a>' +
+  '<div style="height:9px"></div>' +
+  '<a class="btn sec" href="tel:119">119 · 지금 위급하다면</a>' +
+  '<div class="sep"></div>' +
+  '<p class="muted">전화가 어렵다면, 곁에 있는 사람 아무에게나 지금 상태를 말해주세요. ' +
+  '말하는 것만으로도 달라집니다.</p>' +
+  '<div style="height:12px"></div>' +
+  '<button class="btn ghost" onclick="closeModal()">닫기</button>'
+);
+
+/* ══════════ 충동 대응 ══════════ */
+let urge = { before: 5, after: null, thoughts: [], start: 0, type: null };
+
+function drawUrge(){
+  urge = { before: 5, after: null, thoughts: [], start: 0, type: S.types[0] || 'etc' };
+  $('#ur-r').value = 5;
+  $('#ur-n').textContent = 5;
+  const box = $('#ur-th');
+  box.innerHTML = '';
+  THOUGHTS.forEach(t => {
+    const b = el('button', 'opt', '"' + t + '"');
+    b.onclick = () => {
+      const i = urge.thoughts.indexOf(t);
+      if(i < 0){ urge.thoughts.push(t); b.classList.add('on'); }
+      else { urge.thoughts.splice(i,1); b.classList.remove('on'); }
+    };
+    box.appendChild(b);
+  });
+}
+$('#ur-r').oninput = e => { urge.before = +e.target.value; $('#ur-n').textContent = e.target.value; };
+$('#ur-start').onclick = () => { startTimer(0); };
+$('#ur-help').onclick = () => go('help');
+
+/* ══════════ 타이머 ══════════ */
+let tm = { stage: 0, end: 0, id: null, breathId: null };
+const CIRC = 2 * Math.PI * 106;
+
+function startTimer(stage){
+  tm.stage = stage;
+  const st = STAGES[stage];
+  tm.end = Date.now() + st.sec * 1000;
+  if(!urge.start) urge.start = Date.now();
+  $('#tm-s').textContent = st.n;
+  $('#tm-msg').textContent = st.msg;
+  $('#tm-arc').style.strokeDasharray = CIRC;
+  $('#breath').classList.add('hide');
+  stopBreath();
+  go('timer');
+  tick();
+  clearInterval(tm.id);
+  tm.id = setInterval(tick, 250);
+}
+
+function tick(){
+  const st = STAGES[tm.stage];
+  const left = Math.max(0, Math.round((tm.end - Date.now()) / 1000));
+  $('#tm-t').textContent = Math.floor(left/60) + ':' + pad(left % 60);
+  $('#tm-arc').style.strokeDashoffset = CIRC * (1 - left / st.sec);
+  if(left <= 0){
+    clearInterval(tm.id);
+    tm.id = null;
+    stopBreath();
+    if(navigator.vibrate) try{ navigator.vibrate([200,100,200]); }catch(e){}
+    showAfter();
+  }
+}
+
+function stopTimer(){
+  clearInterval(tm.id); tm.id = null;
+  stopBreath();
+}
+
+$('#tm-stop').onclick = () => { stopTimer(); showAfter(true); };
+$('#tm-help').onclick = () => { stopTimer(); go('help'); };
+$('#tm-breath').onclick = () => {
+  const b = $('#breath');
+  if(b.classList.contains('hide')){ b.classList.remove('hide'); startBreath(); $('#tm-breath').textContent = '호흡 멈추기'; }
+  else { b.classList.add('hide'); stopBreath(); $('#tm-breath').textContent = '호흡 같이 하기'; }
+};
+
+function startBreath(){
+  const c = $('#bc');
+  let phase = 0;
+  const step = () => {
+    if(phase === 0){ c.className = 'bcirc in'; c.textContent = '들이쉬기'; phase = 1; tm.breathId = setTimeout(step, 4000); }
+    else { c.className = 'bcirc out'; c.textContent = '내쉬기'; phase = 0; tm.breathId = setTimeout(step, 6000); }
+  };
+  step();
+}
+function stopBreath(){
+  clearTimeout(tm.breathId); tm.breathId = null;
+  const c = $('#bc'); if(c){ c.className = 'bcirc'; c.textContent = '들이쉬기'; }
+}
+
+/* ══════════ 타이머 종료 ══════════ */
+function showAfter(early){
+  const st = STAGES[tm.stage];
+  $('#af-h').textContent = early ? '여기까지도 괜찮습니다' : (tm.stage === 2 ? '큰 파도를 넘겼습니다' : '파도를 넘겼습니다');
+  $('#af-p').textContent = early
+    ? '멈춘 것도 하나의 선택입니다. 지금 상태만 알려주세요.'
+    : st.n.split('·')[1].trim() + ' 동안 버티셨습니다.';
+  $('#af-r').value = urge.before;
+  $('#af-n').textContent = urge.before;
+  urge.after = urge.before;
+  afCmp();
+  $('#af-more').style.display = (tm.stage < 2 && !early) ? 'block' : 'none';
+  $('#af-more').textContent = tm.stage === 0 ? '10분 더 버텨보기' : '15분 더 버텨보기';
+  go('after');
+}
+
+function afCmp(){
+  const d = urge.before - urge.after;
+  const c = $('#af-cmp');
+  if(d > 0) c.innerHTML = '<div class="note">시작할 때 ' + urge.before + ' → 지금 ' + urge.after +
+    '. <b>' + d + '만큼 내려갔습니다.</b><br>충동은 정말로 지나갑니다. 오늘 그것을 직접 확인하셨습니다.</div>';
+  else if(d === 0) c.innerHTML = '<div class="note w">아직 그대로군요. 조금 더 버텨보거나, 사람에게 연결하는 것이 좋겠습니다.</div>';
+  else c.innerHTML = '<div class="note b">더 올라갔습니다. 혼자 두면 위험합니다. 지금 도움을 받으세요.</div>';
+}
+$('#af-r').oninput = e => {
+  urge.after = +e.target.value;
+  $('#af-n').textContent = e.target.value;
+  afCmp();
+};
+
+$('#af-more').onclick = () => startTimer(Math.min(2, tm.stage + 1));
+$('#af-help').onclick = () => { saveUrge(); go('help'); };
+$('#af-done').onclick = () => { saveUrge(); toast('기록했습니다. 잘 넘기셨습니다.'); go('home'); };
+
+function saveUrge(){
+  S.urges.push({
+    t: urge.start || Date.now(),
+    type: urge.type,
+    b: urge.before,
+    a: urge.after == null ? urge.before : urge.after,
+    sec: urge.start ? Math.round((Date.now() - urge.start) / 1000) : 0,
+    th: urge.thoughts.slice()
+  });
+  save();
+  urge.start = 0;
+}
+
+/* ══════════ 자기 전 ══════════ */
+let night = { mood: null, urge: null, kept: null };
+
+function drawNight(){
+  night = { mood: null, urge: null, kept: null };
+  const mb = $('#ni-mood'); mb.innerHTML = '';
+  MOODS.forEach(x => {
+    const b = el('button', '', '<span class="e">' + x.e + '</span><span class="l">' + x.l + '</span>');
+    b.onclick = () => { night.mood = x.v; [...mb.children].forEach(c => c.classList.remove('on')); b.classList.add('on'); };
+    mb.appendChild(b);
+  });
+  const pick = (box, opts, key) => {
+    box.innerHTML = '';
+    opts.forEach(o => {
+      const b = el('button', 'opt wide', o.l);
+      b.onclick = () => { night[key] = o.v; [...box.children].forEach(c => c.classList.remove('on')); b.classList.add('on'); };
+      box.appendChild(b);
+    });
+  };
+  pick($('#ni-urge'), [
+    {v:0,l:'없었어요'}, {v:1,l:'조금 있었어요'}, {v:2,l:'많이 힘들었어요'}
+  ], 'urge');
+  pick($('#ni-kept'), [
+    {v:1,l:'네, 지켰어요'}, {v:0,l:'오늘은 무너졌어요'}
+  ], 'kept');
+  $('#ni-note').value = '';
+}
+
+$('#ni-save').onclick = () => {
+  S.nights.push({ t: Date.now(), m: night.mood, u: night.urge, k: night.kept, n: $('#ni-note').value.trim() });
+  if(night.mood != null) S.moods.push({ t: Date.now(), v: night.mood });
+  save();
+  if(night.kept === 0){
+    modal('<h2>오늘은 힘든 날이었군요</h2>' +
+      '<p class="muted" style="margin:6px 0 14px">실수는 회복 과정의 일부입니다. ' +
+      '당신은 실패한 사람이 아닙니다. 무슨 일이 있었는지 같이 살펴볼까요?</p>' +
+      '<button class="btn" onclick="closeModal();go(\'relapse\')">같이 살펴보기</button>' +
+      '<div style="height:9px"></div>' +
+      '<button class="btn ghost" onclick="closeModal();go(\'home\')">오늘은 그냥 잘게요</button>');
+  } else {
+    toast('오늘 하루 수고하셨습니다.');
+    go('home');
+  }
+};
+
+/* ══════════ 다시 시작 ══════════ */
+let rl = { type: null, halt: [], when: 'today' };
+
+function drawRelapse(){
+  rl = { type: S.types[0] || 'etc', halt: [], when: 'today' };
+  const tb = $('#rl-type'); tb.innerHTML = '';
+  (S.types.length ? S.types : ['etc']).forEach(k => {
+    const t = typeOf(k);
+    const b = el('button', 'opt wide' + (rl.type === k ? ' on' : ''), t.e + ' ' + t.n);
+    b.onclick = () => { rl.type = k; [...tb.children].forEach(c => c.classList.remove('on')); b.classList.add('on'); };
+    tb.appendChild(b);
+  });
+  const hb = $('#rl-halt'); hb.innerHTML = '';
+  HALT.forEach(x => {
+    const b = el('button', '', '<span class="e">' + x.e + '</span><span class="l">' + x.l + '</span>');
+    b.onclick = () => {
+      const i = rl.halt.indexOf(x.k);
+      if(i < 0){ rl.halt.push(x.k); b.classList.add('on'); }
+      else { rl.halt.splice(i,1); b.classList.remove('on'); }
+    };
+    hb.appendChild(b);
+  });
+  const wb = $('#rl-when'); wb.innerHTML = '';
+  [{v:'today',l:'오늘부터 다시'},{v:'keep',l:'시작일은 그대로 두기'}].forEach(o => {
+    const b = el('button', 'opt wide' + (rl.when === o.v ? ' on' : ''), o.l);
+    b.onclick = () => { rl.when = o.v; [...wb.children].forEach(c => c.classList.remove('on')); b.classList.add('on'); };
+    wb.appendChild(b);
+  });
+  $('#rl-note').value = '';
+}
+
+$('#rl-save').onclick = () => {
+  const k = rl.type;
+  S.relapses.push({ t: Date.now(), type: k, halt: rl.halt.slice(), n: $('#rl-note').value.trim() });
+  if(rl.when === 'today'){
+    /* 누적은 유지 — 지금까지 지킨 날을 더해두고 시작일만 새로 잡습니다 */
+    S.cum[k] = (S.cum[k] || 0) + daysBetween(S.dates[k]);
+    S.dates[k] = today();
+  }
+  save();
+  modal('<h2>오늘 다시 시작합니다</h2>' +
+    '<p class="muted" style="margin:6px 0 14px">지금까지 지켜온 <b>누적 ' + (S.cum[k] || 0) + '일</b>은 그대로 남아 있습니다. ' +
+    '없어진 것이 아닙니다.</p>' +
+    '<div class="note">혼자 견디기 어려우면 오늘 안에 한 사람에게라도 말해주세요. ' +
+    '자조모임이나 센터 상담이 가장 도움이 됩니다.</div>' +
+    '<div style="height:12px"></div>' +
+    '<button class="btn" onclick="closeModal();go(\'help\')">도움 찾아보기</button>' +
+    '<div style="height:9px"></div>' +
+    '<button class="btn ghost" onclick="closeModal();go(\'home\')">홈으로</button>');
+};
+
+/* ══════════ 기록 ══════════ */
+let recTab = 'mood';
+
+function drawRec(){
+  const tb = $('#rec-tab'); tb.innerHTML = '';
+  [{v:'mood',l:'감정'},{v:'urge',l:'충동'},{v:'relapse',l:'다시 시작'},{v:'stat',l:'통계'}].forEach(o => {
+    const b = el('button', 'opt' + (recTab === o.v ? ' on' : ''), o.l);
+    b.onclick = () => { recTab = o.v; drawRec(); };
+    tb.appendChild(b);
+  });
+  const body = $('#rec-body');
+  body.innerHTML = '';
+  if(recTab === 'mood')    body.appendChild(recMood());
+  if(recTab === 'urge')    body.appendChild(recUrge());
+  if(recTab === 'relapse') body.appendChild(recRelapse());
+  if(recTab === 'stat')    body.appendChild(recStat());
+}
+
+function emptyBox(msg){ return el('div', 'empty', msg); }
+
+function recMood(){
+  const c = el('div', 'card');
+  const rows = S.nights.slice().reverse();
+  const moods = S.moods.slice().reverse();
+  if(!moods.length) return emptyBox('아직 기록이 없습니다.<br>홈에서 오늘 기분을 눌러보세요.');
+  moods.slice(0, 60).forEach(m => {
+    const x = MOODS.find(o => o.v === m.v) || MOODS[2];
+    const n = rows.find(r => Math.abs(r.t - m.t) < 4000);
+    const i = el('div', 'item');
+    i.innerHTML = '<div class="w">' + esc(when(m.t)).replace('\n','<br>') + '</div>' +
+      '<div class="b"><b>' + x.e + ' ' + esc(x.l) + '</b>' +
+      (n && n.n ? '<p>' + esc(n.n) + '</p>' : '') +
+      (n && n.k === 0 ? '<span class="badge b">힘든 날</span>' : '') + '</div>';
+    c.appendChild(i);
+  });
+  return c;
+}
+
+function recUrge(){
+  if(!S.urges.length) return emptyBox('아직 충동 기록이 없습니다.<br>충동이 올라올 때 "지금 위험해요"를 눌러보세요.');
+  const c = el('div', 'card');
+  S.urges.slice().reverse().slice(0, 60).forEach(u => {
+    const d = u.b - u.a;
+    const mm = Math.round((u.sec || 0) / 60);
+    const i = el('div', 'item');
+    i.innerHTML = '<div class="w">' + esc(when(u.t)).replace('\n','<br>') + '</div>' +
+      '<div class="b"><b>' + esc(typeOf(u.type).n) + ' 충동 ' + u.b + ' → ' + u.a + '</b>' +
+      (d > 0 ? '<span class="badge">' + d + '만큼 내려감</span>'
+             : d < 0 ? '<span class="badge b">올라감</span>' : '<span class="badge w">그대로</span>') +
+      (mm ? '<p>' + mm + '분 버팀</p>' : '') +
+      (u.th && u.th.length ? '<p>"' + u.th.map(esc).join('", "') + '"</p>' : '') +
+      '</div>';
+    c.appendChild(i);
+  });
+  return c;
+}
+
+function recRelapse(){
+  if(!S.relapses.length) return emptyBox('기록이 없습니다.');
+  const c = el('div', 'card');
+  S.relapses.slice().reverse().forEach(r => {
+    const hs = (r.halt || []).map(k => (HALT.find(x => x.k === k) || {}).l).filter(Boolean).join(' · ');
+    const i = el('div', 'item');
+    i.innerHTML = '<div class="w">' + esc(when(r.t)).replace('\n','<br>') + '</div>' +
+      '<div class="b"><b>' + esc(typeOf(r.type).n) + ' · 다시 시작</b>' +
+      (hs ? '<p>그때 상태: ' + esc(hs) + '</p>' : '') +
+      (r.n ? '<p>' + esc(r.n) + '</p>' : '') + '</div>';
+    c.appendChild(i);
+  });
+  return c;
+}
+
+function recStat(){
+  const w = el('div');
+  if(!S.urges.length && !S.halts.length && !S.moods.length)
+    return emptyBox('기록이 쌓이면 여기에 나의 회복 패턴이 보입니다.');
+
+  /* KPI */
+  const kept = S.nights.filter(n => n.k === 1).length;
+  const dropped = S.urges.filter(u => u.b > u.a).length;
+  const k = el('div', 'card');
+  k.innerHTML = '<h3>한눈에</h3><div class="kpi">' +
+    '<div><b>' + S.urges.length + '</b><span>충동을 넘긴 횟수</span></div>' +
+    '<div><b>' + dropped + '</b><span>충동이 내려간 횟수</span></div>' +
+    '<div><b>' + kept + '</b><span>지켜낸 하루</span></div>' +
+    '<div><b>' + S.relapses.length + '</b><span>다시 시작한 날</span></div>' +
+    '</div>';
+  w.appendChild(k);
+
+  /* 충동 시간대 */
+  if(S.urges.length){
+    const by = new Array(24).fill(0);
+    S.urges.forEach(u => { by[new Date(u.t).getHours()]++; });
+    const mx = Math.max(...by, 1);
+    const peak = by.indexOf(mx);
+    const c = el('div', 'card');
+    let bars = '';
+    by.forEach((v, i) => {
+      bars += '<div class="bar' + (v === mx && v > 0 ? ' hi' : '') + '" style="height:' +
+        Math.max(2, v / mx * 96) + 'px" title="' + i + '시 ' + v + '회"></div>';
+    });
+    c.innerHTML = '<h3>충동이 올라오는 시간대</h3>' +
+      '<div class="bars">' + bars + '</div>' +
+      '<div class="axis"><span>0시</span><span>6시</span><span>12시</span><span>18시</span><span>23시</span></div>' +
+      (mx > 1 ? '<div class="note" style="margin-top:12px">가장 자주 힘든 시간은 <b>' + peak +
+        '시 무렵</b>입니다. 내 정보에서 이 시간을 위험 시간대로 등록해두면 미리 챙겨드립니다.</div>' : '');
+    w.appendChild(c);
+  }
+
+  /* HALT 빈도 */
+  if(S.halts.length){
+    const cnt = {};
+    HALT.forEach(x => cnt[x.k] = 0);
+    S.halts.forEach(h => (h.v || []).forEach(k => { if(cnt[k] != null) cnt[k]++; }));
+    const mx = Math.max(...Object.values(cnt), 1);
+    const c = el('div', 'card');
+    let html = '<h3>무엇이 나를 무너뜨리나</h3>';
+    HALT.forEach(x => {
+      html += '<div class="hbar"><div class="lb"><span>' + x.e + ' ' + x.l +
+        '</span><span class="tiny">' + cnt[x.k] + '회</span></div>' +
+        '<div class="tr"><div class="fl" style="width:' + (cnt[x.k] / mx * 100) + '%"></div></div></div>';
+    });
+    const top = HALT.find(x => cnt[x.k] === mx);
+    if(mx > 1 && top) html += '<div class="note" style="margin-top:10px">' + esc(top.tip) + '</div>';
+    c.innerHTML = html;
+    w.appendChild(c);
+  }
+
+  /* 허용 사고 */
+  const th = {};
+  S.urges.forEach(u => (u.th || []).forEach(t => { th[t] = (th[t] || 0) + 1; }));
+  const tl = Object.entries(th).sort((a,b) => b[1] - a[1]).slice(0, 5);
+  if(tl.length){
+    const c = el('div', 'card');
+    c.innerHTML = '<h3>자주 떠오르는 생각</h3>' +
+      tl.map(([t, n]) => '<div class="sp" style="padding:5px 0"><span>"' + esc(t) +
+        '"</span><span class="tiny">' + n + '회</span></div>').join('') +
+      '<p class="tiny" style="margin:10px 0 0">이 생각이 떠오르면 재발이 가까이 온 신호입니다. ' +
+      '그때가 바로 타이머를 누를 때입니다.</p>';
+    w.appendChild(c);
+  }
+
+  /* 타이머 효과 */
+  const withT = S.urges.filter(u => u.sec > 60);
+  if(withT.length >= 2){
+    const avgB = withT.reduce((s,u) => s + u.b, 0) / withT.length;
+    const avgA = withT.reduce((s,u) => s + u.a, 0) / withT.length;
+    const c = el('div', 'card');
+    c.innerHTML = '<h3>버티면 정말 내려가나</h3>' +
+      '<div class="kpi"><div><b>' + avgB.toFixed(1) + '</b><span>버티기 전 평균</span></div>' +
+      '<div><b>' + avgA.toFixed(1) + '</b><span>버틴 후 평균</span></div></div>' +
+      (avgB > avgA ? '<div class="note" style="margin-top:11px">평균 <b>' + (avgB - avgA).toFixed(1) +
+        '만큼</b> 내려갔습니다. 버티는 것이 실제로 효과가 있다는 나의 기록입니다.</div>' : '');
+    w.appendChild(c);
+  }
+
+  /* 최근 14일 감정 */
+  if(S.moods.length >= 3){
+    const days = [];
+    for(let i = 13; i >= 0; i--){
+      const d = ymd(Date.now() - i * 86400000);
+      const ms = S.moods.filter(m => ymd(m.t) === d);
+      days.push(ms.length ? ms.reduce((s,m) => s + m.v, 0) / ms.length : 0);
+    }
+    const c = el('div', 'card');
+    c.innerHTML = '<h3>최근 2주 기분</h3><div class="bars">' +
+      days.map(v => '<div class="bar' + (v >= 4 ? ' hi' : '') + '" style="height:' +
+        Math.max(2, v / 5 * 96) + 'px"></div>').join('') +
+      '</div><div class="axis"><span>2주 전</span><span>오늘</span></div>';
+    w.appendChild(c);
+  }
+  return w;
+}
+
+/* ══════════ 도움 ══════════ */
+function drawHelp(){
+  const R = S.res || {};
+
+  const lines = (R.lines && R.lines.length) ? R.lines : LINES;
+  $('#help-lines').innerHTML = lines.map(l =>
+    '<a class="help' + (l.u ? ' urgent' : '') + '" href="tel:' + esc(String(l.t).replace(/[^0-9\-]/g,'')) + '">' +
+    '<span class="ic">' + (l.u ? '🆘' : '☎️') + '</span>' +
+    '<span class="b"><b>' + esc(l.n) + ' · ' + esc(l.t) + '</b><span>' + esc(l.d || '') + '</span></span>' +
+    '<span class="go">전화</span></a>').join('');
+
+  const card = (x, icon) =>
+    '<a class="help" href="' + esc(x.w || '#') + '" target="_blank" rel="noopener">' +
+    '<span class="ic">' + icon + '</span>' +
+    '<span class="b"><b>' + esc(x.n) + '</b><span>' + esc(x.d || '') + '</span></span>' +
+    '<span class="go">열기</span></a>';
+
+  const groups = (R.groups && R.groups.length) ? R.groups : GROUPS;
+  const centers = (R.centers && R.centers.length) ? R.centers : CENTERS;
+  const hosp = (R.hosp && R.hosp.length) ? R.hosp : HOSP;
+
+  $('#help-groups').innerHTML  = groups.map(x => card(x, '🤝')).join('');
+  $('#help-centers').innerHTML = centers.map(x => card(x, '🏢')).join('');
+  $('#help-hosp').innerHTML    = hosp.map(x => card(x, '🏥')).join('');
+}
+
+/* 자원 시트 받아오기 — 공개 자료만 오갑니다. 회복 기록은 절대 보내지 않습니다 */
+function fetchRes(url){
+  if(!url) return Promise.reject(new Error('주소가 비어 있습니다'));
+  return fetch(url, { method: 'GET' })
+    .then(r => r.json())
+    .then(j => {
+      S.res = { lines: j.lines || [], groups: j.groups || [], centers: j.centers || [], hosp: j.hosp || [] };
+      S.resAt = Date.now();
+      save();
+      return S.res;
+    });
+}
+
+/* ══════════ 내 정보 ══════════ */
+function drawMe(){
+  const tb = $('#me-types'); tb.innerHTML = '';
+  TYPES.forEach(t => {
+    const on = S.types.includes(t.k);
+    const b = el('button', 'opt wide' + (on ? ' on' : ''), t.e + ' ' + t.n);
+    b.onclick = () => {
+      const i = S.types.indexOf(t.k);
+      if(i < 0){ S.types.push(t.k); if(!S.dates[t.k]) S.dates[t.k] = today(); if(S.cum[t.k] == null) S.cum[t.k] = 0; }
+      else S.types.splice(i,1);
+      save(); drawMe();
+    };
+    tb.appendChild(b);
+  });
+
+  const d = $('#me-dates'); d.innerHTML = '';
+  S.types.forEach(k => {
+    const t = typeOf(k);
+    const r = el('div', 'row');
+    r.style.marginBottom = '9px';
+    r.innerHTML = '<div class="grow">' + t.e + ' ' + esc(t.v) + ' 시작일</div>';
+    const inp = el('input');
+    inp.type = 'date'; inp.style.width = '156px';
+    inp.value = S.dates[k] || today(); inp.max = today();
+    inp.onchange = () => { S.dates[k] = inp.value; save(); toast('바꿨습니다.'); };
+    r.appendChild(inp);
+    d.appendChild(r);
+    if(S.cum[k]) d.appendChild(el('p', 'tiny', '이전 누적 ' + S.cum[k] + '일이 더해집니다.'));
+  });
+
+  $('#me-goal').value = S.goal || '';
+
+  const hb = $('#me-hours'); hb.innerHTML = '';
+  [[18,'저녁 6시'],[19,'7시'],[20,'8시'],[21,'9시'],[22,'10시'],[23,'11시'],[0,'자정'],[13,'점심 무렵']].forEach(([h,l]) => {
+    const b = el('button', 'opt' + ((S.hours||[]).includes(h) ? ' on' : ''), l);
+    b.onclick = () => {
+      S.hours = S.hours || [];
+      const i = S.hours.indexOf(h);
+      if(i < 0) S.hours.push(h); else S.hours.splice(i,1);
+      save(); drawMe();
+    };
+    hb.appendChild(b);
+  });
+
+  const mb = $('#me-meds'); mb.innerHTML = '';
+  if(!(S.meds || []).length) mb.innerHTML = '<p class="tiny">등록된 약이 없습니다.</p>';
+  (S.meds || []).forEach((m, i) => {
+    const r = el('div', 'sp');
+    r.style.padding = '6px 0';
+    r.innerHTML = '<span>' + esc(m.n) + (m.t ? ' <span class="tiny">' + esc(m.t) + '</span>' : '') + '</span>';
+    const x = el('button', 'tiny', '삭제');
+    x.style.color = 'var(--bad)';
+    x.onclick = () => { S.meds.splice(i,1); save(); drawMe(); };
+    r.appendChild(x);
+    mb.appendChild(r);
+  });
+
+  $('#me-sheet').value = S.sheet || '';
+  $('#me-sheet-st').textContent = S.resAt
+    ? '마지막으로 받은 때: ' + new Date(S.resAt).toLocaleString('ko-KR')
+    : '연결하지 않았습니다. 기본 목록을 쓰고 있습니다.';
+
+  $('#me-ver').textContent = '오늘한걸음 ' + BUILD;
+}
+
+$('#me-goal-save').onclick = () => { S.goal = $('#me-goal').value.trim(); save(); toast('저장했습니다.'); };
+
+$('#me-med-add').onclick = () => {
+  const n = $('#me-med-n').value.trim();
+  if(!n){ toast('약 이름을 적어주세요.'); return; }
+  S.meds = S.meds || [];
+  S.meds.push({ n: n, t: $('#me-med-t').value.trim() });
+  $('#me-med-n').value = ''; $('#me-med-t').value = '';
+  save(); drawMe();
+};
+
+$('#me-sheet-save').onclick = () => {
+  const u = $('#me-sheet').value.trim();
+  S.sheet = u; save();
+  if(!u){ S.res = null; S.resAt = 0; save(); drawMe(); toast('기본 목록으로 돌아갔습니다.'); return; }
+  $('#me-sheet-st').textContent = '받아오는 중…';
+  fetchRes(u)
+    .then(() => { drawMe(); toast('자원 목록을 받았습니다.'); })
+    .catch(e => { $('#me-sheet-st').textContent = '받지 못했습니다: ' + e.message; });
+};
+
+$('#me-export').onclick = () => {
+  const blob = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '오늘한걸음_' + today() + '.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+};
+
+$('#me-import').onclick = () => $('#me-file').click();
+$('#me-file').onchange = e => {
+  const f = e.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const j = JSON.parse(r.result);
+      if(!j || typeof j !== 'object') throw new Error('형식이 다릅니다');
+      S = Object.assign(JSON.parse(JSON.stringify(BLANK)), j);
+      save();
+      document.body.classList.toggle('dark', S.theme === 'dark');
+      toast('불러왔습니다.');
+      go('home');
+    }catch(err){ toast('읽을 수 없는 파일입니다.'); }
+  };
+  r.readAsText(f);
+  e.target.value = '';
+};
+
+$('#me-wipe').onclick = () => {
+  modal('<h2>정말 모두 지울까요?</h2>' +
+    '<p class="muted" style="margin:6px 0 14px">회복일, 감정, 충동, 모든 기록이 사라집니다. ' +
+    '되돌릴 수 없습니다. 먼저 파일로 내보내 두시는 것을 권합니다.</p>' +
+    '<button class="btn danger" id="wipe-yes">네, 모두 지웁니다</button>' +
+    '<div style="height:9px"></div>' +
+    '<button class="btn ghost" onclick="closeModal()">그만두기</button>');
+  $('#wipe-yes').onclick = () => {
+    localStorage.removeItem(KEY);
+    S = JSON.parse(JSON.stringify(BLANK));
+    closeModal();
+    obTypes = []; obDates = {};
+    drawIntro();
+    go('intro');
+  };
+};
+
+/* ══════════ 부팅 ══════════ */
+function boot(){
+  document.body.classList.toggle('dark', S.theme === 'dark');
+  drawIntro();
+  drawUrge();
+  if(S.started){ go('home'); } else { go('intro'); }
+
+  /* 시트가 연결돼 있으면 하루 한 번만 조용히 갱신합니다 */
+  if(S.sheet && Date.now() - (S.resAt || 0) > 86400000){
+    fetchRes(S.sheet).then(() => { if(cur === 'help') drawHelp(); }).catch(() => {});
+  }
+
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+}
+
+window.addEventListener('error', e => {
+  const b = document.body;
+  if(b) b.insertAdjacentHTML('afterbegin',
+    '<div style="position:fixed;top:0;left:0;right:0;background:#b8443c;color:#fff;' +
+    'padding:10px;font-size:12px;z-index:999;line-height:1.5">오류: ' +
+    esc(e.message) + '<br>' + esc(e.filename || '') + ' ' + e.lineno + '줄</div>');
+});
+
+boot();
+
+</script>
+</body>
+</html>
