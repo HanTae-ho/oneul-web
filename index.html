@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<title>오늘한걸음</title>
+<title>오늘 한 걸음</title>
 <style>
   :root{
     --bg:#f2f7f6; --bg2:#e6f0ee; --panel:#ffffff; --line:#dde7e5;
@@ -247,8 +247,8 @@
 <section class="pg" id="p-intro">
   <div style="padding:34px 0 20px;text-align:center">
     <div class="bigico" id="intro-ico"></div>
-    <h1 style="font-size:29px;margin:12px 0 6px">오늘한걸음</h1>
-    <p class="muted" style="font-size:15px">오늘 한걸음이면 충분합니다.<br>혼자가 아닙니다.</p>
+    <h1 style="font-size:29px;margin:12px 0 6px">오늘 한 걸음</h1>
+    <p class="muted" style="font-size:15px">오늘 한 걸음이면 충분합니다.<br>혼자가 아닙니다.</p>
   </div>
 
   <div class="card">
@@ -272,7 +272,7 @@
 <!-- ══════════ 홈 ══════════ -->
 <section class="pg" id="p-home">
   <div class="sp" style="margin-bottom:12px">
-    <h1 style="margin:0">오늘한걸음</h1>
+    <h1 style="margin:0">오늘 한 걸음</h1>
     <button id="theme-tg" style="color:var(--faint)"></button>
   </div>
 
@@ -609,10 +609,10 @@
 
 <script>
 /* ═══════════════════════════════════════════════════════
-   오늘한걸음 — 중독 회복 지원 웹앱
+   오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v3';
+const BUILD = 'v4';
 const KEY = 'ohg.v1';
 
 /* ── 저장 ── */
@@ -662,7 +662,7 @@ const QUOTES = [
   '오늘 하루만 버텨봅시다.',
   '충동은 파도처럼 지나갑니다. 넘기면 잦아듭니다.',
   '완벽할 필요는 없습니다. 다시 시작하면 됩니다.',
-  '오늘 한걸음이면 충분합니다.',
+  '오늘 한 걸음이면 충분합니다.',
   '지금 이 순간을 넘긴 것만으로 충분히 잘하고 있습니다.',
   '혼자가 아닙니다. 도움을 청하는 것은 용기입니다.',
   '어제보다 오늘, 오늘보다 내일. 조금씩이면 됩니다.',
@@ -1524,7 +1524,7 @@ function drawMe(){
     ? '마지막으로 받은 때: ' + new Date(S.resAt).toLocaleString('ko-KR')
     : '연결하지 않았습니다. 기본 목록을 쓰고 있습니다.';
 
-  $('#me-ver').textContent = '오늘한걸음 ' + BUILD;
+  $('#me-ver').textContent = '오늘 한 걸음 ' + BUILD;
 }
 
 $('#me-goal-save').onclick = () => { S.goal = $('#me-goal').value.trim(); save(); toast('저장했습니다.'); };
@@ -1552,7 +1552,7 @@ $('#me-export').onclick = () => {
   const blob = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = '오늘한걸음_' + today() + '.json';
+  a.download = '오늘 한 걸음_' + today() + '.json';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 3000);
 };

@@ -1,6 +1,6 @@
 {
-  "name": "오늘한걸음",
-  "short_name": "오늘한걸음",
+  "name": "오늘 한 걸음",
+  "short_name": "오늘 한 걸음",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -8,7 +8,7 @@
   "background_color": "#f2f7f6",
   "theme_color": "#f2f7f6",
   "lang": "ko",
-  "description": "오늘 한걸음이면 충분합니다. 중독 회복을 돕는 도구",
+  "description": "오늘 한 걸음이면 충분합니다. 중독 회복을 돕는 도구",
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
