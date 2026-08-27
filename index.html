@@ -58,6 +58,7 @@
   #tabs button{flex:1;padding:9px 2px 7px;color:var(--faint);
     display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px}
   #tabs button.on{color:var(--acc);font-weight:600}
+  #theme-tg .ic-s{width:21px;height:21px}
   #tabs svg{width:23px;height:23px;stroke:currentColor;fill:none;
     stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 
@@ -103,16 +104,25 @@
   /* 선택 칩 */
   .opts{display:flex;gap:8px;flex-wrap:wrap}
   .opt{padding:10px 14px;border-radius:12px;border:1.5px solid var(--line);
-    background:var(--panel);color:var(--dim);font-size:14px}
+    background:var(--panel);color:var(--dim);font-size:14px;
+    display:inline-flex;align-items:center;gap:7px}
   .opt.on{border-color:var(--acc);background:var(--accbg);color:var(--acc);font-weight:600}
-  .opt.wide{flex:1;min-width:calc(50% - 4px);text-align:left}
+  .opt.wide{flex:1;min-width:calc(50% - 4px);text-align:left;justify-content:flex-start}
+
+  /* 아이콘은 전부 직접 그린 SVG 다. 이모지 폰트에 기대지 않는다 —
+     기기마다 없는 글자가 달라서 □ 로 깨진다. 하단 탭 아이콘과 같은 방식이다. */
+  .ic-s{width:24px;height:24px;display:block;flex:0 0 auto;
+    fill:none;stroke:currentColor;stroke-width:1.7;
+    stroke-linecap:round;stroke-linejoin:round}
+  .ic-s .f{fill:currentColor;stroke:none}
+  .ic-i{width:17px;height:17px;display:inline-block;vertical-align:-3px;margin-right:3px}
 
   /* HALT */
   .halt{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
   .halt button{padding:12px 4px;border-radius:13px;border:1.5px solid var(--line);
     background:var(--panel);display:flex;flex-direction:column;align-items:center;gap:5px}
   .halt button.on{border-color:var(--warn);background:var(--warnbg)}
-  .halt .e{font-size:21px;line-height:1}
+  .halt .ic-s{width:25px;height:25px}
   .halt .l{font-size:12px;color:var(--dim)}
   .halt button.on .l{color:var(--warn);font-weight:600}
 
@@ -121,7 +131,7 @@
   .moods button{flex:1;padding:9px 2px;border-radius:12px;border:1.5px solid transparent;
     display:flex;flex-direction:column;align-items:center;gap:4px}
   .moods button.on{border-color:var(--acc);background:var(--accbg)}
-  .moods .e{font-size:25px;line-height:1}
+  .moods .ic-s{width:29px;height:29px}
   .moods .l{font-size:11px;color:var(--faint)}
 
   /* 강도 슬라이더 */
@@ -178,7 +188,8 @@
   .help{display:flex;gap:12px;align-items:center;padding:14px;
     background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:9px}
   .help .ic{flex:0 0 42px;height:42px;border-radius:12px;display:flex;
-    align-items:center;justify-content:center;font-size:19px;background:var(--accbg)}
+    align-items:center;justify-content:center;background:var(--accbg);color:var(--acc)}
+  .help.urgent .ic{color:var(--bad)}
   .help.urgent .ic{background:var(--badbg)}
   .help .b{flex:1;min-width:0}
   .help .b b{display:block;font-size:15px;font-weight:600}
@@ -222,6 +233,8 @@
   .link{color:var(--acc);font-weight:600}
   .hide{display:none!important}
   .cen{text-align:center}
+  .bigico{display:flex;justify-content:center;color:var(--acc)}
+  .bigico .ic-s{width:46px;height:46px;stroke-width:1.4}
   .empty{text-align:center;color:var(--faint);font-size:13.5px;padding:30px 10px;line-height:1.7}
 </style>
 </head>
@@ -233,7 +246,7 @@
 <!-- ══════════ 온보딩 ══════════ -->
 <section class="pg" id="p-intro">
   <div style="padding:34px 0 20px;text-align:center">
-    <div style="font-size:44px">🌱</div>
+    <div class="bigico" id="intro-ico"></div>
     <h1 style="font-size:29px;margin:12px 0 6px">오늘한걸음</h1>
     <p class="muted" style="font-size:15px">오늘 한걸음이면 충분합니다.<br>혼자가 아닙니다.</p>
   </div>
@@ -260,7 +273,7 @@
 <section class="pg" id="p-home">
   <div class="sp" style="margin-bottom:12px">
     <h1 style="margin:0">오늘한걸음</h1>
-    <button id="theme-tg" class="tiny" style="color:var(--faint)">◐</button>
+    <button id="theme-tg" style="color:var(--faint)"></button>
   </div>
 
   <div class="days" id="home-days"></div>
@@ -298,21 +311,21 @@
   <p class="muted" style="margin:-10px 0 18px">가장 가까운 것을 눌러주세요.</p>
 
   <button class="help" id="pk-urge" style="width:100%;text-align:left">
-    <span class="ic">🌊</span>
+    <span class="ic" data-ico="wave"></span>
     <span class="b"><b>술·도박 생각이 올라와요</b>
       <span>충동은 파도처럼 지나갑니다. 같이 버텨봐요</span></span>
     <span class="go">시작</span>
   </button>
 
   <button class="help urgent" id="pk-with" style="width:100%;text-align:left">
-    <span class="ic">🚑</span>
+    <span class="ic" data-ico="emerg"></span>
     <span class="b"><b>몸이 이상해요</b>
       <span>손떨림·식은땀·경련·환각이 있다면 응급 상황입니다</span></span>
     <span class="go">확인</span>
   </button>
 
   <button class="help urgent" id="pk-life" style="width:100%;text-align:left">
-    <span class="ic">🆘</span>
+    <span class="ic" data-ico="sos"></span>
     <span class="b"><b>죽고 싶어요</b>
       <span>지금 바로 사람과 연결해 드립니다</span></span>
     <span class="go">연결</span>
@@ -376,7 +389,7 @@
 <!-- ══════════ 타이머 종료 ══════════ -->
 <section class="pg" id="p-after">
   <div class="cen" style="padding:22px 0 6px">
-    <div style="font-size:42px">🌊</div>
+    <div class="bigico" id="af-ico"></div>
     <h1 style="margin:12px 0 4px" id="af-h">파도를 넘겼습니다</h1>
     <p class="muted" id="af-p"></p>
   </div>
@@ -599,7 +612,7 @@
    오늘한걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v1';
+const BUILD = 'v3';
 const KEY = 'ohg.v1';
 
 /* ── 저장 ── */
@@ -626,20 +639,20 @@ function save(){
 
 /* ── 상수 ── */
 const TYPES = [
-  {k:'alcohol', n:'알코올', v:'단주', e:'🍺'},
-  {k:'gambling', n:'도박',  v:'단도박', e:'🎰'},
-  {k:'drug',    n:'약물',   v:'단약', e:'💊'},
-  {k:'etc',     n:'기타',   v:'회복', e:'🌱'}
+  {k:'alcohol',  n:'알코올', v:'단주',   i:'alcohol'},
+  {k:'gambling', n:'도박',   v:'단도박', i:'gamble'},
+  {k:'drug',     n:'약물',   v:'단약',   i:'drug'},
+  {k:'etc',      n:'기타',   v:'회복',   i:'sprout'}
 ];
 const HALT = [
-  {k:'h', e:'🍚', l:'배고픔', tip:'뭐라도 좀 드세요. 배고픔은 충동을 크게 키웁니다.'},
-  {k:'a', e:'🔥', l:'화남',   tip:'잠시 자리를 옮겨보세요. 호흡을 같이 해도 좋습니다.'},
-  {k:'l', e:'🌙', l:'외로움', tip:'오늘 모임이 있는지 봐두면 좋겠습니다. 도움 찾기에 있습니다.'},
-  {k:'t', e:'😪', l:'피곤함', tip:'무리하지 마세요. 피곤할 때 판단이 가장 흐려집니다.'}
+  {k:'h', i:'hungry', l:'배고픔', tip:'뭐라도 좀 드세요. 배고픔은 충동을 크게 키웁니다.'},
+  {k:'a', i:'angry',  l:'화남',   tip:'잠시 자리를 옮겨보세요. 호흡을 같이 해도 좋습니다.'},
+  {k:'l', i:'lonely', l:'외로움', tip:'오늘 모임이 있는지 봐두면 좋겠습니다. 도움 찾기에 있습니다.'},
+  {k:'t', i:'tired',  l:'피곤함', tip:'무리하지 마세요. 피곤할 때 판단이 가장 흐려집니다.'}
 ];
 const MOODS = [
-  {v:5, e:'😄', l:'좋음'}, {v:4, e:'🙂', l:'괜찮음'}, {v:3, e:'😐', l:'그저그럼'},
-  {v:2, e:'😟', l:'힘듦'}, {v:1, e:'😢', l:'많이힘듦'}
+  {v:5, i:'m5', l:'좋음'}, {v:4, i:'m4', l:'괜찮음'}, {v:3, i:'m3', l:'그저그럼'},
+  {v:2, i:'m2', l:'힘듦'}, {v:1, i:'m1', l:'많이힘듦'}
 ];
 const THOUGHTS = [
   '딱 한 잔만', '이번 한 번만', '괜찮을 것 같다', '나는 조절할 수 있다',
@@ -686,6 +699,65 @@ const HOSP = [
   {n:'정신건강 의료기관 찾기', d:'국립정신건강센터 · 지역별 검색',
    w:'https://www.mentalhealth.go.kr'}
 ];
+
+
+/* ── 아이콘 ──
+   전부 직접 그린 SVG 다. 이모지는 기기마다 없는 글자가 달라 □ 로 깨진다.
+   새 아이콘이 필요하면 반드시 여기에 그려 넣어라. viewBox 는 24x24 로 통일. */
+const EYES = '<circle class="f" cx="8.9" cy="9.9" r=".95"/><circle class="f" cx="15.1" cy="9.9" r=".95"/>';
+const FACE = '<circle cx="12" cy="12" r="9"/>' + EYES;
+const ICO = {
+  /* HALT */
+  hungry: '<path d="M4.2 11.2h15.6a7.8 7.8 0 0 1-15.6 0z"/><path d="M3 20.4h18"/>' +
+          '<path d="M9 7.4c0-1 .9-1.5.9-2.6M12 6.9c0-1 .9-1.5.9-2.6M15 7.4c0-1 .9-1.5.9-2.6"/>',
+  angry:  '<path d="M12 21.6a6.6 6.6 0 0 1-6.6-6.6c0-4.6 4.4-6.7 5.3-12.6 3 3 7.9 6.5 7.9 12.6a6.6 6.6 0 0 1-6.6 6.6z"/>' +
+          '<path d="M12 21.6a3 3 0 0 1-3-3c0-2 3-3.9 3-3.9s3 1.9 3 3.9a3 3 0 0 1-3 3z"/>',
+  lonely: '<path d="M20.6 13.7A8.6 8.6 0 1 1 10.4 3.5a6.9 6.9 0 0 0 10.2 10.2z"/>',
+  tired:  '<path d="M13.4 3.6h6.4l-6.4 8.4h6.4"/><path d="M4.2 13h5.4l-5.4 7h5.4"/>',
+
+  /* 기분 — 눈은 같고 입만 달라진다 */
+  m5: FACE + '<path class="f" d="M7.5 12.9h9c0 2.9-2 4.8-4.5 4.8s-4.5-1.9-4.5-4.8z"/>',
+  m4: FACE + '<path d="M8.1 13.5c.9 1.8 2.2 2.7 3.9 2.7s3-.9 3.9-2.7"/>',
+  m3: FACE + '<path d="M8.7 14.6h6.6"/>',
+  m2: FACE + '<path d="M8.5 15.6c.9-1.3 2.1-2 3.5-2s2.6.7 3.5 2"/>',
+  m1: FACE + '<path d="M8.4 15.8c.9-1.4 2.1-2.2 3.6-2.2s2.7.8 3.6 2.2"/>' +
+             '<path d="M17.3 11c.75 1.2 1.15 2 1.15 2.5a1.15 1.15 0 0 1-2.3 0c0-.5.4-1.3 1.15-2.5z"/>',
+
+  /* 중독 유형 */
+  alcohol: '<path d="M7.6 3.2h8.8l-1.1 5.9a3.6 3.6 0 0 1-6.6 0z"/><path d="M12 13v7.2"/><path d="M8.6 20.4h6.8"/>',
+  gamble:  '<rect x="3.6" y="3.6" width="16.8" height="16.8" rx="3.6"/>' +
+           '<circle class="f" cx="8.6" cy="8.6" r="1.15"/><circle class="f" cx="12" cy="12" r="1.15"/>' +
+           '<circle class="f" cx="15.4" cy="15.4" r="1.15"/>',
+  drug:    '<path d="M6.9 17.1a4.4 4.4 0 0 1 0-6.2l4-4a4.4 4.4 0 0 1 6.2 6.2l-4 4a4.4 4.4 0 0 1-6.2 0z"/><path d="M9.2 14.8l5.6-5.6"/>',
+  sprout:  '<path d="M12 20.5v-7.2"/><path d="M12 13.3c0-3.4-2.8-6.2-6.2-6.2 0 3.4 2.8 6.2 6.2 6.2z"/>' +
+           '<path d="M12 13.3c0-4 3.2-7.2 7.2-7.2 0 4-3.2 7.2-7.2 7.2z"/>',
+
+  /* 위기 */
+  wave:  '<path d="M2.2 9.4c2.6-2.7 5.2-2.7 7.9 0s5.3 2.7 7.9 0 2.6-2.7 3.8-1.6"/>' +
+         '<path d="M2.2 15.4c2.6-2.7 5.2-2.7 7.9 0s5.3 2.7 7.9 0 2.6-2.7 3.8-1.6"/>',
+  emerg: '<rect x="3" y="3" width="18" height="18" rx="5"/><path d="M12 7.8v8.4M7.8 12h8.4"/>',
+  sos:   '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/>' +
+         '<path d="M5.6 5.6l3.9 3.9M14.5 14.5l3.9 3.9M18.4 5.6l-3.9 3.9M9.5 14.5l-3.9 3.9"/>',
+
+  /* 도움 */
+  phone:  '<path d="M6.4 3.4h3.1l1.6 4.1-2.1 1.5a12.4 12.4 0 0 0 5.9 5.9l1.5-2.1 4.1 1.6v3.1a2.1 2.1 0 0 1-2.3 2.1A17.4 17.4 0 0 1 4.3 5.7a2.1 2.1 0 0 1 2.1-2.3z"/>',
+  people: '<circle cx="9.2" cy="8.2" r="3.3"/><path d="M3.4 19.2a5.8 5.8 0 0 1 11.6 0"/>' +
+          '<path d="M16.2 5.4a3.3 3.3 0 0 1 0 6.2"/><path d="M17.2 14.2a5.8 5.8 0 0 1 3.4 5"/>',
+  center: '<rect x="4" y="3" width="16" height="18" rx="2.4"/>' +
+          '<path d="M8 7.4h2M14 7.4h2M8 11.4h2M14 11.4h2"/><path d="M9.8 21v-4.4h4.4V21"/>',
+  hosp:   '<path d="M3.8 21V8.4L12 3l8.2 5.4V21"/><path d="M12 10.4v6M9 13.4h6"/>',
+
+  /* 그 밖 */
+  check: '<circle cx="12" cy="12" r="9"/><path d="M8 12.3l2.9 2.9 5.1-5.4"/>',
+  theme: '<path d="M12 3a9 9 0 0 0 0 18z" class="f"/><circle cx="12" cy="12" r="9"/>',
+  box:   '<rect x="4" y="4" width="16" height="16" rx="4.4"/>'
+};
+
+function ico(n, cls){
+  const p = ICO[n];
+  if(!p) return '';
+  return '<svg class="ic-s ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true">' + p + '</svg>';
+}
 
 /* ── 도구 ── */
 const $ = s => document.querySelector(s);
@@ -767,7 +839,7 @@ function drawIntro(){
   const box = $('#ob-types');
   box.innerHTML = '';
   TYPES.forEach(t => {
-    const b = el('button', 'opt wide' + (obTypes.includes(t.k) ? ' on' : ''), t.e + ' ' + t.n);
+    const b = el('button', 'opt wide' + (obTypes.includes(t.k) ? ' on' : ''), ico(t.i) + '<span>' + t.n + '</span>');
     b.onclick = () => {
       const i = obTypes.indexOf(t.k);
       if(i < 0){ obTypes.push(t.k); if(!obDates[t.k]) obDates[t.k] = today(); }
@@ -782,7 +854,7 @@ function drawIntro(){
   d.innerHTML = '';
   obTypes.forEach(k => {
     const t = typeOf(k);
-    const r = el('div', 'row', '<div class="grow">' + t.e + ' ' + esc(t.v) + ' 시작일</div>');
+    const r = el('div', 'row', '<div class="grow">' + ico(t.i, 'ic-i') + esc(t.v) + ' 시작일</div>');
     const inp = el('input');
     inp.type = 'date';
     inp.style.width = '156px';
@@ -848,7 +920,7 @@ function drawHome(){
     S.meds.forEach((m, i) => {
       const ok = done.includes(m.n);
       html += '<div class="sp" style="padding:6px 0"><span>' +
-        (ok ? '✅ ' : '⬜ ') + esc(m.n) +
+        ico(ok ? 'check' : 'box', 'ic-i') + esc(m.n) +
         (m.t ? ' <span class="tiny">' + esc(m.t) + '</span>' : '') + '</span>' +
         (ok ? '<span class="tiny">완료</span>'
             : '<button class="btn sec sm" style="width:auto;padding:7px 13px" data-med="' + i + '">체크</button>') +
@@ -869,7 +941,7 @@ function drawHome(){
   hb.innerHTML = '';
   HALT.forEach(x => {
     const b = el('button', on.includes(x.k) ? 'on' : '',
-      '<span class="e">' + x.e + '</span><span class="l">' + x.l + '</span>');
+      ico(x.i) + '<span class="l">' + x.l + '</span>');
     b.onclick = () => {
       const v = on.slice(), i = v.indexOf(x.k);
       if(i < 0) v.push(x.k); else v.splice(i,1);
@@ -890,7 +962,7 @@ function drawHome(){
   mb.innerHTML = '';
   MOODS.forEach(x => {
     const b = el('button', (m && m.v === x.v) ? 'on' : '',
-      '<span class="e">' + x.e + '</span><span class="l">' + x.l + '</span>');
+      ico(x.i) + '<span class="l">' + x.l + '</span>');
     b.onclick = () => {
       if(m) m.v = x.v;
       else S.moods.push({ t: Date.now(), v: x.v });
@@ -1088,7 +1160,7 @@ function drawNight(){
   night = { mood: null, urge: null, kept: null };
   const mb = $('#ni-mood'); mb.innerHTML = '';
   MOODS.forEach(x => {
-    const b = el('button', '', '<span class="e">' + x.e + '</span><span class="l">' + x.l + '</span>');
+    const b = el('button', '', ico(x.i) + '<span class="l">' + x.l + '</span>');
     b.onclick = () => { night.mood = x.v; [...mb.children].forEach(c => c.classList.remove('on')); b.classList.add('on'); };
     mb.appendChild(b);
   });
@@ -1134,13 +1206,13 @@ function drawRelapse(){
   const tb = $('#rl-type'); tb.innerHTML = '';
   (S.types.length ? S.types : ['etc']).forEach(k => {
     const t = typeOf(k);
-    const b = el('button', 'opt wide' + (rl.type === k ? ' on' : ''), t.e + ' ' + t.n);
+    const b = el('button', 'opt wide' + (rl.type === k ? ' on' : ''), ico(t.i) + '<span>' + t.n + '</span>');
     b.onclick = () => { rl.type = k; [...tb.children].forEach(c => c.classList.remove('on')); b.classList.add('on'); };
     tb.appendChild(b);
   });
   const hb = $('#rl-halt'); hb.innerHTML = '';
   HALT.forEach(x => {
-    const b = el('button', '', '<span class="e">' + x.e + '</span><span class="l">' + x.l + '</span>');
+    const b = el('button', '', ico(x.i) + '<span class="l">' + x.l + '</span>');
     b.onclick = () => {
       const i = rl.halt.indexOf(x.k);
       if(i < 0){ rl.halt.push(x.k); b.classList.add('on'); }
@@ -1207,7 +1279,7 @@ function recMood(){
     const n = rows.find(r => Math.abs(r.t - m.t) < 4000);
     const i = el('div', 'item');
     i.innerHTML = '<div class="w">' + esc(when(m.t)).replace('\n','<br>') + '</div>' +
-      '<div class="b"><b>' + x.e + ' ' + esc(x.l) + '</b>' +
+      '<div class="b"><b>' + ico(x.i, 'ic-i') + esc(x.l) + '</b>' +
       (n && n.n ? '<p>' + esc(n.n) + '</p>' : '') +
       (n && n.k === 0 ? '<span class="badge b">힘든 날</span>' : '') + '</div>';
     c.appendChild(i);
@@ -1295,7 +1367,7 @@ function recStat(){
     const c = el('div', 'card');
     let html = '<h3>무엇이 나를 무너뜨리나</h3>';
     HALT.forEach(x => {
-      html += '<div class="hbar"><div class="lb"><span>' + x.e + ' ' + x.l +
+      html += '<div class="hbar"><div class="lb"><span>' + ico(x.i, 'ic-i') + x.l +
         '</span><span class="tiny">' + cnt[x.k] + '회</span></div>' +
         '<div class="tr"><div class="fl" style="width:' + (cnt[x.k] / mx * 100) + '%"></div></div></div>';
     });
@@ -1358,13 +1430,13 @@ function drawHelp(){
   const lines = (R.lines && R.lines.length) ? R.lines : LINES;
   $('#help-lines').innerHTML = lines.map(l =>
     '<a class="help' + (l.u ? ' urgent' : '') + '" href="tel:' + esc(String(l.t).replace(/[^0-9\-]/g,'')) + '">' +
-    '<span class="ic">' + (l.u ? '🆘' : '☎️') + '</span>' +
+    '<span class="ic">' + ico(l.u ? 'sos' : 'phone') + '</span>' +
     '<span class="b"><b>' + esc(l.n) + ' · ' + esc(l.t) + '</b><span>' + esc(l.d || '') + '</span></span>' +
     '<span class="go">전화</span></a>').join('');
 
   const card = (x, icon) =>
     '<a class="help" href="' + esc(x.w || '#') + '" target="_blank" rel="noopener">' +
-    '<span class="ic">' + icon + '</span>' +
+    '<span class="ic">' + ico(icon) + '</span>' +
     '<span class="b"><b>' + esc(x.n) + '</b><span>' + esc(x.d || '') + '</span></span>' +
     '<span class="go">열기</span></a>';
 
@@ -1372,9 +1444,9 @@ function drawHelp(){
   const centers = (R.centers && R.centers.length) ? R.centers : CENTERS;
   const hosp = (R.hosp && R.hosp.length) ? R.hosp : HOSP;
 
-  $('#help-groups').innerHTML  = groups.map(x => card(x, '🤝')).join('');
-  $('#help-centers').innerHTML = centers.map(x => card(x, '🏢')).join('');
-  $('#help-hosp').innerHTML    = hosp.map(x => card(x, '🏥')).join('');
+  $('#help-groups').innerHTML  = groups.map(x => card(x, 'people')).join('');
+  $('#help-centers').innerHTML = centers.map(x => card(x, 'center')).join('');
+  $('#help-hosp').innerHTML    = hosp.map(x => card(x, 'hosp')).join('');
 }
 
 /* 자원 시트 받아오기 — 공개 자료만 오갑니다. 회복 기록은 절대 보내지 않습니다 */
@@ -1395,7 +1467,7 @@ function drawMe(){
   const tb = $('#me-types'); tb.innerHTML = '';
   TYPES.forEach(t => {
     const on = S.types.includes(t.k);
-    const b = el('button', 'opt wide' + (on ? ' on' : ''), t.e + ' ' + t.n);
+    const b = el('button', 'opt wide' + (on ? ' on' : ''), ico(t.i) + '<span>' + t.n + '</span>');
     b.onclick = () => {
       const i = S.types.indexOf(t.k);
       if(i < 0){ S.types.push(t.k); if(!S.dates[t.k]) S.dates[t.k] = today(); if(S.cum[t.k] == null) S.cum[t.k] = 0; }
@@ -1410,7 +1482,7 @@ function drawMe(){
     const t = typeOf(k);
     const r = el('div', 'row');
     r.style.marginBottom = '9px';
-    r.innerHTML = '<div class="grow">' + t.e + ' ' + esc(t.v) + ' 시작일</div>';
+    r.innerHTML = '<div class="grow">' + ico(t.i, 'ic-i') + esc(t.v) + ' 시작일</div>';
     const inp = el('input');
     inp.type = 'date'; inp.style.width = '156px';
     inp.value = S.dates[k] || today(); inp.max = today();
@@ -1525,6 +1597,10 @@ $('#me-wipe').onclick = () => {
 /* ══════════ 부팅 ══════════ */
 function boot(){
   document.body.classList.toggle('dark', S.theme === 'dark');
+  $('#intro-ico').innerHTML = ico('sprout');
+  $('#af-ico').innerHTML = ico('wave');
+  $('#theme-tg').innerHTML = ico('theme');
+  $$('[data-ico]').forEach(n => { n.innerHTML = ico(n.dataset.ico); });
   drawIntro();
   drawUrge();
   if(S.started){ go('home'); } else { go('intro'); }
