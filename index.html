@@ -109,6 +109,10 @@
   .opt.on{border-color:var(--acc);background:var(--accbg);color:var(--acc);font-weight:600}
   .opt.wide{flex:1;min-width:calc(50% - 4px);text-align:left;justify-content:flex-start}
 
+  /* 홈 화면에 추가 순서 안내 */
+  .steps{margin:2px 0 14px;padding-left:20px;color:var(--dim);font-size:14px;line-height:1.85}
+  .steps b{color:var(--ink)}
+
   /* 아이콘은 전부 직접 그린 SVG 다. 이모지 폰트에 기대지 않는다 —
      기기마다 없는 글자가 달라서 □ 로 깨진다. 하단 탭 아이콘과 같은 방식이다. */
   .ic-s{width:24px;height:24px;display:block;flex:0 0 auto;
@@ -265,9 +269,57 @@
     <div id="ob-dates"></div>
   </div>
 
+  <!-- 지역은 모임·센터·병원 어디에나 쓰이는 값이라 맨 앞에서 받는다.
+       뒤쪽 설정에 묻어두면 아무도 안 채우고, 그러면 전국 목록만 보게 된다. -->
+  <div class="card ob-more" style="display:none">
+    <h3>사시는 지역</h3>
+    <p class="muted" style="margin:-4px 0 11px">
+      우리 지역 모임·센터·병원을 먼저 보여드리는 데만 씁니다.
+      위치는 이 기기 밖으로 나가지 않습니다.
+    </p>
+    <button class="btn sec sm" id="ob-loc">지금 위치로 찾기</button>
+    <p class="tiny" id="ob-loc-st" style="margin:9px 0 0"></p>
+    <div class="opts" id="ob-area" style="margin-top:11px"></div>
+  </div>
+
+  <div class="card ob-more" style="display:none">
+    <h3>회복 목표 <span class="tiny" style="font-weight:400">(선택)</span></h3>
+    <p class="muted" style="margin:-4px 0 11px">
+      힘들 때 이 문장을 다시 보게 됩니다. 지금 비워두셔도 됩니다.
+    </p>
+    <textarea id="ob-goal" placeholder="무엇을 위해 회복하고 있나요"></textarea>
+  </div>
+
+  <div class="card ob-more" style="display:none">
+    <h3>위험한 시간대 <span class="tiny" style="font-weight:400">(선택)</span></h3>
+    <p class="muted" style="margin:-4px 0 11px">
+      예전에 주로 마시거나 하던 시간입니다. 그 시간이 되면 앱이 먼저 챙겨드립니다.
+    </p>
+    <div class="opts" id="ob-hours"></div>
+  </div>
+
   <button class="btn" id="ob-go">시작하기</button>
   <p class="tiny cen" style="margin-top:14px">
-    기록은 이 기기 안에만 저장됩니다.<br>어디로도 전송되지 않습니다.
+    여기에서 정하신 것은 나중에 <b>내 정보</b>에서 언제든 고칠 수 있습니다.<br>
+    기록은 이 기기 안에만 저장됩니다. 어디로도 전송되지 않습니다.
+  </p>
+</section>
+
+<!-- ══════════ 센터·병원 찾기 ══════════ -->
+<section class="pg" id="p-place">
+  <div class="sp" style="margin-bottom:12px">
+    <h1 style="margin:0" id="pl-title">센터 찾기</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('help')">← 도움</button>
+  </div>
+  <p class="muted" style="margin:-6px 0 12px" id="pl-sub"></p>
+  <div class="opts" id="pl-mode" style="margin-bottom:8px"></div>
+  <div class="opts" id="pl-chips" style="margin-bottom:10px"></div>
+  <div id="pl-tools"></div>
+  <div id="pl-head"></div>
+  <div id="pl-list"></div>
+  <p class="tiny" style="margin:12px 0 0">
+    [지도 보기]를 누르면 그 곳 이름으로 지도가 열립니다.
+    가시기 전에 운영 시간과 연락처를 한 번 더 확인해주세요.
   </p>
 </section>
 
@@ -537,17 +589,17 @@
     <span class="acts"><span class="go">찾기</span></span>
   </button>
 
-  <h2>센터 찾기</h2>
-  <div class="opts" id="help-centers-chips" style="margin-bottom:11px"></div>
-  <div id="help-centers"></div>
-
-  <h2>병원 찾기</h2>
-  <div class="opts" id="help-hosp-chips" style="margin-bottom:11px"></div>
-  <div id="help-hosp"></div>
-  <p class="tiny" style="margin:6px 0 0">
-    [지도 보기]를 누르면 그 곳 이름으로 지도가 열립니다.
-    사시는 지역을 내 정보에 적어두시면 그 지역이 먼저 나옵니다.
-  </p>
+  <h2>센터 · 병원 찾기</h2>
+  <button class="help" id="go-place-c" style="width:100%;text-align:left">
+    <span class="ic" data-ico="center"></span>
+    <span class="b"><b>센터 찾기</b><span>중독센터 · 정신건강 · 한걸음 · 스마트쉼</span></span>
+    <span class="acts"><span class="go">찾기</span></span>
+  </button>
+  <button class="help" id="go-place-h" style="width:100%;text-align:left">
+    <span class="ic" data-ico="hosp"></span>
+    <span class="b"><b>병원 찾기</b><span>알코올 전문병원 · 마약류 치료보호기관</span></span>
+    <span class="acts"><span class="go">찾기</span></span>
+  </button>
 
   <div class="sep"></div>
   <p class="tiny">
@@ -617,14 +669,6 @@
     <p class="tiny" id="me-sheet-st"></p>
     <div style="height:11px"></div>
     <button class="btn sec sm" id="me-sheet-save">지금 새로 받기</button>
-    <div style="height:11px"></div>
-    <button class="btn ghost sm" id="me-sheet-more">주소 직접 넣기</button>
-    <div id="me-sheet-box" class="hide" style="margin-top:11px">
-      <input id="me-sheet" placeholder="Apps Script 웹앱 주소">
-      <p class="tiny" style="margin:8px 0 0">
-        비워두고 [지금 새로 받기] 를 누르면 기본 주소로 돌아갑니다.
-      </p>
-    </div>
   </div>
 
   <div class="card">
@@ -642,12 +686,21 @@
   </div>
 
   <div class="card">
-    <h3>홈 화면에 추가하기</h3>
-    <p class="muted" style="margin:-4px 0 0">
-      아이폰은 사파리에서 <b>공유 → 홈 화면에 추가</b>,
-      안드로이드는 크롬 메뉴에서 <b>홈 화면에 추가</b>를 누르면
-      앱처럼 열리고 인터넷 없이도 씁니다.
+    <h3>알림</h3>
+    <p class="muted" style="margin:-4px 0 11px">
+      위험한 시간대와 복약 시간에 알려드립니다.
     </p>
+    <div class="opts" id="me-notify"></div>
+    <p class="tiny" id="me-notify-st" style="margin:10px 0 0"></p>
+  </div>
+
+  <div class="card">
+    <h3>홈 화면에 추가하기</h3>
+    <p class="muted" style="margin:-4px 0 11px" id="me-add-m">
+      홈 화면에 두면 주소창 없이 앱처럼 열리고, 인터넷이 끊겨도 씁니다.
+      알림도 훨씬 잘 잡힙니다.
+    </p>
+    <button class="btn sec sm" id="me-add">홈 화면에 추가</button>
   </div>
 
   <div class="note w">
@@ -674,7 +727,7 @@
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v17';
+const BUILD = 'v18';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -689,7 +742,8 @@ const BLANK = {
   types: [], dates: {}, cum: {}, goal: '',
   hours: [], meds: [], medCnt: 0, medLog: [], area: '',
   moods: [], halts: [], urges: [], nights: [], relapses: [],
-  sheet: '', res: null, resAt: 0, theme: ''
+  sheet: '', res: null, resAt: 0, theme: '',
+  notify: 0, fired: []
 };
 let S = load();
 
@@ -840,7 +894,10 @@ const NEARBY = [
 
 /* 이름 그대로 지도에서 찾습니다. 지역이 적혀 있으면 앞에 붙여 헛다리를 줄입니다.
    지도는 네이버 하나로 통일했습니다 — 카카오맵은 안 열린다는 말을 여러 번 들었습니다. */
-function mapQ(x){ return ((x.a ? String(x.a).split(/[ ·,]/)[0] + ' ' : '') + x.n).trim(); }
+function mapQ(x){
+  const a = (typeof areaOf === 'function') ? areaOf(x) : '';
+  return ((a ? a + ' ' : '') + x.n).trim();
+}
 function mapURL(q){ return 'https://map.naver.com/p/search/' + encodeURIComponent(q); }
 
 /* 센터·병원의 갈래.
@@ -870,8 +927,35 @@ function catOf(x){
 }
 function catKinds(l){ const c = PLACECAT.filter(p => p.l === l)[0]; return c ? c.k : []; }
 
+/* ── 이 줄은 어느 시·도인가 ──
+   시트의 [a] 칸이 비어 있고 주소만 설명(d)에 적힌 줄이 많습니다.
+   그것을 '지역 없음 = 전국 공통' 으로 보면, [광주만] 을 켜도 청주 병원이 남습니다.
+   실제로 그렇게 나왔습니다. 그래서 주소에서 시·도를 읽어냅니다.
+
+   ★ 반드시 '첫 낱말' 부터 봅니다. '경기도 광주시' 를 통째로 훑으면
+     광주광역시로 잘못 잡힙니다. 시·도는 주소 맨 앞에 옵니다. */
+const SIDO_ALIAS = [
+  ['서울','서울'],['부산','부산'],['대구','대구'],['인천','인천'],['광주','광주'],
+  ['대전','대전'],['울산','울산'],['세종','세종'],['경기','경기'],['강원','강원'],
+  ['충청북도','충북'],['충북','충북'],['충청남도','충남'],['충남','충남'],
+  ['전라북도','전북'],['전북','전북'],['전라남도','전남'],['전남','전남'],
+  ['경상북도','경북'],['경북','경북'],['경상남도','경남'],['경남','경남'],
+  ['제주','제주']
+];
+function areaOf(x){
+  const s = String(x.a || x.d || '').trim();
+  if(!s) return '';
+  const head = s.split(/[\s·,]/)[0] || '';
+  for(let i = 0; i < SIDO_ALIAS.length; i++)
+    if(head.indexOf(SIDO_ALIAS[i][0]) === 0) return SIDO_ALIAS[i][1];
+  for(let i = 0; i < SIDO_ALIAS.length; i++)
+    if(s.indexOf(SIDO_ALIAS[i][0]) >= 0) return SIDO_ALIAS[i][1];
+  return '';
+}
+
 /* 센터·병원 화면의 지금 상태. '' 는 내 영역, '*' 는 전체. */
-const PL = { centers: { cat:'', near: true }, hosp: { cat:'', near: false } };
+const PL = { centers: { cat:'', mode:'near', area:'', q:'' },
+             hosp:    { cat:'', mode:'all',  area:'', q:'' } };
 
 /* 가족·보호자 모임 — 당사자 모임과 반드시 나눠서 보여준다.
    가족이 당사자 모임 목록을 뒤지게 하면 안 된다. */
@@ -1033,11 +1117,29 @@ function go(p){
   if(p === 'night')   drawNight();
   if(p === 'urge')    drawUrge();
   if(p === 'meet')    drawMeet();
+  if(p === 'place')   drawPlace();
 }
 $$('#tabs button').forEach(b => b.onclick = () => go(b.dataset.t));
 
-/* ══════════ 온보딩 ══════════ */
-let obTypes = [], obDates = {};
+/* ══════════ 온보딩 ══════════
+   지역·회복 목표·위험한 시간대는 앱 전체에서 쓰이는 값입니다.
+   뒤쪽 설정에 묻어두면 아무도 안 채우고, 그러면 앱이 아무것도 맞춰줄 수 없습니다.
+   그래서 여기에서 한 번에 받습니다. 전부 나중에 [내 정보]에서 고칠 수 있습니다. */
+let obTypes = [], obDates = {}, obArea = '', obHours = [];
+
+/* 시간 순으로 둡니다. 점심 무렵을 맨 뒤에 두었더니 눈으로 훑기가 어려웠습니다. */
+const HOURLIST = [[13,'점심 무렵'],[17,'오후 5시'],[18,'저녁 6시'],[19,'7시'],[20,'8시'],
+                  [21,'9시'],[22,'10시'],[23,'11시'],[0,'자정'],[1,'새벽 1시']];
+
+/* 위험한 시간대 칩. 어디에서 부르든 같은 모양이 나오게 한 곳에 둡니다. */
+function hourChips(box, get, toggle){
+  box.innerHTML = '';
+  HOURLIST.forEach(([h, l]) => {
+    const b = el('button', 'opt' + (get().indexOf(h) >= 0 ? ' on' : ''), l);
+    b.onclick = () => toggle(h);
+    box.appendChild(b);
+  });
+}
 
 function drawIntro(){
   const box = $('#ob-types');
@@ -1053,7 +1155,11 @@ function drawIntro(){
     box.appendChild(b);
   });
 
-  $('#ob-dates-card').style.display = obTypes.length ? 'block' : 'none';
+  /* 영역을 고르기 전에는 나머지를 안 보여줍니다. 첫 화면이 질문지처럼 보이면 닫습니다. */
+  const on = obTypes.length ? 'block' : 'none';
+  $('#ob-dates-card').style.display = on;
+  $$('.ob-more').forEach(n => { n.style.display = on; });
+
   const d = $('#ob-dates');
   d.innerHTML = '';
   obTypes.forEach(k => {
@@ -1069,7 +1175,39 @@ function drawIntro(){
     r.style.marginBottom = '9px';
     d.appendChild(r);
   });
+
+  const ab = $('#ob-area'); ab.innerHTML = '';
+  AREAS.forEach(a => {
+    const b = el('button', 'opt' + (obArea === a ? ' on' : ''), a);
+    b.onclick = () => { obArea = (obArea === a ? '' : a); drawIntro(); };
+    ab.appendChild(b);
+  });
+
+  hourChips($('#ob-hours'), () => obHours, h => {
+    const i = obHours.indexOf(h);
+    if(i < 0) obHours.push(h); else obHours.splice(i, 1);
+    drawIntro();
+  });
 }
+
+$('#ob-loc').onclick = () => {
+  const st = $('#ob-loc-st');
+  if(!navigator.geolocation){
+    st.textContent = '이 브라우저는 위치를 알려주지 못합니다. 아래에서 골라주세요.';
+    return;
+  }
+  st.textContent = '위치를 확인하는 중…';
+  navigator.geolocation.getCurrentPosition(
+    p => {
+      obArea = nearestArea(p.coords.latitude, p.coords.longitude);
+      drawIntro();
+      $('#ob-loc-st').textContent = obArea + ' 근처로 보입니다. 다르면 아래에서 고쳐주세요.';
+    },
+    () => { $('#ob-loc-st').textContent =
+      '위치를 확인하지 못했습니다. 아래에서 직접 골라주세요.'; },
+    { timeout: 10000, maximumAge: 600000 }
+  );
+};
 
 $('#ob-go').onclick = () => {
   if(!obTypes.length){ toast('회복하고 있는 영역을 하나 이상 골라주세요.'); return; }
@@ -1077,9 +1215,14 @@ $('#ob-go').onclick = () => {
   S.dates = {};
   S.cum = {};
   obTypes.forEach(k => { S.dates[k] = obDates[k] || today(); S.cum[k] = 0; });
+  S.area = obArea;
+  S.goal = ($('#ob-goal').value || '').trim();
+  S.hours = obHours.slice();
   S.started = true;
   save();
   go('home');
+  /* 시간대를 골랐다면 알림을 물어봅니다 — 고르기도 전에 물으면 거절만 부릅니다 */
+  if(S.hours.length) setTimeout(askNotify, 500);
 };
 
 /* ══════════ 홈 ══════════ */
@@ -1110,8 +1253,10 @@ function drawHome(){
   const a = $('#home-alert');
   a.innerHTML = '';
   if((S.hours || []).includes(h)){
+    /* 힘든 시간에 자기가 적은 이유를 다시 보는 것이 이 화면의 값어치입니다 */
     a.innerHTML = '<div class="note w" style="margin-bottom:12px">' +
-      '지금은 예전에 자주 마시거나 하던 시간대입니다.<br>오늘은 어떻게 보내고 계신가요?</div>';
+      '지금은 예전에 자주 마시거나 하던 시간대입니다.<br>오늘은 어떻게 보내고 계신가요?' +
+      (S.goal ? '<br><br><b>\u201c' + esc(S.goal) + '\u201d</b>' : '') + '</div>';
   } else if(!todayRec(S.moods).length && h >= 20){
     a.innerHTML = '<div class="note" style="margin-bottom:12px">' +
       '오늘 아직 기분 체크를 안 하셨네요. 자기 전에 잠깐만요.</div>';
@@ -1903,80 +2048,127 @@ function drawHelp(){
     '<span class="b"><b>' + esc(l.n) + ' · ' + esc(l.t) + '</b><span>' + esc(l.d || '') + '</span></span>' +
     '<span class="go">전화</span></a>').join('');
 
-  /* 링크가 죽어도 전화는 걸리도록, 둘 다 있으면 둘 다 보여준다.
-     map 을 켜면 그 곳 '이름' 으로 지도를 연다 — 낱말 검색과 달리 헛것이 안 나온다. */
-  const card = (x, icon, map) => {
-    const acts =
-      (x.t ? '<a class="go" href="tel:' + esc(String(x.t).replace(/[^0-9+\-]/g, '')) + '">전화</a>' : '') +
-      (x.w ? '<a class="go" href="' + esc(x.w) + '" target="_blank" rel="noopener">열기</a>' : '') +
-      (map && !x.x ? '<a class="go" target="_blank" rel="noopener" href="' +
-             mapURL(mapQ(x)) + '">지도 보기</a>' : '');
-    return '<div class="help">' +
-      '<span class="ic">' + ico(icon) + '</span>' +
-      /* 설명에 이미 '광주 서구…' 라고 적혀 있으면 지역을 또 붙이지 않는다 */
-      '<span class="b"><b>' + esc(x.n) + '</b><span>' +
-      esc((x.a && x.d && String(x.d).indexOf(String(x.a)) >= 0)
-          ? x.d : [x.a, x.d].filter(Boolean).join(' · ')) + '</span></span>' +
-      '<span class="acts">' + acts + '</span></div>';
+}
+
+/* 링크가 죽어도 전화는 걸리도록, 둘 다 있으면 둘 다 보여준다.
+   map 을 켜면 그 곳 '이름' 으로 지도를 연다 — 낱말 검색과 달리 헛것이 안 나온다. */
+function card(x, icon, map){
+  const acts =
+    (x.t ? '<a class="go" href="tel:' + esc(String(x.t).replace(/[^0-9+\-]/g, '')) + '">전화</a>' : '') +
+    (x.w ? '<a class="go" href="' + esc(x.w) + '" target="_blank" rel="noopener">열기</a>' : '') +
+    (map && !x.x ? '<a class="go" target="_blank" rel="noopener" href="' +
+           mapURL(mapQ(x)) + '">지도 보기</a>' : '');
+  return '<div class="help">' +
+    '<span class="ic">' + ico(icon) + '</span>' +
+    /* 설명에 이미 '광주 서구…' 라고 적혀 있으면 지역을 또 붙이지 않는다 */
+    '<span class="b"><b>' + esc(x.n) + '</b><span>' +
+    esc((x.a && x.d && String(x.d).indexOf(String(x.a)) >= 0)
+        ? x.d : [x.a, x.d].filter(Boolean).join(' · ')) + '</span></span>' +
+    '<span class="acts">' + acts + '</span></div>';
+}
+
+/* ══════════ 센터·병원 찾기 ══════════
+   모임 찾기와 같은 방식으로, 도움 화면에서 넘어오는 별도 화면입니다.
+   센터 353곳·병원 40곳을 도움 화면에 그냥 늘어놓으면 아무도 끝까지 못 봅니다. */
+let plKey = 'centers';
+
+function drawPlace(){
+  const R = S.res || {};
+  const c = plKey === 'centers';
+  $('#pl-title').textContent = c ? '센터 찾기' : '병원 찾기';
+  $('#pl-sub').textContent = c
+    ? '상담과 재활을 이어주는 곳입니다. 대부분 무료입니다.'
+    : '입원·해독·약물치료가 필요할 때 가는 곳입니다.';
+  fillPlaces(plKey,
+    c ? ((R.centers && R.centers.length) ? R.centers : CENTERS)
+      : ((R.hosp && R.hosp.length) ? R.hosp : HOSP),
+    c ? 'center' : 'hosp');
+}
+
+$('#go-place-c').onclick = () => { plKey = 'centers'; go('place'); };
+$('#go-place-h').onclick = () => { plKey = 'hosp';    go('place'); };
+
+/* ── 센터·병원 목록 ──
+   자조모임과 같은 방식으로 거릅니다. 기본은 '내 영역 + 내 지역',
+   [전체] 와 지역 칩으로 넓혀볼 수 있습니다.
+   목록이 40줄이 넘어가면 칩 없이는 아무도 자기 것을 못 찾습니다. */
+function fillPlaces(key, raw, icon){
+  const st = PL[key];
+  const box = $('#pl-list'), chips = $('#pl-chips');
+
+  /* 같은 곳이 두 번 실린 것은 하나로 합칩니다 — 탭이 겹치면 흔히 생깁니다 */
+  const seen = {}, list = [];
+  raw.forEach(x => {
+    const id = String(x.n || '').replace(/\s/g, '') + '|' +
+               String(x.t || '').replace(/[^0-9]/g, '');
+    if(seen[id]) return;
+    seen[id] = 1; list.push(x);
+  });
+
+  /* 자료에 실제로 있는 갈래만 칩으로 만듭니다 */
+  const cats = [];
+  list.forEach(x => { const c = catOf(x); if(c && cats.indexOf(c) < 0) cats.push(c); });
+  cats.sort((a, b) => {
+    const i = PLACECAT.map(p => p.l).indexOf(a), j = PLACECAT.map(p => p.l).indexOf(b);
+    return (i < 0 ? 99 : i) - (j < 0 ? 99 : j);
+  });
+
+  const mine = myKinds();
+  /* 내 영역에 맞는 갈래인가. 영역을 안 고른 사람에게는 다 보여줍니다. */
+  const forMe = c => {
+    const k = catKinds(c);
+    return !k.length || !mine.length || k.some(x => mine.indexOf(x) >= 0);
   };
+  /* 주소에서 읽어낸 시·도로 봅니다. 어느 지역인지 정말 모르는 줄만 전국 공통입니다. */
+  const inArea = x => { const a = areaOf(x); return !a || !S.area || a === S.area; };
 
-  fillPlaces('centers', (R.centers && R.centers.length) ? R.centers : CENTERS, 'center');
-  fillPlaces('hosp',    (R.hosp    && R.hosp.length)    ? R.hosp    : HOSP,    'hosp');
+  /* 1줄: 어디에서 찾을지 (모임 찾기의 [오늘][내 주변][지역] 과 같은 자리) */
+  const mb = $('#pl-mode'); mb.innerHTML = '';
+  [['near', S.area ? '내 주변 (' + S.area + ')' : '내 주변'],
+   ['all',  '전국'],
+   ['pick', '지역']].forEach(([m, l]) => {
+    if(m === 'near' && !S.area) return;
+    const b = el('button', 'opt' + (st.mode === m ? ' on' : ''), l);
+    b.onclick = () => { st.mode = m; if(m === 'pick' && !st.area) st.area = S.area || ''; drawPlace(); };
+    mb.appendChild(b);
+  });
 
-  /* ── 센터·병원 목록 ──
-     자조모임과 같은 방식으로 거릅니다. 기본은 '내 영역 + 내 지역',
-     [전체] 와 지역 칩으로 넓혀볼 수 있습니다.
-     목록이 40줄이 넘어가면 칩 없이는 아무도 자기 것을 못 찾습니다. */
-  function fillPlaces(key, raw, icon){
-    const st = PL[key];
-    const box = $('#help-' + key), chips = $('#help-' + key + '-chips');
-
-    /* 같은 곳이 두 번 실린 것은 하나로 합칩니다 — 탭이 겹치면 흔히 생깁니다 */
-    const seen = {}, list = [];
-    raw.forEach(x => {
-      const id = String(x.n || '').replace(/\s/g, '') + '|' +
-                 String(x.t || '').replace(/[^0-9]/g, '');
-      if(seen[id]) return;
-      seen[id] = 1; list.push(x);
-    });
-
-    /* 자료에 실제로 있는 갈래만 칩으로 만듭니다 */
-    const cats = [];
-    list.forEach(x => { const c = catOf(x); if(c && cats.indexOf(c) < 0) cats.push(c); });
-    cats.sort((a, b) => {
-      const i = PLACECAT.map(p => p.l).indexOf(a), j = PLACECAT.map(p => p.l).indexOf(b);
-      return (i < 0 ? 99 : i) - (j < 0 ? 99 : j);
-    });
-
-    const mine = myKinds();
-    /* 내 영역에 맞는 갈래인가. 영역을 안 고른 사람에게는 다 보여줍니다. */
-    const forMe = c => {
-      const k = catKinds(c);
-      return !k.length || !mine.length || k.some(x => mine.indexOf(x) >= 0);
-    };
-    const inArea = x => !x.a || !S.area || String(x.a).indexOf(S.area) >= 0;
-
-    chips.innerHTML = '';
-    if(cats.length > 1){
-      const add = (v, l) => {
-        const b = el('button', 'opt' + (st.cat === v ? ' on' : ''), l);
-        b.onclick = () => { st.cat = v; drawHelp(); };
-        chips.appendChild(b);
-      };
-      const hasMine = mine.length && cats.some(c => !forMe(c));
-      if(hasMine) add('', '내 영역');
-      /* '내 영역' 칩이 없으면 기본값('')이 곧 전체다. 아무 칩도 안 켜져 보이면 안 된다. */
-      const b0 = el('button', 'opt' + ((st.cat === '*' || (!hasMine && !st.cat)) ? ' on' : ''), '전체');
-      b0.onclick = () => { st.cat = '*'; drawHelp(); };
-      chips.appendChild(b0);
-      cats.forEach(c => add(c, c));
-    }
-    if(S.area){
-      const b = el('button', 'opt' + (st.near ? ' on' : ''), S.area + '만');
-      b.onclick = () => { st.near = !st.near; drawHelp(); };
+  /* 2줄: 어떤 갈래인지 (모임 찾기의 [내 영역][전체][알코올][도박][약물] 과 같은 자리) */
+  chips.innerHTML = '';
+  if(cats.length > 1){
+    const add = (v, l) => {
+      const b = el('button', 'opt' + (st.cat === v ? ' on' : ''), l);
+      b.onclick = () => { st.cat = v; drawPlace(); };
       chips.appendChild(b);
-    }
+    };
+    const hasMine = mine.length && cats.some(c => !forMe(c));
+    if(hasMine) add('', '내 영역 (' + mine.join('·') + ')');
+    /* '내 영역' 칩이 없으면 기본값('')이 곧 전체다. 아무 칩도 안 켜져 보이면 안 된다. */
+    const b0 = el('button', 'opt' + ((st.cat === '*' || (!hasMine && !st.cat)) ? ' on' : ''), '전체');
+    b0.onclick = () => { st.cat = '*'; drawPlace(); };
+    chips.appendChild(b0);
+    cats.forEach(c => add(c, c));
+  }
 
+  /* 3줄: [지역] 을 골랐을 때만 — 검색칸과 시·도 칩 */
+  const tools = $('#pl-tools'); tools.innerHTML = '';
+  if(st.mode === 'pick'){
+    tools.innerHTML = '<input id="pl-q" placeholder="이름이나 주소로 찾기">' +
+      '<div class="opts" id="pl-areas" style="margin:11px 0"></div>';
+    const q = $('#pl-q');
+    q.value = st.q || '';
+    q.oninput = () => { st.q = q.value; renderRows(); };
+    const ab = $('#pl-areas');
+    [''].concat(AREAS).forEach(a => {
+      const b = el('button', 'opt' + ((st.area || '') === a ? ' on' : ''), a || '전국');
+      b.onclick = () => { st.area = a; drawPlace(); };
+      ab.appendChild(b);
+    });
+  }
+
+  renderRows();
+
+  function renderRows(){
     let rows = list.filter(x => {
       const c = catOf(x);
       if(st.cat === '*' || cats.length <= 1) return true;
@@ -1984,20 +2176,29 @@ function drawHelp(){
       return !c || forMe(c);
     });
 
-    /* 내 지역만 보기. 내 지역에 하나도 없으면 발길을 돌리게 두지 말고 전국을 보여줍니다. */
     let note = '';
-    if(st.near && S.area){
+    if(st.mode === 'near' && S.area){
+      /* 내 지역에 하나도 없으면 발길을 돌리게 두지 말고 전국을 보여줍니다 */
       const m = rows.filter(inArea);
       if(m.length) rows = m;
       else note = '<p class="tiny" style="padding:2px 2px 8px">' + esc(S.area) +
                   ' 지역에 등록된 곳이 없어 전국 목록을 보여드립니다.</p>';
+    } else if(st.mode === 'pick'){
+      if(st.area) rows = rows.filter(x => areaOf(x) === st.area || !areaOf(x));
+      const q = (st.q || '').trim();
+      if(q) rows = rows.filter(x => ((x.n || '') + ' ' + (x.d || '') + ' ' + (x.a || '')).indexOf(q) >= 0);
     }
     rows = rows.slice().sort((a, b) => (inArea(b) ? 1 : 0) - (inArea(a) ? 1 : 0));
+
+    $('#pl-head').innerHTML = '<p class="tiny" style="margin:0 0 9px">' +
+      [st.mode === 'near' ? (S.area || '전국') : st.mode === 'all' ? '전국' : (st.area || '전국'),
+       (st.cat && st.cat !== '*') ? st.cat : (st.cat === '*' ? '전체' : '내 영역'),
+       rows.length + '곳'].join(' · ') + '</p>';
 
     box.innerHTML = rows.length
       ? note + rows.map(x => card(x, icon, true)).join('')
       : '<p class="tiny" style="padding:4px 2px">등록된 곳이 없습니다. ' +
-        '[전체]를 눌러보시거나, 내 정보에서 지역을 바꿔보세요.</p>';
+        '[전체]나 [전국]을 눌러보세요.</p>';
   }
 }
 
@@ -2055,23 +2256,22 @@ function drawMe(){
     ab.appendChild(b);
   });
 
-  /* 시간 순으로 둡니다. 점심 무렵을 맨 뒤에 두었더니 눈으로 훑기가 어려웠습니다. */
-  const hb = $('#me-hours'); hb.innerHTML = '';
-  [[13,'점심 무렵'],[17,'오후 5시'],[18,'저녁 6시'],[19,'7시'],[20,'8시'],
-   [21,'9시'],[22,'10시'],[23,'11시'],[0,'자정'],[1,'새벽 1시']].forEach(([h,l]) => {
-    const b = el('button', 'opt' + ((S.hours||[]).includes(h) ? ' on' : ''), l);
-    b.onclick = () => {
-      S.hours = S.hours || [];
-      const i = S.hours.indexOf(h);
-      if(i < 0) S.hours.push(h); else S.hours.splice(i,1);
-      save(); drawMe();
-    };
-    hb.appendChild(b);
+  hourChips($('#me-hours'), () => S.hours || [], h => {
+    S.hours = S.hours || [];
+    const i = S.hours.indexOf(h);
+    if(i < 0) S.hours.push(h); else S.hours.splice(i, 1);
+    save(); drawMe();
   });
 
   drawMed();
+  drawNotify();
 
-  $('#me-sheet').value = S.sheet || '';
+  /* 이미 홈 화면에서 열고 있으면 권할 것이 없습니다 */
+  $('#me-add').style.display = isInstalled() ? 'none' : '';
+  $('#me-add-m').textContent = isInstalled()
+    ? '홈 화면 앱으로 열고 계십니다. 잘 하셨습니다.'
+    : '홈 화면에 두면 주소창 없이 앱처럼 열리고, 인터넷이 끊겨도 씁니다. 알림도 훨씬 잘 잡힙니다.';
+
   $('#me-sheet-st').textContent = S.resAt
     ? '마지막으로 받았습니다 — ' + new Date(S.resAt).toLocaleString('ko-KR') +
       ' (모임 ' + (((S.res||{}).groups||[]).length + ((S.res||{}).family||[]).length) +
@@ -2144,14 +2344,34 @@ function drawMed(){
 
 $('#me-goal-save').onclick = () => { S.goal = $('#me-goal').value.trim(); save(); toast('저장했습니다.'); };
 
-$('#me-sheet-more').onclick = () => {
-  $('#me-sheet-box').classList.toggle('hide');
-};
+/* ── 알림 켜기/끄기 ── */
+function drawNotify(){
+  const b = $('#me-notify'); b.innerHTML = '';
+  const on = notifyOn();
+  const t = el('button', 'opt' + (on ? ' on' : ''), ico(on ? 'check' : 'box') + '<span>알림 받기</span>');
+  t.onclick = () => {
+    if(on){ S.notify = 0; save(); drawMe(); toast('알림을 껐습니다.'); }
+    else askNotify();
+  };
+  b.appendChild(t);
+
+  const st = $('#me-notify-st');
+  if(!canNotify()){
+    st.textContent = '이 브라우저는 알림을 지원하지 않습니다. 앱을 열어두시면 화면 안에서 알려드립니다.';
+  } else if(Notification.permission === 'denied'){
+    st.textContent = '브라우저가 이 사이트의 알림을 막고 있습니다. 주소창 왼쪽 자물쇠에서 허용으로 바꿔주세요.';
+  } else if(on){
+    /* 못 오는 알림을 믿게 하면 안 됩니다. 한계를 그대로 적습니다. */
+    st.textContent = '앱이 열려 있거나 뒤에 떠 있을 때 울립니다. ' +
+      '이 앱은 서버가 없어(그래서 기록이 밖으로 안 나갑니다) 완전히 꺼진 상태에서는 알리지 못합니다. ' +
+      '홈 화면에 추가해두면 훨씬 잘 잡힙니다.';
+  } else {
+    st.textContent = '켜두면 위험한 시간대와 복약 시간에 알려드립니다.';
+  }
+}
 
 $('#me-sheet-save').onclick = () => {
-  const typed = $('#me-sheet').value.trim();
-  S.sheet = typed; save();
-  const u = typed || SHEET_URL;
+  const u = S.sheet || SHEET_URL;
   if(!u){ S.res = null; S.resAt = 0; save(); drawMe(); toast('기본 목록으로 돌아갔습니다.'); return; }
   $('#me-sheet-st').textContent = '받아오는 중…';
   fetchRes(u)
@@ -2205,6 +2425,138 @@ $('#me-wipe').onclick = () => {
   };
 };
 
+/* ══════════ 알림 ══════════
+   ★ 솔직하게 적어 둡니다. 브라우저에는 '앱이 꺼져 있어도 이 시각에 깨워줘' 하는
+     방법이 없습니다. (Notification Triggers 는 어느 브라우저에도 들어오지
+     않았고, 정해진 시각 푸시는 서버가 있어야 합니다. 이 앱은 서버가 없습니다 —
+     그래서 회복 기록이 밖으로 나갈 일도 없습니다. 맞바꾼 것입니다.)
+
+     그래서 알림은 앱이 열려 있거나 뒤에 떠 있을 때만 울립니다.
+     홈 화면에 추가해 두면 뒤에 살아 있는 시간이 길어져 훨씬 잘 잡힙니다.
+     이 한계를 화면에도 그대로 적습니다. 못 오는 알림을 믿게 하면 안 됩니다. */
+
+function canNotify(){ return typeof Notification !== 'undefined'; }
+function notifyOn(){ return S.notify && canNotify() && Notification.permission === 'granted'; }
+
+/* 같은 알림을 하루에 두 번 울리지 않게 표시해 둡니다 */
+function fired(k){ return (S.fired || []).indexOf(today() + '|' + k) >= 0; }
+function markFired(k){
+  S.fired = (S.fired || []).filter(x => x.indexOf(today() + '|') === 0);
+  S.fired.push(today() + '|' + k);
+  save();
+}
+
+function ping(body, k){
+  if(fired(k)) return;
+  markFired(k);
+  if(notifyOn()){
+    try{
+      const n = new Notification('오늘 한 걸음', {
+        body: body, icon: './icon-192.png', tag: k, badge: './icon-32.png' });
+      /* 눌렀을 때 앱으로 돌아오지 않으면 알림이 잔소리로만 남습니다 */
+      n.onclick = () => { try{ window.focus(); go('home'); n.close(); }catch(e){} };
+      return;
+    }catch(e){}
+  }
+  /* 알림을 못 쓰면 앱 안에서라도 알립니다. 조용히 넘기지 않습니다. */
+  toast(body);
+}
+
+const hmToMin = t => {
+  const p = String(t || '').split(':');
+  const h = parseInt(p[0], 10), m = parseInt(p[1], 10);
+  return (isNaN(h) || isNaN(m)) ? -1 : h * 60 + m;
+};
+
+/* 1분마다 지금이 챙길 때인지 봅니다. 정각을 놓쳐도 10분 안에는 잡습니다 —
+   앱을 8시 4분에 열어도 8시 약을 알려주어야 합니다.
+   ★ 이름을 tick 으로 지었다가 충동 타이머의 tick() 을 덮어써서
+     5분 타이머가 끝나도 화면이 안 넘어갔습니다. 이름은 checkAlarms 입니다. */
+function checkAlarms(){
+  if(!S.started) return;
+  const now = new Date(), h = now.getHours();
+  const nm = h * 60 + now.getMinutes();
+
+  /* 위험한 시간대는 '그 시각 정각' 이 아니라 '그 한 시간' 이 위험한 것입니다.
+     18시 5분까지만 울리게 했더니 6시 35분에 앱을 연 사람은 아무것도 못 받았습니다.
+     하루에 한 번만 울리므로 성가시지 않습니다. */
+  if((S.hours || []).indexOf(h) >= 0){
+    ping((S.goal ? '\u201c' + S.goal + '\u201d\n' : '') +
+         '예전에 힘들던 시간대입니다. 지금 어떠신가요?', 'h' + h);
+  }
+
+  const doneToday = todayRec(S.medLog).map(x => x.n);
+  (S.meds || []).forEach(m => {
+    const t = hmToMin(m.t);
+    if(t < 0) return;
+    if(nm - t < 0 || nm - t >= 10) return;
+    if(doneToday.indexOf(m.s) >= 0) return;      /* 이미 체크했으면 안 부릅니다 */
+    const slot = MEDSLOT.filter(x => x.k === m.s)[0] || { l: m.s };
+    ping(slot.l + ' 드실 시간입니다.', 'm' + m.s);
+  });
+}
+
+function askNotify(){
+  if(!canNotify()){ toast('이 브라우저는 알림을 지원하지 않습니다.'); return; }
+  if(Notification.permission === 'denied'){
+    modal('<h3>알림이 막혀 있습니다</h3>' +
+      '<p class="muted">브라우저 설정에서 이 사이트의 알림을 허용해주셔야 합니다.<br>' +
+      '주소창 왼쪽의 자물쇠(또는 ⓘ)를 눌러 <b>알림</b>을 <b>허용</b>으로 바꿔주세요.</p>' +
+      '<button class="btn sec" onclick="closeModal()">알겠습니다</button>');
+    return;
+  }
+  Notification.requestPermission().then(r => {
+    S.notify = (r === 'granted') ? 1 : 0;
+    save();
+    if(cur === 'me') drawMe();
+    toast(S.notify ? '알림을 켰습니다.' : '알림을 켜지 못했습니다.');
+    if(S.notify) checkAlarms();
+  }).catch(() => {});
+}
+
+/* ══════════ 홈 화면에 추가 ══════════
+   안드로이드·PC 는 브라우저가 신호(beforeinstallprompt)를 주므로 한 번에 됩니다.
+   아이폰은 애플이 길을 막아두어 사람이 직접 눌러야 합니다. 그래서 순서를 적어 줍니다. */
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function isInstalled(){
+  return window.navigator.standalone === true ||
+    (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+}
+let addEvt = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); addEvt = e; if(cur === 'me') drawMe(); });
+
+function askAdd(){
+  if(isInstalled()){ toast('이미 홈 화면에서 열고 계십니다.'); return; }
+  let steps = '', btn = '';
+  if(isIOS){
+    steps = '<ol class="steps">' +
+      '<li>아래(또는 위)의 <b>공유</b> 단추를 누릅니다</li>' +
+      '<li>목록을 내려 <b>홈 화면에 추가</b> 를 고릅니다</li>' +
+      '<li>오른쪽 위 <b>추가</b> 를 누릅니다</li>' +
+      '<li>홈 화면의 <b>오늘 한 걸음</b> 아이콘으로 다시 엽니다</li></ol>';
+  } else if(addEvt){
+    btn = '<button class="btn" id="add-go">홈 화면에 추가</button><div style="height:9px"></div>';
+  } else {
+    steps = '<ol class="steps">' +
+      '<li>주소창 오른쪽의 <b>설치</b> 아이콘을 누릅니다</li>' +
+      '<li>또는 메뉴 → <b>앱 설치</b>(홈 화면에 추가) 를 고릅니다</li></ol>';
+  }
+  modal('<h3>앱처럼 쓰시겠어요?</h3>' +
+    '<p class="muted">홈 화면에 두면 <b>주소창 없이</b> 전체 화면으로 열리고, ' +
+    '인터넷이 끊겨도 씁니다. 알림도 훨씬 잘 잡힙니다.</p>' +
+    steps + btn +
+    '<button class="btn ghost" onclick="closeModal()">나중에</button>');
+  const g = $('#add-go');
+  if(g) g.onclick = () => {
+    const e = addEvt; addEvt = null; closeModal();
+    if(!e) return;
+    e.prompt();
+    e.userChoice.then(r => { if(r && r.outcome === 'accepted') toast('추가했습니다.'); }).catch(() => {});
+  };
+}
+$('#me-add').onclick = askAdd;
+
 /* ══════════ 부팅 ══════════ */
 function boot(){
   document.body.classList.toggle('dark', S.theme === 'dark');
@@ -2227,6 +2579,12 @@ function boot(){
       if(cur === 'me')   drawMe();
     }).catch(() => {});
   }
+
+  /* 알림 시계. 1분마다 봅니다 — 배터리에 티도 안 나고, 정각을 놓쳐도 10분 안에 잡습니다.
+     화면이 다시 켜졌을 때도 한 번 봅니다. 잠자던 사이에 시간이 지났을 수 있습니다. */
+  checkAlarms();
+  setInterval(checkAlarms, 60000);
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) checkAlarms(); });
 
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(() => {});
