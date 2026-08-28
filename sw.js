@@ -3,7 +3,7 @@
 
    ★ index.html 을 고칠 때마다 아래 V 를 반드시 올리세요.
      index.html 안의 const BUILD 도 같이 올립니다. */
-const V = 'ohg-v21';
+const V = 'ohg-v25';
 const SHELL = ['./', './index.html', './manifest.json',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-32.png'];
 

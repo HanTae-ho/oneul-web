@@ -12,20 +12,25 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <title>오늘 한 걸음</title>
 <style>
+  /* 색은 앱 아이콘('깊은 바다와 잎')에서 가져왔습니다.
+     아이콘만 바꾸면 홈 화면과 앱 안이 따로 놉니다.
+     --leaf 는 아이콘의 연둣빛 잎. 아껴 씁니다 — 여기저기 쓰면 아이콘의 힘이 빠집니다. */
   :root{
-    --bg:#f2f7f6; --bg2:#e6f0ee; --panel:#ffffff; --line:#dde7e5;
-    --tx:#1f2a28; --dim:#6b7b78; --faint:#9aa8a5;
-    --acc:#2f7d6e; --acc2:#48a08e; --accbg:#e3f1ed;
+    --bg:#f2f7f9; --bg2:#e5eff3; --panel:#ffffff; --line:#dbe6ea;
+    --tx:#1b262c; --dim:#657781; --faint:#95a5ad;
+    --acc:#1f6f8a; --acc2:#3d95b0; --accbg:#e2eff4;
+    --leaf:#5aa84e;
     --warn:#c8791f; --warnbg:#fdf1e0;
     --bad:#b8443c; --badbg:#fbeae8;
-    --ok:#2f7d6e;
+    --ok:#1f6f8a;
     --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
     --r:16px;
   }
   body.dark{
-    --bg:#121917; --bg2:#18211f; --panel:#1b2523; --line:#2a3634;
-    --tx:#e3ebe9; --dim:#93a3a0; --faint:#6d7d7a;
-    --acc:#6fc3ae; --acc2:#8ad4c1; --accbg:#1d302c;
+    --bg:#101719; --bg2:#161f22; --panel:#192327; --line:#28353a;
+    --tx:#e2ecef; --dim:#93a4ab; --faint:#6d7d84;
+    --acc:#6ec6e2; --acc2:#8dd7ee; --accbg:#152c36;
+    --leaf:#a9e6a0;
     --warn:#e0a55c; --warnbg:#2e2519;
     --bad:#e08a82; --badbg:#2e1c1a;
   }
@@ -99,7 +104,7 @@
   .dayrow .n{font-size:31px;font-weight:700;color:var(--acc);letter-spacing:-1px;
     font-variant-numeric:tabular-nums}
   .dayrow .u{font-size:14px;color:var(--dim)}
-  .dayrow .cum{margin-left:auto;font-size:12px;color:var(--faint);text-align:right}
+  .dayrow .cum{margin-left:auto;font-size:12px;color:var(--faint);text-align:right;line-height:1.5}
 
   /* 선택 칩 */
   .opts{display:flex;gap:8px;flex-wrap:wrap}
@@ -381,6 +386,7 @@
   </div>
 
   <div class="days" id="home-days"></div>
+  <div id="home-risk"></div>
 
   <button id="panic">
     <b>지금 위험해요</b>
@@ -391,14 +397,22 @@
 
   <div class="card">
     <h3>지금 상태는 어떤가요?</h3>
-    <p class="muted" style="margin:-4px 0 11px">해당하는 것을 모두 눌러주세요.</p>
+    <p class="muted" style="margin:-4px 0 11px">
+      해당하는 것을 모두 누르고 [기록하기]를 눌러주세요. 하루에 몇 번이든 괜찮습니다.
+    </p>
     <div class="halt" id="home-halt"></div>
     <div id="halt-tip" style="margin-top:11px"></div>
+    <div id="halt-act"></div>
+    <p class="tiny" id="halt-st" style="margin:10px 0 0"></p>
   </div>
 
   <div class="card">
-    <h3>오늘 기분</h3>
+    <h3>지금 기분</h3>
+    <p class="muted" style="margin:-4px 0 11px">
+      누르면 바로 기록됩니다. 아침과 밤이 다르면 그때그때 눌러주세요.
+    </p>
     <div class="moods" id="home-mood"></div>
+    <p class="tiny" id="mood-st" style="margin:10px 0 0"></p>
   </div>
 
   <div class="quote" id="home-quote"></div>
@@ -458,7 +472,7 @@
   <div style="height:9px"></div>
   <button class="btn sec" id="ur-help">지금 사람에게 도움 받기</button>
   <div style="height:9px"></div>
-  <button class="btn ghost" onclick="go('home')">괜찮아졌어요</button>
+  <button class="btn ghost" id="ur-ok">괜찮아졌어요</button>
 </section>
 
 <!-- ══════════ 타이머 ══════════ -->
@@ -786,7 +800,7 @@
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v21';
+const BUILD = 'v25';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -965,12 +979,16 @@ function mapURL(q){ return 'https://map.naver.com/p/search/' + encodeURIComponen
    자조모임과 같은 방식으로, 기본은 내 영역에 맞는 것만 보여주고
    [전체] 를 누르면 나머지도 볼 수 있게 한다.
    g 는 시트 탭 이름의 뒷부분(센터_중독통합 → 중독통합)이다. */
+/* k 는 이 갈래가 '내 영역' 으로 뜨는 영역들.
+   ★ k 가 비어 있으면 [내 영역] 에는 안 나오고 [전체] 에서만 나옵니다.
+     정신건강복지센터는 전국에 263곳이라, 알코올 회복자에게 함께 띄우면
+     정작 중독센터가 묻힙니다. 필요하면 [전체] 한 번으로 볼 수 있습니다. */
 const PLACECAT = [
-  {g:'중독통합',     l:'중독센터',   k:[]},                /* 알코올·도박·약물 모두 다룬다 */
-  {g:'정신건강복지', l:'정신건강',   k:[]},                /* 어느 영역이든 이어주는 곳 */
+  {g:'중독통합',     l:'중독센터',   k:['알코올','도박','약물']},  /* 세 영역 모두의 첫 창구 */
   {g:'함께한걸음',   l:'한걸음',     k:['약물']},
   {g:'도박예방',     l:'도박예방',   k:['도박']},
-  {g:'스마트쉼',     l:'스마트쉼',   k:['기타']},          /* 인터넷·게임 과의존 */
+  {g:'스마트쉼',     l:'스마트쉼',   k:['기타']},                  /* 인터넷·게임 과의존 */
+  {g:'정신건강복지', l:'정신건강',   k:[]},                        /* [전체] 에서만 */
   {g:'알코올',       l:'알코올',     k:['알코올']},
   {g:'마약치료',     l:'마약·약물',  k:['약물']}
 ];
@@ -1004,10 +1022,37 @@ const SIDO_ALIAS = [
   ['경상북도','경북'],['경북','경북'],['경상남도','경남'],['경남','경남'],
   ['제주','제주']
 ];
+/* ── 전남광주통합특별시 ──
+   2026년 7월 1일, 광주광역시와 전라남도가 '전남광주통합특별시'(약칭 광주특별시)로
+   합쳐졌습니다. 주소는 '전남광주통합특별시 북구', '전남광주통합특별시 여수시' 처럼
+   적습니다. 광주의 5개 구와 전남의 22개 시·군은 이름과 관할이 그대로입니다.
+
+   ★ 그래도 이 앱에서는 광주와 전남을 따로 둡니다.
+     여수에서 광주 모임까지는 100km 가 넘습니다. '내 주변' 이 통합시 전체가 되면
+     아무 쓸모가 없어집니다. 그래서 통합시 뒤에 오는 시·군·구 이름을 보고
+     광주인지 전남인지 가릅니다.
+   ★ 옛 표기('광주광역시', '전라남도')도 그대로 읽습니다. 시트에는 두 표기가 섞여 있습니다. */
+const MERGED_CITY = /^(전남광주통합특별시|전남광주특별시|광주특별시)/;
+const GJ_GU = ['동구', '서구', '남구', '북구', '광산구'];
+const JN_SIGUN = ['목포', '여수', '순천', '나주', '광양', '담양', '곡성', '구례', '고흥',
+  '보성', '화순', '장흥', '강진', '해남', '영암', '무안', '함평', '영광', '장성',
+  '완도', '진도', '신안'];
+
 function areaOf1(s){
   s = String(s || '').trim();
   if(!s) return '';
   const head = s.split(/[\s·,]/)[0] || '';
+
+  if(MERGED_CITY.test(head)){
+    const rest = s.replace(MERGED_CITY, '').trim();
+    const w = rest.split(/[\s·,]/)[0] || '';
+    if(GJ_GU.indexOf(w) >= 0) return '광주';
+    for(let i = 0; i < JN_SIGUN.length; i++)
+      if(w.indexOf(JN_SIGUN[i]) === 0) return '전남';
+    /* 뒤에 뭐가 오는지 못 알아보면 시청 소재지인 광주 쪽으로 둡니다 */
+    return '광주';
+  }
+
   for(let i = 0; i < SIDO_ALIAS.length; i++)
     if(head.indexOf(SIDO_ALIAS[i][0]) === 0) return SIDO_ALIAS[i][1];
   for(let i = 0; i < SIDO_ALIAS.length; i++)
@@ -1114,6 +1159,18 @@ const ICO = {
   theme: '<path d="M12 3a9 9 0 0 0 0 18z" class="f"/><circle cx="12" cy="12" r="9"/>',
   box:   '<rect x="4" y="4" width="16" height="16" rx="4.4"/>'
 };
+
+/* 앱 마크 — 홈 화면 아이콘과 같은 그림입니다.
+   ICO 의 다른 아이콘과 달리 선이 아니라 면으로 그려서, 색을 따로 씁니다. */
+function markSVG(px){
+  return '<svg viewBox="0 0 24 24" width="' + px + '" height="' + px + '" aria-hidden="true">' +
+    '<g transform="translate(-1.9 6.6) scale(.66)" fill="var(--acc)">' +
+    '<ellipse cx="8.4" cy="6.2" rx="1.4" ry="1.7" transform="rotate(-14 8.4 6.2)"/><ellipse cx="11.3" cy="4.9" rx="1.0" ry="1.25"/><ellipse cx="13.5" cy="5.2" rx=".9" ry="1.1"/><ellipse cx="15.4" cy="6.1" rx=".8" ry=".98" transform="rotate(14 15.4 6.1)"/><ellipse cx="16.9" cy="7.5" rx=".7" ry=".85" transform="rotate(24 16.9 7.5)"/><path d="M8.2 10.6c0-2.2 2-3.6 4.6-3.6 2.6 0 4.4 1.5 4.4 3.5 0 2.4-2.2 3.4-3.4 5.2-1 1.5-1 2.6-1 4 0 2-1.2 3.2-2.9 3.2-1.8 0-3-1.3-3-3.2 0-1.9 1-3 1.6-4.6.5-1.3.5-2.3-.3-4.5z"/>' + '</g>' +
+    '<path d="M12.2 15.2c2-1.4 3.9-3.1 4.7-5.4.4-1.3.5-2.5.5-3.6" fill="none" ' +
+      'stroke="var(--leaf)" stroke-width="1.8" stroke-linecap="round"/>' +
+    '<path d="M16.6 7.9c0-2.7-1.9-4.7-4.9-4.8-.3 2.9 1.8 5 4.9 4.8z" fill="var(--leaf)" opacity=".62"/>' +
+    '<path d="M17.8 7.2c0-3.2 2.3-5.6 5.6-5.7.3 3.4-2.1 5.9-5.6 5.7z" fill="var(--leaf)"/></svg>';
+}
 
 function ico(n, cls){
   const p = ICO[n];
@@ -1302,6 +1359,18 @@ $('#ob-go').onclick = () => {
 };
 
 /* ══════════ 홈 ══════════ */
+/* 홈에서 고르는 중인 HALT. 저장하면 비웁니다 — 화면에 남아 있으면
+   '이미 기록했다'고 착각하게 됩니다. */
+let haltSel = [];
+
+/* '오늘 3번 · 마지막 20:14' 처럼 오늘 몇 번 남겼는지 알려줍니다 */
+function countLine(arr){
+  const t = todayRec(arr || []);
+  if(!t.length) return '오늘은 아직 기록이 없습니다.';
+  const d = new Date(t[t.length - 1].t);
+  return '오늘 ' + t.length + '번 기록 · 마지막 ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+
 function todayRec(arr){
   const t = today();
   return arr.filter(r => ymd(r.t) === t);
@@ -1316,12 +1385,32 @@ function drawHome(){
   }
   S.types.forEach(k => {
     const t = typeOf(k), n = daysBetween(S.dates[k]);
-    const cum = (S.cum[k] || 0) + n;
+    const sum = (S.cum[k] || 0) + n;
+    /* '누적' 은 무엇을 센 것인지 알기 어려운 말이었습니다. 지켜온 날의 합계입니다. */
+    const best = Math.max.apply(null, [n].concat(streaks(k).map(x => x.d)));
     const r = el('div', 'dayrow');
     r.innerHTML = '<span class="nm">' + esc(t.v) + '</span>' +
       '<span class="n">' + n + '</span><span class="u">일째</span>' +
-      (cum > n ? '<span class="cum">누적 ' + cum + '일</span>' : '');
+      (sum > n ? '<span class="cum">지켜온 날 합계 ' + sum + '일' +
+        (best > n ? '<br>가장 길었던 때 ' + best + '일' : '') + '</span>' : '');
     d.appendChild(r);
+  });
+
+  /* 예전에 무너지던 구간에 들어왔으면 미리 알려줍니다.
+     ★ '너는 곧 재발한다' 로 읽히면 안 됩니다. 겁주는 말은 그 자체로 방아쇠가 됩니다.
+       미리 준비하자는 말로만 씁니다. */
+  const rw0 = $('#home-risk'); rw0.innerHTML = '';
+  S.types.forEach(k => {
+    const w = riskWindow(k);
+    if(!w || !w.inside) return;
+    rw0.insertAdjacentHTML('beforeend',
+      '<div class="note" style="margin-bottom:12px">' +
+      '예전에는 <b>' + (w.lo === w.hi ? w.lo + '일' : w.lo + '~' + w.hi + '일') + '</b> 무렵에 힘들어지셨습니다. ' +
+      '지금 ' + esc(typeOf(k).v) + ' <b>' + w.now + '일째</b>입니다.<br>' +
+      '이번 주는 모임을 한 번 더 잡아두시면 어떨까요.' +
+      '<div style="height:9px"></div>' +
+      '<button class="btn sec sm" onclick="mt.target=\'me\';mt.mode=\'today\';mt.q=\'\';mt.kind=\'\';go(\'meet\')">모임 찾아보기</button>' +
+      '</div>');
   });
 
   /* 위험 시간대 안내 */
@@ -1364,41 +1453,58 @@ function drawHome(){
   }
 
   /* HALT */
-  const last = todayRec(S.halts).slice(-1)[0];
-  const on = last ? last.v : [];
+  /* ── HALT ──
+     ★ 예전에는 '오늘의 HALT' 한 줄을 계속 덮어썼습니다. 그래서
+       아침에 고른 것이 밤까지 화면에 남아 있고, 저녁의 상태는 기록되지 않았습니다.
+       중독 회복에서 하루 중 언제 무너지느냐는 무엇보다 중요한 정보입니다.
+       이제는 [기록하기] 를 누를 때마다 그 시각으로 한 줄씩 남습니다. */
   const hb = $('#home-halt');
   hb.innerHTML = '';
   HALT.forEach(x => {
-    const b = el('button', on.includes(x.k) ? 'on' : '',
+    const b = el('button', haltSel.indexOf(x.k) >= 0 ? 'on' : '',
       ico(x.i) + '<span class="l">' + x.l + '</span>');
     b.onclick = () => {
-      const v = on.slice(), i = v.indexOf(x.k);
-      if(i < 0) v.push(x.k); else v.splice(i,1);
-      if(last) last.v = v;
-      else S.halts.push({ t: Date.now(), v: v });
-      save(); drawHome();
+      const i = haltSel.indexOf(x.k);
+      if(i < 0) haltSel.push(x.k); else haltSel.splice(i, 1);
+      drawHome();
     };
     hb.appendChild(b);
   });
-  const tip = $('#halt-tip');
-  tip.innerHTML = on.length
-    ? '<div class="note w">' + HALT.filter(x => on.includes(x.k)).map(x => esc(x.tip)).join('<br>') + '</div>'
+  $('#halt-tip').innerHTML = haltSel.length
+    ? '<div class="note w">' + HALT.filter(x => haltSel.indexOf(x.k) >= 0)
+        .map(x => esc(x.tip)).join('<br>') + '</div>'
     : '';
 
-  /* 감정 */
-  const m = todayRec(S.moods).slice(-1)[0];
+  const ha = $('#halt-act'); ha.innerHTML = '';
+  if(haltSel.length){
+    const sv = el('button', 'btn sec sm', '기록하기');
+    sv.style.marginTop = '11px';
+    sv.onclick = () => {
+      S.halts.push({ t: Date.now(), v: haltSel.slice() });
+      haltSel = [];                    /* 기록했으면 화면은 비웁니다 */
+      save(); drawHome(); toast('기록했습니다.');
+    };
+    ha.appendChild(sv);
+  }
+  $('#halt-st').textContent = countLine(S.halts);
+
+  /* ── 기분 ──
+     누를 때마다 그 시각으로 새 줄이 남습니다. 방금 누른 것만 잠깐 켜져 보이고,
+     10분이 지나면 저절로 꺼집니다 — 아침 기분이 밤까지 남아 있으면 안 됩니다. */
+  const recent = S.moods.slice(-1)[0];
+  const fresh = recent && (Date.now() - recent.t < 600000) ? recent.v : null;
   const mb = $('#home-mood');
   mb.innerHTML = '';
   MOODS.forEach(x => {
-    const b = el('button', (m && m.v === x.v) ? 'on' : '',
+    const b = el('button', (fresh === x.v) ? 'on' : '',
       ico(x.i) + '<span class="l">' + x.l + '</span>');
     b.onclick = () => {
-      if(m) m.v = x.v;
-      else S.moods.push({ t: Date.now(), v: x.v });
+      S.moods.push({ t: Date.now(), v: x.v });
       save(); drawHome(); toast('기록했습니다.');
     };
     mb.appendChild(b);
   });
+  $('#mood-st').textContent = countLine(S.moods);
 
   /* 오늘의 말 — 날짜에 따라 고정되게 */
   const seed = Math.floor(Date.now() / 86400000);
@@ -1455,7 +1561,10 @@ $('#pk-life').onclick = () => modal(
 let urge = { before: 5, after: null, thoughts: [], start: 0, type: null };
 
 function drawUrge(){
-  urge = { before: 5, after: null, thoughts: [], start: 0, type: S.types[0] || 'etc' };
+  /* touched = 사람이 실제로 손댔는가. 화면만 열었다 닫은 것은 기록하지 않습니다.
+     saved   = 이미 저장했는가. 같은 충동을 두 번 세면 통계가 거짓말이 됩니다. */
+  urge = { before: 5, after: null, thoughts: [], start: 0, touched: false, saved: false,
+           type: S.types[0] || 'etc' };
   $('#ur-r').value = 5;
   $('#ur-n').textContent = 5;
   const box = $('#ur-th');
@@ -1463,6 +1572,7 @@ function drawUrge(){
   THOUGHTS.forEach(t => {
     const b = el('button', 'opt', '"' + t + '"');
     b.onclick = () => {
+      urge.touched = true;
       const i = urge.thoughts.indexOf(t);
       if(i < 0){ urge.thoughts.push(t); b.classList.add('on'); }
       else { urge.thoughts.splice(i,1); b.classList.remove('on'); }
@@ -1470,9 +1580,23 @@ function drawUrge(){
     box.appendChild(b);
   });
 }
-$('#ur-r').oninput = e => { urge.before = +e.target.value; $('#ur-n').textContent = e.target.value; };
-$('#ur-start').onclick = () => { startTimer(0); };
-$('#ur-help').onclick = () => go('help');
+$('#ur-r').oninput = e => {
+  urge.before = +e.target.value; urge.touched = true;
+  $('#ur-n').textContent = e.target.value;
+};
+$('#ur-start').onclick = () => { urge.touched = true; startTimer(0); };
+
+/* ★ 예전에는 이 두 갈래가 저장 없이 화면만 넘겼습니다.
+     충동을 적어놓고 [괜찮아졌어요] 를 누르면 아무것도 안 남았습니다.
+     넘긴 충동이야말로 남아야 할 기록입니다 — 통계의 '충동을 넘긴 횟수'가 그것입니다. */
+$('#ur-help').onclick = () => { saveUrge(); go('help'); };
+$('#ur-ok').onclick   = () => {
+  const had = urge.touched && !urge.saved;
+  urge.ok = true;              /* 본인이 '괜찮아졌다' 고 한 것. '그대로' 와는 다릅니다 */
+  saveUrge();
+  if(had) toast('기록했습니다. 잘 넘기셨습니다.');
+  go('home');
+};
 
 /* ══════════ 타이머 ══════════ */
 let tm = { stage: 0, end: 0, id: null, breathId: null };
@@ -1514,7 +1638,7 @@ function stopTimer(){
 }
 
 $('#tm-stop').onclick = () => { stopTimer(); showAfter(true); };
-$('#tm-help').onclick = () => { stopTimer(); go('help'); };
+$('#tm-help').onclick = () => { stopTimer(); saveUrge(); go('help'); };
 $('#tm-breath').onclick = () => {
   const b = $('#breath');
   if(b.classList.contains('hide')){ b.classList.remove('hide'); startBreath(); $('#tm-breath').textContent = '호흡 멈추기'; }
@@ -1570,13 +1694,17 @@ $('#af-help').onclick = () => { saveUrge(); go('help'); };
 $('#af-done').onclick = () => { saveUrge(); toast('기록했습니다. 잘 넘기셨습니다.'); go('home'); };
 
 function saveUrge(){
+  if(urge.saved) return;                 /* 두 번 세지 않습니다 */
+  if(!urge.touched && !urge.start) return;  /* 열었다 닫기만 한 것은 기록하지 않습니다 */
+  urge.saved = true;
   S.urges.push({
     t: urge.start || Date.now(),
     type: urge.type,
     b: urge.before,
     a: urge.after == null ? urge.before : urge.after,
     sec: urge.start ? Math.round((Date.now() - urge.start) / 1000) : 0,
-    th: urge.thoughts.slice()
+    th: urge.thoughts.slice(),
+    ok: urge.ok ? 1 : 0
   });
   save();
   urge.start = 0;
@@ -1660,10 +1788,15 @@ function drawRelapse(){
 
 $('#rl-save').onclick = () => {
   const k = rl.type;
-  S.relapses.push({ t: Date.now(), type: k, halt: rl.halt.slice(), n: $('#rl-note').value.trim() });
+  /* ★ days = 이번에 며칠을 지키셨는지. 이것을 남겨야 '나는 20~25일쯤이 고비구나' 를 알 수 있습니다.
+     재발 패턴은 사례관리에서 가장 쓸모 있는 정보인데, 예전에는 그냥 버렸습니다. */
+  const ran = daysBetween(S.dates[k]);
+  S.relapses.push({ t: Date.now(), type: k, halt: rl.halt.slice(),
+                    n: $('#rl-note').value.trim(),
+                    days: ran, reset: rl.when === 'today' ? 1 : 0 });
   if(rl.when === 'today'){
-    /* 누적은 유지 — 지금까지 지킨 날을 더해두고 시작일만 새로 잡습니다 */
-    S.cum[k] = (S.cum[k] || 0) + daysBetween(S.dates[k]);
+    /* 지켜온 날은 사라지지 않습니다 — 합계에 더해두고 시작일만 새로 잡습니다 */
+    S.cum[k] = (S.cum[k] || 0) + ran;
     S.dates[k] = today();
   }
   save();
@@ -1677,6 +1810,32 @@ $('#rl-save').onclick = () => {
     '<div style="height:9px"></div>' +
     '<button class="btn ghost" onclick="closeModal();go(\'home\')">홈으로</button>');
 };
+
+/* ── 회차(지킨 기간) ──
+   재발할 때마다 그때까지 며칠을 지켰는지 남깁니다(relapse.days).
+   v23 까지는 이것을 안 남겼으므로, 옛 기록은 재발과 재발 사이의 날수로 되살립니다.
+   되살린 값에는 est 표시를 붙여 둡니다 — 짐작한 숫자를 확실한 것처럼 보여주면 안 됩니다. */
+function streaks(k){
+  const rs = S.relapses.filter(r => r.type === k).sort((a, b) => a.t - b.t);
+  const out = [];
+  let prev = null;
+  rs.forEach(r => {
+    if(r.days != null) out.push({ d: r.days, t: r.t, est: false });
+    else if(prev) out.push({ d: daysBetween(ymd(prev), ymd(r.t)), t: r.t, est: true });
+    if(r.reset == null || r.reset) prev = r.t;
+  });
+  return out;
+}
+
+/* 지금 회차가 예전에 무너지던 구간에 들어왔는가 */
+function riskWindow(k){
+  const past = streaks(k).map(x => x.d).filter(d => d > 0);
+  if(past.length < 2) return null;              /* 두 번은 있어야 '패턴' 이라 할 수 있습니다 */
+  const lo = Math.min.apply(null, past), hi = Math.max.apply(null, past);
+  const now = daysBetween(S.dates[k]);
+  return { lo: lo, hi: hi, now: now, n: past.length,
+           inside: now >= Math.max(1, lo - 3) && now <= hi + 3 };
+}
 
 /* ══════════ 기록 ══════════ */
 let recTab = 'mood';
@@ -1698,19 +1857,43 @@ function drawRec(){
 
 function emptyBox(msg){ return el('div', 'empty', msg); }
 
+/* 기분과 상태(HALT)를 한 줄기 시간순으로 봅니다.
+   따로 두면 '배고픈데 기분이 바닥이던 그 저녁' 이 안 보입니다.
+   같은 시각(3분 안)에 남긴 것은 한 줄로 묶습니다. */
 function recMood(){
+  const ev = [];
+  S.moods.forEach(m => ev.push({ t: m.t, mood: m.v }));
+  S.halts.forEach(h => ev.push({ t: h.t, halt: h.v || [] }));
+  S.nights.forEach(n => ev.push({ t: n.t, night: n }));
+  if(!ev.length) return emptyBox('아직 기록이 없습니다.<br>홈에서 [지금 기분]이나 [지금 상태]를 눌러보세요.');
+
+  ev.sort((a, b) => b.t - a.t);
+  const merged = [];
+  ev.forEach(e => {
+    const last = merged[merged.length - 1];
+    if(last && Math.abs(last.t - e.t) < 180000){
+      if(e.mood != null && last.mood == null) last.mood = e.mood;
+      else if(e.halt && !last.halt) last.halt = e.halt;
+      else if(e.night && !last.night) last.night = e.night;
+      else merged.push(e);
+      return;
+    }
+    merged.push(Object.assign({}, e));
+  });
+
   const c = el('div', 'card');
-  const rows = S.nights.slice().reverse();
-  const moods = S.moods.slice().reverse();
-  if(!moods.length) return emptyBox('아직 기록이 없습니다.<br>홈에서 오늘 기분을 눌러보세요.');
-  moods.slice(0, 60).forEach(m => {
-    const x = MOODS.find(o => o.v === m.v) || MOODS[2];
-    const n = rows.find(r => Math.abs(r.t - m.t) < 4000);
+  merged.slice(0, 80).forEach(e => {
+    const x = (e.mood != null) ? (MOODS.find(o => o.v === e.mood) || MOODS[2]) : null;
+    const hs = (e.halt || []).map(k => HALT.find(o => o.k === k)).filter(Boolean);
     const i = el('div', 'item');
-    i.innerHTML = '<div class="w">' + esc(when(m.t)).replace('\n','<br>') + '</div>' +
-      '<div class="b"><b>' + ico(x.i, 'ic-i') + esc(x.l) + '</b>' +
-      (n && n.n ? '<p>' + esc(n.n) + '</p>' : '') +
-      (n && n.k === 0 ? '<span class="badge b">힘든 날</span>' : '') + '</div>';
+    i.innerHTML = '<div class="w">' + esc(when(e.t)).replace('\n','<br>') + '</div>' +
+      '<div class="b">' +
+      (x ? '<b>' + ico(x.i, 'ic-i') + esc(x.l) + '</b>' : '') +
+      (hs.length ? '<p>' + hs.map(h => ico(h.i, 'ic-i') + esc(h.l)).join(' ') + '</p>' : '') +
+      (!x && !hs.length && e.night ? '<b>자기 전 기록</b>' : '') +
+      (e.night && e.night.n ? '<p>' + esc(e.night.n) + '</p>' : '') +
+      (e.night && e.night.k === 0 ? '<span class="badge b">힘든 날</span>' : '') +
+      '</div>';
     c.appendChild(i);
   });
   return c;
@@ -1726,7 +1909,9 @@ function recUrge(){
     i.innerHTML = '<div class="w">' + esc(when(u.t)).replace('\n','<br>') + '</div>' +
       '<div class="b"><b>' + esc(typeOf(u.type).n) + ' 충동 ' + u.b + ' → ' + u.a + '</b>' +
       (d > 0 ? '<span class="badge">' + d + '만큼 내려감</span>'
-             : d < 0 ? '<span class="badge b">올라감</span>' : '<span class="badge w">그대로</span>') +
+             : d < 0 ? '<span class="badge b">올라감</span>'
+             : u.ok ? '<span class="badge">괜찮아졌다고 하심</span>'
+             : '<span class="badge w">그대로</span>') +
       (mm ? '<p>' + mm + '분 버팀</p>' : '') +
       (u.th && u.th.length ? '<p>"' + u.th.map(esc).join('", "') + '"</p>' : '') +
       '</div>';
@@ -1737,6 +1922,53 @@ function recUrge(){
 
 function recRelapse(){
   if(!S.relapses.length) return emptyBox('기록이 없습니다.');
+  const w = el('div');
+
+  /* 회차별로 며칠씩 지키셨는지. 이것이 자기 패턴을 보는 눈이 됩니다. */
+  S.types.forEach(k => {
+    const st = streaks(k);
+    if(!st.length) return;
+    const now = daysBetween(S.dates[k]);
+    const ds = st.map(x => x.d);
+    const best = Math.max.apply(null, ds.concat([now]));
+    const avg = Math.round(ds.reduce((a, b) => a + b, 0) / ds.length);
+    const c = el('div', 'card');
+    let html = '<h3>' + esc(typeOf(k).v) + ' 회차별 기록</h3>' +
+      '<div class="kpi">' +
+      '<div><b>' + now + '</b><span>이번 회차 (일째)</span></div>' +
+      '<div><b>' + best + '</b><span>가장 길었던 때</span></div>' +
+      '<div><b>' + avg + '</b><span>평균 (일)</span></div>' +
+      '<div><b>' + ((S.cum[k] || 0) + now) + '</b><span>지켜온 날 합계</span></div>' +
+      '</div>';
+    const mx = Math.max(best, 1);
+    html += '<div style="margin-top:14px">';
+    st.forEach((x, i) => {
+      html += '<div class="hbar"><div class="lb"><span>' + (i + 1) + '회차</span>' +
+        '<span class="tiny">' + x.d + '일' + (x.est ? ' (짐작)' : '') + '</span></div>' +
+        '<div class="tr"><div class="fl" style="width:' + (x.d / mx * 100) + '%"></div></div></div>';
+    });
+    html += '<div class="hbar"><div class="lb"><span><b>지금</b></span>' +
+      '<span class="tiny">' + now + '일째</span></div>' +
+      '<div class="tr"><div class="fl hi" style="width:' + (now / mx * 100) + '%"></div></div></div></div>';
+
+    const rw = riskWindow(k);
+    if(rw){
+      html += '<div class="note" style="margin-top:12px">' +
+        '지금까지 <b>' + (rw.lo === rw.hi ? rw.lo + '일' : rw.lo + '~' + rw.hi + '일') +
+        '</b> 사이에 힘들어지셨습니다. 그 무렵이 오면 미리 챙길 것을 정해두면 좋겠습니다 — ' +
+        '모임 한 번 더, 잠 일찍, 혼자 있는 저녁 줄이기 같은 것들요.</div>';
+    } else {
+      html += '<p class="tiny" style="margin:12px 0 0">회차가 두 번 이상 쌓이면 ' +
+        '자주 힘들어지는 구간을 짚어드립니다.</p>';
+    }
+    if(st.some(x => x.est)){
+      html += '<p class="tiny" style="margin:8px 0 0">(짐작) 은 v23 이전 기록이라 ' +
+        '다시 시작한 날 사이의 간격으로 되살린 값입니다.</p>';
+    }
+    c.innerHTML = html;
+    w.appendChild(c);
+  });
+
   const c = el('div', 'card');
   S.relapses.slice().reverse().forEach(r => {
     const hs = (r.halt || []).map(k => (HALT.find(x => x.k === k) || {}).l).filter(Boolean).join(' · ');
@@ -1744,10 +1976,12 @@ function recRelapse(){
     i.innerHTML = '<div class="w">' + esc(when(r.t)).replace('\n','<br>') + '</div>' +
       '<div class="b"><b>' + esc(typeOf(r.type).n) + ' · 다시 시작</b>' +
       (hs ? '<p>그때 상태: ' + esc(hs) + '</p>' : '') +
+      (r.days != null ? '<p>' + r.days + '일 지키신 뒤였습니다</p>' : '') +
       (r.n ? '<p>' + esc(r.n) + '</p>' : '') + '</div>';
     c.appendChild(i);
   });
-  return c;
+  w.appendChild(c);
+  return w;
 }
 
 function recStat(){
@@ -2214,7 +2448,9 @@ function fillPlaces(key, raw, icon){
   /* 내 영역에 맞는 갈래인가. 영역을 안 고른 사람에게는 다 보여줍니다. */
   const forMe = c => {
     const k = catKinds(c);
-    return !k.length || !mine.length || k.some(x => mine.indexOf(x) >= 0);
+    if(!k.length) return false;                    /* 영역이 없는 갈래는 [전체] 에서만 */
+    if(!mine.length) return true;                  /* 영역을 안 고른 분께는 다 보여줍니다 */
+    return k.some(x => mine.indexOf(x) >= 0);
   };
   /* 주소에서 읽어낸 시·도로 봅니다. 어느 지역인지 정말 모르는 줄만 전국 공통입니다. */
   const inArea = x => { const a = areasOf(x); return !a.length || !S.area || a.indexOf(S.area) >= 0; };
@@ -2791,7 +3027,7 @@ $('#me-add').onclick = askAdd;
 /* ══════════ 부팅 ══════════ */
 function boot(){
   document.body.classList.toggle('dark', S.theme === 'dark');
-  $('#intro-ico').innerHTML = ico('sprout');
+  $('#intro-ico').innerHTML = markSVG(52);   /* 홈 화면 아이콘과 같은 그림 */
   $('#af-ico').innerHTML = ico('wave');
   $('#theme-tg').innerHTML = ico('theme');
   $$('[data-ico]').forEach(n => { n.innerHTML = ico(n.dataset.ico); });
