@@ -305,6 +305,56 @@
   </p>
 </section>
 
+<!-- ══════════ 관리자 ══════════ -->
+<section class="pg" id="p-admin">
+  <div class="sp" style="margin-bottom:12px">
+    <h1 style="margin:0">관리자</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" id="ad-out">로그아웃</button>
+  </div>
+  <p class="muted" style="margin:-6px 0 14px">
+    모임·센터·병원 목록을 고치는 곳입니다. 실제 고치기는 구글 시트에서 이뤄집니다.
+  </p>
+
+  <div class="card">
+    <h3>시트 주소</h3>
+    <p class="muted" style="margin:-4px 0 11px">
+      한 번 넣어두면 목록 줄마다 <b>[고치기]</b>가 붙습니다.
+      누르면 시트의 <b>바로 그 줄</b>이 열립니다.
+    </p>
+    <input id="ad-url" placeholder="docs.google.com/spreadsheets/…">
+    <div style="height:9px"></div>
+    <button class="btn sec sm" id="ad-save">저장</button>
+    <p class="tiny" id="ad-st" style="margin:10px 0 0"></p>
+  </div>
+
+  <div class="card">
+    <h3>새 줄 넣기 · 지우기</h3>
+    <p class="muted" style="margin:-4px 0 11px">
+      탭을 누르면 그 탭이 열립니다. 맨 아래 빈 줄에 적으면 새 모임이 되고,
+      줄을 지우면 목록에서 빠집니다. 잘못 지워도 시트의 [파일 → 버전 기록]으로 되돌립니다.
+    </p>
+    <div class="opts" id="ad-tabs"></div>
+  </div>
+
+  <div class="card">
+    <h3>고친 뒤에</h3>
+    <ol class="steps" style="margin-bottom:0">
+      <li>시트는 저절로 저장됩니다. 따로 하실 것 없습니다</li>
+      <li>Apps Script 편집기에서 <b>CHECK_ROWS</b> 를 실행해 어긋난 줄이 없는지 봅니다</li>
+      <li>아래 [지금 새로 받기] 를 누르면 이 기기에 바로 반영됩니다</li>
+      <li>다른 분들 기기에는 <b>앱을 다음에 열 때</b> 반영됩니다</li>
+    </ol>
+    <div style="height:11px"></div>
+    <button class="btn sec sm" id="ad-refresh">지금 새로 받기</button>
+    <p class="tiny" id="ad-res" style="margin:10px 0 0;white-space:pre-line"></p>
+  </div>
+
+  <div class="note w">
+    이 자물쇠는 화면을 정리하기 위한 것입니다. 목록을 실제로 지키는 것은
+    구글 계정입니다 — 시트를 고칠 수 있는 사람은 시트 주인뿐입니다.
+  </div>
+</section>
+
 <!-- ══════════ 센터·병원 찾기 ══════════ -->
 <section class="pg" id="p-place">
   <div class="sp" style="margin-bottom:12px">
@@ -671,31 +721,12 @@
     <button class="btn sec sm" id="me-sheet-save">지금 새로 받기</button>
   </div>
 
-  <!-- 목록을 실제로 고치는 사람(팀장님)만 켭니다. 환자분 화면에는 안 보입니다. -->
+  <!-- 목록을 고치는 사람(팀장님)만 들어갑니다. 자물쇠는 화면을 정리하기 위한 것이지
+       목록을 지키는 것이 아닙니다 — 목록을 지키는 것은 구글 계정입니다. -->
   <div class="card">
-    <h3>목록 관리</h3>
-    <p class="muted" style="margin:-4px 0 11px">
-      켜두면 모임·센터·병원 줄마다 <b>[고치기]</b>가 붙습니다.
-      누르면 구글 시트의 <b>바로 그 줄</b>이 열립니다.
-    </p>
+    <h3>관리자</h3>
+    <p class="muted" style="margin:-4px 0 11px" id="me-admin-m"></p>
     <div class="opts" id="me-admin"></div>
-    <div id="me-admin-box" class="hide" style="margin-top:12px">
-      <input id="me-admin-url" placeholder="구글 시트 주소 (docs.google.com/spreadsheets/…)">
-      <div style="height:9px"></div>
-      <button class="btn sec sm" id="me-admin-save">시트 주소 저장</button>
-      <p class="tiny" style="margin:10px 0 0">
-        주소는 이 기기에만 저장됩니다. 시트를 고칠 수 있는 것은 시트 주인뿐이니,
-        다른 분이 이 스위치를 켜도 목록은 안전합니다.
-      </p>
-
-      <div class="sep" style="margin:14px 0"></div>
-      <h3 style="font-size:15px">새 줄 넣기 · 지우기</h3>
-      <p class="muted" style="margin:-4px 0 11px">
-        탭을 누르면 그 탭이 열립니다. 맨 아래 빈 줄에 적으면 새 모임이 되고,
-        줄을 지우면 목록에서 빠집니다. 잘못 지워도 시트의 [수정 기록]으로 되돌릴 수 있습니다.
-      </p>
-      <div class="opts" id="me-admin-tabs"></div>
-    </div>
   </div>
 
   <div class="card">
@@ -744,6 +775,7 @@
     <button data-t="rec"><svg viewBox="0 0 24 24"><path d="M5 3h11l4 4v14H5z"/><path d="M9 12h7M9 16h5M9 8h4"/></svg>기록</button>
     <button data-t="help"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 21 11c0 5.4-7 10-7 10z"/></svg>도움</button>
     <button data-t="me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>내정보</button>
+    <button data-t="admin" id="tab-admin" class="hide"><svg viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8.5 10.5V7.6a3.5 3.5 0 0 1 7 0v2.9"/></svg>관리자</button>
   </nav>
 </div>
 
@@ -754,7 +786,7 @@
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v20';
+const BUILD = 'v21';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -934,10 +966,11 @@ function mapURL(q){ return 'https://map.naver.com/p/search/' + encodeURIComponen
    [전체] 를 누르면 나머지도 볼 수 있게 한다.
    g 는 시트 탭 이름의 뒷부분(센터_중독통합 → 중독통합)이다. */
 const PLACECAT = [
-  {g:'중독통합',     l:'중독센터',   k:[]},
-  {g:'정신건강복지', l:'정신건강',   k:[]},
-  {g:'스마트쉼',     l:'스마트쉼',   k:[]},
+  {g:'중독통합',     l:'중독센터',   k:[]},                /* 알코올·도박·약물 모두 다룬다 */
+  {g:'정신건강복지', l:'정신건강',   k:[]},                /* 어느 영역이든 이어주는 곳 */
   {g:'함께한걸음',   l:'한걸음',     k:['약물']},
+  {g:'도박예방',     l:'도박예방',   k:['도박']},
+  {g:'스마트쉼',     l:'스마트쉼',   k:['기타']},          /* 인터넷·게임 과의존 */
   {g:'알코올',       l:'알코올',     k:['알코올']},
   {g:'마약치료',     l:'마약·약물',  k:['약물']}
 ];
@@ -948,6 +981,7 @@ function catOf(x){
   if(s.indexOf('중독관리통합') >= 0) return '중독센터';
   if(s.indexOf('함께한걸음') >= 0 || s.indexOf('마약퇴치') >= 0) return '한걸음';
   if(s.indexOf('스마트쉼') >= 0) return '스마트쉼';
+  if(s.indexOf('도박문제예방') >= 0 || s.indexOf('도박문제관리') >= 0) return '도박예방';
   if(s.indexOf('정신건강복지') >= 0) return '정신건강';
   if(s.indexOf('마약') >= 0 || s.indexOf('약물') >= 0) return '마약·약물';
   if(s.indexOf('알코올') >= 0) return '알코올';
@@ -970,8 +1004,8 @@ const SIDO_ALIAS = [
   ['경상북도','경북'],['경북','경북'],['경상남도','경남'],['경남','경남'],
   ['제주','제주']
 ];
-function areaOf(x){
-  const s = String(x.a || x.d || '').trim();
+function areaOf1(s){
+  s = String(s || '').trim();
   if(!s) return '';
   const head = s.split(/[\s·,]/)[0] || '';
   for(let i = 0; i < SIDO_ALIAS.length; i++)
@@ -980,6 +1014,19 @@ function areaOf(x){
     if(s.indexOf(SIDO_ALIAS[i][0]) >= 0) return SIDO_ALIAS[i][1];
   return '';
 }
+/* 한 곳이 두 지역을 맡기도 합니다 — 대전충남·부산울산·광주전남 센터처럼.
+   시트의 [a] 칸에 '대전·충남' 이라고 적으면 두 지역 모두에서 보입니다. */
+function areasOf(x){
+  const raw = String((x && x.a) || '').trim();
+  if(raw){
+    const out = [];
+    raw.split(/[·,/]|\s{2,}/).forEach(p => { const a = areaOf1(p); if(a && out.indexOf(a) < 0) out.push(a); });
+    if(out.length) return out;
+  }
+  const a = areaOf1((x && x.d) || '');
+  return a ? [a] : [];
+}
+function areaOf(x){ return areasOf(x)[0] || ''; }
 
 /* 센터·병원 화면의 지금 상태. '' 는 내 영역, '*' 는 전체. */
 const PL = { centers: { cat:'', mode:'near', area:'', q:'' },
@@ -1146,6 +1193,7 @@ function go(p){
   if(p === 'urge')    drawUrge();
   if(p === 'meet')    drawMeet();
   if(p === 'place')   drawPlace();
+  if(p === 'admin')   drawAdminPage();
 }
 $$('#tabs button').forEach(b => b.onclick = () => go(b.dataset.t));
 
@@ -1818,7 +1866,9 @@ let mt = { mode: 'today', target: 'me', area: '', q: '', located: '', kind: '' }
 const KINDS = [
   {k:'알코올', t:['alcohol'],  pre:['AA','알아넌']},
   {k:'도박',   t:['gambling'], pre:['GA','단도박','겜아넌']},
-  {k:'약물',   t:['drug'],     pre:['NA','나란온']}
+  {k:'약물',   t:['drug'],     pre:['NA','나란온']},
+  /* 게임·인터넷·성 같은 나머지. '기타'를 고른 사람에게만 스마트쉼센터가 뜬다. */
+  {k:'기타',   t:['etc'],      pre:[]}
 ];
 function rowKind(r){
   if(r.k) return r.k;
@@ -2084,7 +2134,7 @@ function drawHelp(){
    시트에서 한 줄을 '찾는' 것이 실제 품입니다. 852줄에서 눈으로 찾게 두면 안 됩니다.
    앱에서 이상한 줄을 본 그 자리에서 바로 그 칸을 엽니다.
    줄 위치(_id·_row)는 시트를 못 여는 사람에게는 뜻 없는 숫자라 안전합니다. */
-function adminOn(){ return !!(S.admin && S.adminUrl); }
+function adminOn(){ return !!(S.admin && S.adminUrl); }   /* 로그인했고, 시트 주소가 있을 때만 */
 function editURL(x){
   if(!adminOn() || !x || x._id === undefined || !x._row) return '';
   /* .../edit 뒤에 #gid=<탭>&range=A<줄> 을 붙이면 그 칸이 열립니다 */
@@ -2167,7 +2217,7 @@ function fillPlaces(key, raw, icon){
     return !k.length || !mine.length || k.some(x => mine.indexOf(x) >= 0);
   };
   /* 주소에서 읽어낸 시·도로 봅니다. 어느 지역인지 정말 모르는 줄만 전국 공통입니다. */
-  const inArea = x => { const a = areaOf(x); return !a || !S.area || a === S.area; };
+  const inArea = x => { const a = areasOf(x); return !a.length || !S.area || a.indexOf(S.area) >= 0; };
 
   /* 1줄: 어디에서 찾을지 (모임 찾기의 [오늘][내 주변][지역] 과 같은 자리) */
   const mb = $('#pl-mode'); mb.innerHTML = '';
@@ -2231,7 +2281,7 @@ function fillPlaces(key, raw, icon){
       else note = '<p class="tiny" style="padding:2px 2px 8px">' + esc(S.area) +
                   ' 지역에 등록된 곳이 없어 전국 목록을 보여드립니다.</p>';
     } else if(st.mode === 'pick'){
-      if(st.area) rows = rows.filter(x => areaOf(x) === st.area || !areaOf(x));
+      if(st.area) rows = rows.filter(x => { const a = areasOf(x); return !a.length || a.indexOf(st.area) >= 0; });
       const q = (st.q || '').trim();
       if(q) rows = rows.filter(x => ((x.n || '') + ' ' + (x.d || '') + ' ' + (x.a || '')).indexOf(q) >= 0);
     }
@@ -2421,31 +2471,100 @@ function drawNotify(){
   }
 }
 
-/* ── 목록 관리 (팀장용) ──
-   시트를 고칠 수 있는 사람은 시트 주인뿐입니다. 그래서 이 스위치는
-   비밀이 아니라 '내 화면을 어지럽히지 않기' 위한 것입니다.
-   환자분 화면에 [고치기] 가 떠 있으면 눌러보고 막힌 문 앞에 서게 됩니다. */
+/* ══════════ 관리자 ══════════
+   ★ 이 자물쇠가 지키는 것은 '화면' 이지 '목록' 이 아닙니다.
+     앱 코드는 공개 깃허브에 있으니 아래 열쇠값도 누구나 볼 수 있습니다.
+     목록을 실제로 지키는 것은 구글 계정입니다 — 시트를 고칠 수 있는 사람은
+     시트 주인뿐이고, 열쇠를 안다고 남의 시트가 열리지는 않습니다.
+     이 자물쇠는 환자분 화면에 [고치기] 가 떠서 막힌 문 앞에 서는 일을 막는 것입니다.
+     그러니 이 열쇠를 은행 암호처럼 여기지 마세요. 다른 곳에 쓰던 것을 넣지 마세요. */
+const ADMIN_HASH = 'c8fecd0f0b0ffb6c357259524f167d9d1280249449c51b3355d1f8d56d6d7e3b';
+
+function sha256(t){
+  if(!(window.crypto && crypto.subtle)) return Promise.reject(new Error('no-crypto'));
+  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)).then(b =>
+    Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(''));
+}
+
+function adminLogin(){
+  modal('<h3>관리자 로그인</h3>' +
+    '<p class="muted">목록을 고치는 분만 들어갑니다.</p>' +
+    '<input id="ad-pw" type="password" placeholder="열쇠말" autocomplete="off">' +
+    '<p class="tiny" id="ad-pw-st" style="margin:9px 0 13px"></p>' +
+    '<button class="btn" id="ad-in">들어가기</button><div style="height:9px"></div>' +
+    '<button class="btn ghost" onclick="closeModal()">닫기</button>');
+  const pw = $('#ad-pw'), st = $('#ad-pw-st');
+  setTimeout(() => pw.focus(), 60);
+  const tryIn = () => {
+    st.textContent = '확인하는 중…';
+    sha256(pw.value).then(h => {
+      if(h === ADMIN_HASH){
+        S.admin = 1; save(); closeModal(); drawMe();
+        $('#tab-admin').classList.remove('hide');
+        go('admin');
+        toast('관리자로 들어왔습니다.');
+      } else {
+        st.textContent = '열쇠말이 맞지 않습니다.';
+        pw.value = ''; pw.focus();
+      }
+    }).catch(() => {
+      st.textContent = '이 브라우저에서는 확인할 수 없습니다. https 주소로 열어주세요.';
+    });
+  };
+  $('#ad-in').onclick = tryIn;
+  pw.onkeydown = e => { if(e.key === 'Enter') tryIn(); };
+}
+
+function adminLogout(){
+  S.admin = 0; save();
+  $('#tab-admin').classList.add('hide');
+  go('me');
+  toast('로그아웃했습니다.');
+}
+
+/* 내 정보의 관리자 카드 */
 function drawAdmin(){
   const b = $('#me-admin'); b.innerHTML = '';
-  const on = !!S.admin;
-  const t = el('button', 'opt' + (on ? ' on' : ''),
-    ico(on ? 'check' : 'box') + '<span>목록 고치기 켜기</span>');
-  t.onclick = () => { S.admin = on ? 0 : 1; save(); drawMe(); };
-  b.appendChild(t);
+  $('#tab-admin').classList.toggle('hide', !S.admin);
+  $('#me-admin-m').textContent = S.admin
+    ? '관리자로 들어와 있습니다. 아래 [관리자] 탭에서 목록을 고칠 수 있습니다.'
+    : '모임·센터·병원 목록을 고치는 분만 들어갑니다.';
+  if(S.admin){
+    const o = el('button', 'opt', '관리자 화면 열기');
+    o.onclick = () => go('admin');
+    const x = el('button', 'opt', '로그아웃');
+    x.onclick = adminLogout;
+    b.appendChild(o); b.appendChild(x);
+  } else {
+    const i = el('button', 'opt', '관리자 로그인');
+    i.onclick = adminLogin;
+    b.appendChild(i);
+  }
+}
 
-  $('#me-admin-box').classList.toggle('hide', !on);
-  $('#me-admin-url').value = S.adminUrl || '';
+/* 관리자 화면 */
+function drawAdminPage(){
+  $('#ad-url').value = S.adminUrl || '';
+  $('#ad-st').textContent = S.adminUrl
+    ? '저장돼 있습니다. 목록 줄마다 [고치기] 가 붙습니다.'
+    : '주소를 넣기 전에는 [고치기] 가 안 붙습니다.';
+
+  const R = S.res || {};
+  $('#ad-res').textContent = S.resAt
+    ? '마지막으로 받았습니다 — ' + new Date(S.resAt).toLocaleString('ko-KR') +
+      '\n모임 ' + ((R.groups||[]).length + (R.family||[]).length) +
+      ' · 센터 ' + ((R.centers||[]).length) +
+      ' · 병원 ' + ((R.hosp||[]).length) +
+      ' · 자원 목록 서버 ' + (S.resVer || 'v1.0 (판을 알려주지 않는 옛 판)')
+    : '아직 받지 못했습니다.';
 
   /* 탭 목록은 받아온 자료에서 그대로 뽑습니다. 시트에 탭을 더 만들면 여기도 늘어납니다. */
-  const tb = $('#me-admin-tabs'); tb.innerHTML = '';
-  const R = S.res || {}, seen = {}, tabs = [];
+  const tb = $('#ad-tabs'); tb.innerHTML = '';
+  const seen = {}, tabs = [];
   ['lines','groups','family','centers','hosp'].forEach(k => (R[k] || []).forEach(x => {
     if(x._tab && !seen[x._tab]){ seen[x._tab] = 1; tabs.push({ n: x._tab, id: x._id }); }
   }));
-  if(!S.adminUrl){
-    tb.innerHTML = '<p class="tiny">시트 주소를 먼저 저장해주세요.</p>';
-    return;
-  }
+  if(!S.adminUrl){ tb.innerHTML = '<p class="tiny">시트 주소를 먼저 저장해주세요.</p>'; return; }
   if(!tabs.length){
     tb.innerHTML = '<p class="tiny">탭 정보가 아직 없습니다. ' +
       '자원 목록 서버를 v1.2 이상으로 올리고 [지금 새로 받기] 를 눌러주세요.</p>';
@@ -2454,22 +2573,32 @@ function drawAdmin(){
   const base = String(S.adminUrl).split('#')[0].replace(/\/(edit|view).*$/, '').replace(/\/$/, '');
   tabs.forEach(t => {
     const a = document.createElement('a');
-    a.className = 'opt';
-    a.target = '_blank'; a.rel = 'noopener';
+    a.className = 'opt'; a.target = '_blank'; a.rel = 'noopener';
     a.href = base + '/edit#gid=' + t.id;
     a.textContent = t.n;
     tb.appendChild(a);
   });
 }
 
-$('#me-admin-save').onclick = () => {
-  const u = $('#me-admin-url').value.trim();
+$('#ad-out').onclick = adminLogout;
+
+$('#ad-save').onclick = () => {
+  const u = $('#ad-url').value.trim();
   if(u && u.indexOf('docs.google.com/spreadsheets') < 0){
     toast('구글 시트 주소가 아닌 것 같습니다.'); return;
   }
   S.adminUrl = u; save();
   toast(u ? '저장했습니다. 목록에 [고치기] 가 붙습니다.' : '주소를 비웠습니다.');
-  drawMe();
+  drawAdminPage();
+};
+
+$('#ad-refresh').onclick = () => {
+  const u = S.sheet || SHEET_URL;
+  if(!u){ toast('받아올 주소가 없습니다.'); return; }
+  $('#ad-res').textContent = '받아오는 중…';
+  fetchRes(u)
+    .then(() => { drawAdminPage(); toast('자원 목록을 받았습니다.'); })
+    .catch(e => { $('#ad-res').textContent = '받지 못했습니다: ' + e.message; });
 };
 
 $('#me-sheet-save').onclick = () => {
@@ -2687,6 +2816,9 @@ function boot(){
   checkAlarms();
   setInterval(checkAlarms, 60000);
   document.addEventListener('visibilitychange', () => { if(!document.hidden) checkAlarms(); });
+
+  /* 관리자 탭은 로그인했을 때만 보입니다 */
+  $('#tab-admin').classList.toggle('hide', !S.admin);
 
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(() => {});
