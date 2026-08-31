@@ -116,6 +116,27 @@ addEventListener('appinstalled', function(){
   .acc-b h3{margin:0 0 10px;font-size:15px;font-weight:600}
   @media (prefers-reduced-motion:reduce){ .acc-v{transition:none} }
 
+  /* ── 읽는 글 (도움이 되는 글 · 가족 안내) ──
+     ★ 이 두 화면만 글자를 키웁니다. 다른 데는 '고르고 누르는' 곳이라
+       촘촘해도 되지만 여기는 '읽는' 곳입니다.
+       13px 로 여러 편을 쌓아두었더니 읽기도 전에 지쳤습니다.
+     ★ 한 번에 한 편만 보여줍니다. 넘기는 것은 아래 [다음 글] 이 합니다. */
+  .rdcard{background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--r);padding:22px 20px}
+  .rdcard h3{margin:0 0 14px;font-size:19px;line-height:1.45;font-weight:600;
+    letter-spacing:-.2px;word-break:keep-all}
+  /* 원문의 줄바꿈은 '한 문장 한 줄' 이라는 뜻입니다.
+     글자를 키우니 한 문장이 두세 줄로 접혀서 덩어리가 흐려졌습니다.
+     그래서 줄마다 문단으로 만들고 사이를 띄웁니다. */
+  .rdcard p{margin:0;font-size:16.5px;line-height:1.9;color:var(--tx);
+    word-break:keep-all}
+  .rdcard p + p{margin-top:11px}
+  .rdnav{display:flex;align-items:center;gap:9px;margin-top:14px}
+  .rdnav .btn{flex:1;min-width:0;margin:0}
+  .rdnav .pos{flex:0 0 auto;font-size:13px;color:var(--faint);
+    font-variant-numeric:tabular-nums;padding:0 3px;white-space:nowrap}
+  .rdnav .btn[disabled]{opacity:.32}
+
   .muted{color:var(--dim);font-size:13px;line-height:1.6}
   .tiny{color:var(--faint);font-size:12px;line-height:1.55}
   .row{display:flex;gap:9px;align-items:center}
@@ -449,8 +470,11 @@ addEventListener('appinstalled', function(){
   </div>
   <div class="opts" id="rd-tags" style="margin-bottom:14px"></div>
   <div id="rd-body"></div>
-  <div style="height:11px"></div>
-  <button class="btn sec" id="rd-next">다른 글 보기</button>
+  <div class="rdnav">
+    <button class="btn ghost" id="rd-prev">← 이전</button>
+    <span class="pos" id="rd-pos"></span>
+    <button class="btn sec" id="rd-next">다음 글 →</button>
+  </div>
 </section>
 
 <!-- ══════════ 센터·병원 찾기 ══════════ -->
@@ -730,7 +754,14 @@ addEventListener('appinstalled', function(){
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('home')">닫기</button>
   </div>
   <div class="opts" id="fam-tab" style="margin-bottom:14px"></div>
+  <div id="fam-top"></div>
   <div id="fam-body"></div>
+  <div class="rdnav">
+    <button class="btn ghost" id="fam-prev">← 이전</button>
+    <span class="pos" id="fam-pos"></span>
+    <button class="btn sec" id="fam-next">다음 글 →</button>
+  </div>
+  <div id="fam-foot"></div>
 </section>
 
 <!-- ══════════ 기록 ══════════ -->
@@ -1003,7 +1034,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v33';
+const BUILD = 'v34';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1167,8 +1198,8 @@ const FAMGUIDE = {
        '다만 아무 일 없던 것처럼 넘기지도 마세요. 있었던 일은 있었던 일로 두고, 다음을 이야기하면 됩니다.'},
     {h:'끊은 뒤에도 한참은 오르내립니다',
      b:'술이나 약을 끊고 나서 몇 달 동안 불면 · 불안 · 짜증 · 무기력이 이어질 수 있습니다.\n' +
-       '"끊었는데 왜 더 예민해졌지" 싶은 시기가 오는데, 회복이 안 되는 것이 아니라\n' +
-       '몸과 뇌가 제자리를 찾는 중입니다. 이 시기를 아는 것만으로도 견디기가 달라집니다.'},
+       '"끊었는데 왜 더 예민해졌지" 싶은 시기가 오는데, 회복이 안 되는 것이 아니라 몸과 뇌가 제자리를 찾는 중입니다.\n' +
+       '이 시기를 아는 것만으로도 견디기가 달라집니다.'},
     {h:'말할 때는 그 사람이 아니라 일에 대해',
      b:'"너는 왜 그 모양이냐" 는 사람을 공격하고, 공격받으면 숨습니다. 숨으면 다시 마십니다.\n' +
        '"어제 늦게 들어와서 나는 무서웠다" 처럼 일어난 일과 내 마음으로 말하는 편이 낫습니다.\n' +
@@ -1176,12 +1207,11 @@ const FAMGUIDE = {
   ],
   sos: [
     {h:'몸이 이러면 지금 119입니다', w:1,
-     b:'경련(발작) · 헛것이 보이거나 들림 · 시간과 장소를 모름 ·\n' +
-       '심한 떨림과 식은땀 · 반복되는 구토 · 가슴이 심하게 뛰거나 아픔.\n' +
-       '술을 갑자기 끊었을 때 오는 금단은 생명을 위협할 수 있습니다. 재우거나 지켜보지 말고 119에 전화하세요.'},
+     b:'경련(발작) · 헛것이 보이거나 들림 · 시간과 장소를 모름 · 심한 떨림과 식은땀 · 반복되는 구토 · 가슴이 심하게 뛰거나 아픔.\n' +
+       '술을 갑자기 끊었을 때 오는 금단은 생명을 위협할 수 있습니다.\n' +
+       '재우거나 지켜보지 말고 119에 전화하세요.'},
     {h:'죽고 싶다는 말이 나오면', w:1,
-     b:'"없어지고 싶다", 물건이나 관계를 정리하는 행동, 오래 힘들던 사람이 갑자기 평온해지는 것 —\n' +
-       '전부 넘기지 말아야 할 신호입니다.\n' +
+     b:'"없어지고 싶다", 물건이나 관계를 정리하는 행동, 오래 힘들던 사람이 갑자기 평온해지는 것 — 전부 넘기지 말아야 할 신호입니다.\n' +
        '혼자 판단하지 마시고 109(자살예방 상담전화)에 먼저 물어보세요. 가족이 걸어도 됩니다.'},
     /* 팀장님 검토 반영 — 하지 말라는 말보다 언제 하라는 말이 낫습니다.
        마지막 줄은 '참는 것 = 봐주는 것' 으로 읽히지 않게 붙였습니다. */
@@ -1195,8 +1225,8 @@ const FAMGUIDE = {
        '112 · 여성긴급전화 1366. 아이가 있다면 아이의 안전이 가장 먼저입니다.\n' +
        '자리를 피하는 것은 포기가 아니라, 다음을 위해 살아 있는 방법입니다.'},
     {h:'미리 정해두면 그날 덜 흔들립니다',
-     b:'누구에게 전화할지, 어디로 갈지, 아이는 누가 데려갈지 —\n' +
-       '평온할 때 종이에 적어두세요. 일이 벌어진 다음에는 아무 생각도 나지 않습니다.'}
+     b:'누구에게 전화할지, 어디로 갈지, 아이는 누가 데려갈지 — 평온할 때 종이에 적어두세요.\n' +
+       '일이 벌어진 다음에는 아무 생각도 나지 않습니다.'}
   ],
   self: [
     {h:'가족도 아픕니다',
@@ -1213,9 +1243,9 @@ const FAMGUIDE = {
        ★ 끝줄을 바꿨습니다. 예전 문장('못 지킬 선은 안 그은 것만 못합니다')은
          선을 지키지 못한 가족에게 죄책감을 한 겹 더 얹습니다. */
     {h:'경계를 지키는 것은 상대를 바꾸려는 것이 아닌 나를 지키는 것입니다',
-     b:'"술 마신 상태로는 집에 들어오지 않기" 같은 선은, 그 사람을 고치려고 긋는 것이 아니라\n' +
-       '내가 견딜 수 있는 자리를 지키려고 긋는 것입니다.\n' +
-       '지금 지킬 수 있는 것 하나부터 정하세요. 못 지킨 날이 있어도 그은 선이 없어지지는 않습니다.'},
+     b:'"술 마신 상태로는 집에 들어오지 않기" 같은 선은, 그 사람을 고치려고 긋는 것이 아니라 내가 견딜 수 있는 자리를 지키려고 긋는 것입니다.\n' +
+       '지금 지킬 수 있는 것 하나부터 정하세요.\n' +
+       '못 지킨 날이 있어도 그은 선이 없어지지는 않습니다.'},
     /* 팀장님 검토 반영 — '기대 조절' 에서 '그 사람의 자리에서 보기' 로 방향이 바뀌었습니다. */
     {h:'나의 기대를 내려놓고, 그의 눈으로 봐주세요',
      b:'며칠 끊은 것을 크게 기뻐하면 다시 마셨을 때 그만큼 크게 무너집니다.\n' +
@@ -1572,6 +1602,9 @@ const pad = n => String(n).padStart(2,'0');
    toISOString() 은 UTC 라서 새벽 0~9시 기록이 전날로 밀립니다. 여러 번 당하는 자리입니다. */
 const ymd = v => { const d = new Date(v); return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); };
 const today = () => ymd(Date.now());
+/* 줄마다 한 문단으로. 읽는 글에서 문장 덩어리를 살립니다. */
+const para = t => String(t == null ? '' : t).split('\n')
+  .filter(l => l.trim()).map(l => '<p>' + esc(l) + '</p>').join('');
 const esc = s => String(s==null?'':s).replace(/[<>&"]/g, m => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[m]));
 
 function daysBetween(from, to){
@@ -1877,7 +1910,7 @@ function drawHome(){
       '</span></span><span class="acts"><span class="go">보기</span></span></button>').join('') +
       '<div style="height:12px"></div>';
     rw0.querySelectorAll('[data-fam]').forEach(b => b.onclick = () => {
-      famTab = b.dataset.fam; go('fam');
+      famTab = b.dataset.fam; famI = 0; go('fam');
     });
   }
 
@@ -2063,20 +2096,22 @@ function drawBodyHome(box){
 /* ══════════ 가족 안내 화면 ══════════ */
 let famTab = 'know';
 
+/* ★ 한 번에 한 편만 보여줍니다.
+     열여덟 편을 작은 글씨로 쌓아두었더니, 위기 갈래의 119 안내처럼
+     꼭 읽어야 할 것도 스크롤에 묻혔습니다. */
+let famI = 0;
+
 function drawFam(){
   const tb = $('#fam-tab'); tb.innerHTML = '';
   FAMTAB.forEach(t => {
     const b = el('button', 'opt' + (famTab === t.k ? ' on' : ''), t.l);
-    b.onclick = () => { famTab = t.k; drawFam(); };
+    b.onclick = () => { famTab = t.k; famI = 0; drawFam(); famTop(); };
     tb.appendChild(b);
   });
 
-  const body = $('#fam-body');
-  let h = '';
-
-  /* 위기 갈래는 읽을거리보다 전화가 먼저 나와야 합니다 */
-  if(famTab === 'sos'){
-    h += '<div class="card" style="margin-top:0">' +
+  /* 위기 갈래는 읽을거리보다 전화가 먼저 나와야 합니다. 이것만 늘 위에 붙여둡니다. */
+  $('#fam-top').innerHTML = (famTab === 'sos')
+    ? '<div class="card">' +
       '<h3 style="margin-top:0">지금 바로 걸 수 있는 곳</h3>' +
       '<a class="btn danger" href="tel:119">119 · 몸이 위급할 때</a>' +
       '<div style="height:9px"></div>' +
@@ -2086,25 +2121,35 @@ function drawFam(){
       '<div style="height:9px"></div>' +
       '<a class="btn ghost" href="tel:112">112 · 폭력이 있을 때</a>' +
       '<p class="tiny" style="margin:12px 0 0">가족이 대신 걸어도 됩니다. ' +
-      '"제가 당사자가 아닌데요" 라고 하셔도 상담해 줍니다.</p></div>';
-  }
+      '"제가 당사자가 아닌데요" 라고 하셔도 상담해 줍니다.</p></div>'
+    : '';
 
-  (FAMGUIDE[famTab] || []).forEach(x => {
-    h += '<div class="card"><h3 style="margin-top:0">' + esc(x.h) + '</h3>' +
-      '<p class="muted" style="margin:0;white-space:pre-line">' + esc(x.b) + '</p></div>';
-  });
+  const list = FAMGUIDE[famTab] || [];
+  if(famI < 0) famI = 0;
+  if(famI > list.length - 1) famI = Math.max(0, list.length - 1);
+  const x = list[famI];
 
-  if(famTab === 'self'){
-    h += '<button class="btn sec" id="fam-meet">가족 모임 찾아보기</button>' +
+  $('#fam-body').innerHTML = x
+    ? '<div class="rdcard"><h3>' + esc(x.h) + '</h3>' + para(x.b) + '</div>'
+    : '';
+
+  $('#fam-pos').textContent = list.length ? (famI + 1) + ' / ' + list.length : '';
+  $('#fam-prev').disabled = famI === 0;
+  $('#fam-next').disabled = famI >= list.length - 1;
+  $('#fam-next').textContent = famI >= list.length - 1 ? '마지막 글입니다' : '다음 글 →';
+
+  /* 맨 끝까지 읽으신 분에게만 다음 자리를 안내합니다 */
+  let f = '';
+  if(famTab === 'self' && famI >= list.length - 1){
+    f += '<div style="height:14px"></div>' +
+      '<button class="btn sec" id="fam-meet">가족 모임 찾아보기</button>' +
       '<div style="height:9px"></div>' +
       '<button class="btn ghost" id="fam-center">센터 찾아보기</button>';
   }
-
-  h += '<div class="note w" style="margin-top:14px">' +
+  f += '<div class="note w" style="margin-top:16px">' +
     '여기 적힌 것은 일반적인 안내입니다. 사정은 집집마다 다르니, ' +
     '결정이 필요한 일은 센터나 병원에서 상담을 받아보세요.</div>';
-
-  body.innerHTML = h;
+  $('#fam-foot').innerHTML = f;
 
   const m = $('#fam-meet');
   if(m) m.onclick = () => { mt.target = 'fam'; mt.mode = 'today'; mt.q = ''; mt.kind = ''; go('meet'); };
@@ -2112,9 +2157,13 @@ function drawFam(){
   if(c) c.onclick = () => { plKey = 'centers'; PL.centers.cat = ''; go('place'); };
 }
 
+function famTop(){ const v = $('#view'); if(v) v.scrollTop = 0; }
+$('#fam-next').onclick = () => { famI++; drawFam(); famTop(); };
+$('#fam-prev').onclick = () => { famI--; drawFam(); famTop(); };
+
 $('#panic').onclick = () => {
   /* 가족에게 [충동이 올라와요] 를 물으면 안 됩니다. 그 자리의 물음이 다릅니다. */
-  if(famMode()){ famTab = 'sos'; go('fam'); return; }
+  if(famMode()){ famTab = 'sos'; famI = 0; go('fam'); return; }
   go('panic');
 };
 $('#go-night').onclick = () => go('night');
@@ -2431,7 +2480,7 @@ $('#ni-save').onclick = () => {
     modal('<h2>오늘은 그런 날이었군요</h2>' +
       '<p class="muted" style="margin:6px 0 14px">하루쯤 나를 못 챙긴 날은 누구에게나 있습니다. ' +
       '내일은 십 분이라도 내 것으로 남겨두세요.</p>' +
-      '<button class="btn" onclick="closeModal();famTab=\'self\';go(\'fam\')">나를 돌보기 읽어보기</button>' +
+      '<button class="btn" onclick="closeModal();famTab=\'self\';famI=0;go(\'fam\')">나를 돌보기 읽어보기</button>' +
       '<div style="height:9px"></div>' +
       '<button class="btn ghost" onclick="closeModal();go(\'home\')">닫기</button>');
   } else if(night.kept === 0){
@@ -3446,16 +3495,26 @@ function drawRead(){
   });
 
   const list = READS.filter(x => x.k === rd.tag);
-  const x = list[rd.i % list.length] || READS[0];
-  $('#rd-body').innerHTML =
-    '<div class="card"><h3 style="font-size:17px;line-height:1.5">' + esc(x.h) + '</h3>' +
-    '<p class="muted" style="margin:9px 0 0;font-size:15px;line-height:1.85">' +
-    esc(x.b).replace(/\n/g, '<br>') + '</p></div>';
-  $('#rd-next').style.display = list.length > 1 ? '' : 'none';
+  if(!list.length){ $('#rd-body').innerHTML = ''; return; }
+  if(rd.i < 0) rd.i = 0;
+  if(rd.i > list.length - 1) rd.i = list.length - 1;
+
+  const x = list[rd.i];
+  $('#rd-body').innerHTML = '<div class="rdcard"><h3>' + esc(x.h) + '</h3>' + para(x.b) + '</div>';
+
+  $('#rd-pos').textContent = (rd.i + 1) + ' / ' + list.length;
+  $('#rd-prev').disabled = rd.i === 0;
+  /* 마지막 편에서는 넘길 데가 없습니다. 처음으로 되돌리면 읽은 것을 또 읽게 됩니다. */
+  $('#rd-next').disabled = rd.i >= list.length - 1;
+  $('#rd-next').textContent = rd.i >= list.length - 1 ? '마지막 글입니다' : '다음 글 →';
 }
 
-$('#rd-next').onclick = () => { rd.i++; drawRead(); };
+$('#rd-next').onclick = () => { rd.i++; drawRead(); rdTop(); };
+$('#rd-prev').onclick = () => { rd.i--; drawRead(); rdTop(); };
 $('#rd-back').onclick = () => go(rd.back);
+
+/* 다음 글로 넘겼는데 화면이 아래에 머물러 있으면 제목을 못 봅니다 */
+function rdTop(){ const v = $('#view'); if(v) v.scrollTop = 0; }
 $('#tm-read').onclick = () => openRead('timer');   /* 타이머는 계속 돕니다 */
 $('#ur-read').onclick = () => openRead('urge');
 
