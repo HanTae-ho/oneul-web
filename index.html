@@ -81,7 +81,9 @@ addEventListener('appinstalled', function(){
   #tabs button{flex:1;padding:9px 2px 7px;color:var(--faint);
     display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px}
   #tabs button.on{color:var(--acc);font-weight:600}
-  #theme-tg .ic-s{width:21px;height:21px}
+  #top-me{color:var(--faint);display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:11px}
+  #top-me:active{background:var(--accbg);color:var(--acc)}
+  #top-me svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
   #tabs svg{width:23px;height:23px;stroke:currentColor;fill:none;
     stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 
@@ -148,7 +150,7 @@ addEventListener('appinstalled', function(){
   .rdcard .safebox b{display:block;font-size:11.5px;font-weight:600;letter-spacing:.05em;
     color:var(--warn);margin-bottom:4px}
 
-  /* ── 마음프로 (v43) ──
+  /* ── 마음프로 (v44) ──
      ★ 중앙 대화만 스크롤됩니다. 상단 프로필과 하단의 빠른 행동·입력창·보내기는 고정합니다.
      ★ 개인 회복기록은 자동 전송하지 않고, 사용자가 직접 보낸 문장만 AI 서버로 전송합니다. */
   #view.ai-mode{overflow:hidden}
@@ -590,7 +592,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-home">
   <div class="sp" style="margin-bottom:12px">
     <h1 style="margin:0">오늘 한 걸음</h1>
-    <button id="theme-tg" style="color:var(--faint)"></button>
+    <button id="top-me" aria-label="내 정보" title="내 정보"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg></button>
   </div>
 
   <div class="days" id="home-days"></div>
@@ -1126,7 +1128,7 @@ addEventListener('appinstalled', function(){
 
   <div class="acc">
     <button class="acc-h">
-      <span class="acc-n"><b>앱</b><span id="acc-app-s">자원 목록 · 앱 새로고침 · 홈 화면에 추가</span></span>
+      <span class="acc-n"><b>앱</b><span id="acc-app-s">자원 목록 · 화면 설정 · 앱 새로고침 · 홈 화면에 추가</span></span>
       <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
     </button>
     <div class="acc-b">
@@ -1138,6 +1140,16 @@ addEventListener('appinstalled', function(){
       <p class="tiny" id="me-sheet-st" style="white-space:pre-line"></p>
       <div style="height:11px"></div>
       <button class="btn sec sm" id="me-sheet-save">지금 새로 받기</button>
+
+      <div class="sep"></div>
+      <h3>화면 설정</h3>
+      <p class="muted" style="margin:-4px 0 11px">
+        화면 밝기는 여기에서 바꿉니다. 자주 쓰는 기능이 아니어서 홈 상단에서는 뺐습니다.
+      </p>
+      <div class="opts" id="me-theme">
+        <button class="opt" data-theme="light">밝게</button>
+        <button class="opt" data-theme="dark">어둡게</button>
+      </div>
 
       <div class="sep"></div>
       <!-- 위의 [지금 새로 받기] 는 '목록' 만, 아래는 '앱 자체' 를 받습니다.
@@ -1206,7 +1218,7 @@ addEventListener('appinstalled', function(){
     <button data-t="rec"><svg viewBox="0 0 24 24"><path d="M5 3h11l4 4v14H5z"/><path d="M9 12h7M9 16h5M9 8h4"/></svg>기록</button>
     <button data-t="help"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 21 11c0 5.4-7 10-7 10z"/></svg>헬프</button>
     <button data-t="ai"><svg viewBox="0 0 24 24"><path d="M12 20.2S5 16 5 10.8A4.4 4.4 0 0 1 12 7.3a4.4 4.4 0 0 1 7 3.5c0 5.2-7 9.4-7 9.4z"/><path d="M12 15.5V9.2"/><path d="M12 11.2c-2.5 0-4.1-1.5-4.3-3.8 2.5 0 4.1 1.5 4.3 3.8zM12 10.1c2.7 0 4.4-1.7 4.6-4.1-2.7 0-4.4 1.7-4.6 4.1z"/></svg>마음프로</button>
-    <button data-t="me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>내정보</button>
+    <!-- 다섯 번째 자리는 소셜 기능을 만들 때 사용합니다. 내정보는 홈 상단으로 이동했습니다. -->
     <button data-t="admin" id="tab-admin" class="hide"><svg viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8.5 10.5V7.6a3.5 3.5 0 0 1 7 0v2.9"/></svg>관리자</button>
   </nav>
 </div>
@@ -1218,7 +1230,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v43';
+const BUILD = 'v44';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1843,7 +1855,7 @@ function closeModal(){ $('#mod').classList.remove('on'); }
 $('#mod').addEventListener('click', e => { if(e.target.id === 'mod') closeModal(); });
 
 /* ── 라우팅 ── */
-const TABBED = ['home','rec','help','ai','me'];
+const TABBED = ['home','rec','help','ai'];
 let cur = 'home';
 
 function go(p){
@@ -2369,11 +2381,24 @@ $('#panic').onclick = () => {
 $('#go-night').onclick = () => go('night');
 $('#go-relapse').onclick = () => go('relapse');
 
-$('#theme-tg').onclick = () => {
-  S.theme = (S.theme === 'dark') ? '' : 'dark';
+$('#top-me').onclick = () => go('me');
+
+function applyTheme(){
   document.body.classList.toggle('dark', S.theme === 'dark');
-  save();
-};
+}
+function drawThemeSetting(){
+  $$('#me-theme [data-theme]').forEach(b => {
+    const k = b.dataset.theme;
+    const on = (k === 'dark') ? S.theme === 'dark' : S.theme !== 'dark';
+    b.classList.toggle('on', on);
+  });
+}
+$('#me-theme').addEventListener('click', e => {
+  const b = e.target.closest('[data-theme]');
+  if(!b) return;
+  S.theme = b.dataset.theme === 'dark' ? 'dark' : '';
+  applyTheme(); save(); drawThemeSetting();
+});
 
 /* ══════════ 위기 분기 ══════════ */
 /* ★ '술·도박' 만 적어두었더니 약물 회복 중인 분에게는 자기 자리가 없었습니다.
@@ -3601,7 +3626,7 @@ function drawHelp(){
 
 }
 
-/* ══════════ 마음프로 (v43) ══════════
+/* ══════════ 마음프로 (v44) ══════════
    ★ 개인 회복기록은 자동으로 AI에 보내지 않습니다.
    ★ AI 서버 주소는 자원시트의 [설정] → AI_URL 에서 받습니다.
    ★ 오늘 모임을 물을 때도 기기에서 실제 후보를 먼저 골라, 공개 모임 정보만 보냅니다. */
@@ -4007,8 +4032,9 @@ async function aiSend(text, topic){
   if(!text || ai.busy) return;
   if(text.length > 1200){ toast('1200자 이내로 적어주세요.'); return; }
 
-  /* 이전 답변에 붙었던 [목록 보기]는 다음 말을 시작하면 사라집니다. */
+  /* 이전 답변에 붙었던 임시 보조 UI는 다음 말을 시작하면 사라집니다. */
   ai.follow = '';
+  ai.read = null;
   ai.actionsOpen = false;
   const prior = (Array.isArray(S.aiChat) ? S.aiChat : []).slice(-8);
   aiAdd('user', text);
@@ -4729,6 +4755,7 @@ function fetchRes(url){
 /* ══════════ 내 정보 ══════════ */
 function drawMe(){
   const fam = famMode();
+  drawThemeSetting();
 
   const rb = $('#me-role'); rb.innerHTML = '';
   ROLES.forEach(r => {
@@ -5182,9 +5209,9 @@ function markAppAcc(){
   const s = $('#acc-app-s');
   if(!s) return;
   s.innerHTML = updReady
-    ? '자원 목록 · 앱 새로고침 · 홈 화면에 추가<br><span class="flag">새 판 ' +
+    ? '자원 목록 · 화면 설정 · 앱 새로고침 · 홈 화면에 추가<br><span class="flag">새 판 ' +
       esc(updReady) + ' 이 나와 있습니다</span>'
-    : '자원 목록 · 앱 새로고침 · 홈 화면에 추가';
+    : '자원 목록 · 화면 설정 · 앱 새로고침 · 홈 화면에 추가';
 }
 
 function drawReload(){
@@ -5255,7 +5282,7 @@ $('#me-file').onchange = e => {
       if(!j || typeof j !== 'object') throw new Error('형식이 다릅니다');
       S = Object.assign(JSON.parse(JSON.stringify(BLANK)), j);
       save();
-      document.body.classList.toggle('dark', S.theme === 'dark');
+      applyTheme();
       toast('불러왔습니다.');
       go('home');
     }catch(err){ toast('읽을 수 없는 파일입니다.'); }
@@ -5472,10 +5499,9 @@ $('#me-add').onclick = askAdd;
 
 /* ══════════ 부팅 ══════════ */
 function boot(){
-  document.body.classList.toggle('dark', S.theme === 'dark');
+  applyTheme();
   $('#intro-ico').innerHTML = markSVG(52);   /* 홈 화면 아이콘과 같은 그림 */
   $('#af-ico').innerHTML = ico('wave');
-  $('#theme-tg').innerHTML = ico('theme');
   $$('[data-ico]').forEach(n => { n.innerHTML = ico(n.dataset.ico); });
   drawIntro();
   drawUrge();

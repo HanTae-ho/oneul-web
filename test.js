@@ -142,7 +142,7 @@ const srv = http.createServer((req, res) => {
   await shot('13-help');
 
   // 내 정보
-  await pg.click('#tabs button[data-t="me"]'); await pg.waitForTimeout(300);
+  await pg.click('#top-me'); await pg.waitForTimeout(300);
   await shot('14-me');
 
   // 다시 시작 흐름 — 누적 유지 확인
@@ -158,10 +158,14 @@ const srv = http.createServer((req, res) => {
   console.log('    전 :', before);
   console.log('    후 :', await pg.$eval('#home-days', e => e.innerText.replace(/\n/g, ' | ')));
 
-  // 다크 모드
-  await pg.click('#theme-tg'); await pg.waitForTimeout(300);
+  // 다크 모드 — 내정보 → 앱 → 화면 설정
+  await pg.click('#top-me'); await pg.waitForTimeout(250);
+  const accs = await pg.$$('#p-me .acc');
+  await accs[2].click('.acc-h'); await pg.waitForTimeout(150);
+  await pg.click('#me-theme [data-theme="dark"]'); await pg.waitForTimeout(300);
   await shot('16-dark');
-  await pg.click('#theme-tg'); await pg.waitForTimeout(200);
+  await pg.click('#me-theme [data-theme="light"]'); await pg.waitForTimeout(200);
+  await pg.click('#tabs button[data-t="home"]'); await pg.waitForTimeout(200);
 
   // 새로고침 후에도 남아 있는지
   await pg.reload(); await pg.waitForTimeout(600);
