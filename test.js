@@ -44,6 +44,7 @@ const srv = http.createServer((req, res) => {
   await pg.waitForTimeout(300);
   console.log('2. 시작 후 =', await seen());
   console.log('   회복일 =', (await pg.$eval('#home-days', e => e.innerText)).replace(/\n/g, ' | '));
+  console.log('   매일의 명상 =', (await pg.$eval('#home-daily-text', e => e.innerText)).slice(0, 80));
 
   // HALT + 감정
   await pg.click('#home-halt button:nth-child(1)');

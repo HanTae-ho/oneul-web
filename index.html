@@ -257,6 +257,12 @@ addEventListener('appinstalled', function(){
   #panic span{display:block;font-size:13px;opacity:.9;margin-top:3px}
   #panic:active{transform:scale(.985)}
 
+  /* 매일의 명상 — 기존 하단 '오늘의 말'과 별개. 회복일 바로 위에서 로컬 날짜마다 바뀝니다. */
+  .dailyword{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--leaf);
+    border-radius:14px;padding:13px 15px 14px;margin-bottom:10px}
+  .dailyword .k{display:block;font-size:11.5px;font-weight:700;color:var(--acc);letter-spacing:.2px;margin-bottom:5px}
+  .dailyword p{margin:0;color:var(--tx);font-size:14.5px;line-height:1.68;letter-spacing:-.1px}
+
   /* 회복일 */
   .days{background:linear-gradient(150deg,var(--accbg),var(--bg2));
     border:1px solid var(--line);border-radius:var(--r);padding:17px;margin-bottom:12px}
@@ -597,6 +603,11 @@ addEventListener('appinstalled', function(){
   <div class="sp" style="margin-bottom:12px">
     <h1 style="margin:0">오늘 한 걸음</h1>
     <button id="top-me" aria-label="내 정보" title="내 정보"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg></button>
+  </div>
+
+  <div class="dailyword" id="home-daily" aria-label="매일의 명상">
+    <span class="k">매일의 명상</span>
+    <p id="home-daily-text"></p>
   </div>
 
   <div class="days" id="home-days"></div>
@@ -1234,7 +1245,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V4.6';
+const BUILD = 'V5.1';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1503,6 +1514,62 @@ const DAYN = ['일','월','화','수','목','금','토'];
 
 const AREAS = ['서울','부산','대구','인천','광주','대전','울산','세종',
   '경기','강원','충북','충남','전북','전남','경북','경남','제주'];
+/* 홈 상단 '매일의 명상'.
+   기존 하단 QUOTES와 별개이며, 기기 로컬 날짜가 바뀌면 새 명상문으로 바뀝니다.
+   24×24 조합이라 576일 동안 같은 조합이 반복되지 않습니다. AI·서버를 쓰지 않습니다. */
+const DAILY_HOME_A = [
+  '오늘은 마음이 어디에 머물고 있는지 잠시 바라봅니다.',
+  '지금의 감정은 나를 설명하는 전부가 아닙니다.',
+  '회복의 길에서는 멈춰 서는 순간도 걸음의 일부입니다.',
+  '오늘의 마음이 무겁더라도 그 무게를 서둘러 없애려 하지 않아도 됩니다.',
+  '흔들리는 순간에도 내가 선택할 수 있는 작은 자리는 남아 있습니다.',
+  '지금까지 걸어온 시간은 오늘의 한순간으로 지워지지 않습니다.',
+  '마음이 급할수록 잠시 머무르는 시간이 필요할 수 있습니다.',
+  '오늘은 잘해내는 것보다 나를 살피는 일이 먼저일 수 있습니다.',
+  '회복은 매일 같은 표정으로 찾아오지 않습니다.',
+  '지금의 어려움도 지나가는 시간 속에 놓여 있습니다.',
+  '오늘의 한 걸음은 크기보다 방향이 더 중요할 수 있습니다.',
+  '내가 느끼는 것을 판단하지 않고 알아차리는 것에서 시작해봅니다.',
+  '어제의 선택이 오늘의 가능성까지 결정하는 것은 아닙니다.',
+  '지금 이 순간에도 다시 방향을 정할 여지는 남아 있습니다.',
+  '오늘은 모든 답을 찾지 않아도 괜찮은 하루입니다.',
+  '회복은 나를 몰아붙이는 일이 아니라 다시 연결되는 과정일 수 있습니다.',
+  '힘든 마음이 찾아왔다고 해서 그 마음을 따라가야 하는 것은 아닙니다.',
+  '잠시 멈추어 숨을 고르는 것도 앞으로 가는 한 방식입니다.',
+  '오늘의 나에게 필요한 것은 평가보다 이해일 수 있습니다.',
+  '내 마음의 파도가 높아진 순간에도 파도와 나는 같은 것이 아닙니다.',
+  '도움을 필요로 하는 마음 역시 회복 안에 있는 마음입니다.',
+  '지금의 속도가 느려도 방향을 잃었다는 뜻은 아닙니다.',
+  '오늘 하루는 다시 선택할 수 있는 작은 순간들로 이루어져 있습니다.',
+  '완벽하지 않은 하루에도 지켜낸 것은 분명히 남아 있습니다.',
+];
+const DAILY_HOME_B = [
+  '서두르지 않고, 지금 이 순간에 필요한 한 가지를 조용히 살펴봅니다.',
+  '지나온 시간을 심판하기보다 오늘의 방향을 다시 확인해봅니다.',
+  '숨을 천천히 고르며 마음이 조금 가라앉을 자리를 만들어봅니다.',
+  '바꿀 수 없는 것과 지금 선택할 수 있는 것을 잠시 나누어 바라봅니다.',
+  '오늘을 전부 해결하려 하지 않고 눈앞의 한 순간에 머물러봅니다.',
+  '몸이 보내는 배고픔·긴장·외로움·피곤함의 신호도 함께 살펴봅니다.',
+  '마음속 말이 거칠어질 때는 나에게 조금 더 부드러운 말을 건네봅니다.',
+  '결정을 서두르기보다 시간이 내 편이 되도록 잠시 기다려봅니다.',
+  '혼자 견뎌야 한다는 생각 대신 연결될 수 있는 사람을 떠올려봅니다.',
+  '오늘 지켜낸 작은 선택 하나를 조용히 마음에 남겨봅니다.',
+  '지금 느끼는 감정에 이름을 붙이고, 그것이 머물다 지나가도록 바라봅니다.',
+  '한 번의 실수보다 다시 돌아오는 선택에 마음을 두어봅니다.',
+  '내가 통제할 수 있는 작은 행동 하나에만 힘을 모아봅니다.',
+  '마음이 복잡할수록 답을 찾기보다 먼저 안전한 자리를 선택해봅니다.',
+  '오늘의 나에게 무리한 약속보다 지킬 수 있는 작은 약속을 건네봅니다.',
+  '지금 이 시간을 지나기 위해 무엇을 덜어내면 좋을지 생각해봅니다.',
+  '나를 재촉하는 마음에서 한 걸음 떨어져 현재의 호흡을 느껴봅니다.',
+  '힘든 생각이 올라와도 그것을 사실이나 명령처럼 따르지 않고 바라봅니다.',
+  '필요하다면 도움을 청하는 것도 스스로를 지키는 선택임을 기억해봅니다.',
+  '오늘 하루의 끝을 생각하기보다 지금의 다음 한 걸음만 바라봅니다.',
+  '마음이 흔들릴 때는 익숙한 위험한 흐름 대신 다른 길 하나를 떠올려봅니다.',
+  '내가 이미 견뎌온 시간과 다시 시작할 수 있는 힘을 함께 기억해봅니다.',
+  '잠시 쉬어가는 시간을 실패가 아니라 회복을 위한 공간으로 바라봅니다.',
+  '오늘도 나에게 남아 있는 선택의 여지를 조용히 믿어봅니다.',
+];
+
 const QUOTES = [
   '오늘 하루만 버텨봅시다.',
   '충동은 파도처럼 지나갑니다. 넘기면 잦아듭니다.',
@@ -1813,6 +1880,28 @@ const pad = n => String(n).padStart(2,'0');
    toISOString() 은 UTC 라서 새벽 0~9시 기록이 전날로 밀립니다. 여러 번 당하는 자리입니다. */
 const ymd = v => { const d = new Date(v); return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); };
 const today = () => ymd(Date.now());
+
+/* 홈 상단 매일의 명상.
+   로컬 연·월·일을 UTC 일련번호로 바꿔 인덱스만 안정적으로 계산합니다.
+   날짜 판정 자체는 기기 로컬 날짜이므로 현지 자정에 바뀝니다. */
+let homeDailyDate = '';
+function dailyHomeText(){
+  const d = new Date();
+  const serial = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+  const a = DAILY_HOME_A[serial % DAILY_HOME_A.length];
+  const b = DAILY_HOME_B[Math.floor(serial / DAILY_HOME_A.length) % DAILY_HOME_B.length];
+  return a + ' ' + b;
+}
+function drawDailyHome(){
+  const box = $('#home-daily-text');
+  if(!box) return;
+  box.textContent = dailyHomeText();
+  homeDailyDate = today();
+}
+function refreshDailyHomeIfNeeded(){
+  if(homeDailyDate !== today()) drawDailyHome();
+}
+
 /* 줄마다 한 문단으로. 읽는 글에서 문장 덩어리를 살립니다. */
 const para = t => String(t == null ? '' : t).split('\n')
   .filter(l => l.trim()).map(l => '<p>' + esc(l) + '</p>').join('');
@@ -2072,6 +2161,7 @@ function todayRec(arr){
 
 function drawHome(){
   const fam = famMode();
+  drawDailyHome();
 
   /* 가족 모드에서는 화면의 주어가 바뀝니다.
      ★ 회복일 카운터를 가족에게 보여주면 안 됩니다 — 그 숫자는 그 사람의 것이고,
@@ -2255,9 +2345,10 @@ function drawHome(){
   });
   $('#mood-st').textContent = countLine(S.moods);
 
-  /* 오늘의 말 — 날짜에 따라 고정되게 */
-  const seed = Math.floor(Date.now() / 86400000);
-  $('#home-quote').textContent = QUOTES[seed % QUOTES.length];
+  /* 기존 하단 오늘의 말 — 이쪽도 기기 로컬 날짜 기준으로 고정합니다. */
+  const qd = new Date();
+  const qseed = Math.floor(Date.UTC(qd.getFullYear(), qd.getMonth(), qd.getDate()) / 86400000);
+  $('#home-quote').textContent = QUOTES[qseed % QUOTES.length];
 }
 
 /* 홈의 「오늘 몸 챙기기」 — 끼니 체크와 어젯밤 잠.
@@ -5907,8 +5998,11 @@ function boot(){
   /* 알림 시계. 1분마다 봅니다 — 배터리에 티도 안 나고, 정각을 놓쳐도 10분 안에 잡습니다.
      화면이 다시 켜졌을 때도 한 번 봅니다. 잠자던 사이에 시간이 지났을 수 있습니다. */
   checkAlarms();
-  setInterval(checkAlarms, 60000);
-  document.addEventListener('visibilitychange', () => { if(!document.hidden) checkAlarms(); });
+  refreshDailyHomeIfNeeded();
+  setInterval(() => { checkAlarms(); refreshDailyHomeIfNeeded(); }, 60000);
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden){ checkAlarms(); refreshDailyHomeIfNeeded(); }
+  });
 
   /* 관리자 화면은 내 정보에서만 엽니다. 하단 탭에는 표시하지 않습니다. */
   $('#tab-admin').classList.add('hide');
