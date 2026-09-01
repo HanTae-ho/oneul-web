@@ -148,7 +148,7 @@ addEventListener('appinstalled', function(){
   .rdcard .safebox b{display:block;font-size:11.5px;font-weight:600;letter-spacing:.05em;
     color:var(--warn);margin-bottom:4px}
 
-  /* ── 마음프로 (v42) ──
+  /* ── 마음프로 (v43) ──
      ★ 중앙 대화만 스크롤됩니다. 상단 프로필과 하단의 빠른 행동·입력창·보내기는 고정합니다.
      ★ 개인 회복기록은 자동 전송하지 않고, 사용자가 직접 보낸 문장만 AI 서버로 전송합니다. */
   #view.ai-mode{overflow:hidden}
@@ -175,16 +175,48 @@ addEventListener('appinstalled', function(){
   .aiload{display:flex;align-items:center;gap:7px;color:var(--faint);font-size:13px;padding:7px 2px}
   .aidock{flex:0 0 auto;margin:0 -12px;background:var(--panel);border-top:1px solid var(--line);
     padding:9px 12px 10px;box-shadow:0 -5px 18px rgba(20,45,55,.05)}
-  /* v42: 빠른 행동은 입력창 위 한 줄만 차지합니다.
-     세로 두 줄로 쌓이면 실제 대화 공간을 너무 많이 먹습니다. */
-  .aiact{display:flex;align-items:center;gap:7px;margin:0 0 7px;min-width:0}
-  .aiact .ttl{flex:0 0 auto;font-size:11px;font-weight:700;color:var(--dim);margin:0;white-space:nowrap}
-  .aiact .opts{display:flex;flex:1;min-width:0;flex-wrap:nowrap;gap:6px;overflow-x:auto;
-    -webkit-overflow-scrolling:touch;scrollbar-width:none;padding:1px 0 2px}
+  /* v43: 빠른 행동은 기본적으로 한 줄짜리 [바로 하기]만 남깁니다.
+     펼쳤을 때만 가로 스크롤 버튼이 보이고, 하나를 고르면 다시 접힙니다. */
+  .aiact{display:block;margin:0 0 7px;min-width:0}
+  .aiact-toggle{display:inline-flex;align-items:center;gap:5px;padding:5px 2px;color:var(--acc);
+    font-size:12px;font-weight:700;line-height:1.2}
+  .aiact-toggle .chev{font-size:11px;color:var(--faint)}
+  .aiact .opts{display:flex;min-width:0;flex-wrap:nowrap;gap:6px;overflow-x:auto;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;padding:5px 0 2px}
   .aiact .opts::-webkit-scrollbar{display:none}
   .aiact .opt{flex:0 0 auto;padding:7px 9px;font-size:12px;border-radius:10px;white-space:nowrap}
-  .aifollow{display:flex;gap:6px;flex-wrap:wrap;margin:5px 0 2px;padding-left:38px}
+  .aifollow{display:flex;gap:6px;flex-wrap:wrap;margin:7px 0 3px;padding-left:38px}
   .aifollow .btn{width:auto;display:inline-block;padding:8px 11px;font-size:12.5px}
+
+  /* 채팅 안에서 실제로 작동하는 원형 버티기 타이머 */
+  .aitimer{margin:8px 0 4px 38px;padding:13px 14px}
+  .aitimer-main{display:flex;align-items:center;gap:14px}
+  .airing{position:relative;width:98px;height:98px;flex:0 0 98px}
+  .airing svg{width:98px;height:98px;transform:rotate(-90deg)}
+  .airing circle{fill:none;stroke-width:7;stroke-linecap:round}
+  .airing .bg{stroke:var(--line)}
+  .airing .fg{stroke:var(--acc);transition:stroke-dashoffset .22s linear}
+  .airing-time{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:var(--acc);font-size:21px;font-weight:700;font-variant-numeric:tabular-nums}
+  .aitimer-copy{flex:1;min-width:0}
+  .aitimer-copy b{display:block;font-size:15px;margin-bottom:5px}
+  .aitimer-copy span{display:block;font-size:11.5px;color:var(--dim);line-height:1.65}
+  .aitimer .row{margin-top:10px}
+  .aitimer .btn{padding:9px 10px;font-size:12.5px}
+  .airate{margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}
+  .airate b{font-size:13px}
+  .airate .opts{margin-top:7px;gap:5px}
+  .airate .opt{padding:6px 8px;min-width:31px;justify-content:center;font-size:12px}
+
+  /* 마음프로가 기존 검토 글 중 하나를 골라 채팅 안에서 보여주는 카드 */
+  .airead{margin:8px 0 4px 38px;padding:15px 15px 13px;background:var(--panel);
+    border:1px solid var(--line);border-radius:14px}
+  .airead .tag{font-size:10.5px;color:var(--acc);font-weight:700;margin-bottom:4px}
+  .airead h3{margin:0 0 8px;font-size:16px;line-height:1.45}
+  .airead p{margin:0;font-size:13.5px;line-height:1.75;color:var(--tx);word-break:keep-all}
+  .airead p+p{margin-top:7px}
+  .airead .row{margin-top:11px}
+  .airead .btn{padding:8px 10px;font-size:12px}
   .aicompose{position:relative}
   .aicompose textarea{min-height:58px;max-height:96px;resize:none;padding:10px 11px}
   .aicompose .btn{margin-top:7px;padding:11px}
@@ -911,8 +943,10 @@ addEventListener('appinstalled', function(){
 
   <div class="aidock hide" id="ai-dock">
     <div class="aiact" id="ai-actions-wrap">
-      <div class="ttl">바로 할 수 있는 것</div>
-      <div class="opts" id="ai-actions">
+      <button class="aiact-toggle" id="ai-actions-toggle" aria-expanded="false">
+        바로 하기 <span class="chev">▾</span>
+      </button>
+      <div class="opts hide" id="ai-actions">
         <button class="opt" data-ai-act="urge">5분 같이 버티기</button>
         <button class="opt" data-ai-act="meeting">오늘 모임</button>
         <button class="opt" data-ai-act="place">가까운 센터·병원</button>
@@ -1184,7 +1218,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v42';
+const BUILD = 'v43';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1817,7 +1851,7 @@ function go(p){
   $$('.pg').forEach(n => n.classList.remove('on'));
   const t = $('#p-' + p);
   if(t) t.classList.add('on');
-  if(p === 'ai' && prev !== 'ai') ai.actions = true;
+  if(p === 'ai' && prev !== 'ai') ai.actionsOpen = false;
   cur = p;
   $('#tabs').style.display = (p === 'intro') ? 'none' : 'flex';
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === p));
@@ -3567,7 +3601,7 @@ function drawHelp(){
 
 }
 
-/* ══════════ 마음프로 (v42) ══════════
+/* ══════════ 마음프로 (v43) ══════════
    ★ 개인 회복기록은 자동으로 AI에 보내지 않습니다.
    ★ AI 서버 주소는 자원시트의 [설정] → AI_URL 에서 받습니다.
    ★ 오늘 모임을 물을 때도 기기에서 실제 후보를 먼저 골라, 공개 모임 정보만 보냅니다. */
@@ -3580,7 +3614,7 @@ const AI_QUICK = [
   {k:'place',  l:'가까운 센터·병원', q:'내 지역에서 이용할 수 있는 중독 전문병원이나 센터를 알려주세요.'},
   {k:'talk',   l:'그냥 이야기할래요', q:'그냥 제 이야기를 들어주세요.'}
 ];
-let ai = { back:'help', busy:false, meetings:[], resources:[], actions:true, follow:'' };
+let ai = { back:'help', busy:false, meetings:[], resources:[], actionsOpen:false, follow:'', timer:null, timerTick:0, read:null };
 
 function aiEndpoint(){
   const c = S.res && S.res.config;
@@ -3599,9 +3633,13 @@ function aiAdd(role, text){
   if(S.aiChat.length > 24) S.aiChat = S.aiChat.slice(-24);
   save();
 }
-function aiEscText(t){ return esc(String(t || '')).replace(/\n/g, '<br>'); }
+function aiEscText(t){
+  /* 서버가 Markdown 강조를 보내도 별표가 화면에 그대로 남지 않게 합니다. */
+  const x = String(t || '').replace(/\*\*(.*?)\*\*/g, '$1').replace(/^>\s?/gm, '');
+  return esc(x).replace(/\n/g, '<br>');
+}
 
-function openAI(back){ ai.back = back || 'help'; ai.meetings = []; ai.resources = []; ai.actions = true; ai.follow=''; go('ai'); }
+function openAI(back){ ai.back = back || 'help'; ai.meetings = []; ai.resources = []; ai.actionsOpen = false; ai.follow=''; go('ai'); }
 
 function aiCrisisKind(text){
   const s = String(text || '').replace(/\s+/g, '');
@@ -3750,6 +3788,150 @@ function aiBindResourceButtons(){
   if(h) h.onclick=()=>{ plKey='hosp'; PL.hosp.mode=S.area?'near':'all'; go('place'); };
 }
 
+/* ── 마음프로 안에서 직접 작동하는 로컬 도구 ──
+   타이머와 도움글은 AI가 흉내 내는 답변이 아니라 앱 자체가 실행합니다.
+   인터넷이나 API 상태와 상관없이 작동하고, 없는 글을 만들어내지 않습니다. */
+function aiTimerMinutes(text, topic){
+  const x = String(text || '');
+  if(topic === 'timer' && !/(\d{1,2})\s*분/.test(x)) return 5;
+  if(!/(버티|견디|타이머|같이\s*(있|버티)|기다려)/.test(x)) return 0;
+  const m = x.match(/(\d{1,2})\s*분/);
+  if(!m) return topic === 'timer' ? 5 : 0;
+  const n = parseInt(m[1], 10);
+  return n >= 1 && n <= 30 ? n : 0;
+}
+function aiTimerClearTick(){
+  if(ai.timerTick){ clearInterval(ai.timerTick); ai.timerTick = 0; }
+}
+function aiTimerOpen(min){
+  aiTimerClearTick();
+  ai.timer = { min:min, total:min*60, remain:min*60, running:false, end:0, done:false };
+  ai.follow = '';
+}
+function aiTimerFmt(sec){
+  sec = Math.max(0, Math.ceil(Number(sec) || 0));
+  return Math.floor(sec/60) + ':' + pad(sec%60);
+}
+function aiTimerHTML(){
+  const t = ai.timer;
+  if(!t) return '';
+  const C = 264, pct = t.total ? Math.max(0, Math.min(1, t.remain / t.total)) : 0;
+  const off = (C * (1-pct)).toFixed(1);
+  let controls = '';
+  if(t.done){
+    controls = '<div class="airate"><b>지금 충동은 0~10 중 어느 정도인가요?</b>' +
+      '<div class="opts">' + Array.from({length:11},(_,i)=>'<button class="opt" data-ai-rate="'+i+'">'+i+'</button>').join('') + '</div></div>';
+  } else {
+    controls = '<div class="row">' +
+      '<button class="btn sec sm" id="ai-timer-main">' + (t.running ? '잠시 멈춤' : (t.remain < t.total ? '계속하기' : '타이머 시작')) + '</button>' +
+      '<button class="btn ghost sm" id="ai-timer-stop">그만하기</button></div>';
+  }
+  return '<div class="aitimer card"><div class="aitimer-main">' +
+    '<div class="airing"><svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="42"></circle>' +
+    '<circle class="fg" id="ai-ring-fg" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="'+off+'"></circle></svg>' +
+    '<div class="airing-time" id="ai-timer-time">'+aiTimerFmt(t.remain)+'</div></div>' +
+    '<div class="aitimer-copy"><b>'+t.min+'분 버티기</b>' +
+    '<span>천천히 숨쉬기</span><span>지금 이 순간에 집중하기</span><span>파도는 지나갑니다</span></div></div>' + controls + '</div>';
+}
+function aiTimerUpdateDom(){
+  const t=ai.timer, time=$('#ai-timer-time'), fg=$('#ai-ring-fg');
+  if(!t || !time || !fg) return;
+  time.textContent = aiTimerFmt(t.remain);
+  const C=264, pct=t.total ? Math.max(0,Math.min(1,t.remain/t.total)) : 0;
+  fg.style.strokeDashoffset = (C*(1-pct)).toFixed(1);
+}
+function aiTimerFinish(){
+  const t=ai.timer; if(!t) return;
+  aiTimerClearTick(); t.remain=0; t.running=false; t.done=true;
+  aiAdd('assistant', t.min + '분이 지났어요. 여기까지 같이 버틴 것 자체가 한 걸음입니다. 지금 충동이 어느 정도인지 0~10으로 알려주세요.');
+  drawAI();
+}
+function aiTimerToggle(){
+  const t=ai.timer; if(!t || t.done) return;
+  if(t.running){
+    t.remain=Math.max(0,Math.ceil((t.end-Date.now())/1000));
+    t.running=false; aiTimerClearTick(); drawAI(); return;
+  }
+  t.running=true; t.end=Date.now()+t.remain*1000;
+  aiTimerClearTick();
+  ai.timerTick=setInterval(()=>{
+    if(!ai.timer || !ai.timer.running){ aiTimerClearTick(); return; }
+    ai.timer.remain=Math.max(0,Math.ceil((ai.timer.end-Date.now())/1000));
+    aiTimerUpdateDom();
+    if(ai.timer.remain<=0) aiTimerFinish();
+  },250);
+  drawAI();
+}
+function aiTimerStop(){
+  if(!ai.timer) return;
+  aiTimerClearTick(); ai.timer=null;
+  aiAdd('assistant','타이머를 멈췄어요. 멈춘 것도 괜찮습니다. 필요하면 언제든 다시 몇 분 같이 버텨달라고 말씀해주세요.');
+  drawAI();
+}
+function aiBindTimer(){
+  const main=$('#ai-timer-main'), stop=$('#ai-timer-stop');
+  if(main) main.onclick=aiTimerToggle;
+  if(stop) stop.onclick=aiTimerStop;
+  $$('[data-ai-rate]').forEach(b=>b.onclick=()=>{
+    const n=parseInt(b.dataset.aiRate,10);
+    ai.timer=null; aiTimerClearTick();
+    aiAdd('user','지금 충동은 '+n+'/10 정도예요.');
+    aiAdd('assistant', n>=8
+      ? '아직 많이 힘든 상태네요. 혼자 버티기보다 사람에게 바로 도움을 요청하거나 헬프콜을 이용하는 쪽을 권합니다.'
+      : n>=5 ? '아직 충동이 남아 있네요. 몇 분 더 버티거나, 오늘 모임·사람에게 도움받기를 같이 선택할 수 있어요.'
+      : '조금 내려온 것 같네요. 지금 내려온 상태를 그대로 유지하는 데 집중해봅시다.');
+    drawAI();
+  });
+}
+
+function aiReadWanted(text, topic){
+  if(topic === 'read') return true;
+  const x=String(text||'');
+  return /도움[^\n]{0,8}글|읽을[^\n]{0,8}글|글[^\n]{0,8}(보여|추천)|읽을\s*거리/.test(x);
+}
+function aiReadContext(extra){
+  const arr=(Array.isArray(S.aiChat)?S.aiChat:[]).filter(m=>m.role==='user').slice(-4).map(m=>m.text);
+  if(extra) arr.push(String(extra));
+  return arr.join(' ');
+}
+function aiReadTag(text){
+  const x=String(text||'');
+  if(/다시\s*(사용|마셨|했)|재발|무너|미끄러/.test(x)) return 'back';
+  if(/죄책|수치|미안|후회|내가\s*싫/.test(x)) return 'guilt';
+  if(/외롭|혼자|사람이\s*없|고립/.test(x)) return 'alone';
+  if(/화가|화남|짜증|억울|분노/.test(x)) return 'angry';
+  if(/잠|새벽|밤|불면/.test(x)) return 'night';
+  if(/무기력|우울|가라앉|아무것도\s*하기\s*싫|힘들/.test(x)) return 'down';
+  if(/배고|피곤|몸|아프|식사|수면/.test(x)) return 'body';
+  if(/잘\s*되고|괜찮아졌|조절할\s*수|자신감/.test(x)) return 'good';
+  return 'urge';
+}
+function aiReadOpen(text){
+  const tag=aiReadTag(aiReadContext(text)), list=READS.filter(x=>x.k===tag);
+  ai.read = list.length ? {tag:tag, i:0} : null;
+  if(ai.read) aiAdd('assistant','지금 대화와 가장 가까운 도움글 한 편을 골랐어요. 이 글은 앱에 이미 들어 있는 검토된 글입니다.');
+}
+function aiReadHTML(){
+  if(!ai.read) return '';
+  const list=READS.filter(x=>x.k===ai.read.tag);
+  if(!list.length) return '';
+  if(ai.read.i<0) ai.read.i=0;
+  if(ai.read.i>=list.length) ai.read.i=list.length-1;
+  const x=list[ai.read.i], lab=(RTAGS.find(t=>t.k===x.k)||{}).l||'도움글';
+  return '<div class="airead"><div class="tag">'+esc(lab)+' · 앱의 도움글</div><h3>'+esc(x.h)+'</h3>'+para(x.b)+
+    '<div class="row"><button class="btn sec sm" id="ai-read-next">다른 글</button>'+
+    '<button class="btn ghost sm" id="ai-read-close">접기</button></div></div>';
+}
+function aiBindRead(){
+  const nx=$('#ai-read-next'), cl=$('#ai-read-close');
+  if(nx) nx.onclick=()=>{
+    const list=READS.filter(x=>x.k===ai.read.tag);
+    if(list.length) ai.read.i=(ai.read.i+1)%list.length;
+    drawAI();
+  };
+  if(cl) cl.onclick=()=>{ ai.read=null; drawAI(); };
+}
+
 function drawAI(){
   const consent = !!S.aiConsent;
   $('#ai-profile').innerHTML = mindProAvatar(42);
@@ -3788,23 +3970,30 @@ function drawAI(){
     const d=el('div','aiload', mindProAvatar(26) + '<span>답을 정리하고 있습니다…</span>');
     th.appendChild(d);
   }
-  /* v42: 모임·센터의 긴 카드 목록을 대화창에 계속 남기지 않습니다.
-     마음프로가 설명하고, 필요할 때만 기존 목록 화면으로 가는 작은 버튼을 잠깐 보여줍니다. */
+  /* 인라인 도구는 대화창 안에 놓습니다. 타이머·도움글은 다른 화면으로 이동하지 않습니다. */
   const fr = $('#ai-resource');
-  fr.innerHTML = '';
-  if(ai.follow === 'urge'){
-    fr.innerHTML = '<button class="btn sec sm" id="ai-follow-urge">5분 타이머 시작</button>';
-    $('#ai-follow-urge').onclick = () => { ai.follow=''; go('urge'); };
-  } else if(ai.follow === 'meeting'){
-    fr.innerHTML = '<button class="btn sec sm" id="ai-follow-meet">오늘 모임 목록 보기</button>';
+  let fh = aiTimerHTML() + aiReadHTML();
+  if(ai.follow === 'meeting'){
+    fh += '<button class="btn sec sm" id="ai-follow-meet">오늘 모임 목록 보기</button>';
+  } else if(ai.follow === 'place'){
+    fh += '<button class="btn sec sm" id="ai-follow-center">센터 보기</button>' +
+      '<button class="btn sec sm" id="ai-follow-hosp">병원 보기</button>';
+  }
+  fr.innerHTML = fh;
+  aiBindTimer(); aiBindRead();
+  if(ai.follow === 'meeting'){
     $('#ai-follow-meet').onclick = () => { ai.follow=''; mt.target=famMode()?'fam':'me'; mt.mode='today'; mt.q=''; mt.kind=''; go('meet'); };
   } else if(ai.follow === 'place'){
-    fr.innerHTML = '<button class="btn sec sm" id="ai-follow-center">센터 보기</button>' +
-      '<button class="btn sec sm" id="ai-follow-hosp">병원 보기</button>';
     $('#ai-follow-center').onclick = () => { ai.follow=''; plKey='centers'; PL.centers.mode=S.area?'near':'all'; go('place'); };
     $('#ai-follow-hosp').onclick = () => { ai.follow=''; plKey='hosp'; PL.hosp.mode=S.area?'near':'all'; go('place'); };
   }
-  $('#ai-actions-wrap').classList.toggle('hide', !ai.actions || ai.busy);
+  const acts=$('#ai-actions'), tog=$('#ai-actions-toggle');
+  if(acts) acts.classList.toggle('hide', !ai.actionsOpen);
+  if(tog){
+    tog.disabled=ai.busy;
+    tog.setAttribute('aria-expanded', ai.actionsOpen ? 'true' : 'false');
+    tog.innerHTML='바로 하기 <span class="chev">'+(ai.actionsOpen?'▴':'▾')+'</span>';
+  }
   $('#ai-send').disabled = ai.busy;
   $('#ai-input').disabled = ai.busy;
   requestAnimationFrame(() => {
@@ -3820,7 +4009,7 @@ async function aiSend(text, topic){
 
   /* 이전 답변에 붙었던 [목록 보기]는 다음 말을 시작하면 사라집니다. */
   ai.follow = '';
-  ai.actions = false;
+  ai.actionsOpen = false;
   const prior = (Array.isArray(S.aiChat) ? S.aiChat : []).slice(-8);
   aiAdd('user', text);
   $('#ai-input').value = '';
@@ -3836,6 +4025,18 @@ async function aiSend(text, topic){
     drawAI();
     $('#ai-resource').innerHTML = aiCrisisBox(crisis);
     return;
+  }
+
+  /* 시간을 말로 요청하면 OpenAI에 맡기지 않고 실제 채팅 타이머를 엽니다. */
+  const timerMin = aiTimerMinutes(text, topic);
+  if(timerMin){
+    aiAdd('assistant','좋아요. 지금은 아무것도 결정하지 않고 '+timerMin+'분만 같이 있어볼게요. 아래 타이머를 시작하면 원이 줄어들면서 남은 시간을 보여드립니다.');
+    aiTimerOpen(timerMin); drawAI(); return;
+  }
+
+  /* 도움글도 AI가 새로 쓰지 않습니다. 기존 검토 글에서 현재 맥락에 맞는 한 편을 고릅니다. */
+  if(aiReadWanted(text, topic)){
+    aiReadOpen(text); drawAI(); return;
   }
 
   const wantsMeeting = topic === 'meeting' || /모임|AA|GA|NA|알아넌|겜아넌|나란온/i.test(text);
@@ -3894,7 +4095,7 @@ async function aiSend(text, topic){
   const sc = $('#ai-scroll'); if(sc) sc.scrollTop = sc.scrollHeight;
 }
 
-$('#ai-consent-go').onclick = () => { S.aiConsent = 1; ai.actions = true; save(); drawAI(); };
+$('#ai-consent-go').onclick = () => { S.aiConsent = 1; ai.actionsOpen = false; save(); drawAI(); };
 $('#ai-back').onclick = () => go(ai.back || 'help');
 $('#ai-send').onclick = () => aiSend($('#ai-input').value, '');
 $('#ai-input').addEventListener('keydown', e => {
@@ -3904,23 +4105,17 @@ $('#ai-new').onclick = () => {
   modal('<h3>마음프로 대화를 비울까요?</h3><p class="muted">이 기기에 저장된 마음프로 대화만 지웁니다. 다른 회복 기록은 그대로입니다.</p>' +
     '<button class="btn" id="ai-clear-go">대화 비우기</button><div style="height:9px"></div>' +
     '<button class="btn ghost" onclick="closeModal()">취소</button>');
-  $('#ai-clear-go').onclick = () => { S.aiChat=[]; save(); ai.meetings=[]; ai.resources=[]; ai.actions=true; ai.follow=''; closeModal(); drawAI(); };
+  $('#ai-clear-go').onclick = () => { S.aiChat=[]; save(); ai.meetings=[]; ai.resources=[]; ai.actionsOpen=false; ai.follow=''; ai.read=null; ai.timer=null; aiTimerClearTick(); closeModal(); drawAI(); };
 };
+$('#ai-actions-toggle').onclick = () => { ai.actionsOpen = !ai.actionsOpen; drawAI(); };
 $$('#ai-actions [data-ai-act]').forEach(b => b.onclick = () => {
   const a = b.dataset.aiAct;
-  /* 누른 빠른 행동은 선택 즉시 사라집니다. 같은 버튼이 대화 내내 떠 있지 않게 합니다. */
-  ai.actions = false;
-  drawAI();
-  if(a === 'urge'){
-    aiAdd('user', '5분 같이 버티고 싶어요.');
-    aiAdd('assistant', '좋아요. 지금은 결정을 미루고 5분만 같이 버텨봅시다. 준비되면 아래 버튼으로 타이머를 시작하세요.');
-    ai.follow = 'urge';
-    drawAI();
-    return;
-  }
+  /* 하나를 고르면 버튼 묶음은 접히지만 [바로 하기]는 계속 남아 다시 펼칠 수 있습니다. */
+  ai.actionsOpen = false;
+  if(a === 'urge') aiSend('5분 같이 버티고 싶어요.', 'timer');
   if(a === 'meeting') aiSend('오늘 참여할 수 있는 모임을 알려주세요.', 'meeting');
   if(a === 'place') aiSend('내 지역에서 이용할 수 있는 중독 전문병원이나 센터를 알려주세요.', 'place');
-  if(a === 'read') openRead('ai');
+  if(a === 'read') aiSend('지금 읽을 만한 도움이 되는 글 하나 보여주세요.', 'read');
   if(a === 'help') go('help');
 });
 
