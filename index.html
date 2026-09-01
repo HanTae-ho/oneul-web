@@ -148,20 +148,47 @@ addEventListener('appinstalled', function(){
   .rdcard .safebox b{display:block;font-size:11.5px;font-weight:600;letter-spacing:.05em;
     color:var(--warn);margin-bottom:4px}
 
-  /* ── AI 회복지원 (v40) ──
-     대화 원문은 이 기기에만 저장하고, 사용자가 직접 보낸 문장만 AI 서버로 전송합니다. */
-  .aithread{display:flex;flex-direction:column;gap:9px;margin:13px 0}
-  .aimsg{max-width:90%;padding:11px 13px;border-radius:14px;font-size:14.5px;
+  /* ── 마음프로 (v41) ──
+     ★ 중앙 대화만 스크롤됩니다. 상단 프로필과 하단의 빠른 행동·입력창·보내기는 고정합니다.
+     ★ 개인 회복기록은 자동 전송하지 않고, 사용자가 직접 보낸 문장만 AI 서버로 전송합니다. */
+  #view.ai-mode{overflow:hidden}
+  #p-ai.pg.on{height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden;
+    padding:calc(var(--st) + 9px) 12px 0}
+  .aihead{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:0 3px 9px;
+    border-bottom:1px solid var(--line)}
+  .aihead .profile{width:42px;height:42px;flex:none;display:flex;align-items:center;justify-content:center}
+  .aihead .name{flex:1;min-width:0}
+  .aihead .name b{display:block;font-size:18px;line-height:1.25}
+  .aihead .name span{display:block;font-size:11.5px;color:var(--dim);margin-top:2px}
+  .aiscroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;padding:11px 4px 14px}
+  .aithread{display:flex;flex-direction:column;gap:10px;margin:10px 0}
+  .aimsgrow{display:flex;align-items:flex-start;gap:7px;width:100%}
+  .aimsgrow.ai{justify-content:flex-start}
+  .aimsgrow.me{justify-content:flex-end}
+  .aiavatar{width:31px;height:31px;flex:0 0 31px;margin-top:1px;display:flex;align-items:center;justify-content:center}
+  .aimsg{max-width:84%;padding:11px 13px;border-radius:15px;font-size:14.5px;
     line-height:1.7;word-break:keep-all;white-space:normal}
-  .aimsg.me{align-self:flex-end;background:var(--acc);color:#fff;border-bottom-right-radius:5px}
-  .aimsg.ai{align-self:flex-start;background:var(--panel);border:1px solid var(--line);
-    border-bottom-left-radius:5px}
-  .aimsg .who{display:block;font-size:10.5px;font-weight:600;opacity:.62;margin-bottom:3px}
-  .aiload{color:var(--faint);font-size:13px;padding:8px 3px}
+  .aimsg.me{background:var(--acc);color:#fff;border-bottom-right-radius:5px}
+  .aimsg.ai{background:var(--panel);border:1px solid var(--line);border-bottom-left-radius:5px}
+  .aimsg .who{display:block;font-size:10.5px;font-weight:600;opacity:.64;margin-bottom:3px}
+  .aiload{display:flex;align-items:center;gap:7px;color:var(--faint);font-size:13px;padding:7px 2px}
+  .aidock{flex:0 0 auto;margin:0 -12px;background:var(--panel);border-top:1px solid var(--line);
+    padding:9px 12px 10px;box-shadow:0 -5px 18px rgba(20,45,55,.05)}
+  .aiact{margin:0 0 9px}
+  .aiact .ttl{font-size:12px;font-weight:700;color:var(--dim);margin:0 0 7px}
+  .aiact .opts{gap:6px}
+  .aiact .opt{padding:8px 10px;font-size:12.5px;border-radius:10px}
   .aicompose{position:relative}
-  .aicompose textarea{min-height:92px;padding-right:12px}
-  .aipriv{font-size:11.5px;color:var(--faint);line-height:1.6;margin:8px 1px 0}
+  .aicompose textarea{min-height:66px;max-height:112px;resize:none;padding:10px 11px}
+  .aicompose .btn{margin-top:7px;padding:11px}
+  .aipriv{font-size:10.5px;color:var(--faint);line-height:1.5;margin:6px 1px 0}
   .aires .help{margin-bottom:7px}
+  @media (max-height:700px){
+    .aiact .opt{padding:7px 9px;font-size:12px}
+    .aicompose textarea{min-height:54px;max-height:82px}
+    .aipriv{display:none}
+  }
 
   .muted{color:var(--dim);font-size:13px;line-height:1.6}
   .tiny{color:var(--faint);font-size:12px;line-height:1.55}
@@ -536,7 +563,7 @@ addEventListener('appinstalled', function(){
     <span id="panic-s">한 번 누르면 바로 도와드립니다</span>
   </button>
 
-  <button class="btn sec" id="go-ai-home">AI와 이야기하기</button>
+  <button class="btn sec" id="go-ai-home">마음프로와 이야기하기</button>
   <div style="height:10px"></div>
 
   <div id="home-alert"></div>
@@ -842,50 +869,56 @@ addEventListener('appinstalled', function(){
   </p>
 </section>
 
-<!-- ══════════ AI 회복지원 ══════════ -->
+<!-- ══════════ 마음프로 ══════════ -->
 <section class="pg" id="p-ai">
-  <div class="sp" style="margin-bottom:12px">
-    <h1 style="margin:0">AI도움</h1>
+  <div class="aihead">
+    <div class="profile" id="ai-profile"></div>
+    <div class="name"><b>마음프로</b><span>당신의 이야기를 듣고, 필요한 도움으로 연결합니다</span></div>
     <button class="tiny" style="color:var(--acc);font-weight:600" id="ai-back">← 돌아가기</button>
   </div>
 
-  <div class="note w" style="margin-bottom:12px">
-    AI는 치료나 응급상담을 대신하지 않습니다. 생명이 위험하거나 경련·환각·심한 금단이 있으면
-    대화보다 <b>119</b>가 먼저입니다. 죽고 싶은 마음이 급하면 <b>109</b>에 바로 연결하세요.
+  <div class="aiscroll" id="ai-scroll">
+    <div class="note w" style="margin-bottom:12px">
+      마음프로는 치료나 응급상담을 대신하지 않습니다. 생명이 위험하거나 경련·환각·심한 금단이 있으면
+      대화보다 <b>119</b>가 먼저입니다. 죽고 싶은 마음이 급하면 <b>109</b>에 바로 연결하세요.
+    </div>
+
+    <div class="card" id="ai-consent">
+      <h3>마음프로(AI)에서 처리되는 내용</h3>
+      <p class="muted" style="margin:-4px 0 11px">
+        이 대화창에 <b>직접 입력한 내용만</b> AI 서버로 전송합니다.
+        회복 시작일·충동·재발·HALT·복약·기분 기록은 자동으로 보내지 않습니다.
+        오늘 모임이나 센터·병원을 물으면 자원시트의 공개 정보만 함께 보냅니다.
+      </p>
+      <p class="tiny">대화 내용은 이 기기에 저장됩니다. 외부 AI API 처리 과정에서는 제공자의 데이터 처리 정책이 적용됩니다.</p>
+      <button class="btn sec" id="ai-consent-go">확인하고 시작</button>
+    </div>
+
+    <div id="ai-main" class="hide">
+      <div class="opts" id="ai-quick"></div>
+      <div class="aithread" id="ai-thread"></div>
+      <div class="aires" id="ai-resource"></div>
+      <div style="height:10px"></div>
+      <button class="btn ghost sm" id="ai-new">새 대화로 비우기</button>
+    </div>
   </div>
 
-  <div class="card" id="ai-consent">
-    <h3>AI에 보내지는 내용</h3>
-    <p class="muted" style="margin:-4px 0 11px">
-      이 대화창에 <b>직접 입력한 내용만</b> AI 서버로 전송합니다.
-      회복 시작일·충동·재발·HALT·복약·기분 기록은 자동으로 보내지 않습니다.
-      오늘 모임이나 센터·병원을 물으면 자원시트의 공개 정보만 함께 보냅니다.
-    </p>
-    <p class="tiny">대화 내용은 이 기기에 저장됩니다. 외부 AI API 처리 과정에서는 제공자의 데이터 처리 정책이 적용됩니다.</p>
-    <button class="btn sec" id="ai-consent-go">확인하고 시작</button>
-  </div>
-
-  <div id="ai-main" class="hide">
-    <div class="opts" id="ai-quick"></div>
-    <div class="aithread" id="ai-thread"></div>
-    <div class="aires" id="ai-resource"></div>
-    <div class="card aicompose">
+  <div class="aidock hide" id="ai-dock">
+    <div class="aiact" id="ai-actions-wrap">
+      <div class="ttl">바로 할 수 있는 것</div>
+      <div class="opts" id="ai-actions">
+        <button class="opt" data-ai-act="urge">5분 같이 버티기</button>
+        <button class="opt" data-ai-act="meeting">오늘 모임</button>
+        <button class="opt" data-ai-act="place">가까운 센터·병원</button>
+        <button class="opt" data-ai-act="read">도움이 되는 글</button>
+        <button class="opt" data-ai-act="help">사람에게 도움 받기</button>
+      </div>
+    </div>
+    <div class="aicompose">
       <textarea id="ai-input" maxlength="1200" placeholder="지금 어떤 일이 있는지 적어주세요"></textarea>
-      <div style="height:9px"></div>
       <button class="btn" id="ai-send">보내기</button>
       <p class="aipriv">이름·전화번호·주소·병원명처럼 나를 알아볼 수 있는 정보는 적지 않는 것을 권합니다.</p>
     </div>
-
-    <h2>바로 할 수 있는 것</h2>
-    <div class="opts" id="ai-actions">
-      <button class="opt" data-ai-act="urge">5분 같이 버티기</button>
-      <button class="opt" data-ai-act="meeting">오늘 모임</button>
-      <button class="opt" data-ai-act="place">가까운 센터·병원</button>
-      <button class="opt" data-ai-act="read">도움이 되는 글</button>
-      <button class="opt" data-ai-act="help">사람에게 도움 받기</button>
-    </div>
-    <div style="height:14px"></div>
-    <button class="btn ghost sm" id="ai-new">새 대화로 비우기</button>
   </div>
 </section>
 
@@ -900,13 +933,6 @@ addEventListener('appinstalled', function(){
   <h2>헬프콜</h2>
   <p class="muted" style="margin:-5px 0 10px">지금 사람에게 바로 연결되는 상담·응급 전화입니다.</p>
   <div id="help-lines"></div>
-
-  <h2>AI 지원</h2>
-  <button class="help" id="go-ai" style="width:100%;text-align:left">
-    <span class="ic" data-ico="speak"></span>
-    <span class="b"><b>AI도움</b><span>충동 · 마음 정리 · 오늘 모임 · 가까운 센터·병원</span></span>
-    <span class="acts"><span class="go">대화</span></span>
-  </button>
 
   <h2>읽고 듣기</h2>
   <button class="help" id="go-read" style="width:100%;text-align:left">
@@ -1139,7 +1165,7 @@ addEventListener('appinstalled', function(){
     <button data-t="home"><svg viewBox="0 0 24 24"><path d="M3 10.2 12 3l9 7.2V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>홈</button>
     <button data-t="rec"><svg viewBox="0 0 24 24"><path d="M5 3h11l4 4v14H5z"/><path d="M9 12h7M9 16h5M9 8h4"/></svg>기록</button>
     <button data-t="help"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 21 11c0 5.4-7 10-7 10z"/></svg>헬프</button>
-    <button data-t="ai"><svg viewBox="0 0 24 24"><path d="M4.5 5.2h10.2a3 3 0 0 1 3 3v5.2a3 3 0 0 1-3 3H9.2L4.5 19.7v-3.3a3 3 0 0 1-2-2.8V8.2a3 3 0 0 1 2-3z"/><path d="M19.2 3v3.2M17.6 4.6h3.2M20.2 7.3v2.2M19.1 8.4h2.2"/></svg>AI도움</button>
+    <button data-t="ai"><svg viewBox="0 0 24 24"><path d="M12 20.2S5 16 5 10.8A4.4 4.4 0 0 1 12 7.3a4.4 4.4 0 0 1 7 3.5c0 5.2-7 9.4-7 9.4z"/><path d="M12 15.5V9.2"/><path d="M12 11.2c-2.5 0-4.1-1.5-4.3-3.8 2.5 0 4.1 1.5 4.3 3.8zM12 10.1c2.7 0 4.4-1.7 4.6-4.1-2.7 0-4.4 1.7-4.6 4.1z"/></svg>마음프로</button>
     <button data-t="me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>내정보</button>
     <button data-t="admin" id="tab-admin" class="hide"><svg viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8.5 10.5V7.6a3.5 3.5 0 0 1 7 0v2.9"/></svg>관리자</button>
   </nav>
@@ -1152,7 +1178,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v40';
+const BUILD = 'v41';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1706,6 +1732,16 @@ function markSVG(px){
     '<path d="M17.8 7.2c0-3.2 2.3-5.6 5.6-5.7.3 3.4-2.1 5.9-5.6 5.7z" fill="var(--leaf)"/></svg>';
 }
 
+function mindProAvatar(px){
+  px = px || 36;
+  return '<svg viewBox="0 0 48 48" width="' + px + '" height="' + px + '" aria-hidden="true">' +
+    '<circle cx="24" cy="24" r="22" fill="var(--accbg)" stroke="var(--line)"/>' +
+    '<path d="M24 37.5S10.5 30.1 10.5 20.2c0-5 3.7-8.3 8.2-8.3 2.4 0 4.2 1 5.3 2.8 1.1-1.8 2.9-2.8 5.3-2.8 4.5 0 8.2 3.3 8.2 8.3 0 9.9-13.5 17.3-13.5 17.3z" fill="var(--acc)"/>' +
+    '<path d="M24 31V19.7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>' +
+    '<path d="M23.8 22.8c-4.7 0-7.3-2.6-7.6-6.5 4.7 0 7.3 2.6 7.6 6.5zM24.2 20.9c4.9 0 7.7-2.9 8-7-4.9 0-7.7 2.9-8 7z" fill="#fff"/>' +
+    '</svg>';
+}
+
 function ico(n, cls){
   const p = ICO[n];
   if(!p) return '';
@@ -1771,13 +1807,16 @@ const TABBED = ['home','rec','help','ai','me'];
 let cur = 'home';
 
 function go(p){
+  const prev = cur;
   $$('.pg').forEach(n => n.classList.remove('on'));
   const t = $('#p-' + p);
   if(t) t.classList.add('on');
+  if(p === 'ai' && prev !== 'ai') ai.actions = true;
   cur = p;
   $('#tabs').style.display = (p === 'intro') ? 'none' : 'flex';
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === p));
-  $('#view').scrollTop = 0;
+  $('#view').classList.toggle('ai-mode', p === 'ai');
+  if(p !== 'ai') $('#view').scrollTop = 0;
   if(p === 'home') drawHome();
   if(p === 'rec')  drawRec();
   if(p === 'help') drawHelp();
@@ -3489,7 +3528,6 @@ function renderMeet(){
 
 $('#go-read').onclick   = () => openRead('help');
 $('#go-listen').onclick = () => openListen('help');
-$('#go-ai').onclick     = () => openAI('help');
 $('#go-ai-home').onclick = () => openAI('home');
 $('#go-meet-me').onclick  = () => { mt.target = 'me';  mt.mode = 'today'; mt.q = ''; mt.kind = ''; go('meet'); };
 $('#go-meet-fam').onclick = () => { mt.target = 'fam'; mt.mode = 'today'; mt.q = ''; mt.kind = '전체'; go('meet'); };
@@ -3523,7 +3561,7 @@ function drawHelp(){
 
 }
 
-/* ══════════ AI 회복지원 (v40) ══════════
+/* ══════════ 마음프로 (v41) ══════════
    ★ 개인 회복기록은 자동으로 AI에 보내지 않습니다.
    ★ AI 서버 주소는 자원시트의 [설정] → AI_URL 에서 받습니다.
    ★ 오늘 모임을 물을 때도 기기에서 실제 후보를 먼저 골라, 공개 모임 정보만 보냅니다. */
@@ -3536,7 +3574,7 @@ const AI_QUICK = [
   {k:'place',  l:'가까운 센터·병원', q:'내 지역에서 이용할 수 있는 중독 전문병원이나 센터를 알려주세요.'},
   {k:'talk',   l:'그냥 이야기할래요', q:'그냥 제 이야기를 들어주세요.'}
 ];
-let ai = { back:'help', busy:false, meetings:[], resources:[] };
+let ai = { back:'help', busy:false, meetings:[], resources:[], actions:true };
 
 function aiEndpoint(){
   const c = S.res && S.res.config;
@@ -3557,7 +3595,7 @@ function aiAdd(role, text){
 }
 function aiEscText(t){ return esc(String(t || '')).replace(/\n/g, '<br>'); }
 
-function openAI(back){ ai.back = back || 'help'; ai.meetings = []; ai.resources = []; go('ai'); }
+function openAI(back){ ai.back = back || 'help'; ai.meetings = []; ai.resources = []; ai.actions = true; go('ai'); }
 
 function aiCrisisKind(text){
   const s = String(text || '').replace(/\s+/g, '');
@@ -3573,7 +3611,7 @@ function aiCrisisBox(kind){
   if(kind === 'violence') return '<div class="note b"><b>지금 안전한 곳으로 이동하는 것이 먼저입니다.</b><br>' +
     '폭력이나 즉각적인 위협이 있다면 혼자 해결하려 하지 마세요.</div>' +
     '<div style="height:9px"></div><a class="btn danger" href="tel:112">112 전화하기</a>';
-  return '<div class="note b"><b>지금은 AI와 오래 이야기하기보다 사람과 바로 연결하는 것이 먼저입니다.</b><br>' +
+  return '<div class="note b"><b>지금은 마음프로와 오래 이야기하기보다 사람과 바로 연결하는 것이 먼저입니다.</b><br>' +
     '혼자 있지 말고 가까운 사람에게 알리세요. 급박하면 119에 전화하세요.</div>' +
     '<div class="row" style="margin-top:9px"><a class="btn danger" href="tel:109">109</a>' +
     '<a class="btn danger" href="tel:119">119</a></div>';
@@ -3708,35 +3746,52 @@ function aiBindResourceButtons(){
 
 function drawAI(){
   const consent = !!S.aiConsent;
+  $('#ai-profile').innerHTML = mindProAvatar(42);
   $('#ai-consent').classList.toggle('hide', consent);
   $('#ai-main').classList.toggle('hide', !consent);
+  $('#ai-dock').classList.toggle('hide', !consent);
   if(!consent) return;
 
-  const q = $('#ai-quick'); q.innerHTML = '';
-  AI_QUICK.forEach(x => {
-    const b = el('button', 'opt', x.l);
-    b.onclick = () => aiSend(x.q, x.k);
-    q.appendChild(b);
-  });
-
-  const th = $('#ai-thread'); th.innerHTML = '';
   const chat = Array.isArray(S.aiChat) ? S.aiChat : [];
+  const q = $('#ai-quick'); q.innerHTML = '';
+  /* 첫 대화가 시작되면 시작 질문은 대화 속으로 올라가고 사라집니다. */
   if(!chat.length){
-    th.innerHTML = '<div class="empty" style="padding:20px 8px 10px">' +
-      '지금 필요한 것을 위에서 고르거나, 아래에 직접 적어주세요.<br>짧게 적어도 괜찮습니다.</div>';
-  } else {
-    chat.forEach(m => {
-      const d = el('div', 'aimsg ' + (m.role === 'user' ? 'me' : 'ai'));
-      d.innerHTML = '<span class="who">' + (m.role === 'user' ? '나' : 'AI') + '</span>' + aiEscText(m.text);
-      th.appendChild(d);
+    AI_QUICK.forEach(x => {
+      const b = el('button', 'opt', x.l);
+      b.onclick = () => aiSend(x.q, x.k);
+      q.appendChild(b);
     });
   }
-  if(ai.busy){ const d=el('div','aiload','답을 정리하고 있습니다…'); th.appendChild(d); }
+
+  const th = $('#ai-thread'); th.innerHTML = '';
+  if(!chat.length){
+    th.innerHTML = '<div class="empty" style="padding:17px 8px 8px">' +
+      '지금 필요한 것을 고르거나 아래에 직접 적어주세요.<br>짧게 적어도 괜찮습니다.</div>';
+  } else {
+    chat.forEach(m => {
+      const row = el('div', 'aimsgrow ' + (m.role === 'user' ? 'me' : 'ai'));
+      if(m.role !== 'user'){
+        const av = el('div', 'aiavatar'); av.innerHTML = mindProAvatar(31); row.appendChild(av);
+      }
+      const d = el('div', 'aimsg ' + (m.role === 'user' ? 'me' : 'ai'));
+      d.innerHTML = '<span class="who">' + (m.role === 'user' ? '나' : '마음프로') + '</span>' + aiEscText(m.text);
+      row.appendChild(d); th.appendChild(row);
+    });
+  }
+  if(ai.busy){
+    const d=el('div','aiload', mindProAvatar(26) + '<span>답을 정리하고 있습니다…</span>');
+    th.appendChild(d);
+  }
   $('#ai-resource').innerHTML = ai.meetings.length ? aiMeetingCards(ai.meetings) : (ai.resources.length ? aiResourceCards(ai.resources) : '');
   aiBindMeetingButton();
   aiBindResourceButtons();
+  $('#ai-actions-wrap').classList.toggle('hide', !ai.actions || ai.busy);
   $('#ai-send').disabled = ai.busy;
   $('#ai-input').disabled = ai.busy;
+  requestAnimationFrame(() => {
+    const sc = $('#ai-scroll');
+    if(sc) sc.scrollTop = sc.scrollHeight;
+  });
 }
 
 async function aiSend(text, topic){
@@ -3751,7 +3806,7 @@ async function aiSend(text, topic){
   const crisis = aiCrisisKind(text);
   if(crisis){
     aiAdd('assistant', crisis === 'life'
-      ? '지금은 AI와 오래 이야기하기보다 사람과 바로 연결하는 것이 먼저입니다.'
+      ? '지금은 마음프로와 오래 이야기하기보다 사람과 바로 연결하는 것이 먼저입니다.'
       : crisis === 'withdrawal'
       ? '지금 말씀하신 증상은 AI보다 응급 도움을 먼저 확인해야 합니다.'
       : '지금은 안전한 곳으로 이동하고 사람에게 도움을 요청하는 것이 먼저입니다.');
@@ -3779,7 +3834,7 @@ async function aiSend(text, topic){
         ? '등록된 센터·병원 중 내 지역을 우선해 확인했습니다. 아래에서 전화나 지도를 확인해보세요.'
         : '내 지역에서 바로 보여드릴 등록 센터·병원을 찾지 못했습니다. 전체 목록에서 지역을 넓혀볼 수 있습니다.');
     } else {
-      aiAdd('assistant', 'AI 서버가 아직 연결되지 않았습니다. 관리자에게 AI 서버 설정을 확인해주세요.');
+      aiAdd('assistant', '마음프로 서버가 아직 연결되지 않았습니다. 관리자에게 AI 서버 설정을 확인해주세요.');
     }
     drawAI();
     return;
@@ -3806,27 +3861,37 @@ async function aiSend(text, topic){
       return;
     }
   }catch(e){
-    aiAdd('assistant', 'AI 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요. 급한 도움이 필요하면 헬프의 헬프콜을 이용해주세요.');
+    aiAdd('assistant', '마음프로 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요. 급한 도움이 필요하면 헬프의 헬프콜을 이용해주세요.');
   }
   ai.busy = false; drawAI();
-  const v = $('#view'); if(v) v.scrollTop = v.scrollHeight;
+  const sc = $('#ai-scroll'); if(sc) sc.scrollTop = sc.scrollHeight;
 }
 
-$('#ai-consent-go').onclick = () => { S.aiConsent = 1; save(); drawAI(); };
+$('#ai-consent-go').onclick = () => { S.aiConsent = 1; ai.actions = true; save(); drawAI(); };
 $('#ai-back').onclick = () => go(ai.back || 'help');
 $('#ai-send').onclick = () => aiSend($('#ai-input').value, '');
 $('#ai-input').addEventListener('keydown', e => {
   if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); aiSend($('#ai-input').value, ''); }
 });
 $('#ai-new').onclick = () => {
-  modal('<h3>AI 대화를 비울까요?</h3><p class="muted">이 기기에 저장된 AI 대화만 지웁니다. 다른 회복 기록은 그대로입니다.</p>' +
+  modal('<h3>마음프로 대화를 비울까요?</h3><p class="muted">이 기기에 저장된 마음프로 대화만 지웁니다. 다른 회복 기록은 그대로입니다.</p>' +
     '<button class="btn" id="ai-clear-go">대화 비우기</button><div style="height:9px"></div>' +
     '<button class="btn ghost" onclick="closeModal()">취소</button>');
-  $('#ai-clear-go').onclick = () => { S.aiChat=[]; save(); ai.meetings=[]; ai.resources=[]; closeModal(); drawAI(); };
+  $('#ai-clear-go').onclick = () => { S.aiChat=[]; save(); ai.meetings=[]; ai.resources=[]; ai.actions=true; closeModal(); drawAI(); };
 };
 $$('#ai-actions [data-ai-act]').forEach(b => b.onclick = () => {
   const a = b.dataset.aiAct;
-  if(a === 'urge') go('urge');
+  /* 누른 빠른 행동은 선택 즉시 사라집니다. 같은 버튼이 대화 내내 떠 있지 않게 합니다. */
+  ai.actions = false;
+  drawAI();
+  if(a === 'urge'){
+    aiAdd('user', '5분 같이 버티고 싶어요.');
+    aiAdd('assistant', '좋아요. 지금은 결정을 미루고 5분만 같이 버텨봅시다. 기존 5분 타이머를 바로 시작할 수 있어요.');
+    drawAI();
+    $('#ai-resource').innerHTML = '<button class="btn sec sm" id="ai-urge-go">5분 타이머 시작하기</button>';
+    $('#ai-urge-go').onclick = () => go('urge');
+    return;
+  }
   if(a === 'meeting') aiSend('오늘 참여할 수 있는 모임을 알려주세요.', 'meeting');
   if(a === 'place') aiSend('내 지역에서 이용할 수 있는 중독 전문병원이나 센터를 알려주세요.', 'place');
   if(a === 'read') openRead('ai');
