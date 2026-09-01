@@ -148,7 +148,7 @@ addEventListener('appinstalled', function(){
   .rdcard .safebox b{display:block;font-size:11.5px;font-weight:600;letter-spacing:.05em;
     color:var(--warn);margin-bottom:4px}
 
-  /* ── AI 회복지원 (v39) ──
+  /* ── AI 회복지원 (v40) ──
      대화 원문은 이 기기에만 저장하고, 사용자가 직접 보낸 문장만 AI 서버로 전송합니다. */
   .aithread{display:flex;flex-direction:column;gap:9px;margin:13px 0}
   .aimsg{max-width:90%;padding:11px 13px;border-radius:14px;font-size:14.5px;
@@ -507,7 +507,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-place">
   <div class="sp" style="margin-bottom:12px">
     <h1 style="margin:0" id="pl-title">센터 찾기</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('help')">← 도움</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('help')">← 헬프</button>
   </div>
   <p class="muted" style="margin:-6px 0 12px" id="pl-sub"></p>
   <div class="opts" id="pl-mode" style="margin-bottom:8px"></div>
@@ -649,7 +649,7 @@ addEventListener('appinstalled', function(){
   <div style="height:9px"></div>
   <button class="btn sec" id="tm-read">도움이 되는 글 읽기</button>
   <div style="height:9px"></div>
-  <button class="btn sec" id="tm-help">도움 찾기</button>
+  <button class="btn sec" id="tm-help">헬프 열기</button>
   <div style="height:9px"></div>
   <button class="btn ghost" id="tm-stop">그만두기</button>
 </section>
@@ -825,7 +825,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-meet">
   <div class="sp" style="margin-bottom:12px">
     <h1 style="margin:0" id="mt-title">모임 찾기</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('help')">← 도움</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('help')">← 헬프</button>
   </div>
 
   <div class="opts" id="mt-mode" style="margin-bottom:8px"></div>
@@ -845,7 +845,7 @@ addEventListener('appinstalled', function(){
 <!-- ══════════ AI 회복지원 ══════════ -->
 <section class="pg" id="p-ai">
   <div class="sp" style="margin-bottom:12px">
-    <h1 style="margin:0">AI와 이야기하기</h1>
+    <h1 style="margin:0">AI도움</h1>
     <button class="tiny" style="color:var(--acc);font-weight:600" id="ai-back">← 돌아가기</button>
   </div>
 
@@ -889,21 +889,22 @@ addEventListener('appinstalled', function(){
   </div>
 </section>
 
-<!-- ══════════ 도움 ══════════ -->
+<!-- ══════════ 헬프 ══════════ -->
 <section class="pg" id="p-help">
-  <h1>도움 찾기</h1>
+  <h1>헬프</h1>
 
   <div class="note b" style="margin-bottom:16px">
     지금 생명이 위험하거나 몸에 이상이 있다면 망설이지 말고 <b>119</b>에 전화하세요.
   </div>
 
-  <h2>24시간 상담전화</h2>
+  <h2>헬프콜</h2>
+  <p class="muted" style="margin:-5px 0 10px">지금 사람에게 바로 연결되는 상담·응급 전화입니다.</p>
   <div id="help-lines"></div>
 
   <h2>AI 지원</h2>
   <button class="help" id="go-ai" style="width:100%;text-align:left">
     <span class="ic" data-ico="speak"></span>
-    <span class="b"><b>AI와 이야기하기</b><span>충동 · 마음 정리 · 오늘 모임 · 가까운 센터·병원</span></span>
+    <span class="b"><b>AI도움</b><span>충동 · 마음 정리 · 오늘 모임 · 가까운 센터·병원</span></span>
     <span class="acts"><span class="go">대화</span></span>
   </button>
 
@@ -997,7 +998,7 @@ addEventListener('appinstalled', function(){
       <div class="sep"></div>
       <h3>내 지역</h3>
       <p class="muted" style="margin:-4px 0 11px">
-        골라두면 도움 찾기에서 우리 지역 모임·센터만 보여줍니다.
+        골라두면 헬프에서 우리 지역 모임·센터만 보여줍니다.
         지역이 적히지 않은 곳은 전국 공통으로 계속 보입니다.
       </p>
       <div class="opts" id="me-area"></div>
@@ -1137,7 +1138,8 @@ addEventListener('appinstalled', function(){
   <nav id="tabs">
     <button data-t="home"><svg viewBox="0 0 24 24"><path d="M3 10.2 12 3l9 7.2V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>홈</button>
     <button data-t="rec"><svg viewBox="0 0 24 24"><path d="M5 3h11l4 4v14H5z"/><path d="M9 12h7M9 16h5M9 8h4"/></svg>기록</button>
-    <button data-t="help"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 21 11c0 5.4-7 10-7 10z"/></svg>도움</button>
+    <button data-t="help"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 21 11c0 5.4-7 10-7 10z"/></svg>헬프</button>
+    <button data-t="ai"><svg viewBox="0 0 24 24"><path d="M4.5 5.2h10.2a3 3 0 0 1 3 3v5.2a3 3 0 0 1-3 3H9.2L4.5 19.7v-3.3a3 3 0 0 1-2-2.8V8.2a3 3 0 0 1 2-3z"/><path d="M19.2 3v3.2M17.6 4.6h3.2M20.2 7.3v2.2M19.1 8.4h2.2"/></svg>AI도움</button>
     <button data-t="me"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg>내정보</button>
     <button data-t="admin" id="tab-admin" class="hide"><svg viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8.5 10.5V7.6a3.5 3.5 0 0 1 7 0v2.9"/></svg>관리자</button>
   </nav>
@@ -1150,7 +1152,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v39';
+const BUILD = 'v40';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1352,7 +1354,7 @@ const FAMGUIDE = {
     {h:'가족 모임에는 혼자 가도 됩니다',
      b:'당사자가 안 가도, 안 끊어도, 가족은 갈 수 있습니다.\n' +
        '알아넌(알코올) · 겜아넌(도박) · 나란아논(약물) 이 가족 모임입니다.\n' +
-       '[도움 찾기]에서 우리 지역 모임을 찾아보실 수 있습니다.'},
+       '[헬프]에서 우리 지역 모임을 찾아보실 수 있습니다.'},
     {h:'감시가 삶의 전부가 되지 않게',
      b:'냄새를 맡고, 통장을 뒤지고, 하루 종일 마음을 붙들고 있으면 두 사람 다 지칩니다.\n' +
        '일주일에 한 번이라도 그 사람과 상관없는 시간을 남겨두세요. 그것이 오래 버티는 힘이 됩니다.'},
@@ -1371,7 +1373,7 @@ const FAMGUIDE = {
     {h:'혼자 지고 계시면 상담을 받으세요',
      b:'중독은 가족 한 사람이 감당할 수 있는 크기의 일이 아닙니다.\n' +
        '중독관리통합지원센터는 가족 상담도 합니다. 무료이고, 당사자가 안 와도 받을 수 있습니다.\n' +
-       '[도움 찾기] → [센터 찾기] 에서 가까운 곳을 보실 수 있습니다.'}
+       '[헬프] → [센터 찾기] 에서 가까운 곳을 보실 수 있습니다.'}
   ]
 };
 
@@ -1394,7 +1396,7 @@ const TYPES = [
 const HALT = [
   {k:'h', i:'hungry', l:'배고픔', tip:'뭐라도 좀 드세요. 배고픔은 충동을 크게 키웁니다.'},
   {k:'a', i:'angry',  l:'화남',   tip:'잠시 자리를 옮겨보세요. 호흡을 같이 해도 좋습니다.'},
-  {k:'l', i:'lonely', l:'외로움', tip:'오늘 모임이 있는지 봐두면 좋겠습니다. 도움 찾기에 있습니다.'},
+  {k:'l', i:'lonely', l:'외로움', tip:'오늘 모임이 있는지 봐두면 좋겠습니다. 헬프에 있습니다.'},
   {k:'t', i:'tired',  l:'피곤함', tip:'무리하지 마세요. 피곤할 때 판단이 가장 흐려집니다.'}
 ];
 const MOODS = [
@@ -1765,7 +1767,7 @@ function closeModal(){ $('#mod').classList.remove('on'); }
 $('#mod').addEventListener('click', e => { if(e.target.id === 'mod') closeModal(); });
 
 /* ── 라우팅 ── */
-const TABBED = ['home','rec','help','me'];
+const TABBED = ['home','rec','help','ai','me'];
 let cur = 'home';
 
 function go(p){
@@ -3521,7 +3523,7 @@ function drawHelp(){
 
 }
 
-/* ══════════ AI 회복지원 (v39) ══════════
+/* ══════════ AI 회복지원 (v40) ══════════
    ★ 개인 회복기록은 자동으로 AI에 보내지 않습니다.
    ★ AI 서버 주소는 자원시트의 [설정] → AI_URL 에서 받습니다.
    ★ 오늘 모임을 물을 때도 기기에서 실제 후보를 먼저 골라, 공개 모임 정보만 보냅니다. */
@@ -3804,7 +3806,7 @@ async function aiSend(text, topic){
       return;
     }
   }catch(e){
-    aiAdd('assistant', 'AI 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요. 급한 도움이 필요하면 도움 찾기의 전화 연결을 이용해주세요.');
+    aiAdd('assistant', 'AI 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요. 급한 도움이 필요하면 헬프의 헬프콜을 이용해주세요.');
   }
   ai.busy = false; drawAI();
   const v = $('#view'); if(v) v.scrollTop = v.scrollHeight;
@@ -4736,7 +4738,7 @@ function adminLogin(){
     sha256(pw.value).then(h => {
       if(h === ADMIN_HASH){
         S.admin = 1; save(); closeModal(); drawMe();
-        $('#tab-admin').classList.remove('hide');
+        $('#tab-admin').classList.add('hide');
         go('admin');
         toast('관리자로 들어왔습니다.');
       } else {
@@ -4761,9 +4763,9 @@ function adminLogout(){
 /* 내 정보의 관리자 카드 */
 function drawAdmin(){
   const b = $('#me-admin'); b.innerHTML = '';
-  $('#tab-admin').classList.toggle('hide', !S.admin);
+  $('#tab-admin').classList.add('hide');
   $('#me-admin-m').textContent = S.admin
-    ? '관리자로 들어와 있습니다. 아래 [관리자] 탭에서 목록을 고칠 수 있습니다.'
+    ? '관리자로 들어와 있습니다. 아래 [관리자 화면 열기]에서 목록을 고칠 수 있습니다.'
     : '모임·센터·병원 목록을 고치는 분만 들어갑니다.';
   if(S.admin){
     const o = el('button', 'opt', '관리자 화면 열기');
@@ -5223,8 +5225,8 @@ function boot(){
   setInterval(checkAlarms, 60000);
   document.addEventListener('visibilitychange', () => { if(!document.hidden) checkAlarms(); });
 
-  /* 관리자 탭은 로그인했을 때만 보입니다 */
-  $('#tab-admin').classList.toggle('hide', !S.admin);
+  /* 관리자 화면은 내 정보에서만 엽니다. 하단 탭에는 표시하지 않습니다. */
+  $('#tab-admin').classList.add('hide');
 
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(() => {});
