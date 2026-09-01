@@ -81,6 +81,10 @@ addEventListener('appinstalled', function(){
   #tabs button{flex:1;padding:9px 2px 7px;color:var(--faint);
     display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px}
   #tabs button.on{color:var(--acc);font-weight:600}
+  /* 헬프는 평상시 자원 메뉴이므로 전체를 빨갛게 하지 않고 작은 안전 포인트만 둡니다. */
+  #tabs button[data-t="help"]{position:relative}
+  #tabs button[data-t="help"]::after{content:"";position:absolute;top:8px;left:calc(50% + 8px);
+    width:6px;height:6px;border-radius:50%;background:var(--bad);box-shadow:0 0 0 2px var(--panel)}
   #top-me{color:var(--faint);display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:11px}
   #top-me:active{background:var(--accbg);color:var(--acc)}
   #top-me svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -1230,7 +1234,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v45';
+const BUILD = 'V4.6';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -2364,7 +2368,7 @@ function drawFam(){
   $('#fam-foot').innerHTML = f;
 
   const m = $('#fam-meet');
-  if(m) m.onclick = () => { mt.target = 'fam'; mt.mode = 'today'; mt.q = ''; mt.kind = ''; go('meet'); };
+  if(m) m.onclick = () => { mt.target = 'fam'; mt.mode = 'today'; mt.todayArea=''; mt.q = ''; mt.kind = ''; go('meet'); };
   const c = $('#fam-center');
   if(c) c.onclick = () => { plKey = 'centers'; PL.centers.cat = ''; go('place'); };
 }
@@ -3344,7 +3348,7 @@ function recStat(){
      내 주변 — 위치 권한 → 가장 가까운 시·도 → 그 지역 모임
      지역   — 시·도를 고르거나 이름·장소로 글자 검색
    요일(y)·시간(h)은 시트에 따로 담겨 온다. 설명 문장에서 되뽑지 않는다. */
-let mt = { mode: 'today', target: 'me', area: '', q: '', located: '', kind: '' };
+let mt = { mode: 'today', target: 'me', area: '', q: '', located: '', kind: '', todayArea: '' };
 /* kind:  ''  = 내가 회복 중인 영역만   '전체' = 모두   그 밖 = 그 종류만 */
 
 /* 모임 종류. 시트의 k 칸을 쓰고, 없으면 이름 앞머리로 알아본다. */
@@ -3402,7 +3406,7 @@ function drawMeet(){
   const mb = $('#mt-mode'); mb.innerHTML = '';
   [{v:'today',l:'오늘'},{v:'near',l:'내 주변'},{v:'area',l:'지역'}].forEach(o => {
     const b = el('button', 'opt' + (mt.mode === o.v ? ' on' : ''), o.l);
-    b.onclick = () => { mt.mode = o.v; drawMeet(); };
+    b.onclick = () => { mt.mode = o.v; if(o.v === 'today') mt.todayArea = ''; drawMeet(); };
     mb.appendChild(b);
   });
 
@@ -3502,7 +3506,7 @@ function renderMeet(){
   let title = '';
 
   if(mt.mode === 'today'){
-    const ar = S.area || '';
+    const ar = mt.todayArea || S.area || '';
     rows = rows.filter(r => r.y === today && kindOK(r) && (!ar || !r.a || String(r.a).indexOf(ar) >= 0));
     /* 아직 시작 안 한 모임을 먼저, 그다음 이미 지난 모임 */
     rows.sort((a, b) => {
@@ -3531,8 +3535,8 @@ function renderMeet(){
   if(!rows.length){
     const wider = (mt.kind !== '전체') &&
       meetRows().some(r => (mt.mode === 'today' ? r.y === today : true) &&
-        (!(mt.mode === 'near' ? mt.located : (mt.mode === 'today' ? S.area : mt.area)) ||
-         !r.a || String(r.a).indexOf(mt.mode === 'near' ? mt.located : (mt.mode === 'today' ? S.area : mt.area)) >= 0));
+        (!(mt.mode === 'near' ? mt.located : (mt.mode === 'today' ? (mt.todayArea || S.area) : mt.area)) ||
+         !r.a || String(r.a).indexOf(mt.mode === 'near' ? mt.located : (mt.mode === 'today' ? (mt.todayArea || S.area) : mt.area)) >= 0));
     const widerBtn = wider
       ? '<button class="btn sec sm" id="mt-wider" style="margin-top:10px">다른 회복 모임도 보기</button>'
       : '';
@@ -3543,7 +3547,7 @@ function renderMeet(){
     }
     /* 오늘 없으면 그냥 비워두지 말고, 다음에 열리는 모임을 짚어준다.
        "오늘은 없다"로 끝나면 발길을 돌리게 된다. */
-    const ar = S.area || '';
+    const ar = mt.todayArea || S.area || '';
     const ord = { '월':0,'화':1,'수':2,'목':3,'금':4,'토':5,'일':6 };
     const t0 = ord[today];
     const nxt = meetRows()
@@ -3594,8 +3598,8 @@ function renderMeet(){
 $('#go-read').onclick   = () => openRead('help');
 $('#go-listen').onclick = () => openListen('help');
 $('#go-ai-home').onclick = () => openAI('home');
-$('#go-meet-me').onclick  = () => { mt.target = 'me';  mt.mode = 'today'; mt.q = ''; mt.kind = ''; go('meet'); };
-$('#go-meet-fam').onclick = () => { mt.target = 'fam'; mt.mode = 'today'; mt.q = ''; mt.kind = '전체'; go('meet'); };
+$('#go-meet-me').onclick  = () => { mt.target = 'me';  mt.mode = 'today'; mt.todayArea=''; mt.q = ''; mt.kind = ''; go('meet'); };
+$('#go-meet-fam').onclick = () => { mt.target = 'fam'; mt.mode = 'today'; mt.todayArea=''; mt.q = ''; mt.kind = '전체'; go('meet'); };
 
 /* ══════════ 도움 ══════════ */
 function drawHelp(){
@@ -3626,7 +3630,7 @@ function drawHelp(){
 
 }
 
-/* ══════════ 마음프로 (v45 · Local-first) ══════════
+/* ══════════ 마음프로 (v46 · Local-first 안내형) ══════════
    ★ 앱이 이미 할 수 있는 일은 AI에 보내지 않고 기기/검증 자원에서 바로 처리합니다.
    ★ 개인 회복기록은 자동으로 AI에 보내지 않습니다.
    ★ AI 서버 주소는 자원시트의 [설정] → AI_URL 에서 받습니다.
@@ -3640,7 +3644,7 @@ const AI_QUICK = [
   {k:'place',  l:'가까운 센터·병원', q:'내 지역에서 이용할 수 있는 중독 전문병원이나 센터를 알려주세요.'},
   {k:'talk',   l:'그냥 이야기할래요', q:'그냥 제 이야기를 들어주세요.'}
 ];
-let ai = { back:'help', busy:false, meetings:[], resources:[], actionsOpen:false, follow:'', timer:null, timerTick:0, read:null };
+let ai = { back:'help', busy:false, meetings:[], resources:[], actionsOpen:false, follow:'', timer:null, timerTick:0, read:null, loc:null, activeArea:'', activeAreaSource:'' };
 
 function aiEndpoint(){
   const c = S.res && S.res.config;
@@ -3670,7 +3674,7 @@ function aiEscText(t){
   return esc(x).replace(/\n/g, '<br>');
 }
 
-function openAI(back){ ai.back = back || 'help'; ai.meetings = []; ai.resources = []; ai.actionsOpen = false; ai.follow=''; go('ai'); }
+function openAI(back){ ai.back = back || 'help'; ai.meetings = []; ai.resources = []; ai.actionsOpen = false; ai.follow=''; ai.loc=null; ai.activeArea=''; ai.activeAreaSource=''; go('ai'); }
 
 function aiCrisisKind(text){
   const s = String(text || '').replace(/\s+/g, '');
@@ -3693,24 +3697,56 @@ function aiCrisisBox(kind){
 }
 
 /* 오늘 실제 등록된 모임. S.area·S.types는 이 기기에서 필터링할 때만 쓰고 AI 서버에는 보내지 않는다. */
-function aiTodayMeetings(){
+function aiTodayMeetingInfo(area){
   const R = S.res || {};
   const src = famMode()
     ? ((R.family && R.family.length) ? R.family : FAMILY)
     : ((R.groups && R.groups.length) ? R.groups : GROUPS);
-  const day = DAYN[new Date().getDay()], hm = pad(new Date().getHours()) + ':' + pad(new Date().getMinutes());
-  const area = S.area || '', mine = myKinds();
+  const now = new Date(), day = DAYN[now.getDay()], hm = pad(now.getHours()) + ':' + pad(now.getMinutes());
+  const mine = myKinds();
   let rows = src.filter(r => r.y === day);
   rows = rows.filter(r => {
     const k = rowKind(r);
     return !k || !mine.length || mine.indexOf(k) >= 0;
   });
-  if(area) rows = rows.filter(r => !r.a || String(r.a).indexOf(area) >= 0);
-  rows.sort((a,b) => {
-    const ap = a.h && a.h < hm ? 1 : 0, bp = b.h && b.h < hm ? 1 : 0;
-    return ap - bp || String(a.h || '99:99').localeCompare(String(b.h || '99:99'));
+  if(area) rows = rows.filter(r => {
+    const a = areasOf(r);
+    /* 지역을 알 수 없는 공식 안내행은 지역 일정 개수에는 넣지 않습니다. */
+    return a.length && a.indexOf(area) >= 0;
   });
+  rows.sort((a,b) => String(a.h || '99:99').localeCompare(String(b.h || '99:99')));
+  const upcoming = rows.filter(r => !r.h || String(r.h) >= hm);
+  return { all:rows, upcoming:upcoming, day:day, hm:hm };
+}
+function aiTodayMeetings(area){
+  const info = aiTodayMeetingInfo(area == null ? (S.area || '') : area);
+  const rows = info.upcoming.length ? info.upcoming : info.all;
   return rows.slice(0, 6);
+}
+function aiKoTime(h){
+  const m=String(h||'').match(/^(\d{1,2}):(\d{2})/); if(!m) return String(h||'');
+  let hh=parseInt(m[1],10), mm=parseInt(m[2],10); const ap=hh<12?'오전':'오후';
+  let k=hh%12; if(!k) k=12;
+  return ap+' '+k+'시'+(mm ? ' '+mm+'분' : '');
+}
+function aiMeetingSummary(area, source, note){
+  const info=aiTodayMeetingInfo(area), rows=info.upcoming;
+  const where=area ? area+' 지역' : '등록된 전체 지역';
+  const prefix=note ? note+'\n' : '';
+  if(rows.length){
+    const ex=rows.slice(0,2).map(r => {
+      const bits=[r.n || '모임'];
+      if(r.h) bits.push(aiKoTime(r.h));
+      if(r.a) bits.push(r.a);
+      return bits.join(' · ');
+    }).join('\n');
+    return prefix + (source ? source+'으로 ' : '') + '오늘 '+where+'에서 지금부터 참여할 수 있는 등록 모임을 확인했어요. 현재 시각 이후 '+rows.length+'개 일정이 있습니다.\n'+
+      ex+'\n처음 참여하거나 일정이 바뀌었을 수 있으니 출발 전 연락처나 안내 페이지에서 한 번 확인해주세요.';
+  }
+  if(info.all.length){
+    return prefix + '오늘 '+where+'에 등록된 모임은 '+info.all.length+'개 있지만, 현재 시각 이후 시작 예정인 일정은 확인되지 않아요. 전체 모임에서 다른 요일이나 지역도 확인할 수 있습니다.';
+  }
+  return prefix + '오늘 '+where+'에서 확인되는 등록 모임이 현재 없습니다. 전체 모임에서 지역이나 회복 영역을 넓혀 확인해볼 수 있습니다.';
 }
 function aiMeetingPayload(rows){
   return (rows || []).map(r => ({
@@ -3737,23 +3773,22 @@ function aiMeetingCards(rows){
 }
 function aiBindMeetingButton(){
   const b = $('#ai-all-meet');
-  if(b) b.onclick = () => { mt.target = famMode() ? 'fam' : 'me'; mt.mode='today'; mt.q=''; mt.kind=''; go('meet'); };
+  if(b) b.onclick = () => { mt.target = famMode() ? 'fam' : 'me'; mt.mode='today'; mt.todayArea=''; mt.q=''; mt.kind=''; go('meet'); };
 }
 
 /* 가까운 센터·병원 — 정확한 거리 계산이 아니라 이 기기에 설정된 지역을 우선한다.
    주소별 좌표를 서버에 보내거나 위치를 AI에 보내지 않는다. 실제 거리·길찾기는 지도 앱이 맡는다. */
-function aiNearbyResources(){
-  const R = S.res || {}, area = S.area || '', mine = myKinds();
+function aiResourceInfo(area){
+  const R = S.res || {}, mine = myKinds();
   const centers = (R.centers && R.centers.length) ? R.centers : CENTERS;
   const hospitals = (R.hosp && R.hosp.length) ? R.hosp : HOSP;
-
   const relevant = x => {
     const c = catOf(x), kinds = catKinds(c);
     if(!mine.length || !kinds.length) return true;
     return kinds.some(k => mine.indexOf(k) >= 0);
   };
   const sameArea = x => {
-    if(!area) return false;
+    if(!area) return true;
     const a = areasOf(x);
     return a.length && a.indexOf(area) >= 0;
   };
@@ -3765,19 +3800,24 @@ function aiNearbyResources(){
     });
     return out;
   };
-  const rank = rows => dedupe(rows).slice().sort((a,b) =>
-    (sameArea(b)?100:0) - (sameArea(a)?100:0) +
-    (relevant(b)?10:0) - (relevant(a)?10:0));
-
-  let cs = rank(centers), hs = rank(hospitals);
-  if(area){
-    const ac = cs.filter(sameArea), ah = hs.filter(sameArea);
-    if(ac.length) cs = ac;
-    if(ah.length) hs = ah;
+  const cs=dedupe(centers).filter(relevant).filter(sameArea);
+  const hs=dedupe(hospitals).filter(relevant).filter(sameArea);
+  return {centers:cs,hospitals:hs,items:cs.map(x=>({kind:'center',row:x})).concat(hs.map(x=>({kind:'hospital',row:x})))};
+}
+function aiNearbyResources(area){ return aiResourceInfo(area).items.slice(0,8); }
+function aiResourceSummary(area, source, note){
+  const info=aiResourceInfo(area), items=info.items;
+  const where=area ? area+' 지역' : '등록된 전체 지역';
+  const prefix=note ? note+'\n' : '';
+  if(items.length){
+    const counts=[];
+    if(info.centers.length) counts.push('센터 '+info.centers.length+'곳');
+    if(info.hospitals.length) counts.push('병원 '+info.hospitals.length+'곳');
+    const ex=items.slice(0,3).map(it => (it.row.n || '') + ' · ' + (it.kind==='hospital'?'병원':'센터')).join('\n');
+    return prefix + (source ? source+'으로 ' : '') + where+'에서 앱에 등록된 이용 가능한 자원을 확인했어요. '+counts.join(', ')+'이 확인됩니다.\n'+
+      ex+'\n운영시간이나 진료 가능 여부는 방문 전에 전화 또는 안내 페이지에서 한 번 확인해주세요.';
   }
-  cs = cs.filter(relevant).slice(0,4);
-  hs = hs.filter(relevant).slice(0,4);
-  return cs.map(x => ({kind:'center', row:x})).concat(hs.map(x => ({kind:'hospital', row:x}))).slice(0,8);
+  return prefix + where+'에서 바로 확인되는 등록 센터·병원은 현재 없습니다. 전체 목록에서 다른 지역이나 기관 종류로 넓혀볼 수 있습니다.';
 }
 function aiResourcePayload(items){
   return (items || []).map(it => {
@@ -3817,6 +3857,124 @@ function aiBindResourceButtons(){
   const c=$('#ai-centers'), h=$('#ai-hosp');
   if(c) c.onclick=()=>{ plKey='centers'; PL.centers.mode=S.area?'near':'all'; go('place'); };
   if(h) h.onclick=()=>{ plKey='hosp'; PL.hosp.mode=S.area?'near':'all'; go('place'); };
+}
+
+/* 마음프로의 위치 사용은 시·도 단위의 로컬 비교까지만 합니다.
+   GPS 좌표는 저장하거나 AI 서버에 보내지 않습니다. */
+function aiAreaFromText(text){
+  const x=String(text||'');
+  for(const a of AREAS) if(x.indexOf(a)>=0) return a;
+  for(const pair of SIDO_ALIAS) if(x.indexOf(pair[0])>=0) return pair[1];
+  for(const n of JN_SIGUN) if(x.indexOf(n)>=0) return '전남';
+  return '';
+}
+async function aiGeoPermissionState(){
+  if(!navigator.geolocation) return 'unsupported';
+  try{
+    if(navigator.permissions && navigator.permissions.query){
+      const p=await navigator.permissions.query({name:'geolocation'});
+      return p && p.state ? p.state : 'prompt';
+    }
+  }catch(e){}
+  return 'prompt';
+}
+function aiGetCurrentArea(){
+  return new Promise((resolve,reject)=>{
+    if(!navigator.geolocation){ reject(new Error('UNSUPPORTED')); return; }
+    navigator.geolocation.getCurrentPosition(
+      p=>resolve(nearestArea(p.coords.latitude,p.coords.longitude)),
+      e=>reject(e || new Error('LOCATION_ERROR')),
+      {timeout:10000, maximumAge:300000, enableHighAccuracy:false}
+    );
+  });
+}
+async function aiResolveArea(kind,text){
+  const explicit=aiAreaFromText(text);
+  if(explicit) return {state:'use', kind:kind, area:explicit, source:'요청하신 지역 기준', note:''};
+  const saved=S.area || '';
+  const perm=await aiGeoPermissionState();
+  if(perm==='granted'){
+    try{
+      const current=await aiGetCurrentArea();
+      if(current && saved && current!==saved) return {state:'mismatch', kind:kind, current:current, saved:saved};
+      if(current) return {state:'use', kind:kind, area:current, source:'현재 위치 기준', note:''};
+    }catch(e){
+      return {state:'use', kind:kind, area:saved, source:saved?'내정보 설정 지역 기준':'', note:'현재 위치를 확인하지 못해 '+(saved?'내정보의 설정 지역을 사용했습니다.':'등록된 전체 지역을 기준으로 확인했습니다.')};
+    }
+  }
+  if(perm==='denied') return {state:'denied', kind:kind, saved:saved};
+  if(perm==='unsupported') return {state:'use', kind:kind, area:saved, source:saved?'내정보 설정 지역 기준':'', note:'이 기기에서는 위치를 확인할 수 없어 '+(saved?'내정보의 설정 지역을 사용했습니다.':'등록된 전체 지역을 기준으로 확인했습니다.')};
+  return {state:'permission', kind:kind, saved:saved};
+}
+function aiApplyArea(kind,area,source,note){
+  ai.loc=null; ai.activeArea=area || ''; ai.activeAreaSource=source || '';
+  if(kind==='meeting'){
+    ai.meetings=aiTodayMeetings(area || ''); ai.resources=[];
+    aiAdd('assistant',aiMeetingSummary(area || '',source || '',note || ''),true);
+    ai.follow='meeting';
+  }else{
+    ai.resources=aiNearbyResources(area || ''); ai.meetings=[];
+    aiAdd('assistant',aiResourceSummary(area || '',source || '',note || ''),true);
+    ai.follow='place';
+  }
+  drawAI();
+}
+function aiLocationHTML(){
+  const L=ai.loc; if(!L) return '';
+  if(L.state==='mismatch'){
+    return '<div class="note" style="margin-bottom:9px">현재 위치를 시·도 단위로 보면 <b>'+esc(L.current)+'</b>이고, 내정보에는 <b>'+esc(L.saved)+'</b>로 설정되어 있습니다. 어느 지역을 기준으로 찾을까요?</div>'+ 
+      '<div class="row"><button class="btn sec sm" id="ai-loc-current">현재 위치 · '+esc(L.current)+'</button>'+ 
+      '<button class="btn ghost sm" id="ai-loc-saved">설정 지역 · '+esc(L.saved)+'</button></div>'+ 
+      '<button class="btn ghost sm" id="ai-loc-save" style="margin-top:7px">내정보 지역을 '+esc(L.current)+'로 변경</button>';
+  }
+  if(L.state==='permission'){
+    return '<div class="note" style="margin-bottom:9px">현재 위치를 확인하면 지금 있는 시·도와 내정보 지역이 다른지 비교할 수 있습니다. GPS 좌표는 저장하거나 마음프로 AI로 보내지 않습니다.</div>'+ 
+      '<div class="row"><button class="btn sec sm" id="ai-loc-current">현재 위치 확인</button>'+ 
+      (L.saved?'<button class="btn ghost sm" id="ai-loc-saved">설정 지역 · '+esc(L.saved)+'</button>':'<button class="btn ghost sm" id="ai-loc-all">전국 기준으로 보기</button>')+'</div>';
+  }
+  if(L.state==='denied'){
+    return '<div class="note w" style="margin-bottom:9px">현재 위치 권한이 꺼져 있어 휴대폰 위치와 내정보 지역을 비교할 수 없습니다. 브라우저의 사이트 설정에서 위치를 허용하거나 설정 지역으로 계속할 수 있습니다.</div>'+ 
+      '<div class="row">'+(L.saved?'<button class="btn sec sm" id="ai-loc-saved">설정 지역 · '+esc(L.saved)+'로 계속</button>':'<button class="btn sec sm" id="ai-loc-all">전국 기준으로 보기</button>')+
+      '<button class="btn ghost sm" id="ai-loc-me">내정보 지역 설정</button></div>';
+  }
+  return '';
+}
+function aiBindLocation(){
+  const L=ai.loc; if(!L) return;
+  const cur=$('#ai-loc-current'), saved=$('#ai-loc-saved'), all=$('#ai-loc-all'), saveBtn=$('#ai-loc-save'), me=$('#ai-loc-me');
+  if(cur) cur.onclick=async()=>{
+    cur.disabled=true; cur.textContent='위치 확인 중…';
+    try{
+      const current=await aiGetCurrentArea();
+      const set=S.area || L.saved || '';
+      if(current && set && current!==set){ ai.loc={state:'mismatch',kind:L.kind,current:current,saved:set}; drawAI(); return; }
+      aiApplyArea(L.kind,current || set,current?'현재 위치 기준':'내정보 설정 지역 기준','');
+    }catch(e){
+      ai.loc={state:'denied',kind:L.kind,saved:S.area || L.saved || ''}; drawAI();
+    }
+  };
+  if(saved) saved.onclick=()=>aiApplyArea(L.kind,L.saved || S.area || '',(L.saved||S.area)?'내정보 설정 지역 기준':'','');
+  if(all) all.onclick=()=>aiApplyArea(L.kind,'','','지역을 지정하지 않고 등록된 전체 지역에서 확인했습니다.');
+  if(saveBtn) saveBtn.onclick=()=>{
+    S.area=L.current; save();
+    aiApplyArea(L.kind,L.current,'현재 위치 기준','내정보의 지역도 '+L.current+'로 변경했습니다.');
+  };
+  if(me) me.onclick=()=>go('me');
+}
+async function aiHandleAreaRequest(kind,text){
+  ai.busy=true; drawAI();
+  let r;
+  try{ r=await aiResolveArea(kind,text); }
+  catch(e){ r={state:'use',kind:kind,area:S.area||'',source:S.area?'내정보 설정 지역 기준':'',note:'현재 위치 확인 중 문제가 있어 설정된 지역 기준으로 확인했습니다.'}; }
+  ai.busy=false;
+  if(r.state==='use'){ aiApplyArea(kind,r.area,r.source,r.note); return; }
+  ai.loc=r; ai.follow=''; ai.meetings=[]; ai.resources=[];
+  aiAdd('assistant', r.state==='mismatch'
+    ? '현재 위치 기준 지역과 내정보에 설정된 지역이 서로 달라요. 지금 찾을 지역을 먼저 선택해주세요.'
+    : r.state==='denied'
+    ? '현재 위치 권한이 꺼져 있어 설정 지역과 비교할 수 없어요. 위치 권한을 허용하거나 내정보 지역을 기준으로 계속할 수 있습니다.'
+    : '지금 갈 수 있는 곳을 더 알맞게 찾으려면 현재 위치와 내정보의 설정 지역을 비교할 수 있어요.', true);
+  drawAI();
 }
 
 /* ── 마음프로 안에서 직접 작동하는 로컬 도구 ──
@@ -3963,6 +4121,54 @@ function aiBindRead(){
   if(cl) cl.onclick=()=>{ ai.read=null; drawAI(); };
 }
 
+function aiFollowHTML(){
+  if(ai.follow==='meeting') return '<button class="btn sec sm" id="ai-follow-meet">오늘 모임 전체 보기</button>';
+  if(ai.follow==='place') return '<div class="row"><button class="btn sec sm" id="ai-follow-center">센터 전체 보기</button>'+ 
+    '<button class="btn sec sm" id="ai-follow-hosp">병원 전체 보기</button></div>';
+  if(ai.follow==='help') return '<button class="btn sec sm" id="ai-follow-help">헬프콜 열기</button>';
+  const cfg={
+    'nav-urge':['충동 대응 열기','urge'], 'nav-relapse':['다시 시작하기 열기','relapse'],
+    'nav-breathe':['호흡 가이드 열기','urge'], 'nav-panic':['위기 도움 열기','panic'],
+    'nav-listen':['읽고 듣기 열기','listen'], 'nav-familyguide':['가족 안내 열기','fam'],
+    'nav-night':['하루 마무리 열기','night'], 'nav-me':['내정보 열기','me'],
+    'nav-help':['헬프 열기','help'], 'nav-home':['홈 열기','home'],
+    'nav-rec-mood':['기분 기록 열기','rec'], 'nav-rec-urge':['충동 기록 열기','rec'],
+    'nav-rec-day':['하루 기록 열기','rec'], 'nav-rec-body':['몸 기록 열기','rec'],
+    'nav-rec-relapse':['다시 시작 기록 열기','rec'], 'nav-rec-stat':['통계 열기','rec']
+  };
+  const c=cfg[ai.follow];
+  return c ? '<button class="btn sec sm" id="ai-follow-nav">'+esc(c[0])+'</button>' : '';
+}
+function aiBindFollow(){
+  if(ai.follow==='meeting'){
+    const b=$('#ai-follow-meet'); if(b) b.onclick=()=>{
+      const area=ai.activeArea || '';
+      ai.follow=''; mt.target=famMode()?'fam':'me'; mt.mode='today'; mt.todayArea=area; mt.q=''; mt.kind=''; go('meet');
+    };
+    return;
+  }
+  if(ai.follow==='place'){
+    const area=ai.activeArea || '';
+    const c=$('#ai-follow-center'), h=$('#ai-follow-hosp');
+    if(c) c.onclick=()=>{ ai.follow=''; plKey='centers'; if(area){PL.centers.mode='pick';PL.centers.area=area;}else PL.centers.mode='all'; go('place'); };
+    if(h) h.onclick=()=>{ ai.follow=''; plKey='hosp'; if(area){PL.hosp.mode='pick';PL.hosp.area=area;}else PL.hosp.mode='all'; go('place'); };
+    return;
+  }
+  if(ai.follow==='help'){
+    const b=$('#ai-follow-help'); if(b) b.onclick=()=>{ai.follow='';go('help');};
+    return;
+  }
+  const cfg={
+    'nav-urge':['urge',''], 'nav-relapse':['relapse',''], 'nav-breathe':['urge',''], 'nav-panic':['panic',''],
+    'nav-listen':['listen',''], 'nav-familyguide':['fam',''], 'nav-night':['night',''], 'nav-me':['me',''],
+    'nav-help':['help',''], 'nav-home':['home',''],
+    'nav-rec-mood':['rec','mood'], 'nav-rec-urge':['rec','urge'], 'nav-rec-day':['rec','day'],
+    'nav-rec-body':['rec','body'], 'nav-rec-relapse':['rec','relapse'], 'nav-rec-stat':['rec','stat']
+  };
+  const c=cfg[ai.follow], b=$('#ai-follow-nav');
+  if(c && b) b.onclick=()=>{ if(c[1]) recTab=c[1]; ai.follow=''; go(c[0]); };
+}
+
 function drawAI(){
   const consent = !!S.aiConsent;
   $('#ai-profile').innerHTML = mindProAvatar(42);
@@ -4003,25 +4209,10 @@ function drawAI(){
   }
   /* 인라인 도구는 대화창 안에 놓습니다. 타이머·도움글은 다른 화면으로 이동하지 않습니다. */
   const fr = $('#ai-resource');
-  let fh = aiTimerHTML() + aiReadHTML();
-  if(ai.follow === 'meeting'){
-    fh += '<button class="btn sec sm" id="ai-follow-meet">오늘 모임 목록 보기</button>';
-  } else if(ai.follow === 'place'){
-    fh += '<button class="btn sec sm" id="ai-follow-center">센터 보기</button>' +
-      '<button class="btn sec sm" id="ai-follow-hosp">병원 보기</button>';
-  } else if(ai.follow === 'help'){
-    fh += '<button class="btn sec sm" id="ai-follow-help">헬프콜 열기</button>';
-  }
+  /* 위치 선택·타이머·도움글·후속 버튼은 현재 대화를 돕는 임시 UI입니다. */
+  let fh = aiLocationHTML() + aiTimerHTML() + aiReadHTML() + aiFollowHTML();
   fr.innerHTML = fh;
-  aiBindTimer(); aiBindRead();
-  if(ai.follow === 'meeting'){
-    $('#ai-follow-meet').onclick = () => { ai.follow=''; mt.target=famMode()?'fam':'me'; mt.mode='today'; mt.q=''; mt.kind=''; go('meet'); };
-  } else if(ai.follow === 'place'){
-    $('#ai-follow-center').onclick = () => { ai.follow=''; plKey='centers'; PL.centers.mode=S.area?'near':'all'; go('place'); };
-    $('#ai-follow-hosp').onclick = () => { ai.follow=''; plKey='hosp'; PL.hosp.mode=S.area?'near':'all'; go('place'); };
-  } else if(ai.follow === 'help'){
-    $('#ai-follow-help').onclick = () => { ai.follow=''; go('help'); };
-  }
+  aiBindLocation(); aiBindTimer(); aiBindRead(); aiBindFollow();
   const acts=$('#ai-actions'), tog=$('#ai-actions-toggle');
   if(acts) acts.classList.toggle('hide', !ai.actionsOpen);
   if(tog){
@@ -4145,50 +4336,50 @@ function aiHelpCallReply(text){
 
 function aiLocalNav(intent){
   if(intent === 'urge'){
-    aiAdd('assistant','앱에 있는 충동 대응을 열어드릴게요. 강도를 확인하고 5분 타이머·호흡·도움글을 사용할 수 있습니다.', true);
-    drawAI(); go('urge'); return true;
+    aiAdd('assistant','앱의 충동 대응에서는 먼저 지금 강도를 확인하고, 5분부터 버티기·호흡·도움글을 이어서 사용할 수 있어요. 기록은 이 기기 안에만 남습니다.', true);
+    ai.follow='nav-urge'; drawAI(); return true;
   }
   if(intent === 'relapse'){
-    aiAdd('assistant','앱의 [다시 시작하기]를 열어드릴게요. 지금까지의 누적 회복일은 그대로 유지됩니다.', true);
-    drawAI(); go('relapse'); return true;
+    aiAdd('assistant','[다시 시작하기]에서는 자책보다 지금 상황과 HALT를 짧게 남기고 다시 시작할 수 있어요. 연속 일수는 새로 세더라도 지금까지의 누적 회복일은 지우지 않습니다.', true);
+    ai.follow='nav-relapse'; drawAI(); return true;
   }
   if(intent === 'breathe'){
-    aiAdd('assistant','호흡 가이드는 앱의 충동 대응 타이머 안에 있습니다. 5분을 시작한 뒤 [호흡 같이 하기]를 누르면 4초 들이쉬고 6초 내쉬기로 진행됩니다.', true);
-    drawAI(); go('urge'); return true;
+    aiAdd('assistant','호흡 가이드는 충동 대응 안에서 4초 들이쉬고 6초 내쉬는 흐름으로 함께 진행할 수 있어요. 숫자를 맞추는 것보다 천천히 호흡을 이어가는 데 초점을 둡니다.', true);
+    ai.follow='nav-breathe'; drawAI(); return true;
   }
   if(intent === 'panic'){
-    aiAdd('assistant','앱의 위기 분기 화면을 열겠습니다. 몸의 이상·죽고 싶은 마음·충동 중 가장 가까운 것을 선택할 수 있습니다.', true);
-    drawAI(); go('panic'); return true;
+    aiAdd('assistant','위기 도움에서는 몸의 이상, 죽고 싶은 마음, 강한 충동처럼 지금 가장 급한 상황을 먼저 구분해서 119·109·도움 기능으로 연결합니다.', true);
+    ai.follow='nav-panic'; drawAI(); return true;
   }
   if(intent === 'listen'){
-    aiAdd('assistant','앱에 저장된 듣는 글을 열어드릴게요.', true);
-    drawAI(); go('listen'); return true;
+    aiAdd('assistant','[읽고 듣기]에는 앱에 검토해 둔 짧은 글과 직접 재생 가능한 음악이 준비되어 있어요. 지금 상태와 가까운 글을 골라 천천히 읽거나 들을 수 있습니다.', true);
+    ai.follow='nav-listen'; drawAI(); return true;
   }
   if(intent === 'familyguide'){
-    aiAdd('assistant','앱에 저장된 가족·보호자 안내를 열어드릴게요.', true);
-    drawAI(); go('fam'); return true;
+    aiAdd('assistant','가족·보호자 안내에서는 중독을 이해하는 법, 위기일 때의 대응, 가족 자신의 경계와 돌봄을 따로 볼 수 있어요.', true);
+    ai.follow='nav-familyguide'; drawAI(); return true;
   }
   if(intent === 'night'){
-    aiAdd('assistant','자기 전 하루 마무리 화면을 열어드릴게요.', true);
-    drawAI(); go('night'); return true;
+    aiAdd('assistant','하루 마무리에서는 오늘 기분·충동·지킨 것·칭찬·한 줄 일기를 짧게 남길 수 있어요. 비워도 저장할 수 있고, 기록은 이 기기 안에만 남습니다.', true);
+    ai.follow='nav-night'; drawAI(); return true;
   }
   if(intent.indexOf('rec-') === 0){
     const tab = intent.slice(4);
-    recTab = ['mood','urge','day','body','relapse','stat'].indexOf(tab) >= 0 ? tab : 'mood';
-    aiAdd('assistant','기기에 저장된 기록 화면을 열어드릴게요. 이 기록은 AI 서버로 보내지 않습니다.', true);
-    drawAI(); go('rec'); return true;
+    const names={mood:'기분',urge:'충동',day:'하루',body:'몸',relapse:'다시 시작',stat:'통계'};
+    aiAdd('assistant',(names[tab]||'내')+' 기록은 지금 기기에 저장된 내용을 그대로 보여드립니다. 마음프로 AI 서버로 보내지 않고 앱 안에서 확인합니다.', true);
+    ai.follow='nav-rec-'+(['mood','urge','day','body','relapse','stat'].indexOf(tab)>=0?tab:'mood'); drawAI(); return true;
   }
   if(intent === 'me'){
-    aiAdd('assistant','내 정보 화면을 열어드릴게요.', true);
-    drawAI(); go('me'); return true;
+    aiAdd('assistant','내정보에서는 회복 영역·시작일·지역·챙기기 설정과 앱 설정, 기록 내보내기 등을 관리할 수 있어요.', true);
+    ai.follow='nav-me'; drawAI(); return true;
   }
   if(intent === 'help'){
-    aiAdd('assistant','헬프 화면을 열어드릴게요. 헬프콜·모임·센터·병원·읽고 듣기를 사용할 수 있습니다.', true);
-    drawAI(); go('help'); return true;
+    aiAdd('assistant','헬프에는 헬프콜, 자조모임, 센터·병원, 읽고 듣기처럼 사람과 실제 자원으로 연결되는 기능이 모여 있어요.', true);
+    ai.follow='nav-help'; drawAI(); return true;
   }
   if(intent === 'home'){
-    aiAdd('assistant','홈으로 이동합니다.', true);
-    drawAI(); go('home'); return true;
+    aiAdd('assistant','홈에서는 오늘의 상태와 HALT, 복약·식사·잠, 회복일처럼 지금 챙길 것을 한눈에 확인할 수 있어요.', true);
+    ai.follow='nav-home'; drawAI(); return true;
   }
   return false;
 }
@@ -4200,6 +4391,9 @@ async function aiSend(text, topic){
 
   /* 이전 답변에 붙었던 임시 보조 UI는 다음 말을 시작하면 사라집니다. */
   ai.follow = '';
+  ai.loc = null;
+  ai.activeArea = '';
+  ai.activeAreaSource = '';
   ai.read = null;
   ai.actionsOpen = false;
   $('#ai-input').value = '';
@@ -4239,22 +4433,12 @@ async function aiSend(text, topic){
     aiReadOpen(text); drawAI(); return;
   }
 
-  /* 모임·센터·병원은 웹앱이 이미 가진 검증 자원입니다. AI 연결 여부와 무관하게 여기서 끝냅니다. */
+  /* 모임·센터·병원은 검증 자원에서 직접 확인합니다. 현재 위치와 설정 지역이 다르면 사용자가 기준을 고릅니다. */
   if(localIntent === 'meeting'){
-    const meets = aiTodayMeetings();
-    ai.meetings = meets; ai.resources = [];
-    aiAdd('assistant', meets.length
-      ? '오늘 등록된 모임을 앱의 자원에서 확인했습니다. 아래 버튼에서 실제 일정과 연락처를 볼 수 있습니다.'
-      : '오늘 조건에 맞는 등록 모임은 찾지 못했습니다. 모임 목록에서 지역이나 종류를 넓혀볼 수 있습니다.', true);
-    ai.follow = 'meeting'; drawAI(); return;
+    await aiHandleAreaRequest('meeting', text); return;
   }
   if(localIntent === 'place'){
-    const resources = aiNearbyResources();
-    ai.resources = resources; ai.meetings = [];
-    aiAdd('assistant', resources.length
-      ? '앱에 등록된 센터·병원 가운데 내 지역을 우선해 확인했습니다. 아래 버튼에서 실제 연락처와 지도를 확인할 수 있습니다.'
-      : '내 지역에서 바로 확인되는 센터·병원을 찾지 못했습니다. 전체 목록에서 지역을 넓혀볼 수 있습니다.', true);
-    ai.follow = 'place'; drawAI(); return;
+    await aiHandleAreaRequest('place', text); return;
   }
   if(localIntent === 'helpcall'){
     aiAdd('assistant', aiHelpCallReply(text), true);
@@ -4311,7 +4495,7 @@ $('#ai-new').onclick = () => {
   modal('<h3>마음프로 대화를 비울까요?</h3><p class="muted">이 기기에 저장된 마음프로 대화만 지웁니다. 다른 회복 기록은 그대로입니다.</p>' +
     '<button class="btn" id="ai-clear-go">대화 비우기</button><div style="height:9px"></div>' +
     '<button class="btn ghost" onclick="closeModal()">취소</button>');
-  $('#ai-clear-go').onclick = () => { S.aiChat=[]; save(); ai.meetings=[]; ai.resources=[]; ai.actionsOpen=false; ai.follow=''; ai.read=null; ai.timer=null; aiTimerClearTick(); closeModal(); drawAI(); };
+  $('#ai-clear-go').onclick = () => { S.aiChat=[]; save(); ai.meetings=[]; ai.resources=[]; ai.actionsOpen=false; ai.follow=''; ai.loc=null; ai.activeArea=''; ai.activeAreaSource=''; ai.read=null; ai.timer=null; aiTimerClearTick(); closeModal(); drawAI(); };
 };
 $('#ai-actions-toggle').onclick = () => { ai.actionsOpen = !ai.actionsOpen; drawAI(); };
 $$('#ai-actions [data-ai-act]').forEach(b => b.onclick = () => {
@@ -4322,7 +4506,7 @@ $$('#ai-actions [data-ai-act]').forEach(b => b.onclick = () => {
   if(a === 'meeting') aiSend('오늘 참여할 수 있는 모임을 알려주세요.', 'meeting');
   if(a === 'place') aiSend('내 지역에서 이용할 수 있는 중독 전문병원이나 센터를 알려주세요.', 'place');
   if(a === 'read') aiSend('지금 읽을 만한 도움이 되는 글 하나 보여주세요.', 'read');
-  if(a === 'help') go('help');
+  if(a === 'help') aiSend('사람에게 바로 도움받을 수 있는 연락처를 알려주세요.', 'help');
 });
 
 /* ── [고치기] ──
@@ -5342,7 +5526,15 @@ $('#ad-refresh').onclick = () => {
 let svrBuild = '';                       /* 서버에 올라와 있는 판. 못 봤으면 '' */
 let updReady = '';                       /* 새 판이 있으면 그 판 이름 */
 let updHid = false;                      /* 홈에서 [나중에] 를 눌렀는가 */
-const buildNo = v => parseInt(String(v || '').replace(/[^0-9]/g, ''), 10) || 0;
+function appVersionParts(v){
+  const m = String(v || '').trim().match(/^[vV]?(\d+)(?:\.(\d+))?$/);
+  return m ? [Number(m[1]), Number(m[2] || 0)] : null;
+}
+function isNewerAppVersion(remote, current){
+  const r = appVersionParts(remote), c = appVersionParts(current);
+  if(!r || !c) return false;
+  return r[0] > c[0] || (r[0] === c[0] && r[1] > c[1]);
+}
 
 /* 서버의 sw.js 를 캐시 없이 읽어 판을 봅니다.
    sw.js 는 작고, 판이 반드시 적혀 있어 이 용도에 맞습니다. */
@@ -5353,8 +5545,9 @@ async function checkUpdate(){
   try{
     const r = await fetch('sw.js?_=' + Date.now(), { cache: 'no-store' });
     if(!r.ok) return '';
-    const m = (await r.text()).match(/const\s+V\s*=\s*'ohg-(v[\d.]+)'/);
-    return m ? m[1] : '';
+    const txt = await r.text();
+    const m = txt.match(/const\s+APP_VERSION\s*=\s*['"]([vV]\d+(?:\.\d+)?)['"]/);
+    return m ? m[1].toUpperCase() : '';
   }catch(e){ return ''; }        /* file:// 이나 오프라인이면 못 봅니다 — 조용히 넘어갑니다 */
 }
 
@@ -5405,7 +5598,7 @@ function drawReload(){
 
   checkUpdate().then(v => {
     svrBuild = v;
-    updReady = (v && buildNo(v) > buildNo(BUILD)) ? v : '';
+    updReady = (v && isNewerAppVersion(v, BUILD)) ? v : '';
     if(cur !== 'me') return;
     markAppAcc();
     if(updReady){
@@ -5705,7 +5898,7 @@ function boot(){
   setTimeout(() => {
     checkUpdate().then(v => {
       svrBuild = v;
-      updReady = (v && buildNo(v) > buildNo(BUILD)) ? v : '';
+      updReady = (v && isNewerAppVersion(v, BUILD)) ? v : '';
       if(updReady && cur === 'home') drawHome();
       if(cur === 'me') drawReload();
     });

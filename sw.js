@@ -1,9 +1,12 @@
 /* 오늘 한 걸음 — 서비스 워커
    앱 껍데기만 캐시합니다. 회복 기록은 브라우저 저장소가 따로 맡습니다.
 
-   ★ index.html 을 고칠 때마다 아래 V 를 반드시 올리세요.
-     index.html 안의 const BUILD 도 같이 올립니다. */
-const V = 'ohg-v45';
+   ★ 배포할 때 APP_VERSION · 내부 캐시 V · index.html 의 BUILD 를 함께 갱신하세요. */
+/* 사용자에게 보이는 앱 버전. index.html 의 BUILD 와 반드시 맞춥니다. */
+const APP_VERSION = 'V4.6';
+/* 내부 캐시 리비전. 기존 v46 클라이언트도 새 판을 감지하도록 숫자형 키를 유지합니다.
+   V4.6 → 406, V4.7 → 407, V4.10 → 410, V5.0 → 500 */
+const V = 'ohg-v406';
 const SHELL = ['./', './index.html', './manifest.json',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-32.png'];
 

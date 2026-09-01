@@ -141,9 +141,28 @@ const srv = http.createServer((req, res) => {
   console.log('13. 핫라인 =', await pg.$$eval('#help-lines a', a => a.map(x => x.getAttribute('href')).join(' ')));
   await shot('13-help');
 
+  // 마음프로 Local-first — AI 서버 없이 앱 데이터 설명 + 위치 불일치 선택
+  await ctx.grantPermissions(['geolocation'], { origin: 'http://localhost:8899' });
+  await ctx.setGeolocation({ latitude: 35.1796, longitude: 129.0756 }); // 부산
+  await pg.evaluate(() => {
+    S.aiConsent = 1; S.area = '광주';
+    S.res = S.res || {};
+    S.res.groups = [{ n:'테스트 회복모임', y:DAYN[new Date().getDay()], h:'', a:'광주', d:'테스트 일정', t:'000-0000' }];
+    save(); go('ai'); drawAI();
+  });
+  await pg.evaluate(() => aiSend('오늘 참여할 수 있는 모임 알려줘', 'meeting'));
+  await pg.waitForTimeout(900);
+  console.log('14. 마음프로 위치 비교 =', await pg.evaluate(() => ai.loc && ai.loc.state),
+    '|', (await pg.$eval('#ai-resource', e => e.innerText)).replace(/\n+/g,' / ').slice(0,120));
+  await pg.evaluate(() => aiSend('광주 오늘 참여할 수 있는 모임 알려줘', 'meeting'));
+  await pg.waitForTimeout(500);
+  console.log('    Local-first 설명 =', (await pg.$eval('#ai-thread', e => e.innerText)).replace(/\n+/g,' / ').slice(-220));
+  console.log('    AI 전송 제외 =', await pg.evaluate(() => S.aiChat.filter(x => x.role === 'user').slice(-1)[0].local === 1));
+  await shot('14-ai-local');
+
   // 내 정보
   await pg.click('#top-me'); await pg.waitForTimeout(300);
-  await shot('14-me');
+  await shot('15-me');
 
   // 다시 시작 흐름 — 누적 유지 확인
   await pg.click('#tabs button[data-t="home"]'); await pg.waitForTimeout(250);
@@ -152,7 +171,7 @@ const srv = http.createServer((req, res) => {
   await pg.click('#rl-halt button:nth-child(3)');
   await pg.click('#rl-save'); await pg.waitForTimeout(300);
   console.log('14. 다시 시작 모달 =', (await pg.$eval('#modin', e => e.innerText)).slice(0, 60).replace(/\n/g,' '));
-  await shot('15-relapse');
+  await shot('16-relapse');
   await pg.evaluate(() => closeModal()); await pg.waitForTimeout(200);
   await pg.click('#tabs button[data-t="home"]'); await pg.waitForTimeout(250);
   console.log('    전 :', before);
@@ -163,7 +182,7 @@ const srv = http.createServer((req, res) => {
   const accs = await pg.$$('#p-me .acc');
   await accs[2].click('.acc-h'); await pg.waitForTimeout(150);
   await pg.click('#me-theme [data-theme="dark"]'); await pg.waitForTimeout(300);
-  await shot('16-dark');
+  await shot('17-dark');
   await pg.click('#me-theme [data-theme="light"]'); await pg.waitForTimeout(200);
   await pg.click('#tabs button[data-t="home"]'); await pg.waitForTimeout(200);
 
