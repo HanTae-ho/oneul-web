@@ -148,6 +148,21 @@ addEventListener('appinstalled', function(){
   .rdcard .safebox b{display:block;font-size:11.5px;font-weight:600;letter-spacing:.05em;
     color:var(--warn);margin-bottom:4px}
 
+  /* ── AI 회복지원 (v39) ──
+     대화 원문은 이 기기에만 저장하고, 사용자가 직접 보낸 문장만 AI 서버로 전송합니다. */
+  .aithread{display:flex;flex-direction:column;gap:9px;margin:13px 0}
+  .aimsg{max-width:90%;padding:11px 13px;border-radius:14px;font-size:14.5px;
+    line-height:1.7;word-break:keep-all;white-space:normal}
+  .aimsg.me{align-self:flex-end;background:var(--acc);color:#fff;border-bottom-right-radius:5px}
+  .aimsg.ai{align-self:flex-start;background:var(--panel);border:1px solid var(--line);
+    border-bottom-left-radius:5px}
+  .aimsg .who{display:block;font-size:10.5px;font-weight:600;opacity:.62;margin-bottom:3px}
+  .aiload{color:var(--faint);font-size:13px;padding:8px 3px}
+  .aicompose{position:relative}
+  .aicompose textarea{min-height:92px;padding-right:12px}
+  .aipriv{font-size:11.5px;color:var(--faint);line-height:1.6;margin:8px 1px 0}
+  .aires .help{margin-bottom:7px}
+
   .muted{color:var(--dim);font-size:13px;line-height:1.6}
   .tiny{color:var(--faint);font-size:12px;line-height:1.55}
   .row{display:flex;gap:9px;align-items:center}
@@ -521,6 +536,9 @@ addEventListener('appinstalled', function(){
     <span id="panic-s">한 번 누르면 바로 도와드립니다</span>
   </button>
 
+  <button class="btn sec" id="go-ai-home">AI와 이야기하기</button>
+  <div style="height:10px"></div>
+
   <div id="home-alert"></div>
 
   <div class="card">
@@ -824,6 +842,53 @@ addEventListener('appinstalled', function(){
   </p>
 </section>
 
+<!-- ══════════ AI 회복지원 ══════════ -->
+<section class="pg" id="p-ai">
+  <div class="sp" style="margin-bottom:12px">
+    <h1 style="margin:0">AI와 이야기하기</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" id="ai-back">← 돌아가기</button>
+  </div>
+
+  <div class="note w" style="margin-bottom:12px">
+    AI는 치료나 응급상담을 대신하지 않습니다. 생명이 위험하거나 경련·환각·심한 금단이 있으면
+    대화보다 <b>119</b>가 먼저입니다. 죽고 싶은 마음이 급하면 <b>109</b>에 바로 연결하세요.
+  </div>
+
+  <div class="card" id="ai-consent">
+    <h3>AI에 보내지는 내용</h3>
+    <p class="muted" style="margin:-4px 0 11px">
+      이 대화창에 <b>직접 입력한 내용만</b> AI 서버로 전송합니다.
+      회복 시작일·충동·재발·HALT·복약·기분 기록은 자동으로 보내지 않습니다.
+      오늘 모임이나 센터·병원을 물으면 자원시트의 공개 정보만 함께 보냅니다.
+    </p>
+    <p class="tiny">대화 내용은 이 기기에 저장됩니다. 외부 AI API 처리 과정에서는 제공자의 데이터 처리 정책이 적용됩니다.</p>
+    <button class="btn sec" id="ai-consent-go">확인하고 시작</button>
+  </div>
+
+  <div id="ai-main" class="hide">
+    <div class="opts" id="ai-quick"></div>
+    <div class="aithread" id="ai-thread"></div>
+    <div class="aires" id="ai-resource"></div>
+    <div class="card aicompose">
+      <textarea id="ai-input" maxlength="1200" placeholder="지금 어떤 일이 있는지 적어주세요"></textarea>
+      <div style="height:9px"></div>
+      <button class="btn" id="ai-send">보내기</button>
+      <p class="aipriv">이름·전화번호·주소·병원명처럼 나를 알아볼 수 있는 정보는 적지 않는 것을 권합니다.</p>
+    </div>
+
+    <h2>바로 할 수 있는 것</h2>
+    <div class="opts" id="ai-actions">
+      <button class="opt" data-ai-act="urge">5분 같이 버티기</button>
+      <button class="opt" data-ai-act="meeting">오늘 모임</button>
+      <button class="opt" data-ai-act="place">가까운 센터·병원</button>
+      <button class="opt" data-ai-act="read">도움이 되는 글</button>
+      <button class="opt" data-ai-act="help">사람에게 도움 받기</button>
+    </div>
+    <div style="height:14px"></div>
+    <button class="btn ghost sm" id="ai-new">새 대화로 비우기</button>
+  </div>
+</section>
+
 <!-- ══════════ 도움 ══════════ -->
 <section class="pg" id="p-help">
   <h1>도움 찾기</h1>
@@ -834,6 +899,13 @@ addEventListener('appinstalled', function(){
 
   <h2>24시간 상담전화</h2>
   <div id="help-lines"></div>
+
+  <h2>AI 지원</h2>
+  <button class="help" id="go-ai" style="width:100%;text-align:left">
+    <span class="ic" data-ico="speak"></span>
+    <span class="b"><b>AI와 이야기하기</b><span>충동 · 마음 정리 · 오늘 모임 · 가까운 센터·병원</span></span>
+    <span class="acts"><span class="go">대화</span></span>
+  </button>
 
   <h2>읽고 듣기</h2>
   <button class="help" id="go-read" style="width:100%;text-align:left">
@@ -1078,7 +1150,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v37';
+const BUILD = 'v39';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1100,7 +1172,7 @@ const BLANK = {
   sleep: { on: 0, bed: '23:00', up: '07:00' },
   sleepLog: [],                               /* [{t, q}] q: good|soso|bad */
   moods: [], halts: [], urges: [], nights: [], relapses: [],
-  music: 'youtube',                          /* 듣는 글에서 쓰는 음악 앱 */
+  aiChat: [], aiClient: '', aiConsent: 0,       /* AI 대화는 이 기기에만 저장 */
   sheet: '', res: null, resAt: 0, resVer: '', theme: '',
   notify: 0, fired: [],
   admin: 0, adminUrl: ''
@@ -1707,6 +1779,7 @@ function go(p){
   if(p === 'home') drawHome();
   if(p === 'rec')  drawRec();
   if(p === 'help') drawHelp();
+  if(p === 'ai')   drawAI();
   if(p === 'me')   drawMe();
   if(p === 'relapse') drawRelapse();
   if(p === 'night')   drawNight();
@@ -3414,6 +3487,8 @@ function renderMeet(){
 
 $('#go-read').onclick   = () => openRead('help');
 $('#go-listen').onclick = () => openListen('help');
+$('#go-ai').onclick     = () => openAI('help');
+$('#go-ai-home').onclick = () => openAI('home');
 $('#go-meet-me').onclick  = () => { mt.target = 'me';  mt.mode = 'today'; mt.q = ''; mt.kind = ''; go('meet'); };
 $('#go-meet-fam').onclick = () => { mt.target = 'fam'; mt.mode = 'today'; mt.q = ''; mt.kind = '전체'; go('meet'); };
 
@@ -3445,6 +3520,316 @@ function drawHelp(){
     '<span class="go">전화</span></a>').join('');
 
 }
+
+/* ══════════ AI 회복지원 (v39) ══════════
+   ★ 개인 회복기록은 자동으로 AI에 보내지 않습니다.
+   ★ AI 서버 주소는 자원시트의 [설정] → AI_URL 에서 받습니다.
+   ★ 오늘 모임을 물을 때도 기기에서 실제 후보를 먼저 골라, 공개 모임 정보만 보냅니다. */
+const AI_QUICK = [
+  {k:'urge',   l:'충동이 올라와요', q:'지금 충동이 올라오고 있어요. 무엇부터 하면 좋을까요?'},
+  {k:'down',   l:'마음이 힘들어요', q:'지금 마음이 많이 힘들어요. 생각을 정리할 수 있게 도와주세요.'},
+  {k:'back',   l:'다시 사용했어요', q:'다시 사용하거나 무너졌어요. 자책보다 지금부터 무엇을 하면 좋을지 같이 정리해주세요.'},
+  {k:'family', l:'가족 때문에 힘들어요', q:'가족과의 관계 때문에 힘들어요. 지금 할 수 있는 일을 같이 정리해주세요.'},
+  {k:'meeting',l:'오늘 모임 찾아줘', q:'오늘 참여할 수 있는 모임을 알려주세요.'},
+  {k:'place',  l:'가까운 센터·병원', q:'내 지역에서 이용할 수 있는 중독 전문병원이나 센터를 알려주세요.'},
+  {k:'talk',   l:'그냥 이야기할래요', q:'그냥 제 이야기를 들어주세요.'}
+];
+let ai = { back:'help', busy:false, meetings:[], resources:[] };
+
+function aiEndpoint(){
+  const c = S.res && S.res.config;
+  return c && /^https?:\/\//i.test(String(c.aiUrl || '')) ? String(c.aiUrl) : '';
+}
+function aiClientId(){
+  if(S.aiClient) return S.aiClient;
+  try{ S.aiClient = crypto.randomUUID(); }
+  catch(e){ S.aiClient = 'ohg-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2); }
+  save();
+  return S.aiClient;
+}
+function aiAdd(role, text){
+  if(!Array.isArray(S.aiChat)) S.aiChat = [];
+  S.aiChat.push({ role:role, text:String(text || '').slice(0, 1800), t:Date.now() });
+  if(S.aiChat.length > 24) S.aiChat = S.aiChat.slice(-24);
+  save();
+}
+function aiEscText(t){ return esc(String(t || '')).replace(/\n/g, '<br>'); }
+
+function openAI(back){ ai.back = back || 'help'; ai.meetings = []; ai.resources = []; go('ai'); }
+
+function aiCrisisKind(text){
+  const s = String(text || '').replace(/\s+/g, '');
+  if(/죽고싶|자살|자해|목숨을끊|죽어버|유서|사라지고싶/.test(s)) return 'life';
+  if(/경련|발작|환각|헛것|의식이없|의식을잃|심한떨림|금단.*심|숨을못쉬/.test(s)) return 'withdrawal';
+  if(/죽이겠|죽여버|폭력|때리겠|칼로|흉기/.test(s)) return 'violence';
+  return '';
+}
+function aiCrisisBox(kind){
+  if(kind === 'withdrawal') return '<div class="note b"><b>지금은 AI보다 응급 도움을 먼저 받으셔야 합니다.</b><br>' +
+    '경련·환각·의식 변화·심한 금단은 생명을 위협할 수 있습니다.</div>' +
+    '<div style="height:9px"></div><a class="btn danger" href="tel:119">119 전화하기</a>';
+  if(kind === 'violence') return '<div class="note b"><b>지금 안전한 곳으로 이동하는 것이 먼저입니다.</b><br>' +
+    '폭력이나 즉각적인 위협이 있다면 혼자 해결하려 하지 마세요.</div>' +
+    '<div style="height:9px"></div><a class="btn danger" href="tel:112">112 전화하기</a>';
+  return '<div class="note b"><b>지금은 AI와 오래 이야기하기보다 사람과 바로 연결하는 것이 먼저입니다.</b><br>' +
+    '혼자 있지 말고 가까운 사람에게 알리세요. 급박하면 119에 전화하세요.</div>' +
+    '<div class="row" style="margin-top:9px"><a class="btn danger" href="tel:109">109</a>' +
+    '<a class="btn danger" href="tel:119">119</a></div>';
+}
+
+/* 오늘 실제 등록된 모임. S.area·S.types는 이 기기에서 필터링할 때만 쓰고 AI 서버에는 보내지 않는다. */
+function aiTodayMeetings(){
+  const R = S.res || {};
+  const src = famMode()
+    ? ((R.family && R.family.length) ? R.family : FAMILY)
+    : ((R.groups && R.groups.length) ? R.groups : GROUPS);
+  const day = DAYN[new Date().getDay()], hm = pad(new Date().getHours()) + ':' + pad(new Date().getMinutes());
+  const area = S.area || '', mine = myKinds();
+  let rows = src.filter(r => r.y === day);
+  rows = rows.filter(r => {
+    const k = rowKind(r);
+    return !k || !mine.length || mine.indexOf(k) >= 0;
+  });
+  if(area) rows = rows.filter(r => !r.a || String(r.a).indexOf(area) >= 0);
+  rows.sort((a,b) => {
+    const ap = a.h && a.h < hm ? 1 : 0, bp = b.h && b.h < hm ? 1 : 0;
+    return ap - bp || String(a.h || '99:99').localeCompare(String(b.h || '99:99'));
+  });
+  return rows.slice(0, 6);
+}
+function aiMeetingPayload(rows){
+  return (rows || []).map(r => ({
+    name:String(r.n || '').slice(0,100), day:String(r.y || ''), time:String(r.h || ''),
+    area:String(r.a || '').slice(0,80), desc:String(r.d || '').slice(0,220),
+    phone:String(r.t || '').slice(0,40), url:String(r.w || '').slice(0,300)
+  }));
+}
+function aiMeetingCards(rows){
+  if(!rows || !rows.length) return '<div class="note">오늘 조건에 맞는 등록 모임이 없습니다. ' +
+    '모임 찾기에서 지역이나 종류를 넓혀 확인해보세요.</div>' +
+    '<div style="height:9px"></div><button class="btn sec sm" id="ai-all-meet">모임 찾기 열기</button>';
+  let h = '<div class="note" style="margin-bottom:9px">아래 일정은 자원시트에 등록된 공개 정보입니다. 변경될 수 있으니 가기 전에 한 번 더 확인해주세요.</div>';
+  rows.forEach(r => {
+    h += '<div class="help"><span class="ic">' + ico(famMode() ? 'family' : 'people') + '</span>' +
+      '<span class="b"><b>' + esc(r.n) + '</b><span>' + esc([r.y ? r.y + '요일' : '', r.h || '', r.a || '', r.d || ''].filter(Boolean).join(' · ')) + '</span></span>' +
+      '<span class="acts">' +
+      (r.t ? '<a class="go" href="tel:' + esc(String(r.t).replace(/[^0-9+\-]/g,'')) + '">전화</a>' : '') +
+      (r.w ? '<a class="go" href="' + esc(r.w) + '" target="_blank" rel="noopener">열기</a>' : '') +
+      '</span></div>';
+  });
+  h += '<button class="btn ghost sm" id="ai-all-meet">전체 모임 찾기</button>';
+  return h;
+}
+function aiBindMeetingButton(){
+  const b = $('#ai-all-meet');
+  if(b) b.onclick = () => { mt.target = famMode() ? 'fam' : 'me'; mt.mode='today'; mt.q=''; mt.kind=''; go('meet'); };
+}
+
+/* 가까운 센터·병원 — 정확한 거리 계산이 아니라 이 기기에 설정된 지역을 우선한다.
+   주소별 좌표를 서버에 보내거나 위치를 AI에 보내지 않는다. 실제 거리·길찾기는 지도 앱이 맡는다. */
+function aiNearbyResources(){
+  const R = S.res || {}, area = S.area || '', mine = myKinds();
+  const centers = (R.centers && R.centers.length) ? R.centers : CENTERS;
+  const hospitals = (R.hosp && R.hosp.length) ? R.hosp : HOSP;
+
+  const relevant = x => {
+    const c = catOf(x), kinds = catKinds(c);
+    if(!mine.length || !kinds.length) return true;
+    return kinds.some(k => mine.indexOf(k) >= 0);
+  };
+  const sameArea = x => {
+    if(!area) return false;
+    const a = areasOf(x);
+    return a.length && a.indexOf(area) >= 0;
+  };
+  const dedupe = rows => {
+    const seen = {}, out = [];
+    rows.forEach(x => {
+      const k = String(x.n || '').replace(/\s/g,'') + '|' + String(x.t || '').replace(/[^0-9]/g,'');
+      if(!seen[k]){ seen[k]=1; out.push(x); }
+    });
+    return out;
+  };
+  const rank = rows => dedupe(rows).slice().sort((a,b) =>
+    (sameArea(b)?100:0) - (sameArea(a)?100:0) +
+    (relevant(b)?10:0) - (relevant(a)?10:0));
+
+  let cs = rank(centers), hs = rank(hospitals);
+  if(area){
+    const ac = cs.filter(sameArea), ah = hs.filter(sameArea);
+    if(ac.length) cs = ac;
+    if(ah.length) hs = ah;
+  }
+  cs = cs.filter(relevant).slice(0,4);
+  hs = hs.filter(relevant).slice(0,4);
+  return cs.map(x => ({kind:'center', row:x})).concat(hs.map(x => ({kind:'hospital', row:x}))).slice(0,8);
+}
+function aiResourcePayload(items){
+  return (items || []).map(it => {
+    const r = it.row || {};
+    return {
+      kind:it.kind === 'hospital' ? 'hospital' : 'center',
+      name:String(r.n || '').slice(0,100), area:String((areasOf(r)[0] || r.a || '')).slice(0,80),
+      desc:String(r.d || '').slice(0,240), phone:String(r.t || '').slice(0,40),
+      url:String(r.w || '').slice(0,300)
+    };
+  });
+}
+function aiResourceCards(items){
+  if(!items || !items.length){
+    return '<div class="note">내 지역에서 바로 보여드릴 등록 센터·병원을 찾지 못했습니다. 전체 목록에서 지역을 넓혀 확인해보세요.</div>' +
+      '<div class="row" style="margin-top:9px"><button class="btn sec sm" id="ai-centers">센터 찾기</button>' +
+      '<button class="btn sec sm" id="ai-hosp">병원 찾기</button></div>';
+  }
+  let h = '<div class="note" style="margin-bottom:9px">' +
+    (S.area ? '<b>' + esc(S.area) + '</b> 지역을 우선해 보여드립니다. ' : '') +
+    '정확한 거리순은 아니며, 실제 거리와 운영 여부는 [지도]·전화로 확인해주세요.</div>';
+  items.forEach(it => {
+    const r = it.row || {}, label = it.kind === 'hospital' ? '병원' : '센터';
+    h += '<div class="help"><span class="ic">' + ico(it.kind === 'hospital' ? 'hosp' : 'center') + '</span>' +
+      '<span class="b"><b>' + esc(r.n || '') + '</b><span>' + esc([label, areasOf(r).join('·'), r.d || ''].filter(Boolean).join(' · ')) + '</span></span>' +
+      '<span class="acts">' +
+      (r.t ? '<a class="go" href="tel:' + esc(String(r.t).replace(/[^0-9+\-]/g,'')) + '">전화</a>' : '') +
+      (!r.x ? '<a class="go" href="' + esc(mapURL(mapQ(r))) + '" target="_blank" rel="noopener">지도</a>' : '') +
+      (r.w ? '<a class="go" href="' + esc(r.w) + '" target="_blank" rel="noopener">안내</a>' : '') +
+      '</span></div>';
+  });
+  h += '<div class="row"><button class="btn ghost sm" id="ai-centers">전체 센터</button>' +
+       '<button class="btn ghost sm" id="ai-hosp">전체 병원</button></div>';
+  return h;
+}
+function aiBindResourceButtons(){
+  const c=$('#ai-centers'), h=$('#ai-hosp');
+  if(c) c.onclick=()=>{ plKey='centers'; PL.centers.mode=S.area?'near':'all'; go('place'); };
+  if(h) h.onclick=()=>{ plKey='hosp'; PL.hosp.mode=S.area?'near':'all'; go('place'); };
+}
+
+function drawAI(){
+  const consent = !!S.aiConsent;
+  $('#ai-consent').classList.toggle('hide', consent);
+  $('#ai-main').classList.toggle('hide', !consent);
+  if(!consent) return;
+
+  const q = $('#ai-quick'); q.innerHTML = '';
+  AI_QUICK.forEach(x => {
+    const b = el('button', 'opt', x.l);
+    b.onclick = () => aiSend(x.q, x.k);
+    q.appendChild(b);
+  });
+
+  const th = $('#ai-thread'); th.innerHTML = '';
+  const chat = Array.isArray(S.aiChat) ? S.aiChat : [];
+  if(!chat.length){
+    th.innerHTML = '<div class="empty" style="padding:20px 8px 10px">' +
+      '지금 필요한 것을 위에서 고르거나, 아래에 직접 적어주세요.<br>짧게 적어도 괜찮습니다.</div>';
+  } else {
+    chat.forEach(m => {
+      const d = el('div', 'aimsg ' + (m.role === 'user' ? 'me' : 'ai'));
+      d.innerHTML = '<span class="who">' + (m.role === 'user' ? '나' : 'AI') + '</span>' + aiEscText(m.text);
+      th.appendChild(d);
+    });
+  }
+  if(ai.busy){ const d=el('div','aiload','답을 정리하고 있습니다…'); th.appendChild(d); }
+  $('#ai-resource').innerHTML = ai.meetings.length ? aiMeetingCards(ai.meetings) : (ai.resources.length ? aiResourceCards(ai.resources) : '');
+  aiBindMeetingButton();
+  aiBindResourceButtons();
+  $('#ai-send').disabled = ai.busy;
+  $('#ai-input').disabled = ai.busy;
+}
+
+async function aiSend(text, topic){
+  text = String(text || '').trim();
+  if(!text || ai.busy) return;
+  if(text.length > 1200){ toast('1200자 이내로 적어주세요.'); return; }
+
+  const prior = (Array.isArray(S.aiChat) ? S.aiChat : []).slice(-8);
+  aiAdd('user', text);
+  $('#ai-input').value = '';
+
+  const crisis = aiCrisisKind(text);
+  if(crisis){
+    aiAdd('assistant', crisis === 'life'
+      ? '지금은 AI와 오래 이야기하기보다 사람과 바로 연결하는 것이 먼저입니다.'
+      : crisis === 'withdrawal'
+      ? '지금 말씀하신 증상은 AI보다 응급 도움을 먼저 확인해야 합니다.'
+      : '지금은 안전한 곳으로 이동하고 사람에게 도움을 요청하는 것이 먼저입니다.');
+    ai.meetings = []; ai.resources = [];
+    drawAI();
+    $('#ai-resource').innerHTML = aiCrisisBox(crisis);
+    return;
+  }
+
+  const wantsMeeting = topic === 'meeting' || /모임|AA|GA|NA|알아넌|겜아넌|나란온/i.test(text);
+  const wantsPlace = topic === 'place' || /전문병원|병원|센터|치료기관|재활기관|가까운곳|가까운 곳|근처/i.test(text);
+  const meets = wantsMeeting ? aiTodayMeetings() : [];
+  const resources = wantsPlace ? aiNearbyResources() : [];
+  ai.meetings = meets;
+  ai.resources = resources;
+
+  const url = aiEndpoint();
+  if(!url){
+    if(wantsMeeting){
+      aiAdd('assistant', meets.length
+        ? '오늘 등록된 모임을 확인했습니다. 아래 실제 일정에서 선택해보세요.'
+        : '오늘 조건에 맞는 등록 모임은 찾지 못했습니다. 모임 찾기에서 지역이나 종류를 넓혀볼 수 있습니다.');
+    } else if(wantsPlace){
+      aiAdd('assistant', resources.length
+        ? '등록된 센터·병원 중 내 지역을 우선해 확인했습니다. 아래에서 전화나 지도를 확인해보세요.'
+        : '내 지역에서 바로 보여드릴 등록 센터·병원을 찾지 못했습니다. 전체 목록에서 지역을 넓혀볼 수 있습니다.');
+    } else {
+      aiAdd('assistant', 'AI 서버가 아직 연결되지 않았습니다. 관리자에게 AI 서버 설정을 확인해주세요.');
+    }
+    drawAI();
+    return;
+  }
+
+  ai.busy = true; drawAI();
+  try{
+    const body = {
+      clientId: aiClientId(), message:text, topic:topic || '', build:BUILD,
+      history: prior.map(m => ({ role:m.role, text:String(m.text || '').slice(0,1200) })),
+      meetings: aiMeetingPayload(meets),
+      resources: aiResourcePayload(resources)
+    };
+    const r = await fetch(url, {
+      method:'POST', credentials:'omit', redirect:'follow', cache:'no-store',
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body)
+    });
+    const j = await r.json();
+    if(!j || !j.ok) throw new Error((j && j.error) || 'AI 응답 오류');
+    aiAdd('assistant', j.reply || '지금은 답을 만들지 못했습니다. 잠시 후 다시 시도해주세요.');
+    if(j.crisisType){
+      ai.busy = false; drawAI();
+      $('#ai-resource').innerHTML = aiCrisisBox(j.crisisType);
+      return;
+    }
+  }catch(e){
+    aiAdd('assistant', 'AI 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요. 급한 도움이 필요하면 도움 찾기의 전화 연결을 이용해주세요.');
+  }
+  ai.busy = false; drawAI();
+  const v = $('#view'); if(v) v.scrollTop = v.scrollHeight;
+}
+
+$('#ai-consent-go').onclick = () => { S.aiConsent = 1; save(); drawAI(); };
+$('#ai-back').onclick = () => go(ai.back || 'help');
+$('#ai-send').onclick = () => aiSend($('#ai-input').value, '');
+$('#ai-input').addEventListener('keydown', e => {
+  if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); aiSend($('#ai-input').value, ''); }
+});
+$('#ai-new').onclick = () => {
+  modal('<h3>AI 대화를 비울까요?</h3><p class="muted">이 기기에 저장된 AI 대화만 지웁니다. 다른 회복 기록은 그대로입니다.</p>' +
+    '<button class="btn" id="ai-clear-go">대화 비우기</button><div style="height:9px"></div>' +
+    '<button class="btn ghost" onclick="closeModal()">취소</button>');
+  $('#ai-clear-go').onclick = () => { S.aiChat=[]; save(); ai.meetings=[]; ai.resources=[]; closeModal(); drawAI(); };
+};
+$$('#ai-actions [data-ai-act]').forEach(b => b.onclick = () => {
+  const a = b.dataset.aiAct;
+  if(a === 'urge') go('urge');
+  if(a === 'meeting') aiSend('오늘 참여할 수 있는 모임을 알려주세요.', 'meeting');
+  if(a === 'place') aiSend('내 지역에서 이용할 수 있는 중독 전문병원이나 센터를 알려주세요.', 'place');
+  if(a === 'read') openRead('ai');
+  if(a === 'help') go('help');
+});
 
 /* ── [고치기] ──
    시트에서 한 줄을 '찾는' 것이 실제 품입니다. 852줄에서 눈으로 찾게 두면 안 됩니다.
@@ -3511,27 +3896,12 @@ const READS = [
    ★ 문구는 팀장님 검토를 거쳐 다시 쓴 판입니다(2026-08).
      네 규칙 — 감정을 부정하지 않는다 / 끝을 약속하지 않는다 /
      남을 이유로 삼지 않는다 / 위험한 자리에는 안전 한 줄을 붙인다.
-   ★ 곡 이름만 적고 음원은 걸지 않습니다.
-     작곡은 저작권이 끝났지만 '녹음'은 따로 권리가 있고,
-     유튜브에 걸면 그 광고를 우리가 고를 수 없습니다 — 술 광고가 붙을 수 있습니다. */
-/* 듣기 단추가 여는 곳.
-   ★ 음원을 앱에 올리지 않고 '검색'으로 보냅니다.
-     특정 영상으로 걸면 그 영상이 지워졌을 때 죽은 단추가 되고,
-     검색은 안 죽습니다. 그리고 어떤 녹음을 들을지는 듣는 사람이 고르는 편이 맞습니다. */
-const MUSIC = [
-  {k:'youtube', l:'유튜브',      u:'https://www.youtube.com/results?search_query='},
-  {k:'ytmusic', l:'유튜브뮤직',  u:'https://music.youtube.com/search?q='},
-  {k:'melon',   l:'멜론',        u:'https://www.melon.com/search/total/index.htm?q='},
-  {k:'spotify', l:'스포티파이',  u:'https://open.spotify.com/search/'},
-  {k:'apple',   l:'애플뮤직',    u:'https://music.apple.com/kr/search?term='},
-  {k:'none',    l:'안 쓸래요',   u:''}
-];
-function musicOf(){ return MUSIC.filter(x => x.k === (S.music || 'youtube'))[0] || MUSIC[0]; }
-function musicURL(q){
-  const m = MUSIC.filter(x => x.k === (S.music || 'youtube'))[0];
-  if(!m || !m.u) return '';
-  return m.u + encodeURIComponent(q);
-}
+   ★ 곡 이름과 권리가 확인된 직접재생 음원만 사용합니다.
+     작곡 저작권과 녹음 저작인접권은 별개이므로, direct_audio 로 검증된 녹음만 재생합니다. */
+/* 직접재생 원칙 (v38)
+   ★ 외부 음악 서비스 검색(유튜브·유튜브뮤직·멜론·스포티파이·애플뮤직)은 사용하지 않습니다.
+   ★ [음악] 시트에서 direct_audio 로 확인된 음원만 Primary → Backup1 → Backup2 순으로 재생합니다.
+   ★ 직접재생 후보가 없거나 모두 실패하면 검색 사이트로 보내지 않고, 현재 준비되지 않았다고만 안내합니다. */
 
 const LTAG = [
   {k:'urge',   l:'충동'},
@@ -3779,7 +4149,7 @@ function bindListenAudio(cands){
       return;
     }
     a.style.display = 'none';
-    if(meta) meta.textContent = '직접 재생 음원을 불러오지 못했습니다. 아래 음악앱 검색을 이용해주세요.';
+    if(meta) meta.textContent = '직접 재생 음원을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.';
   });
 }
 
@@ -3843,7 +4213,7 @@ function rdTop(){ const v = $('#view'); if(v) v.scrollTop = 0; }
 
 /* ══════════ 듣는 글 ══════════
    ★ 서른 편은 한 화면에 다 못 담습니다. 목록에서 고르고, 그 뒤에는 앞뒤로 넘깁니다.
-   ★ 곡 이름만 적고 링크는 안 겁니다. 이유는 LISTEN 위의 주석에 있습니다. */
+   ★ 외부 음악서비스 검색은 두지 않습니다. 검증된 직접재생 후보만 씁니다. */
 let ls = { i: -1, back: 'help' };
 
 function openListen(back){
@@ -3871,21 +4241,7 @@ function drawListen(){
           '<span class="acts"><span class="go">읽기</span></span></button>';
       });
     });
-    h += '<div class="sep"></div><h2 style="font-size:15px;margin:0 0 6px">듣는 곳</h2>' +
-      '<p class="muted" style="margin:0 0 11px">고르신 곳으로 곡 이름을 넘겨 찾아드립니다. ' +
-      '음원은 앱 안에 두지 않습니다 — 녹음마다 권리가 따로 있고, ' +
-      '영상에 붙는 광고를 우리가 고를 수 없기 때문입니다.</p>' +
-      '<div class="opts" id="ls-music"></div>';
     $('#ls-list').innerHTML = h;
-    const mb = $('#ls-music');
-    if(mb){
-      mb.innerHTML = '';
-      MUSIC.forEach(m => {
-        const b = el('button', 'opt' + ((S.music || 'youtube') === m.k ? ' on' : ''), m.l);
-        b.onclick = () => { S.music = m.k; save(); drawListen(); };
-        mb.appendChild(b);
-      });
-    }
     $('#ls-list').querySelectorAll('[data-ls]').forEach(b => b.onclick = () => {
       ls.i = LISTEN.findIndex(x => x.n === +b.dataset.ls);
       drawListen(); rdTop();
@@ -3905,9 +4261,8 @@ function drawListen(){
          source_page / audio_search 는 재생 주소가 아니므로 후보에서 자동 제외합니다.
          preload='none' 은 유지합니다 — 서른 편을 미리 받지 않습니다. */
     listenAudioHtml(listenAudioCandidates(x)) +
-    (musicURL(x.y)
-      ? '<a class="btn sec sm" style="margin-top:11px" target="_blank" rel="noopener" href="' +
-        esc(musicURL(x.y)) + '">' + esc(musicOf().l) + '에서 찾기</a>'
+    (!listenAudioCandidates(x).length
+      ? '<p class="tiny" style="margin:10px 0 0">현재 직접 재생 가능한 음원이 준비되지 않았습니다.</p>'
       : '') + '</div>' +
     para(x.q) +
     (x.f ? '<div class="safebox"><b>안전</b>' + esc(x.f) + '</div>' : '') +
@@ -4073,7 +4428,8 @@ function fetchRes(url){
     .then(j => {
       /* family 를 빠뜨리면 가족모임 화면이 기본 4줄로 되돌아갑니다. 한 번 당했습니다. */
       S.res = { lines: j.lines || [], groups: j.groups || [], family: j.family || [],
-                centers: j.centers || [], hosp: j.hosp || [], music: j.music || [] };
+                centers: j.centers || [], hosp: j.hosp || [], music: j.music || [],
+                config: j.config || {} };
       /* 시트 서버가 자기 판을 알려줍니다. 배포가 됐는지 앱에서 눈으로 볼 수 있게. */
       S.resVer = j.ver || '';
       S.resAt = Date.now();

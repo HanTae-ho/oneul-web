@@ -141,13 +141,6 @@ const srv = http.createServer((req, res) => {
   console.log('13. 핫라인 =', await pg.$$eval('#help-lines a', a => a.map(x => x.getAttribute('href')).join(' ')));
   await shot('13-help');
 
-  // 듣는 글 v37 — 첫 곡은 기본 Primary/Backup 후보가 있고, preload=none 이어야 한다
-  await pg.click('#go-listen'); await pg.waitForTimeout(250);
-  await pg.click('#ls-list [data-ls="1"]'); await pg.waitForTimeout(200);
-  console.log('13-1. 음악 후보 =', await pg.evaluate(() => listenAudioCandidates(LISTEN[0]).length),
-    '| preload =', await pg.$eval('#ls-player', e => e.getAttribute('preload')));
-  await pg.click('#ls-back'); await pg.waitForTimeout(150);
-
   // 내 정보
   await pg.click('#tabs button[data-t="me"]'); await pg.waitForTimeout(300);
   await shot('14-me');
