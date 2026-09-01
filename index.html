@@ -1078,7 +1078,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'v36';
+const BUILD = 'v37';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -3695,6 +3695,95 @@ const LISTEN = [
    c:'구스타프 말러 (Gustav Mahler) - <교향곡 2번 \'부활\' 5악장 피날레 (Symphony No.2 \'Resurrection\': V. In tempo des Satzes)>', a:'레너드 번스타인 지휘 / 뉴욕 필하모닉 오케스트라'}
 ];
 
+
+
+/* ── 듣는 글 직접재생 (v37) ──
+   ★ 관리 원칙
+     1) 구글 시트 [음악]에 같은 번호가 있으면 그 줄이 최우선입니다.
+        권리 문제로 주소를 지웠는데 앱 안 기본값이 되살아나는 일을 막기 위해서입니다.
+     2) 'direct_audio' 로 표시된 주소만 실제 재생 후보가 됩니다.
+        source_page · audio_search 는 확인용 링크이지 <audio> src 가 아닙니다.
+     3) 순서는 Primary → Backup1 → Backup2. 재생 오류가 나면 다음 직접 음원으로 자동 이동합니다.
+     4) 시트를 아직 붙이지 않았거나 [음악] 탭이 없으면 아래 검증된 기본 후보를 씁니다.
+        상업 음반은 한 곡도 넣지 않습니다. */
+const LISTEN_AUDIO_DEFAULT = {
+  "1": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Bach,%20Goldberg%20Variations,%20Aria%20(Musopen%20version).ogg", "l": "Public domain / Musopen", "s": "https://commons.wikimedia.org/wiki/File:Bach,%20Goldberg%20Variations,%20Aria%20(Musopen%20version).ogg"}, {"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Goldberg%20Variations%2001%20Aria.ogg", "l": "Open Goldberg Project 계열 — 출처페이지에서 재확인", "s": "https://commons.wikimedia.org/wiki/File:Goldberg%20Variations%2001%20Aria.ogg"}],
+  "2": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Erik%20Satie%20-%20gymnopedies%20-%20la%201%20ere.%20lent%20et%20douloureux.ogg", "l": "Public domain / Musopen", "s": "https://commons.wikimedia.org/wiki/File:Erik%20Satie%20-%20gymnopedies%20-%20la%201%20ere.%20lent%20et%20douloureux.ogg"}],
+  "3": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sergei%20Rachmaninoff%20-%20piano%20concerto%20no.%202%20in%20c%20minor,%20op.%2018%20-%20ii.%20adagio%20sostenuto.ogg", "l": "Public domain / Musopen", "s": "https://commons.wikimedia.org/wiki/File:Sergei%20Rachmaninoff%20-%20piano%20concerto%20no.%202%20in%20c%20minor,%20op.%2018%20-%20ii.%20adagio%20sostenuto.ogg"}],
+  "4": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Johannes%20Brahms%20-%20klavierstucke,%20op.%20118%20-%20ii.%20intermezzo.ogg", "l": "Public domain / Musopen", "s": "https://commons.wikimedia.org/wiki/File:Johannes%20Brahms%20-%20klavierstucke,%20op.%20118%20-%20ii.%20intermezzo.ogg"}],
+  "5": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Ludwig%20van%20Beethoven%20-%20symphony%20no.%206%20in%20f%20major%20'pastoral',%20op.%2068%20-%20i.%20allegro%20non%20troppo.ogg", "l": "Public domain / Musopen", "s": "https://commons.wikimedia.org/wiki/File:Ludwig%20van%20Beethoven%20-%20symphony%20no.%206%20in%20f%20major%20'pastoral',%20op.%2068%20-%20i.%20allegro%20non%20troppo.ogg"}],
+  "6": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Chopin%20op10%20No%2012.ogg", "l": "CC BY-SA 3.0 DE", "s": "https://commons.wikimedia.org/wiki/File:Chopin%20op10%20No%2012.ogg"}],
+  "7": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Brahms,%20Symphony%20No.%201%20in%20C%20Minor,%20Op.%2068%20-%20IV.%20Adagio%20-%20Pi%C3%B9%20andante%20-%20Allegro%20non%20troppo,%20ma%20con%20brio.ogg", "l": "CC0 / Public domain", "s": "https://commons.wikimedia.org/wiki/File:Brahms,%20Symphony%20No.%201%20in%20C%20Minor,%20Op.%2068%20-%20IV.%20Adagio%20-%20Pi%C3%B9%20andante%20-%20Allegro%20non%20troppo,%20ma%20con%20brio.ogg"}],
+  "8": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Maurice%20Ravel%20-%20Th%C3%A9r%C3%A8se%20Dussaut%20-%20Pavane%20pour%20une%20infante%20d%C3%A9funte.ogg", "l": "CC BY-SA 2.0", "s": "https://commons.wikimedia.org/wiki/File:Maurice%20Ravel%20-%20Th%C3%A9r%C3%A8se%20Dussaut%20-%20Pavane%20pour%20une%20infante%20d%C3%A9funte.ogg"}, {"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Maurice%20Ravel%20-%20Pavane%20pour%20une%20infante%20d%C3%A9funte.ogg", "l": "Public domain (업로더 제작)", "s": "https://commons.wikimedia.org/wiki/File:Maurice%20Ravel%20-%20Pavane%20pour%20une%20infante%20d%C3%A9funte.ogg"}],
+  "9": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/L'Estro%20Armonico,%20Op.%203,%20Concerto%20No.%203%20in%20G%20major%20for%20violin%20and%20strings,%20RV%20310.ogg", "l": "Public domain (Felix Janda release)", "s": "https://commons.wikimedia.org/wiki/File:L'Estro%20Armonico,%20Op.%203,%20Concerto%20No.%203%20in%20G%20major%20for%20violin%20and%20strings,%20RV%20310.ogg"}],
+  "12": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Bach%20Cello%20Suite%201%20Prelude%20(BWV%201007)%20Played%20by%20Chris.ogg", "l": "CC0 / Public domain", "s": "https://commons.wikimedia.org/wiki/File:Bach%20Cello%20Suite%201%20Prelude%20(BWV%201007)%20Played%20by%20Chris.ogg"}],
+  "14": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Beethoven,%20Sonata%20No.%208%20in%20C%20Minor%20Pathetique,%20Op.%2013%20-%20II.%20Adagio%20cantabile.ogg", "l": "CC0 / Public domain", "s": "https://commons.wikimedia.org/wiki/File:Beethoven,%20Sonata%20No.%208%20in%20C%20Minor%20Pathetique,%20Op.%2013%20-%20II.%20Adagio%20cantabile.ogg"}],
+  "15": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Pomp%20and%20Circumstance,%20Op.%2039%20-%20No.%201%20-%20United%20States%20Army%20Band.mp3", "l": "US Federal Government public domain", "s": "https://commons.wikimedia.org/wiki/File:Pomp%20and%20Circumstance,%20Op.%2039%20-%20No.%201%20-%20United%20States%20Army%20Band.mp3"}],
+  "16": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Ravel's%20Jeux%20d'eau,%20M.%2030%20-%20Anna%20Sutyagina.ogg", "l": "CC BY 3.0", "s": "https://commons.wikimedia.org/wiki/File:Ravel's%20Jeux%20d'eau,%20M.%2030%20-%20Anna%20Sutyagina.ogg"}, {"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Ravel's%20Jeux%20d'eau,%20M.%2030%20-%20Bernd%20Krueger.ogg", "l": "CC BY-SA 3.0 DE", "s": "https://commons.wikimedia.org/wiki/File:Ravel's%20Jeux%20d'eau,%20M.%2030%20-%20Bernd%20Krueger.ogg"}],
+  "18": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Air%20(Bach).ogg", "l": "Public domain / free of known restrictions", "s": "https://commons.wikimedia.org/wiki/File:Air%20(Bach).ogg"}],
+  "19": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/JOHN%20MICHEL%20CELLO-DVORAK%20CELLO%20CONCERTO%20in%20B%20Minor%202nd.ogg", "l": "CC BY-SA 3.0", "s": "https://commons.wikimedia.org/wiki/File:JOHN%20MICHEL%20CELLO-DVORAK%20CELLO%20CONCERTO%20in%20B%20Minor%202nd.ogg"}],
+  "20": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Jesu,%20Joy%20of%20Man's%20Desiring.ogg", "l": "CC BY-SA 2.5", "s": "https://commons.wikimedia.org/wiki/File:Jesu,%20Joy%20of%20Man's%20Desiring.ogg"}, {"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Jesu,%20Joy%20of%20Man's%20Desiring2.ogg", "l": "CC BY 2.0", "s": "https://commons.wikimedia.org/wiki/File:Jesu,%20Joy%20of%20Man's%20Desiring2.ogg"}],
+  "21": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Schubert%20-%20Arpeggione%20Sonata%20-%201.%20Allegro%20Moderato.ogg", "l": "EFF Open Audio License / CC BY-SA 2.0 호환", "s": "https://commons.wikimedia.org/wiki/File:Schubert%20-%20Arpeggione%20Sonata%20-%201.%20Allegro%20Moderato.ogg"}],
+  "25": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Bach%20-%20Flute%20Sonata%20E%20flat%20Maj%20-%202.%20Siciliana.ogg", "l": "CC BY-SA 2.0", "s": "https://commons.wikimedia.org/wiki/File:Bach%20-%20Flute%20Sonata%20E%20flat%20Maj%20-%202.%20Siciliana.ogg"}],
+  "26": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Franz%20Liszt%20-%20Consolation%20No.%203,%20Lento%20placido.ogg", "l": "CC BY-SA 4.0", "s": "https://commons.wikimedia.org/wiki/File:Franz%20Liszt%20-%20Consolation%20No.%203,%20Lento%20placido.ogg"}],
+  "28": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Harpsichord%20Concerto%20no.%205%20in%20F%20minor,%20BWV%201056%20-%20II.%20Largo.ogg", "l": "CC BY-SA 3.0", "s": "https://commons.wikimedia.org/wiki/File:Harpsichord%20Concerto%20no.%205%20in%20F%20minor,%20BWV%201056%20-%20II.%20Largo.ogg"}],
+  "30": [{"u": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Mahler%20Symphony%20no.%202,%20V.%20Im%20Tempo%20des%20Scherzos.ogg", "l": "CC0 / Public domain", "s": "https://commons.wikimedia.org/wiki/File:Mahler%20Symphony%20no.%202,%20V.%20Im%20Tempo%20des%20Scherzos.ogg"}],
+};
+
+function listenMusicRow(n){
+  const m = (S.res && Array.isArray(S.res.music)) ? S.res.music : [];
+  return m.find(r => +r.n === +n) || null;
+}
+function listenAudioCandidates(x){
+  const r = listenMusicRow(x.n);
+  if(r){
+    const out = [];
+    [['p','pt','pl','ps'], ['b1','b1t','b1l','b1s'], ['b2','b2t','b2l','b2s']].forEach(k => {
+      const u = String(r[k[0]] || '').trim();
+      const typ = String(r[k[1]] || '').trim();
+      if(typ !== 'direct_audio' || !/^https?:\/\//i.test(u)) return;
+      if(out.some(a => a.u === u)) return;
+      out.push({u:u, l:String(r[k[2]] || '').trim(), s:String(r[k[3]] || '').trim()});
+    });
+    return out;                    /* 시트에 줄이 있으면 그 줄만 믿습니다 */
+  }
+  const d = LISTEN_AUDIO_DEFAULT[String(x.n)] || [];
+  return d.map(a => ({u:a.u, l:a.l || '', s:a.s || ''}));
+}
+function listenAudioHtml(cands){
+  if(!cands || !cands.length) return '';
+  return '<audio id="ls-player" class="pl" controls preload="none" src="' + esc(cands[0].u) + '"></audio>' +
+    '<div id="ls-audio-meta" class="tiny" style="margin-top:6px"></div>';
+}
+function bindListenAudio(cands){
+  const a = $('#ls-player'), meta = $('#ls-audio-meta');
+  if(!a || !cands || !cands.length) return;
+  let i = 0;
+  const show = () => {
+    const c = cands[i] || {};
+    if(!meta) return;
+    const lab = c.l ? '음원 출처 · ' + c.l : '음원 출처';
+    meta.innerHTML = c.s
+      ? '<a class="link" target="_blank" rel="noopener" href="' + esc(c.s) + '">' + esc(lab) + '</a>' +
+        (cands.length > 1 ? ' · 재생 대체 ' + (i + 1) + '/' + cands.length : '')
+      : esc(lab) + (cands.length > 1 ? ' · 재생 대체 ' + (i + 1) + '/' + cands.length : '');
+  };
+  show();
+  a.addEventListener('error', () => {
+    i++;
+    if(i < cands.length){
+      a.src = cands[i].u;
+      a.load();
+      show();
+      a.play().catch(() => {});   /* 사용자가 재생을 눌렀던 흐름 안에서만 시도 */
+      return;
+    }
+    a.style.display = 'none';
+    if(meta) meta.textContent = '직접 재생 음원을 불러오지 못했습니다. 아래 음악앱 검색을 이용해주세요.';
+  });
+}
+
+
 const RTAGS = [{k:'urge', l:'충동'}, {k:'night', l:'밤'}, {k:'guilt', l:'죄책감'}, {k:'alone', l:'외로움'}, {k:'angry', l:'화남'}, {k:'down', l:'무기력'}, {k:'body', l:'몸'}, {k:'good', l:'잘 될 때'}, {k:'back', l:'다시 시작'}];
 
 
@@ -3812,12 +3901,10 @@ function drawListen(){
     '<div class="rdcard"><h3>' + esc(x.t) + '</h3>' + para(x.s) +
     '<div class="song"><b>들어볼 곡</b>' + esc(x.c) +
     (x.a ? '<span>' + esc(x.a) + '</span>' : '') +
-    /* ★ 재생바는 au(음원 주소)가 있을 때만 나옵니다.
-         au 는 권리가 자유로운 녹음에만 채웁니다 — 상업 음반을 여기 넣으면 안 됩니다.
-         preload='none' 인 이유: 서른 편을 미리 받으면 데이터가 그냥 새어나갑니다. */
-    (x.au
-      ? '<audio class="pl" controls preload="none" src="' + esc(x.au) + '"></audio>'
-      : '') +
+    /* ★ v37: 시트의 직접 음원을 Primary → Backup1 → Backup2 순서로 씁니다.
+         source_page / audio_search 는 재생 주소가 아니므로 후보에서 자동 제외합니다.
+         preload='none' 은 유지합니다 — 서른 편을 미리 받지 않습니다. */
+    listenAudioHtml(listenAudioCandidates(x)) +
     (musicURL(x.y)
       ? '<a class="btn sec sm" style="margin-top:11px" target="_blank" rel="noopener" href="' +
         esc(musicURL(x.y)) + '">' + esc(musicOf().l) + '에서 찾기</a>'
@@ -3825,6 +3912,8 @@ function drawListen(){
     para(x.q) +
     (x.f ? '<div class="safebox"><b>안전</b>' + esc(x.f) + '</div>' : '') +
     '</div>';
+
+  bindListenAudio(listenAudioCandidates(x));
 
   $('#ls-pos').textContent = (ls.i + 1) + ' / ' + LISTEN.length;
   $('#ls-prev').disabled = ls.i === 0;
@@ -3984,7 +4073,7 @@ function fetchRes(url){
     .then(j => {
       /* family 를 빠뜨리면 가족모임 화면이 기본 4줄로 되돌아갑니다. 한 번 당했습니다. */
       S.res = { lines: j.lines || [], groups: j.groups || [], family: j.family || [],
-                centers: j.centers || [], hosp: j.hosp || [] };
+                centers: j.centers || [], hosp: j.hosp || [], music: j.music || [] };
       /* 시트 서버가 자기 판을 알려줍니다. 배포가 됐는지 앱에서 눈으로 볼 수 있게. */
       S.resVer = j.ver || '';
       S.resAt = Date.now();
