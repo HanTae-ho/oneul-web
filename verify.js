@@ -4,20 +4,26 @@ const vm = require('vm');
 const root=__dirname;
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const index=read('index.html'), sw=read('sw.js'), test=read('test.js');
-const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningSrc=read('screening-data.js');
+const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningSrc=read('screening-data.js'), workbookSrc=read('workbook-data.js');
 const feedbackGs=read('오늘한걸음_의견_v1.0.gs'), resourceGs=read('오늘한걸음_자원시트_v1.8.gs');
 const fail=m=>{throw new Error('VERIFY: '+m)}; const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
-ok(/const BUILD = 'V7\.1';/.test(index),'index BUILD = V7.1');
-ok(/const APP_VERSION = 'V7\.1';/.test(sw),'sw APP_VERSION = V7.1');
-ok(/const V = 'ohg-v701';/.test(sw),'sw cache = ohg-v701');
-['qa-data.js','learning-data.js','screening-data.js'].forEach(f=>{
+ok(/const BUILD = 'V7\.7';/.test(index),'index BUILD = V7.7');
+ok(/const APP_VERSION = 'V7\.7';/.test(sw),'sw APP_VERSION = V7.7');
+ok(/const V = 'ohg-v707';/.test(sw),'sw cache = ohg-v707');
+['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
   ok(index.includes('<script src="./'+f+'"></script>'),'index가 '+f+' 로드');
 });
 ok(/function recoveryDay\(from, to\)/.test(index) && /daysBetween\(from, to\) \+ 1/.test(index),'회복 시작 당일 1일째 규칙 유지');
+ok(/id="tool-listen"/.test(index),'회복도구에 듣는 글 메뉴 존재');
+ok(/\$\('#tool-listen'\)\.onclick = \(\) => openListen\('tools'\)/.test(index),'회복도구 듣는 글이 기존 듣는 글 화면으로 연결');
+ok(/p === 'listen' && ls\.back === 'tools'/.test(index),'회복도구에서 듣는 글 진입 시 회복도구 탭 강조 유지');
+ok(/마음 처방전.*회복도구/.test(index),'마음프로 듣는 글 안내가 두 진입경로를 반영');
 ok(!/\.toISOString\s*\(/.test(test),'자동테스트에서 toISOString() 미사용 유지');
 ok(/timezoneId: 'Asia\/Seoul'/.test(test),'기존 브라우저 회귀테스트 시간대 Asia/Seoul 유지');
+ok(!/\/opt\/pw-browsers\/chromium/.test(test),'자동테스트 Chromium 경로 하드코딩 제거');
+ok(/process\.env\.CHROMIUM_PATH/.test(test),'필요 시 CHROMIUM_PATH 사용자 지정 지원');
 
 let box={window:{}};vm.createContext(box);vm.runInContext(qaSrc,box);const qa=box.window.QA_ITEMS;
 ok(Array.isArray(qa)&&qa.length===224,'Q&A 224문답 유지');
@@ -25,8 +31,43 @@ ok(qa.every(x=>{const n=x.a.split(/\n\s*\n/).filter(Boolean).length;return n>=2&
 ok(/\.qadetail \.answer\{[^}]*font-size:16px;[^}]*line-height:1\.85/.test(index),'Q&A 상세 16px / 1.85 유지');
 
 box={window:{}};vm.createContext(box);vm.runInContext(learningSrc,box);const learning=box.window.LEARNING_TOPICS;
-ok(Array.isArray(learning)&&learning.length===1&&learning[0].id==='twelve-steps','회복학습 12단계 독립 구조 유지');
-ok(learning[0].sections.length===13,'12단계 소개 + 1~12단계 13개 유지');
+ok(Array.isArray(learning)&&learning.length===2&&learning[0].id==='twelve-steps'&&learning[1].id==='recovery-foundations','회복학습 2개 독립 주제 등록');
+ok(learning[0].sections.length===14,'12단계 소개 + 기초 + 1~12단계 14개');
+ok(learning[0].status==='content-ready','12단계 학습 콘텐츠 준비 완료 상태');
+ok(learning[0].sections.every(x=>Array.isArray(x.body)&&x.body.length>=3),'12단계 14개 섹션 모두 본문 3문단 이상');
+ok(learning[0].sections.every(x=>Array.isArray(x.reflection)&&x.reflection.length>=4),'12단계 14개 섹션 모두 생각해보기 4문항 이상');
+ok(learning[0].sections.some(x=>x.id==='foundation'),'12단계의 기초(믿음·겸손·용서) 추가');
+ok(/function openLearnSection\(topic,s\)/.test(index)&&/function learningAction\(type\)/.test(index),'회복학습 모바일 상세/행동연결 UI 존재');
+ok(/type:'halt'/.test(learningSrc)&&/type:'night'/.test(learningSrc),'10단계 HALT·하루 돌아보기 연결');
+ok(/type:'meditation'/.test(learningSrc)&&/type:'breath'/.test(learningSrc),'11단계 명상·호흡 연결');
+ok(/type:'meet'/.test(learningSrc)&&/type:'help'/.test(learningSrc),'12단계 자조모임·헬프 연결');
+const deep=learning.find(x=>x.id==='recovery-foundations');
+ok(deep&&deep.status==='content-ready'&&deep.sections.length===4,'회복의 기초 심화학습 4개 섹션');
+ok(deep.sections.map(x=>x.id).join(',')==='whole-person,need-greed,fear,meaning-transcendence','심화학습 순서: 영·마음·몸 / 욕구와 탐욕 / 두려움 / 의미와 자기초월');
+ok(deep.sections.every(x=>Array.isArray(x.body)&&x.body.length>=4&&Array.isArray(x.reflection)&&x.reflection.length>=4&&x.practice),'심화학습 4개 모두 본문·성찰·오늘 해보기 구성');
+ok(/철학적·영적 해석 틀이며/.test(learningSrc)&&/의학적 진단/.test(learningSrc),'심화학습 해석 관점과 의학적 진단 구분');
+ok(/type:'rec-mood'/.test(learningSrc)&&/type:'halt'/.test(learningSrc)&&/type:'meditation'/.test(learningSrc),'심화학습 감정기록·HALT·명상 연결');
+
+box={window:{}};vm.createContext(box);vm.runInContext(workbookSrc,box);const wb=box.window.STEP_WORKSHEETS;
+ok(wb&&['step1','step4','step8','step9','step10','step11','step12'].every(k=>wb[k]),'1·4·8·9·10·11·12단계 검토·실천 데이터 등록');
+ok(Object.keys(wb).join(',')==='step1,step4,step8,step9,step10,step11,step12','검토·실천 workbook 7종만 등록');
+ok(wb.step1.sections.map(x=>x.id).join(',')==='powerless,unmanageable,loss','1단계 검토: 무력함 / 수습할 수 없는 삶 / 상실과 애도');
+ok(wb.step4.sections.map(x=>x.id).join(',')==='resentment,fear,harm,strength,desire,emotion,meaning','4단계 검토: 핵심 4개 + 욕망·감정·공허/의미 심화');
+ok(wb.step4.sections.find(x=>x.id==='desire').fixedLabels.length===4,'4단계 네 가지 욕망 고정 항목');
+ok(wb.step8.sections.map(x=>x.id).join(',')==='amendsList,selfHarm,forgive','8단계: 보상 명단 / 자기 보상 / 용서 방해요인');
+ok(wb.step9.sections.map(x=>x.id).join(',')==='plan,words,selfAmends','9단계: 직접 보상 계획 / 태도 / 자기 보상');
+ok(wb.step10.sections.map(x=>x.id).join(',')==='inventory,admit,tomorrow','10단계: 오늘 검토 / 즉시 시인 / 내일 한 걸음');
+ok(wb.step11.sections.map(x=>x.id).join(',')==='connect,prayer,practice','11단계: 연결 / 기도·의도 / 행동 실천');
+ok(wb.step12.sections.map(x=>x.id).join(',')==='principle,message,share','12단계: 원칙 / 삶의 메시지 / 나눔');
+ok(/특정 종교를 전제로 하지 않습니다/.test(workbookSrc),'11단계 비종교 사용자 안전 문구');
+ok(/다른 사람을 치료하거나 책임지라는 뜻이 아닙니다/.test(workbookSrc),'12단계 과도한 도움 역할 방지 문구');
+ok(/stepWorks: \[\], stepDrafts: \{\}/.test(index),'검토 저장기록·자동저장 초안 localStorage 상태 추가');
+ok(/function drawWorkbook\(\)/.test(index)&&/function saveWorkbookRecord\(kind\)/.test(index),'검토시트 작성·저장 UI 존재');
+ok(/function recWorkbook\(\)/.test(index)&&/12단계 검토/.test(index),'내 발자취 12단계 검토 재조회 탭 존재');
+ok(/자원시트·의견서버·마음프로로 자동 전송되지 않습니다/.test(index),'검토 내용 서버·AI 자동전송 방지 안내');
+ok(['step1','step4','step8','step9','step10','step11','step12'].every(k=>new RegExp("type:'"+k+"-workbook'").test(learningSrc)),'1·4·8·9·10·11·12단계 학습에서 검토·실천 직접 연결');
+ok(/S\.stepDrafts\[kind\]=workbookEmptyData/.test(index)&&/workbookQueueSave/.test(index),'검토 작성 중 기기내 초안 자동저장');
+ok(/wb-record-delete/.test(index),'저장한 개별 검토 기록 삭제 기능');
 
 box={window:{}};vm.createContext(box);vm.runInContext(screeningSrc,box);const sc=box.window.SCREENING_TOOLS;
 ok(Array.isArray(sc)&&sc.length===9,'자가점검 9개 도구 등록');
@@ -78,4 +119,4 @@ ok(/id="me-feedback-text"/.test(index)&&/id="me-feedback-send"/.test(index),'앱
 ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
 ok(/GS_VER\s*=\s*'v1\.8'/.test(resourceGs)&&/FEEDBACK_URL/.test(resourceGs),'자원시트 v1.8 유지');
 
-console.log('\nV7.1 핵심 검증 통과');
+console.log('\nV7.7 핵심 검증 통과');

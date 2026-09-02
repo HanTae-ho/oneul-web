@@ -517,7 +517,55 @@ addEventListener('appinstalled', function(){
   .qadetail .src{margin-top:15px;padding-top:12px;border-top:1px solid var(--line);font-size:11.5px;
     line-height:1.6;color:var(--faint)}
   .learnlist .help{cursor:pointer}.learnlist .help .b span{line-height:1.45}
+  .learn-part{display:inline-block;margin:0 0 8px;padding:5px 9px;border-radius:999px;background:var(--accbg);color:var(--acc);font-size:11.5px;font-weight:700}
+  .learnbody p{margin:0 0 13px;font-size:15.5px;line-height:1.82;color:var(--tx);word-break:keep-all}
+  .learnbody p:last-child{margin-bottom:0}
+  .learn-reflect{margin-top:18px;padding-top:15px;border-top:1px solid var(--line)}
+  .learn-reflect h3{margin:0 0 8px;font-size:15px}
+  .learn-reflect ol{margin:0;padding-left:21px}
+  .learn-reflect li{margin:0 0 8px;font-size:14px;line-height:1.65;word-break:keep-all}
+  .learn-practice{margin-top:14px;background:var(--accbg);border-radius:13px;padding:13px 14px;font-size:14px;line-height:1.7;color:var(--acc);word-break:keep-all}
+  .learn-practice b{display:block;margin-bottom:3px}
+  .learn-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:14px}
+  .learn-actions .btn{margin:0;width:100%;padding:11px 7px;font-size:12.5px}
+  .learn-source{margin-top:15px;padding-top:11px;border-top:1px solid var(--line);font-size:10.5px;line-height:1.55;color:var(--faint)}
+  @media(max-width:380px){.learn-actions{grid-template-columns:1fr}.learn-actions .btn{font-size:13px}}
 
+  /* 12단계 검토시트 — 긴 종이 표를 모바일에서 한 장씩 작성할 수 있게 풀었습니다. */
+  .ws-intro{margin-bottom:12px}
+  .ws-sec{background:var(--panel);border:1px solid var(--line);border-radius:15px;margin-bottom:10px;overflow:hidden}
+  .ws-sec>summary{list-style:none;cursor:pointer;padding:14px 15px;font-size:14.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;justify-content:space-between;gap:9px}
+  .ws-sec>summary::-webkit-details-marker{display:none}
+  .ws-sec>summary:after{content:'＋';font-size:17px;color:var(--faint);font-weight:400}
+  .ws-sec[open]>summary:after{content:'−'}
+  .ws-sec-body{padding:0 13px 14px;border-top:1px solid var(--line)}
+  .ws-help{font-size:12.5px;line-height:1.65;color:var(--dim);margin:11px 1px}
+  .ws-row{background:var(--bg);border:1px solid var(--line);border-radius:13px;padding:12px;margin:9px 0}
+  .ws-row-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+  .ws-row-head b{font-size:12.5px;color:var(--acc)}
+  .ws-del{font-size:11.5px;color:var(--faint);padding:4px 2px}
+  .ws-field{display:block;margin-top:9px}
+  .ws-field>span{display:block;font-size:12px;font-weight:600;color:var(--dim);margin:0 0 5px}
+  .ws-field textarea{width:100%;min-height:64px;padding:10px 11px;font-size:13.5px;line-height:1.6}
+  .ws-add{width:auto;display:inline-block;margin-top:5px;padding:8px 10px;font-size:12px}
+  .ws-foot{margin:10px 1px 0;font-size:11.5px;line-height:1.6;color:var(--faint)}
+  .ws-ref{background:var(--accbg);border-radius:12px;padding:10px 12px;margin:8px 0}
+  .ws-ref b{display:block;font-size:12px;color:var(--acc);margin-bottom:3px}
+  .ws-ref span{font-size:11.5px;line-height:1.6;color:var(--dim)}
+  .ws-savebar{position:sticky;bottom:calc(var(--sb) + 6px);z-index:6;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px);padding:9px 0 3px;margin-top:12px}
+  .ws-saved{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .ws-saved:last-child{border-bottom:none}
+  .ws-saved .date{flex:0 0 72px;font-size:11.5px;line-height:1.45;color:var(--faint)}
+  .ws-saved .body{flex:1;min-width:0}
+  .ws-saved .body b{display:block;font-size:14px}
+  .ws-saved .body span{display:block;font-size:12px;color:var(--dim);margin-top:3px;line-height:1.5}
+  .ws-saved .go{flex:0 0 auto;padding:6px 8px;border-radius:9px;background:var(--accbg);color:var(--acc);font-size:11.5px;font-weight:600}
+  .ws-view-section{margin-top:15px;padding-top:13px;border-top:1px solid var(--line)}
+  .ws-view-section h3{margin:0 0 8px;font-size:14px}
+  .ws-view-row{background:var(--bg);border-radius:12px;padding:10px 11px;margin:7px 0}
+  .ws-view-row>strong{display:block;font-size:12px;color:var(--acc);margin-bottom:6px}
+  .ws-view-field{margin:5px 0;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+  .ws-view-field b{font-size:11.5px;color:var(--faint);margin-right:5px}
 
   .fbitem{border:1px solid var(--line);border-radius:16px;padding:12px;margin:0 0 10px;background:var(--card)}
   .fbitem .fbmeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:7px}
@@ -1018,8 +1066,8 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-tools">
   <h1>회복도구</h1>
   <div class="toolhero">
-    <h2>배우고, 점검하고, 찾아보는 곳</h2>
-    <p class="muted">검토된 회복 정보를 기기 안에서 바로 확인합니다. Q&A 검색은 AI 연결 없이 작동합니다.</p>
+    <h2>배우고, 점검하고, 마음을 돌보는 곳</h2>
+    <p class="muted">회복 정보를 배우고 점검하며, 필요할 때 듣는 글로 잠시 마음을 돌봅니다. 기록은 기기 안에 저장되고 Q&A 검색은 AI 연결 없이 작동합니다.</p>
   </div>
   <div class="toolgrid">
     <button class="toolcard" id="tool-qa">
@@ -1031,6 +1079,11 @@ addEventListener('appinstalled', function(){
       <span class="ic" data-ico="sprout"></span>
       <span class="b"><b>회복학습</b><span>12단계부터 시작해 회복 주제를 하나씩 배웁니다</span></span>
       <span class="go">학습</span>
+    </button>
+    <button class="toolcard" id="tool-listen">
+      <span class="ic" data-ico="wave"></span>
+      <span class="b"><b>듣는 글</b><span>지금 마음과 가까운 글을 읽고 검증된 음악을 함께 듣습니다</span></span>
+      <span class="go">듣기</span>
     </button>
     <button class="toolcard" id="tool-check">
       <span class="ic" data-ico="check"></span>
@@ -1100,13 +1153,26 @@ addEventListener('appinstalled', function(){
   <div class="learnlist" id="learn-topic-sections"></div>
 </section>
 
+<!-- ══════════ 12단계 검토시트 ══════════ -->
+<section class="pg" id="p-workbook">
+  <div class="sp" style="margin-bottom:8px">
+    <h1 style="margin:0" id="wb-title">12단계 검토</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" id="wb-back">← 돌아가기</button>
+  </div>
+  <p class="muted" style="margin:0 0 12px" id="wb-subtitle"></p>
+  <div class="note" style="margin-bottom:10px">
+    작성 내용은 <b>이 기기에만 임시저장·보관</b>됩니다. 자원시트·의견서버·마음프로로 자동 전송되지 않습니다.
+  </div>
+  <div id="wb-body"></div>
+</section>
+
 <!-- ══════════ 내 발자취 ══════════ -->
 <section class="pg" id="p-rec">
   <div class="sp" style="margin-bottom:8px">
     <h1 style="margin:0">내 발자취</h1>
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('me')">← 내정보</button>
   </div>
-  <p class="muted" style="margin:0 0 14px">감정 · 충동 · 하루 · 몸 · 다시 시작 · 통계를 돌아봅니다.</p>
+  <p class="muted" style="margin:0 0 14px">감정 · 충동 · 하루 · 몸 · 다시 시작 · 12단계 검토 · 통계를 돌아봅니다.</p>
   <div class="opts" id="rec-tab" style="margin-bottom:14px"></div>
   <div id="rec-body"></div>
 </section>
@@ -1471,12 +1537,13 @@ addEventListener('appinstalled', function(){
 <script src="./qa-data.js"></script>
 <script src="./learning-data.js"></script>
 <script src="./screening-data.js"></script>
+<script src="./workbook-data.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V7.1';
+const BUILD = 'V7.7';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1502,6 +1569,7 @@ const BLANK = {
   sleep: { on: 0, bed: '23:00', up: '07:00' },
   sleepLog: [],                               /* [{t, q}] q: good|soso|bad */
   moods: [], halts: [], urges: [], nights: [], relapses: [], screenings: [],
+  stepWorks: [], stepDrafts: {},
   aiChat: [], aiClient: '', aiConsent: 0,       /* AI 대화는 이 기기에만 저장 */
   sheet: '', res: null, resAt: 0, resVer: '', theme: '',
   notify: 0, fired: [],
@@ -1522,6 +1590,8 @@ function load(){
    시간을 보고 알맞은 때로 옮겨 줍니다. 옮기지 않으면 화면이 비어 보입니다. */
 function migrate(s){
   if(!Array.isArray(s.screenings)) s.screenings = [];
+  if(!Array.isArray(s.stepWorks)) s.stepWorks = [];
+  if(!s.stepDrafts || typeof s.stepDrafts !== 'object' || Array.isArray(s.stepDrafts)) s.stepDrafts = {};
   const old = (s.meds || []).filter(m => m && m.n !== undefined && m.s === undefined);
   if(old.length){
     const slotOf = t => {
@@ -2216,7 +2286,8 @@ function go(p){
   if(p === 'ai' && prev !== 'ai') ai.actionsOpen = false;
   cur = p;
   $('#tabs').style.display = (p === 'intro') ? 'none' : 'flex';
-  const tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'screening' || p === 'screen-test') ? 'tools' : p;
+  let tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'workbook' || p === 'screening' || p === 'screen-test') ? 'tools' : p;
+  if(p === 'listen' && ls.back === 'tools') tabP = 'tools';
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tabP));
   $('#view').classList.toggle('ai-mode', p === 'ai');
   if(p !== 'ai') $('#view').scrollTop = 0;
@@ -2225,6 +2296,7 @@ function go(p){
   if(p === 'qa')    drawQA();
   if(p === 'learn') drawLearn();
   if(p === 'learn-topic') drawLearnTopic();
+  if(p === 'workbook') drawWorkbook();
   if(p === 'screening') drawScreening();
   if(p === 'screen-test') drawScreenTest();
   if(p === 'rec')   drawRec();
@@ -3301,6 +3373,59 @@ function drawLearn(){
   refreshIcons();
 }
 
+function learningAction(type){
+  closeModal();
+  if(type === 'halt'){
+    go('home');
+    setTimeout(()=>{ const n=$('#home-halt'); if(n) n.scrollIntoView({behavior:'smooth',block:'center'}); },80);
+    return;
+  }
+  if(type === 'night'){ go('night'); return; }
+  if(type === 'meditation'){
+    go('home');
+    setTimeout(()=>{ const n=$('#home-daily'); if(n) n.scrollIntoView({behavior:'smooth',block:'center'}); },80);
+    return;
+  }
+  if(type === 'breath'){
+    go('urge');
+    setTimeout(()=>toast('충동 강도를 선택한 뒤 타이머에서 호흡 가이드를 사용할 수 있습니다.'),80);
+    return;
+  }
+  if(type === 'meet'){
+    mt.target='me'; mt.mode='today'; mt.todayArea=''; mt.q=''; mt.kind=''; go('meet'); return;
+  }
+  if(type === 'help'){ go('help'); return; }
+  if(type === 'rec-mood'){ recTab='mood'; go('rec'); return; }
+  if(type === 'step1-workbook'){ openWorkbook('step1','learn-topic'); return; }
+  if(type === 'step4-workbook'){ openWorkbook('step4','learn-topic'); return; }
+  if(type === 'step8-workbook'){ openWorkbook('step8','learn-topic'); return; }
+  if(type === 'step9-workbook'){ openWorkbook('step9','learn-topic'); return; }
+  if(type === 'step10-workbook'){ openWorkbook('step10','learn-topic'); return; }
+  if(type === 'step11-workbook'){ openWorkbook('step11','learn-topic'); return; }
+  if(type === 'step12-workbook'){ openWorkbook('step12','learn-topic'); return; }
+}
+
+
+function openLearnSection(topic,s){
+  const paragraphs = Array.isArray(s.body) ? s.body : (s.content ? String(s.content).split(/\n\s*\n/) : []);
+  let h='';
+  if(s.part) h+='<div class="learn-part">'+esc(s.part)+'</div>';
+  h+='<h2>'+esc(s.title || '회복학습')+'</h2>';
+  h+='<div class="learnbody" style="margin-top:12px">'+paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'</div>';
+  if(Array.isArray(s.reflection) && s.reflection.length){
+    h+='<div class="learn-reflect"><h3>잠시 멈추어 생각해보기</h3><ol>'+s.reflection.map(q=>'<li>'+esc(q)+'</li>').join('')+'</ol></div>';
+  }
+  if(s.practice) h+='<div class="learn-practice"><b>오늘 해보기</b>'+esc(s.practice)+'</div>';
+  if(Array.isArray(s.actions) && s.actions.length){
+    h+='<div class="learn-actions">'+s.actions.map((a,i)=>'<button class="btn '+(i?'ghost':'sec')+'" data-learn-act="'+esc(a.type)+'">'+esc(a.label)+'</button>').join('')+'</div>';
+  }
+  if(topic.sourceNote) h+='<div class="learn-source">'+esc(topic.sourceNote)+' · 앱에서는 원고를 모바일 학습용으로 요약·재구성했습니다.</div>';
+  h+='<div style="height:12px"></div><button class="btn ghost" id="learn-modal-close">닫기</button>';
+  modal(h);
+  $$('#modin [data-learn-act]').forEach(b=>{ b.onclick=()=>learningAction(b.dataset.learnAct); });
+  const c=$('#learn-modal-close'); if(c) c.onclick=closeModal;
+}
+
 function drawLearnTopic(){
   const topic=LEARNING.find(x=>x.id===learnState.topic) || LEARNING[0];
   if(!topic){ go('learn'); return; }
@@ -3312,14 +3437,14 @@ function drawLearnTopic(){
     const d=document.createElement('div');
     d.className='help';
     d.style.width='100%'; d.style.textAlign='left';
-    const ready = !!(s.content && String(s.content).trim());
-    d.innerHTML='<span class="ic">'+ico(s.icon || 'sprout')+'</span>'+
-      '<span class="b"><b>'+esc(s.title || ('학습 '+(i+1)))+'</b><span>'+
-      esc(ready ? (s.summary || '학습 내용을 살펴봅니다.') : '내용을 준비 중입니다.')+'</span></span>'+
+    const ready = (Array.isArray(s.body) && s.body.length) || !!(s.content && String(s.content).trim());
+    d.innerHTML='<span class="ic">'+ico(s.icon || 'sprout')+'</span>'+ 
+      '<span class="b"><b>'+esc(s.title || ('학습 '+(i+1)))+'</b><span>'+ 
+      esc(ready ? (s.summary || '학습 내용을 살펴봅니다.') : '내용을 준비 중입니다.')+'</span></span>'+ 
       '<span class="acts"><span class="go">'+(ready?'보기':'준비 중')+'</span></span>';
     if(ready){
       d.setAttribute('role','button'); d.tabIndex=0;
-      const open=()=>modal('<h2>'+esc(s.title)+'</h2><div class="readbody" style="margin-top:10px">'+esc(s.content).replace(/\n/g,'<br>')+'</div><div style="height:12px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
+      const open=()=>openLearnSection(topic,s);
       d.onclick=open; d.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); } };
     }
     box.appendChild(d);
@@ -3327,6 +3452,191 @@ function drawLearnTopic(){
   if(!(topic.sections || []).length) box.innerHTML='<div class="note">학습 내용을 준비 중입니다.</div>';
   refreshIcons();
 }
+
+/* ══════════ 12단계 검토·실천 V7.6 ══════════
+   원고의 1·4단계 검토, 8·9단계 보상 준비, 10·11·12단계 매일 실천을 모바일 입력형으로 옮겼습니다.
+   작성 중 초안과 저장 기록 모두 S 안에만 두며 서버로 자동 전송하지 않습니다. */
+const WORKSHEETS = (window.STEP_WORKSHEETS && typeof window.STEP_WORKSHEETS==='object') ? window.STEP_WORKSHEETS : {};
+let workbookState = {kind:'step1', from:'learn-topic'};
+let workbookSaveTimer = 0;
+
+function openWorkbook(kind, from){
+  if(famMode()){ toast('12단계 검토시트는 회복 당사자가 자신의 경험을 적는 공간입니다.'); return; }
+  if(!WORKSHEETS[kind]) return;
+  workbookState.kind=kind;
+  workbookState.from=from || cur || 'learn-topic';
+  go('workbook');
+}
+function workbookBack(){
+  clearTimeout(workbookSaveTimer); save();
+  if(workbookState.from==='rec'){ recTab='work'; go('rec'); return; }
+  if(workbookState.from==='learn-topic'){ go('learn-topic'); return; }
+  go('learn');
+}
+function workbookEmptyData(def){
+  const d={sections:{}, updatedAt:Date.now()};
+  (def.sections||[]).forEach(sec=>{
+    if(Array.isArray(sec.fixedLabels) && sec.fixedLabels.length){
+      d.sections[sec.id]=sec.fixedLabels.map(l=>({_label:l}));
+    }else d.sections[sec.id]=[{}];
+  });
+  return d;
+}
+function workbookDraft(kind){
+  const def=WORKSHEETS[kind]; if(!def) return null;
+  if(!S.stepDrafts || typeof S.stepDrafts!=='object' || Array.isArray(S.stepDrafts)) S.stepDrafts={};
+  if(!S.stepDrafts[kind] || !S.stepDrafts[kind].sections) S.stepDrafts[kind]=workbookEmptyData(def);
+  const d=S.stepDrafts[kind];
+  (def.sections||[]).forEach(sec=>{
+    if(!Array.isArray(d.sections[sec.id]) || !d.sections[sec.id].length){
+      d.sections[sec.id]=(sec.fixedLabels||[]).length ? sec.fixedLabels.map(l=>({_label:l})) : [{}];
+    }
+    if(Array.isArray(sec.fixedLabels)){
+      sec.fixedLabels.forEach((l,i)=>{ if(!d.sections[sec.id][i]) d.sections[sec.id][i]={}; d.sections[sec.id][i]._label=l; });
+    }
+  });
+  return d;
+}
+function workbookQueueSave(){
+  clearTimeout(workbookSaveTimer);
+  workbookSaveTimer=setTimeout(()=>save(),320);
+}
+function workbookHasText(def,d){
+  if(!def || !d || !d.sections) return false;
+  return (def.sections||[]).some(sec=>(d.sections[sec.id]||[]).some(row=>(sec.fields||[]).some(f=>String(row[f.k]||'').trim())));
+}
+function workbookFilledCount(def,d){
+  if(!def || !d || !d.sections) return 0;
+  let n=0;
+  (def.sections||[]).forEach(sec=>(d.sections[sec.id]||[]).forEach(row=>{
+    if((sec.fields||[]).some(f=>String(row[f.k]||'').trim())) n++;
+  }));
+  return n;
+}
+function workbookRowHtml(sec,row,ri){
+  const fixed=Array.isArray(sec.fixedLabels) && sec.fixedLabels.length;
+  let h='<div class="ws-row" data-ws-row="'+ri+'"><div class="ws-row-head"><b>'+esc(row._label || ((ri+1)+'번째 기록'))+'</b>';
+  if(!fixed) h+='<button class="ws-del" data-ws-del="'+esc(sec.id)+'" data-row="'+ri+'">이 줄 지우기</button>';
+  h+='</div>';
+  (sec.fields||[]).forEach(f=>{
+    const v=row[f.k]||'';
+    h+='<label class="ws-field"><span>'+esc(f.l)+'</span><textarea data-ws-sec="'+esc(sec.id)+'" data-row="'+ri+'" data-field="'+esc(f.k)+'" placeholder="'+esc(f.p||'')+'">'+esc(v)+'</textarea></label>';
+  });
+  return h+'</div>';
+}
+function drawWorkbook(){
+  const def=WORKSHEETS[workbookState.kind] || WORKSHEETS.step1;
+  if(!def){ $('#wb-body').innerHTML='<div class="note">검토시트 데이터를 찾을 수 없습니다.</div>'; return; }
+  workbookState.kind=def.id;
+  const d=workbookDraft(def.id);
+  $('#wb-title').textContent=def.title;
+  $('#wb-subtitle').textContent=def.subtitle||'';
+  const box=$('#wb-body');
+  let h='<div class="card ws-intro"><p class="muted" style="margin:0">'+esc(def.intro||'')+'</p>'+(def.safety?'<div class="note w" style="margin-top:11px">'+esc(def.safety)+'</div>':'')+'</div>';
+  if(Array.isArray(def.references) && def.references.length){
+    h+='<details class="ws-sec"><summary>검토를 돕는 어휘 보기</summary><div class="ws-sec-body">'+def.references.map(r=>'<div class="ws-ref"><b>'+esc(r.title)+'</b><span>'+esc(r.text)+'</span></div>').join('')+'</div></details>';
+  }
+  (def.sections||[]).forEach((sec,si)=>{
+    const rows=d.sections[sec.id]||[{}];
+    h+='<details class="ws-sec" '+(si===0?'open':'')+'><summary>'+esc(sec.title)+'</summary><div class="ws-sec-body">'+
+      '<p class="ws-help">'+esc(sec.help||'')+'</p><div data-ws-rows="'+esc(sec.id)+'">'+rows.map((row,ri)=>workbookRowHtml(sec,row,ri)).join('')+'</div>';
+    if(!(sec.fixedLabels||[]).length) h+='<button class="btn ghost ws-add" data-ws-add="'+esc(sec.id)+'">+ 기록 한 줄 추가</button>';
+    if(sec.foot) h+='<p class="ws-foot">'+esc(sec.foot)+'</p>';
+    h+='</div></details>';
+  });
+  h+='<div class="ws-savebar"><button class="btn" id="wb-save-record">이 검토를 내 발자취에 저장</button><div style="height:7px"></div><button class="btn ghost sm" id="wb-clear-draft">작성 중인 초안 비우기</button><p class="tiny" style="margin:7px 2px 0">입력하는 동안 이 기기에 초안이 자동 저장됩니다.</p></div>';
+  box.innerHTML=h;
+  $$('#wb-body textarea[data-ws-sec]').forEach(inp=>{
+    inp.oninput=()=>{
+      const sec=inp.dataset.wsSec, ri=Number(inp.dataset.row), field=inp.dataset.field;
+      const dr=workbookDraft(def.id); if(!dr.sections[sec][ri]) dr.sections[sec][ri]={};
+      dr.sections[sec][ri][field]=inp.value; dr.updatedAt=Date.now(); workbookQueueSave();
+    };
+  });
+  $$('#wb-body [data-ws-add]').forEach(b=>b.onclick=()=>{
+    const sec=b.dataset.wsAdd, dr=workbookDraft(def.id); dr.sections[sec].push({}); dr.updatedAt=Date.now(); save(); drawWorkbook();
+  });
+  $$('#wb-body [data-ws-del]').forEach(b=>b.onclick=()=>{
+    const sec=b.dataset.wsDel, ri=Number(b.dataset.row), dr=workbookDraft(def.id);
+    if(dr.sections[sec].length<=1) dr.sections[sec][0]={}; else dr.sections[sec].splice(ri,1);
+    dr.updatedAt=Date.now(); save(); drawWorkbook();
+  });
+  $('#wb-save-record').onclick=()=>saveWorkbookRecord(def.id);
+  $('#wb-clear-draft').onclick=()=>clearWorkbookDraft(def.id);
+}
+function clearWorkbookDraft(kind){
+  const def=WORKSHEETS[kind]; if(!def) return;
+  modal('<h2>작성 중인 초안을 비울까요?</h2><p class="muted" style="margin:6px 0 14px">아직 내 발자취에 저장하지 않은 입력 내용만 지웁니다. 이미 저장한 검토 기록은 그대로 남습니다.</p><button class="btn danger" id="wb-clear-yes">초안 비우기</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">그만두기</button>');
+  $('#wb-clear-yes').onclick=()=>{ S.stepDrafts[kind]=workbookEmptyData(def); save(); closeModal(); drawWorkbook(); toast('작성 중인 초안을 비웠습니다.'); };
+}
+function saveWorkbookRecord(kind){
+  const def=WORKSHEETS[kind], d=workbookDraft(kind); if(!def||!d) return;
+  if(!workbookHasText(def,d)){ toast('적은 내용이 아직 없습니다.'); return; }
+  clearTimeout(workbookSaveTimer);
+  if(!Array.isArray(S.stepWorks)) S.stepWorks=[];
+  S.stepWorks.push({rid:'ws-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),kind:kind,t:Date.now(),data:JSON.parse(JSON.stringify(d))});
+  S.stepDrafts[kind]=workbookEmptyData(def); save();
+  recTab='work'; workbookState.from='rec'; go('rec'); toast(def.step+' 검토를 내 발자취에 저장했습니다.');
+}
+function workbookRecordSummary(r){
+  const def=WORKSHEETS[r.kind]; if(!def) return '';
+  const n=workbookFilledCount(def,r.data||{});
+  const first=[];
+  (def.sections||[]).some(sec=>{
+    for(const row of (((r.data||{}).sections||{})[sec.id]||[])){
+      for(const f of (sec.fields||[])){
+        const v=String(row[f.k]||'').trim(); if(v){ first.push(v); if(first.length>=1) return true; }
+      }
+    }
+    return false;
+  });
+  return n+'개 항목 작성'+(first.length?' · '+first[0].slice(0,48)+(first[0].length>48?'…':''):'');
+}
+function workbookRecordHtml(r){
+  const def=WORKSHEETS[r.kind]; if(!def) return '<div class="note">이 기록의 양식을 찾을 수 없습니다.</div>';
+  const d=r.data||{}, ss=d.sections||{};
+  let h='<div class="learn-part">'+esc(def.step)+'</div><h2>'+esc(def.title)+'</h2><p class="tiny" style="margin:4px 0 3px">'+esc(when(r.t).replace('\\n',' '))+'</p>';
+  (def.sections||[]).forEach(sec=>{
+    const rows=(ss[sec.id]||[]).filter(row=>(sec.fields||[]).some(f=>String(row[f.k]||'').trim()));
+    if(!rows.length) return;
+    h+='<div class="ws-view-section"><h3>'+esc(sec.title)+'</h3>';
+    rows.forEach((row,i)=>{
+      h+='<div class="ws-view-row"><strong>'+esc(row._label || ((i+1)+'번째 기록'))+'</strong>';
+      (sec.fields||[]).forEach(f=>{ const v=String(row[f.k]||'').trim(); if(v) h+='<div class="ws-view-field"><b>'+esc(f.l)+'</b>'+esc(v)+'</div>'; });
+      h+='</div>';
+    });
+    h+='</div>';
+  });
+  h+='<div style="height:14px"></div><button class="btn danger sm" id="wb-record-delete">이 기록 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>';
+  return h;
+}
+function openWorkbookRecord(rid){
+  const r=(S.stepWorks||[]).find(x=>x.rid===rid); if(!r) return;
+  modal(workbookRecordHtml(r));
+  const b=$('#wb-record-delete'); if(b) b.onclick=()=>{
+    modal('<h2>이 검토 기록을 삭제할까요?</h2><p class="muted" style="margin:6px 0 14px">이 기록 한 건만 기기에서 삭제합니다. 되돌릴 수 없습니다.</p><button class="btn danger" id="wb-delete-yes">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">그만두기</button>');
+    $('#wb-delete-yes').onclick=()=>{ S.stepWorks=(S.stepWorks||[]).filter(x=>x.rid!==rid); save(); closeModal(); drawRec(); toast('검토 기록을 삭제했습니다.'); };
+  };
+}
+function recWorkbook(){
+  const w=el('div');
+  const head=el('div','card');
+  head.innerHTML='<h3>12단계 검토</h3><p class="muted" style="margin:-2px 0 12px">책의 검토시트를 앱에서 작성하고 다시 볼 수 있습니다. 내용은 이 기기에만 저장됩니다.</p><div class="row wrap"><button class="btn sec sm" id="rec-wb1">1단계 검토 작성</button><button class="btn sec sm" id="rec-wb4">4단계 검토 작성</button><button class="btn sec sm" id="rec-wb8">8단계 보상 준비 검토 작성</button><button class="btn sec sm" id="rec-wb9">9단계 직접 보상 계획 작성</button></div><div class="sep"></div><h3 style="margin-bottom:5px">회복의 실제 · 매일 실천</h3><p class="muted" style="margin:-2px 0 12px">10·11·12단계는 한 번 끝내는 과제가 아니라 일상에서 반복하는 실천입니다.</p><div class="row wrap"><button class="btn sec sm" id="rec-wb10">10단계 오늘의 검토</button><button class="btn sec sm" id="rec-wb11">11단계 기도·명상 실천</button><button class="btn sec sm" id="rec-wb12">12단계 생활 속 실천</button></div>';
+  const wb1=head.querySelector('#rec-wb1'), wb4=head.querySelector('#rec-wb4'), wb8=head.querySelector('#rec-wb8'), wb9=head.querySelector('#rec-wb9'), wb10=head.querySelector('#rec-wb10'), wb11=head.querySelector('#rec-wb11'), wb12=head.querySelector('#rec-wb12');
+  wb1.onclick=()=>openWorkbook('step1','rec'); wb4.onclick=()=>openWorkbook('step4','rec'); wb8.onclick=()=>openWorkbook('step8','rec'); wb9.onclick=()=>openWorkbook('step9','rec'); wb10.onclick=()=>openWorkbook('step10','rec'); wb11.onclick=()=>openWorkbook('step11','rec'); wb12.onclick=()=>openWorkbook('step12','rec');
+  w.appendChild(head);
+  const rows=(S.stepWorks||[]).slice().sort((a,b)=>b.t-a.t);
+  if(!rows.length){ w.appendChild(emptyBox('아직 저장한 12단계 검토가 없습니다.<br>1·4·8·9단계 검토 또는 10·11·12단계의 매일 실천 중 지금 필요한 자리부터 시작해보세요.')); return w; }
+  const c=el('div','card'); c.innerHTML='<h3>저장한 검토 '+rows.length+'건</h3>';
+  rows.forEach(r=>{
+    const def=WORKSHEETS[r.kind]; if(!def) return;
+    const b=el('button','ws-saved'); b.style.width='100%'; b.style.textAlign='left';
+    b.innerHTML='<span class="date">'+esc(ymd(r.t))+'<br>'+esc(new Date(r.t).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}))+'</span><span class="body"><b>'+esc(def.title)+'</b><span>'+esc(workbookRecordSummary(r))+'</span></span><span class="go">보기</span>';
+    b.onclick=()=>openWorkbookRecord(r.rid); c.appendChild(b);
+  });
+  w.appendChild(c); return w;
+}
+
 
 /* ══════════ 자가점검 V7.1 ══════════
    문항은 screening-data.js, 결과기록은 이 기기 localStorage에만 둡니다.
@@ -3524,7 +3834,7 @@ function drawRec(){
   const tabs = famMode()
     ? [{v:'mood',l:'감정'},{v:'day',l:'하루'},{v:'body',l:'몸'},{v:'stat',l:'통계'}]
     : [{v:'mood',l:'감정'},{v:'urge',l:'충동'},{v:'day',l:'하루'},{v:'body',l:'몸'},
-       {v:'relapse',l:'다시 시작'},{v:'stat',l:'통계'}];
+       {v:'relapse',l:'다시 시작'},{v:'work',l:'12단계 검토'},{v:'stat',l:'통계'}];
   if(!tabs.some(t => t.v === recTab)) recTab = 'mood';
 
   const tb = $('#rec-tab'); tb.innerHTML = '';
@@ -3540,6 +3850,7 @@ function drawRec(){
   if(recTab === 'day')     body.appendChild(recDay());
   if(recTab === 'body')    body.appendChild(recBody());
   if(recTab === 'relapse') body.appendChild(recRelapse());
+  if(recTab === 'work')    body.appendChild(recWorkbook());
   if(recTab === 'stat')    body.appendChild(recStat());
 }
 
@@ -5020,7 +5331,7 @@ function aiLocalNav(intent){
     ai.follow='nav-panic'; drawAI(); return true;
   }
   if(intent === 'listen'){
-    aiAdd('assistant','[마음 처방전]에는 앱에 검토해 둔 도움글과 직접 재생 가능한 듣는 글이 준비되어 있어요. 지금 마음과 가까운 내용을 골라 천천히 읽거나 들을 수 있습니다.', true);
+    aiAdd('assistant','[마음 처방전]과 [회복도구]에서 앱에 검토해 둔 듣는 글을 열 수 있어요. 지금 마음과 가까운 내용을 골라 천천히 읽고, 직접 재생 가능한 음악이 있으면 함께 들을 수 있습니다.', true);
     ai.follow='nav-listen'; drawAI(); return true;
   }
   if(intent === 'familyguide'){
@@ -5042,7 +5353,7 @@ function aiLocalNav(intent){
     ai.follow='nav-me'; drawAI(); return true;
   }
   if(intent === 'help'){
-    aiAdd('assistant','헬프에는 헬프콜, 자조모임, 센터·병원처럼 사람과 실제 자원으로 연결되는 기능이 모여 있어요. 도움글과 듣는 글은 [지금 위험해요]의 마음 처방전에서 바로 열 수 있습니다.', true);
+    aiAdd('assistant','헬프에는 헬프콜, 자조모임, 센터·병원처럼 사람과 실제 자원으로 연결되는 기능이 모여 있어요. 도움글은 [지금 위험해요]의 마음 처방전에서, 듣는 글은 마음 처방전과 [회복도구]에서 바로 열 수 있습니다.', true);
     ai.follow='nav-help'; drawAI(); return true;
   }
   if(intent === 'home'){
@@ -6456,7 +6767,9 @@ $('#me-sheet-save').onclick = () => {
 
 $('#tool-qa').onclick = () => { qaState.selected=0; qaState.cat='전체'; qaState.q=''; qaState.limit=30; go('qa'); };
 $('#tool-learn').onclick = () => go('learn');
+$('#tool-listen').onclick = () => openListen('tools');
 $('#learn-topic-back').onclick = () => go('learn');
+$('#wb-back').onclick = () => workbookBack();
 $('#tool-check').onclick = () => go('screening');
 $('#me-share').onclick = shareApp;
 $('#qa-back').onclick = () => { qaState.selected=0; go('tools'); };
@@ -6482,7 +6795,7 @@ $('#me-file').onchange = e => {
     try{
       const j = JSON.parse(r.result);
       if(!j || typeof j !== 'object') throw new Error('형식이 다릅니다');
-      S = Object.assign(JSON.parse(JSON.stringify(BLANK)), j);
+      S = migrate(Object.assign(JSON.parse(JSON.stringify(BLANK)), j));
       save();
       applyTheme();
       toast('불러왔습니다.');

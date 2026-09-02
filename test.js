@@ -13,7 +13,8 @@ const srv = http.createServer((req, res) => {
 
 (async () => {
   await new Promise(r => srv.listen(8899, r));
-  const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+  const launchOpts = process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {};
+  const b = await chromium.launch(launchOpts);
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2,
     locale: 'ko-KR', timezoneId: 'Asia/Seoul' });
   const pg = await ctx.newPage();
@@ -161,22 +162,76 @@ const srv = http.createServer((req, res) => {
   await pg.click('#tabs button[data-t="tools"]'); await pg.waitForTimeout(250);
   assert(errs.length === toolErrBefore, '회복도구 진입 시 JavaScript 오류가 없어야 함');
   assert(await pg.isVisible('#tool-qa'), '하단 회복도구가 열려야 함');
+  assert(await pg.isVisible('#tool-listen'), '회복도구에 듣는 글 메뉴가 보여야 함');
+  await pg.click('#tool-listen'); await pg.waitForTimeout(180);
+  assert((await seen()) === 'p-listen', '회복도구의 듣는 글이 기존 듣는 글 화면을 열어야 함');
+  assert(await pg.$eval('#tabs button[data-t="tools"]', e => e.classList.contains('on')), '회복도구에서 듣는 글을 열면 회복도구 탭 강조 유지');
+  await pg.click('#ls-back'); await pg.waitForTimeout(120);
+  assert((await seen()) === 'p-tools', '듣는 글에서 돌아가면 회복도구로 복귀');
   assert(!(await pg.$('#tool-share')), '회복도구에서 추천하기가 빠져야 함');
-  assert(await pg.evaluate(() => Array.isArray(window.LEARNING_TOPICS) && window.LEARNING_TOPICS.length === 1), '회복학습은 독립 learning-data.js를 로드해야 함');
+  assert(await pg.evaluate(() => Array.isArray(window.LEARNING_TOPICS) && window.LEARNING_TOPICS.length === 2), '회복학습은 2개 독립 주제를 learning-data.js에서 로드해야 함');
   await pg.click('#tool-learn'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-learn', '회복학습 목록 페이지가 열려야 함');
-  assert((await pg.$$eval('#learn-list .help', a => a.length)) === 1, '현재 회복학습 목록에는 12단계 한 항목만 있어야 함');
+  assert((await pg.$$eval('#learn-list .help', a => a.length)) === 2, '회복학습 목록에는 12단계와 회복의 기초 이해 2개가 있어야 함');
   assert((await pg.$eval('#learn-list', e => e.innerText)).includes('12단계'), '회복학습 목록에 12단계가 표시되어야 함');
+  assert((await pg.$eval('#learn-list', e => e.innerText)).includes('회복의 기초 이해'), '회복학습 목록에 심화 주제가 표시되어야 함');
   await pg.click('#learn-list .help'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-learn-topic', '12단계 선택 시 별도 주제 페이지가 열려야 함');
   assert((await pg.$eval('#learn-topic-title', e => e.innerText)) === '12단계', '주제 페이지 제목은 12단계');
-  assert((await pg.$$eval('#learn-topic-sections .help', a => a.length)) === 13, '12단계 학습 틀은 소개 + 1~12단계 = 13개');
+  assert((await pg.$$eval('#learn-topic-sections .help', a => a.length)) === 14, '12단계 학습은 소개 + 기초 + 1~12단계 = 14개');
+  assert((await pg.$eval('#learn-topic-sections', e => e.innerText)).includes('12단계의 기초'), '12단계의 기초가 추가되어야 함');
+  await pg.click('#learn-topic-sections .help'); await pg.waitForTimeout(100);
+  assert(await pg.isVisible('#mod.on'), '12단계 소개 상세 모달이 열려야 함');
+  assert((await pg.$eval('#modin', e => e.innerText)).includes('잠시 멈추어 생각해보기'), '학습 상세에 생각해보기 영역이 있어야 함');
+  await pg.click('#learn-modal-close'); await pg.waitForTimeout(80);
   assert(!(await pg.$eval('#p-learn-topic', e => e.innerText)).includes('Q&A'), '12단계 학습 페이지가 Q&A로 되돌아가지 않아야 함');
+  await pg.click('#learn-topic-back');
+  const learnCards=await pg.$$('#learn-list .help');
+  await learnCards[1].click();
+  assert((await pg.$eval('#learn-topic-title', e => e.innerText)) === '회복의 기초 이해', '심화학습 주제 페이지 제목');
+  assert((await pg.$$eval('#learn-topic-sections .help', a => a.length)) === 4, '심화학습은 4개 섹션');
+  const deepText=await pg.$eval('#learn-topic-sections', e => e.innerText);
+  assert(deepText.includes('영·마음·몸') && deepText.includes('욕구에서 탐욕까지') && deepText.includes('두려움을') && deepText.includes('의미와 자기초월'), '심화학습 4개 핵심 영역 표시');
   await pg.click('#learn-topic-back'); await pg.waitForTimeout(100);
   await pg.click('#p-learn .sp button'); await pg.waitForTimeout(120);
   assert((await seen()) === 'p-tools', '회복학습에서 회복도구로 돌아갈 수 있어야 함');
 
-  // V7.1 자가점검 — 선택 회복영역 + 공통 마음건강 + 행동연결/재점검 안내/최근기록
+  // V7.6 1·4·8·9단계 검토 + 10·11·12단계 매일 실천 — 초안 + 내 발자취 저장
+  assert(await pg.evaluate(() => window.STEP_WORKSHEETS && ['step1','step4','step8','step9','step10','step11','step12'].every(k => STEP_WORKSHEETS[k])), '1·4·8·9·10·11·12단계 검토·실천 데이터 로드');
+  await pg.evaluate(() => openWorkbook('step1','rec')); await pg.waitForTimeout(120);
+  assert((await seen()) === 'p-workbook', '1단계 검토 작성 화면이 열려야 함');
+  assert((await pg.$$eval('#wb-body details.ws-sec', a => a.length)) === 3, '1단계 검토는 무력함·수습할 수 없는 삶·상실과 애도 3개 시트');
+  await pg.fill('#wb-body textarea', '조절하려 했지만 뜻대로 되지 않았던 경험'); await pg.waitForTimeout(380);
+  assert(await pg.evaluate(() => S.stepDrafts.step1.sections.powerless[0].event.includes('조절하려')), '검토 작성 중 초안이 상태에 자동 저장');
+  await pg.click('#wb-save-record'); await pg.waitForTimeout(150);
+  assert((await seen()) === 'p-rec' && (await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토 1건'), '1단계 검토를 내 발자취에 저장');
+  await pg.click('#rec-wb4'); await pg.waitForTimeout(120);
+  assert((await pg.$$eval('#wb-body details.ws-sec', a => a.length)) === 8, '4단계 검토는 어휘 + 핵심·심화 7개 시트');
+  await pg.fill('#wb-body textarea', '내가 놓지 못한 원한'); await pg.waitForTimeout(380);
+  await pg.click('#wb-save-record'); await pg.waitForTimeout(150);
+  assert((await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토 2건'), '4단계 검토도 내 발자취에 저장');
+
+  for(const [btn,kind,sections,text] of [
+    ['#rec-wb8','step8',3,'보상할 명단 첫 기록'],
+    ['#rec-wb9','step9',3,'직접 보상 전 안전 검토'],
+    ['#rec-wb10','step10',3,'오늘 남은 감정적 숙취'],
+    ['#rec-wb11','step11',3,'오늘의 연결 방식'],
+    ['#rec-wb12','step12',3,'오늘 살고 싶은 원칙']
+  ]){
+    await pg.click(btn); await pg.waitForTimeout(100);
+    assert((await seen()) === 'p-workbook', kind+' 작성 화면이 열려야 함');
+    const detailCount=await pg.$$eval('#wb-body details.ws-sec', a => a.length);
+    const refs=await pg.evaluate(k => (STEP_WORKSHEETS[k].references||[]).length, kind);
+    assert(detailCount === sections + (refs ? 1 : 0), kind+' 섹션/어휘 렌더 수 일치');
+    await pg.fill('#wb-body textarea', text); await pg.waitForTimeout(360);
+    await pg.click('#wb-save-record'); await pg.waitForTimeout(120);
+  }
+  assert((await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토 7건'), '1·4·8·9·10·11·12단계 기록 7건 저장');
+  assert(await pg.evaluate(() => STEP_WORKSHEETS.step11.safety.includes('특정 종교를 전제로 하지 않습니다')), '11단계 종교 강요 방지 문구');
+  assert(await pg.evaluate(() => STEP_WORKSHEETS.step12.safety.includes('다른 사람을 치료하거나 책임지라는 뜻이 아닙니다')), '12단계 도움 역할 경계 문구');
+  await pg.click('#tabs button[data-t="tools"]'); await pg.waitForTimeout(100);
+
+  // V7.2 자가점검 — 선택 회복영역 + 공통 마음건강 + 행동연결/재점검 안내/최근기록
   assert(await pg.evaluate(() => Array.isArray(window.SCREENING_TOOLS) && window.SCREENING_TOOLS.length === 9), '자가점검 도구는 9종이어야 함');
   await pg.click('#tool-check'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-screening', '자가점검 목록이 열려야 함');
@@ -244,7 +299,8 @@ const srv = http.createServer((req, res) => {
   const rt = async i => { await pg.click(`#rec-tab button:nth-child(${i})`); await pg.waitForTimeout(300); };
   await rt(2); await shot('12-trail-urge');
   await rt(5); console.log('   다시시작 탭 =', (await pg.$eval('#rec-body', e => e.innerText)).replace(/\n+/g,' / ').slice(0,80));
-  await rt(6);
+  await rt(6); assert((await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토 2건'), '내 발자취 12단계 검토 탭에서 저장 기록 재조회');
+  await rt(7);
   console.log('12. 통계 =', (await pg.$eval('#rec-body', e => e.innerText)).replace(/\n+/g, ' / ').slice(0, 200));
   await shot('13-trail-stat');
 
