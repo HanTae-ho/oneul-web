@@ -248,6 +248,7 @@ addEventListener('appinstalled', function(){
     background:var(--acc);color:#fff;font-weight:600;font-size:15px;text-align:center}
   .btn.sec{background:var(--accbg);color:var(--acc)}
   .btn.ghost{background:none;border:1px solid var(--line);color:var(--dim);font-weight:500}
+  .btn.help-alert{background:var(--badbg);border:1px solid var(--bad);color:var(--bad);font-weight:700}
   .btn.danger{background:var(--bad)}
   .btn:active{opacity:.82}
   .btn.sm{padding:10px;font-size:14px;border-radius:11px}
@@ -739,7 +740,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-place">
   <div class="sp" style="margin-bottom:12px">
     <h1 style="margin:0" id="pl-title">센터 찾기</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('help')">← 헬프</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('help')">← 헬프</button>
   </div>
   <p class="muted" style="margin:-6px 0 12px" id="pl-sub"></p>
   <div class="opts" id="pl-mode" style="margin-bottom:8px"></div>
@@ -844,7 +845,7 @@ addEventListener('appinstalled', function(){
   </button>
 
   <div style="height:8px"></div>
-  <button class="btn ghost" onclick="go('home')">돌아가기</button>
+  <button class="btn ghost" onclick="appBack('home')">돌아가기</button>
 </section>
 
 <!-- ══════════ 충동 대응 ══════════ -->
@@ -1018,7 +1019,7 @@ addEventListener('appinstalled', function(){
 
   <button class="btn" id="rl-save">기록하고 다시 시작</button>
   <div style="height:9px"></div>
-  <button class="btn ghost" onclick="go('home')">돌아가기</button>
+  <button class="btn ghost" onclick="appBack('home')">돌아가기</button>
 </section>
 
 <!-- ══════════ 듣는 글 ══════════
@@ -1097,7 +1098,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-screening">
   <div class="sp" style="margin-bottom:11px">
     <h1 style="margin:0">자가점검</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('tools')">← 회복도구</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('tools')">← 회복도구</button>
   </div>
   <div class="note w" style="margin-bottom:13px">자가점검은 진단이 아닙니다. 점수는 현재 상태를 살펴보고 상담이나 전문 평가가 필요한지 확인하는 참고자료입니다. 결과는 이 기기에만 저장됩니다.</div>
   <div id="screening-list"></div>
@@ -1137,10 +1138,20 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-learn">
   <div class="sp" style="margin-bottom:11px">
     <h1 style="margin:0">회복학습</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('tools')">← 회복도구</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('tools')">← 회복도구</button>
   </div>
   <p class="muted" style="margin:-2px 0 14px">배우고 싶은 회복 주제를 선택해 차례대로 살펴봅니다.</p>
   <div class="learnlist" id="learn-list"></div>
+</section>
+
+<!-- ══════════ 회복학습 · 단계별 점검 V7.8 ══════════ -->
+<section class="pg" id="p-workbook-list">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0">단계별 점검</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" id="workbook-list-back">← 회복학습</button>
+  </div>
+  <p class="muted" style="margin:-2px 0 14px">12단계 내용을 읽은 뒤 실제 경험을 적어보는 공간입니다. 작성 내용은 이 기기에만 저장됩니다.</p>
+  <div class="learnlist" id="workbook-list"></div>
 </section>
 
 <!-- ══════════ 회복학습 · 주제별 페이지 ══════════ -->
@@ -1170,7 +1181,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-rec">
   <div class="sp" style="margin-bottom:8px">
     <h1 style="margin:0">내 발자취</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('me')">← 내정보</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('me')">← 내정보</button>
   </div>
   <p class="muted" style="margin:0 0 14px">감정 · 충동 · 하루 · 몸 · 다시 시작 · 12단계 검토 · 통계를 돌아봅니다.</p>
   <div class="opts" id="rec-tab" style="margin-bottom:14px"></div>
@@ -1181,7 +1192,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-meet">
   <div class="sp" style="margin-bottom:12px">
     <h1 style="margin:0" id="mt-title">모임 찾기</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('help')">← 헬프</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('help')">← 헬프</button>
   </div>
 
   <div class="opts" id="mt-mode" style="margin-bottom:8px"></div>
@@ -1543,7 +1554,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V7.7';
+const BUILD = 'V7.8';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -2270,23 +2281,43 @@ function toast(msg){
 function modal(html){
   $('#modin').innerHTML = html;
   $('#mod').classList.add('on');
+  /* 같은 모달 상자를 재사용하므로 새 글을 열 때마다 반드시 맨 위로 보냅니다. */
+  const mb=$('#modbox'); if(mb) mb.scrollTop=0;
 }
 function closeModal(){ $('#mod').classList.remove('on'); }
 $('#mod').addEventListener('click', e => { if(e.target.id === 'mod') closeModal(); });
 
-/* ── 라우팅 ── */
+/* ── 라우팅 · Android 시스템 뒤로가기 V7.8 ──
+   페이지 이동마다 같은 URL 안에 history state를 쌓아, 설치형 PWA에서도
+   Android [<]가 앱을 바로 닫지 않고 직전 화면으로 돌아가게 합니다. */
 const TABBED = ['home','tools','help','ai'];
 let cur = 'home';
+let navReady = false;
 
-function go(p){
+function navDepth(){ const st=history.state; return st && st.ohg ? Number(st.depth||0) : 0; }
+function appBack(fallback){
+  if(navDepth()>0){ history.back(); return; }
+  if(fallback) go(fallback,{replace:true});
+}
+
+function go(p,opt){
+  opt=opt||{};
   const prev = cur;
+  const target=$('#p-' + p);
+  if(!target) return;
+  if(navReady && !opt.fromHistory){
+    const st={ohg:1,p:p,depth:opt.replace?navDepth():navDepth()+1};
+    try{
+      if(opt.replace) history.replaceState(st,'',location.href);
+      else if(p!==cur || opt.force) history.pushState(st,'',location.href);
+    }catch(e){}
+  }
   $$('.pg').forEach(n => n.classList.remove('on'));
-  const t = $('#p-' + p);
-  if(t) t.classList.add('on');
+  target.classList.add('on');
   if(p === 'ai' && prev !== 'ai') ai.actionsOpen = false;
   cur = p;
   $('#tabs').style.display = (p === 'intro') ? 'none' : 'flex';
-  let tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'workbook' || p === 'screening' || p === 'screen-test') ? 'tools' : p;
+  let tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'workbook-list' || p === 'workbook' || p === 'screening' || p === 'screen-test') ? 'tools' : p;
   if(p === 'listen' && ls.back === 'tools') tabP = 'tools';
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tabP));
   $('#view').classList.toggle('ai-mode', p === 'ai');
@@ -2296,6 +2327,7 @@ function go(p){
   if(p === 'qa')    drawQA();
   if(p === 'learn') drawLearn();
   if(p === 'learn-topic') drawLearnTopic();
+  if(p === 'workbook-list') drawWorkbookList();
   if(p === 'workbook') drawWorkbook();
   if(p === 'screening') drawScreening();
   if(p === 'screen-test') drawScreenTest();
@@ -2314,6 +2346,26 @@ function go(p){
   if(p === 'fam')     drawFam();
   if(p === 'admin')   drawAdminPage();
 }
+window.addEventListener('popstate', e => {
+  /* 같은 페이지 안의 '상세 화면'도 한 단계로 취급합니다. */
+  if($('#mod').classList.contains('on')){
+    closeModal();
+    try{ history.pushState({ohg:1,p:cur,depth:navDepth()+1},'',location.href); }catch(err){}
+    return;
+  }
+  if(cur==='qa' && qaState.selected){
+    qaState.selected=0; drawQA();
+    try{ history.pushState({ohg:1,p:cur,depth:navDepth()+1},'',location.href); }catch(err){}
+    return;
+  }
+  if(cur==='listen' && ls.i>=0){
+    ls.i=-1; drawListen(); rdTop();
+    try{ history.pushState({ohg:1,p:cur,depth:navDepth()+1},'',location.href); }catch(err){}
+    return;
+  }
+  const st=e.state;
+  if(st && st.ohg && st.p) go(st.p,{fromHistory:true});
+});
 $$('#tabs button').forEach(b => b.onclick = () => go(b.dataset.t));
 
 /* ── 바깥 주소는 새 창으로 ──
@@ -3317,7 +3369,7 @@ function drawQA(){
       '<article class="qadetail"><div class="meta">Q' + x.id + ' · ' + esc(x.cat) + '</div>' +
       '<h2>' + esc(x.q) + '</h2><div class="answer">' + esc(x.a) + '</div>' + safety + '</article>' +
       '<div style="height:10px"></div><button class="btn sec sm" id="qa-ai-more">마음프로에게 더 물어보기</button>' +
-      (x.urgent ? '<div style="height:8px"></div><button class="btn ghost sm" id="qa-help-open">헬프 열기</button>' : '');
+      (x.urgent ? '<div style="height:8px"></div><button class="btn help-alert sm" id="qa-help-open">헬프 열기</button>' : '');
     $('#qa-list-back').onclick = () => { qaState.selected=0; drawQA(); };
     $('#qa-ai-more').onclick = () => {
       const q = x.q; go('ai');
@@ -3370,6 +3422,29 @@ function drawLearn(){
     b.onclick=()=>{ learnState.topic=m.id; go('learn-topic'); };
     box.appendChild(b);
   });
+  /* 12단계를 읽는 곳과 직접 작성하는 곳을 회복학습 안에서 나란히 둡니다. */
+  const w=el('button','help');
+  w.style.width='100%'; w.style.textAlign='left';
+  w.innerHTML='<span class="ic">'+ico('check')+'</span>'+
+    '<span class="b"><b>단계별 점검</b><span>1·4·8·9·10·11·12단계의 검토와 실천 기록을 바로 작성합니다</span></span>'+
+    '<span class="acts"><span class="go">점검</span></span>';
+  w.onclick=()=>go('workbook-list');
+  box.appendChild(w);
+  refreshIcons();
+}
+
+function drawWorkbookList(){
+  const box=$('#workbook-list'); if(!box) return; box.innerHTML='';
+  const order=['step1','step4','step8','step9','step10','step11','step12'];
+  order.forEach(k=>{
+    const d=WORKSHEETS[k]; if(!d) return;
+    const b=el('button','help'); b.style.width='100%'; b.style.textAlign='left';
+    b.innerHTML='<span class="ic">'+ico(k==='step9'?'people':k==='step11'?'sprout':'check')+'</span>'+
+      '<span class="b"><b>'+esc(d.title)+'</b><span>'+esc(d.subtitle||d.intro||'')+'</span></span>'+
+      '<span class="acts"><span class="go">작성</span></span>';
+    b.onclick=()=>openWorkbook(k,'workbook-list');
+    box.appendChild(b);
+  });
   refreshIcons();
 }
 
@@ -3407,6 +3482,8 @@ function learningAction(type){
 
 
 function openLearnSection(topic,s){
+  const sections=Array.isArray(topic.sections)?topic.sections:[];
+  const idx=Math.max(0,sections.indexOf(s));
   const paragraphs = Array.isArray(s.body) ? s.body : (s.content ? String(s.content).split(/\n\s*\n/) : []);
   let h='';
   if(s.part) h+='<div class="learn-part">'+esc(s.part)+'</div>';
@@ -3419,10 +3496,16 @@ function openLearnSection(topic,s){
   if(Array.isArray(s.actions) && s.actions.length){
     h+='<div class="learn-actions">'+s.actions.map((a,i)=>'<button class="btn '+(i?'ghost':'sec')+'" data-learn-act="'+esc(a.type)+'">'+esc(a.label)+'</button>').join('')+'</div>';
   }
-  if(topic.sourceNote) h+='<div class="learn-source">'+esc(topic.sourceNote)+' · 앱에서는 원고를 모바일 학습용으로 요약·재구성했습니다.</div>';
-  h+='<div style="height:12px"></div><button class="btn ghost" id="learn-modal-close">닫기</button>';
+  /* sourceNote는 내부 출처 관리용 데이터로만 남기고 사용자 화면에는 표시하지 않습니다. */
+  h+='<div class="rdnav" style="margin-top:16px">'+
+    '<button class="btn ghost" id="learn-modal-prev"'+(idx<=0?' disabled':'')+'>← 이전</button>'+
+    '<span class="pos">'+(idx+1)+' / '+sections.length+'</span>'+
+    '<button class="btn sec" id="learn-modal-next"'+(idx>=sections.length-1?' disabled':'')+'>다음 글 →</button></div>'+
+    '<div style="height:10px"></div><button class="btn ghost" id="learn-modal-close">닫기</button>';
   modal(h);
   $$('#modin [data-learn-act]').forEach(b=>{ b.onclick=()=>learningAction(b.dataset.learnAct); });
+  const p=$('#learn-modal-prev'); if(p && idx>0) p.onclick=()=>openLearnSection(topic,sections[idx-1]);
+  const n=$('#learn-modal-next'); if(n && idx<sections.length-1) n.onclick=()=>openLearnSection(topic,sections[idx+1]);
   const c=$('#learn-modal-close'); if(c) c.onclick=closeModal;
 }
 
@@ -3470,8 +3553,9 @@ function openWorkbook(kind, from){
 function workbookBack(){
   clearTimeout(workbookSaveTimer); save();
   if(workbookState.from==='rec'){ recTab='work'; go('rec'); return; }
-  if(workbookState.from==='learn-topic'){ go('learn-topic'); return; }
-  go('learn');
+  if(workbookState.from==='learn-topic'){ appBack('learn-topic'); return; }
+  if(workbookState.from==='workbook-list'){ appBack('workbook-list'); return; }
+  appBack('learn');
 }
 function workbookEmptyData(def){
   const d={sections:{}, updatedAt:Date.now()};
@@ -3816,7 +3900,7 @@ function screeningStats(){
   });
   return w;
 }
-$('#screen-test-close').onclick=()=>{ screenRun=null; go('screening'); };
+$('#screen-test-close').onclick=()=>{ screenRun=null; appBack('screening'); };
 
 function shareApp(){
   const url = location.origin && location.origin !== 'null' ? location.origin + location.pathname : location.href.split('#')[0];
@@ -5465,7 +5549,7 @@ async function aiSend(text, topic){
 }
 
 $('#ai-consent-go').onclick = () => { S.aiConsent = 1; ai.actionsOpen = false; save(); drawAI(); };
-$('#ai-back').onclick = () => go(ai.back || 'help');
+$('#ai-back').onclick = () => appBack(ai.back || 'help');
 $('#ai-send').onclick = () => aiSend($('#ai-input').value, '');
 $('#ai-input').addEventListener('keydown', e => {
   if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); aiSend($('#ai-input').value, ''); }
@@ -5863,7 +5947,7 @@ function drawRead(){
 
 $('#rd-next').onclick = () => { rd.i++; drawRead(); rdTop(); };
 $('#rd-prev').onclick = () => { rd.i--; drawRead(); rdTop(); };
-$('#rd-back').onclick = () => go(rd.back);
+$('#rd-back').onclick = () => appBack(rd.back);
 
 /* 다음 글로 넘겼는데 화면이 아래에 머물러 있으면 제목을 못 봅니다 */
 function rdTop(){ const v = $('#view'); if(v) v.scrollTop = 0; }
@@ -5936,7 +6020,7 @@ function drawListen(){
 $('#ls-next').onclick    = () => { ls.i++; drawListen(); rdTop(); };
 $('#ls-prev').onclick    = () => { ls.i--; drawListen(); rdTop(); };
 $('#ls-tolist').onclick  = () => { ls.i = -1; drawListen(); rdTop(); };
-$('#ls-back').onclick    = () => { if(ls.i >= 0){ ls.i = -1; drawListen(); rdTop(); } else go(ls.back); };
+$('#ls-back').onclick    = () => { if(ls.i >= 0){ ls.i = -1; drawListen(); rdTop(); } else appBack(ls.back); };
 $('#tm-read').onclick = () => openRead('timer');   /* 타이머는 계속 돕니다 */
 $('#ur-read').onclick = () => openRead('urge');
 
@@ -6768,11 +6852,12 @@ $('#me-sheet-save').onclick = () => {
 $('#tool-qa').onclick = () => { qaState.selected=0; qaState.cat='전체'; qaState.q=''; qaState.limit=30; go('qa'); };
 $('#tool-learn').onclick = () => go('learn');
 $('#tool-listen').onclick = () => openListen('tools');
-$('#learn-topic-back').onclick = () => go('learn');
+$('#learn-topic-back').onclick = () => appBack('learn');
+$('#workbook-list-back').onclick = () => appBack('learn');
 $('#wb-back').onclick = () => workbookBack();
 $('#tool-check').onclick = () => go('screening');
 $('#me-share').onclick = shareApp;
-$('#qa-back').onclick = () => { qaState.selected=0; go('tools'); };
+$('#qa-back').onclick = () => { qaState.selected=0; appBack('tools'); };
 $('#qa-search').addEventListener('input', e => { qaState.q=e.target.value || ''; qaState.limit=30; drawQA(); });
 $('#qa-more').onclick = () => { qaState.limit += 30; drawQA(); };
 $('#me-trail-open').onclick = () => go('rec');
@@ -7020,7 +7105,10 @@ function boot(){
   refreshIcons();
   drawIntro();
   drawUrge();
-  if(S.started){ go('home'); } else { go('intro'); }
+  const first=S.started?'home':'intro';
+  try{ history.replaceState({ohg:1,p:first,depth:0},'',location.href); }catch(e){}
+  navReady=true;
+  go(first,{replace:true});
 
   /* 자원 목록은 앱을 열 때마다 조용히 새로 받습니다.
      사용자가 따로 '연결' 을 해야 목록이 나오는 것은 앱의 잘못입니다.

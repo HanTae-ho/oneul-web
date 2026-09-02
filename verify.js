@@ -8,9 +8,9 @@ const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningS
 const feedbackGs=read('오늘한걸음_의견_v1.0.gs'), resourceGs=read('오늘한걸음_자원시트_v1.8.gs');
 const fail=m=>{throw new Error('VERIFY: '+m)}; const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
-ok(/const BUILD = 'V7\.7';/.test(index),'index BUILD = V7.7');
-ok(/const APP_VERSION = 'V7\.7';/.test(sw),'sw APP_VERSION = V7.7');
-ok(/const V = 'ohg-v707';/.test(sw),'sw cache = ohg-v707');
+ok(/const BUILD = 'V7\.8';/.test(index),'index BUILD = V7.8');
+ok(/const APP_VERSION = 'V7\.8';/.test(sw),'sw APP_VERSION = V7.8');
+ok(/const V = 'ohg-v708';/.test(sw),'sw cache = ohg-v708');
 ['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
   ok(index.includes('<script src="./'+f+'"></script>'),'index가 '+f+' 로드');
@@ -20,6 +20,15 @@ ok(/id="tool-listen"/.test(index),'회복도구에 듣는 글 메뉴 존재');
 ok(/\$\('#tool-listen'\)\.onclick = \(\) => openListen\('tools'\)/.test(index),'회복도구 듣는 글이 기존 듣는 글 화면으로 연결');
 ok(/p === 'listen' && ls\.back === 'tools'/.test(index),'회복도구에서 듣는 글 진입 시 회복도구 탭 강조 유지');
 ok(/마음 처방전.*회복도구/.test(index),'마음프로 듣는 글 안내가 두 진입경로를 반영');
+ok(/id="p-workbook-list"/.test(index)&&/id="workbook-list"/.test(index),'회복학습 안에 단계별 점검 화면 존재');
+ok(/<b>단계별 점검<\/b>/.test(index)&&/go\('workbook-list'\)/.test(index),'회복학습 목록에서 단계별 점검 직접 진입');
+ok(/const order=\['step1','step4','step8','step9','step10','step11','step12'\]/.test(index),'단계별 점검 1·4·8·9·10·11·12단계 순서');
+ok(!/if\(topic\.sourceNote\) h\+=/.test(index),'회복학습 사용자 화면에서 내부 sourceNote 미표시');
+ok(/#modbox'\); if\(mb\) mb\.scrollTop=0/.test(index),'학습 모달을 새로 열 때 스크롤 맨 위 초기화');
+ok(/id="learn-modal-prev"/.test(index)&&/id="learn-modal-next"/.test(index),'회복학습 글 이전·다음 탐색 존재');
+ok(/btn help-alert sm/.test(index)&&/\.btn\.help-alert\{[^}]*var\(--badbg\)[^}]*var\(--bad\)/.test(index),'긴급 Q&A 헬프 버튼 붉은 계열 강조');
+ok(/history\.pushState/.test(index)&&/history\.replaceState/.test(index)&&/addEventListener\('popstate'/.test(index),'Android 시스템 뒤로가기용 History API 연결');
+ok(/function appBack\(fallback\)/.test(index),'앱 내부 뒤로가기 헬퍼 존재');
 ok(!/\.toISOString\s*\(/.test(test),'자동테스트에서 toISOString() 미사용 유지');
 ok(/timezoneId: 'Asia\/Seoul'/.test(test),'기존 브라우저 회귀테스트 시간대 Asia/Seoul 유지');
 ok(!/\/opt\/pw-browsers\/chromium/.test(test),'자동테스트 Chromium 경로 하드코딩 제거');
@@ -119,4 +128,4 @@ ok(/id="me-feedback-text"/.test(index)&&/id="me-feedback-send"/.test(index),'앱
 ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
 ok(/GS_VER\s*=\s*'v1\.8'/.test(resourceGs)&&/FEEDBACK_URL/.test(resourceGs),'자원시트 v1.8 유지');
 
-console.log('\nV7.7 핵심 검증 통과');
+console.log('\nV7.8 핵심 검증 통과');
