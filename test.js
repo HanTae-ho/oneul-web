@@ -24,6 +24,17 @@ const srv = http.createServer((req, res) => {
 
   const shot = async n => { await pg.screenshot({ path: `${__dirname}/shot-${n}.png`, fullPage: true }); };
   const seen = async () => await pg.$eval('.pg.on', e => e.id);
+  const localYmd = d => {
+    const z = n => String(n).padStart(2, '0');
+    return d.getFullYear() + '-' + z(d.getMonth()+1) + '-' + z(d.getDate());
+  };
+  const daysAgo = n => {
+    const d = new Date();
+    d.setHours(12, 0, 0, 0);
+    d.setDate(d.getDate() - n);
+    return localYmd(d);
+  };
+  const assert = (ok, msg) => { if(!ok) throw new Error('ASSERT: ' + msg); };
 
   await pg.goto('http://localhost:8899/index.html');
   await pg.waitForTimeout(500);
@@ -35,15 +46,28 @@ const srv = http.createServer((req, res) => {
   await pg.click('#ob-types button:nth-child(2)');
   await pg.waitForTimeout(150);
   // 시작일을 40일 전으로
-  const d40 = new Date(Date.now() - 40 * 86400000).toISOString().slice(0, 10);
+  const d40 = daysAgo(40);
   const ins = await pg.$$('#ob-dates input');
   await ins[0].fill(d40);
-  await ins[1].fill(new Date(Date.now() - 12 * 86400000).toISOString().slice(0, 10));
+  await ins[1].fill(daysAgo(12));
   await shot('2-onboard');
   await pg.click('#ob-go');
   await pg.waitForTimeout(300);
   console.log('2. 시작 후 =', await seen());
-  console.log('   회복일 =', (await pg.$eval('#home-days', e => e.innerText)).replace(/\n/g, ' | '));
+  const recoveryText = (await pg.$eval('#home-days', e => e.innerText)).replace(/\n/g, ' | ');
+  console.log('   회복일 =', recoveryText);
+  assert(recoveryText.includes('41일째'), '40일 전 시작은 오늘 41일째여야 함');
+  assert(recoveryText.includes('13일째'), '12일 전 시작은 오늘 13일째여야 함');
+  const dayRule = await pg.evaluate(() => ({
+    start: recoveryDay(today(), today()),
+    fixed: recoveryDay('2026-08-31', '2026-09-02'),
+    before: ymd(new Date('2026-09-01T23:59:59+09:00')),
+    after: ymd(new Date('2026-09-02T00:00:00+09:00'))
+  }));
+  console.log('   날짜 경계 =', dayRule);
+  assert(dayRule.start === 1, '회복 시작 당일은 1일째');
+  assert(dayRule.fixed === 3, '8/31 시작이면 9/2는 3일째');
+  assert(dayRule.before === '2026-09-01' && dayRule.after === '2026-09-02', '한국시간 자정에서 날짜가 바뀌어야 함');
   console.log('   매일의 명상 =', (await pg.$eval('#home-daily-text', e => e.innerText)).slice(0, 80));
 
   // HALT + 감정
@@ -132,8 +156,8 @@ const srv = http.createServer((req, res) => {
   await shot('10-rec-mood');
   const rt = async i => { await pg.click(`#rec-tab button:nth-child(${i})`); await pg.waitForTimeout(300); };
   await rt(2); await shot('11-rec-urge');
-  await rt(3); console.log('   다시시작 탭 =', (await pg.$eval('#rec-body', e => e.innerText)).replace(/\n+/g,' / ').slice(0,80));
-  await rt(4);
+  await rt(5); console.log('   다시시작 탭 =', (await pg.$eval('#rec-body', e => e.innerText)).replace(/\n+/g,' / ').slice(0,80));
+  await rt(6);
   console.log('12. 통계 =', (await pg.$eval('#rec-body', e => e.innerText)).replace(/\n+/g, ' / ').slice(0, 200));
   await shot('12-rec-stat');
 
@@ -176,7 +200,9 @@ const srv = http.createServer((req, res) => {
   await pg.evaluate(() => closeModal()); await pg.waitForTimeout(200);
   await pg.click('#tabs button[data-t="home"]'); await pg.waitForTimeout(250);
   console.log('    전 :', before);
-  console.log('    후 :', await pg.$eval('#home-days', e => e.innerText.replace(/\n/g, ' | ')));
+  const afterReset = await pg.$eval('#home-days', e => e.innerText.replace(/\n/g, ' | '));
+  console.log('    후 :', afterReset);
+  assert(afterReset.includes('1일째'), '다시 시작한 당일은 새 회복 1일째여야 함');
 
   // 다크 모드 — 내정보 → 앱 → 화면 설정
   await pg.click('#top-me'); await pg.waitForTimeout(250);

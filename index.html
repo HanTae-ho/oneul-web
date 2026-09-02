@@ -1245,7 +1245,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V5.1';
+const BUILD = 'V5.2';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1899,7 +1899,10 @@ function drawDailyHome(){
   homeDailyDate = today();
 }
 function refreshDailyHomeIfNeeded(){
-  if(homeDailyDate !== today()) drawDailyHome();
+  if(homeDailyDate === today()) return;
+  /* 자정을 넘겨 앱을 계속 켜둔 경우에도 회복일과 매일의 명상을 함께 갱신합니다. */
+  if(typeof cur !== 'undefined' && cur === 'home') drawHome();
+  else drawDailyHome();
 }
 
 /* 줄마다 한 문단으로. 읽는 글에서 문장 덩어리를 살립니다. */
@@ -1907,10 +1910,23 @@ const para = t => String(t == null ? '' : t).split('\n')
   .filter(l => l.trim()).map(l => '<p>' + esc(l) + '</p>').join('');
 const esc = s => String(s==null?'':s).replace(/[<>&"]/g, m => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[m]));
 
+function daySerial(v){
+  const m = String(v || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m) return NaN;
+  /* UTC는 여기서 '시간대 기준'으로 쓰는 것이 아니라, 이미 기기 로컬 날짜로 확정된
+     연·월·일 세 숫자의 간격만 DST 영향 없이 계산하기 위한 일련번호입니다. */
+  return Math.floor(Date.UTC(+m[1], +m[2]-1, +m[3]) / 86400000);
+}
 function daysBetween(from, to){
   if(!from) return 0;
-  const a = new Date(from + 'T00:00:00'), b = new Date((to||today()) + 'T00:00:00');
-  return Math.max(0, Math.round((b-a)/86400000));
+  const a = daySerial(from), b = daySerial(to || today());
+  if(!Number.isFinite(a) || !Number.isFinite(b)) return 0;
+  return Math.max(0, b - a);
+}
+/* '며칠이 지났나'와 '회복 몇 일째인가'는 다릅니다.
+   회복일 표시는 시작한 당일을 1일째로 셉니다. */
+function recoveryDay(from, to){
+  return from ? daysBetween(from, to) + 1 : 0;
 }
 function typeOf(k){ return TYPES.find(t=>t.k===k) || TYPES[3]; }
 function when(ts){
@@ -2187,7 +2203,7 @@ function drawHome(){
     d.innerHTML = '<p class="muted cen" style="margin:6px 0">내 정보에서 회복 영역을 골라주세요.</p>';
   }
   (fam ? [] : S.types).forEach(k => {
-    const t = typeOf(k), n = daysBetween(S.dates[k]);
+    const t = typeOf(k), n = recoveryDay(S.dates[k]);
     const sum = (S.cum[k] || 0) + n;
     /* '누적' 은 무엇을 센 것인지 알기 어려운 말이었습니다. 지켜온 날의 합계입니다. */
     const best = Math.max.apply(null, [n].concat(streaks(k).map(x => x.d)));
@@ -3239,9 +3255,10 @@ function recRelapse(){
   S.types.forEach(k => {
     const st = streaks(k);
     if(!st.length) return;
-    const now = daysBetween(S.dates[k]);
+    const now = recoveryDay(S.dates[k]);
+    const completed = daysBetween(S.dates[k]);
     const ds = st.map(x => x.d);
-    const best = Math.max.apply(null, ds.concat([now]));
+    const best = Math.max.apply(null, ds.concat([completed]));
     const avg = Math.round(ds.reduce((a, b) => a + b, 0) / ds.length);
     const c = el('div', 'card');
     let html = '<h3>' + esc(typeOf(k).v) + ' 회차별 기록</h3>' +
