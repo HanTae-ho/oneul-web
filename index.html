@@ -987,7 +987,7 @@ addEventListener('appinstalled', function(){
   <div class="toolgrid">
     <button class="toolcard" id="tool-qa">
       <span class="ic" data-ico="speak"></span>
-      <span class="b"><b>중독 Q&A</b><span id="tool-qa-s">중독 200문답과 보완 문답을 검색합니다</span></span>
+      <span class="b"><b>중독 Q&A</b><span id="tool-qa-s">회복 Q&A 224문답을 검색합니다</span></span>
       <span class="go">열기</span>
     </button>
     <button class="toolcard" id="tool-learn">
@@ -1409,7 +1409,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V6.1';
+const BUILD = 'V6.2';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -2042,6 +2042,9 @@ function ico(n, cls){
 /* ── 도구 ── */
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
+function refreshIcons(){
+  $$('[data-ico]').forEach(n => { n.innerHTML = ico(n.dataset.ico); });
+}
 const el = (t,c,h) => { const n=document.createElement(t); if(c)n.className=c; if(h!=null)n.innerHTML=h; return n; };
 const pad = n => String(n).padStart(2,'0');
 /* 날짜는 반드시 '이 기기의 시간'으로 셉니다.
@@ -3140,9 +3143,8 @@ let qaState = { cat:'전체', q:'', limit:30, selected:0 };
 
 function drawTools(){
   const n = QA.length;
-  const sup = QA.filter(x => x.supplement).length;
   const m = $('#tool-qa-s');
-  if(m) m.textContent = '중독 200문답 + 보완 ' + sup + '문답 · 총 ' + n + '개';
+  if(m) m.textContent = '회복 Q&A · 총 ' + n + '문답';
   refreshIcons();
 }
 
@@ -3153,8 +3155,7 @@ function qaFiltered(){
   const q = qaNorm(qaState.q);
   const toks = q ? q.split(/\s+/).filter(Boolean) : [];
   return QA.filter(x => {
-    if(qaState.cat === '보완' && !x.supplement) return false;
-    if(qaState.cat !== '전체' && qaState.cat !== '보완' && x.cat !== qaState.cat) return false;
+    if(qaState.cat !== '전체' && x.cat !== qaState.cat) return false;
     if(!toks.length) return true;
     const hay = qaNorm([x.q,x.a,(x.tags||[]).join(' '),x.cat].join(' '));
     return toks.every(t => hay.indexOf(t) >= 0);
@@ -3166,14 +3167,10 @@ function drawQA(){
     const x = QA.find(y => y.id === qaState.selected);
     if(!x){ qaState.selected=0; return drawQA(); }
     lv.classList.add('hide'); one.classList.remove('hide');
-    const sup = x.supplement ? '<span class="badge w">보완 문답</span>' : '';
     const safety = x.urgent ? '<div class="note b" style="margin:14px 0 0">이 항목에는 안전과 관련된 내용이 있습니다. 지금 위험하면 정보 검색보다 즉시 도움 연결이 우선입니다.</div>' : '';
     one.innerHTML = '<button class="tiny" id="qa-list-back" style="color:var(--acc);font-weight:600;margin-bottom:12px">← 질문 목록</button>' +
-      '<article class="qadetail"><div class="meta">Q' + x.id + ' · ' + esc(x.cat) + ' ' + sup + '</div>' +
-      '<h2>' + esc(x.q) + '</h2><div class="answer">' + esc(x.a) + '</div>' + safety +
-      '<div class="src">' + (x.supplement
-        ? '공식기관 자료를 바탕으로 V6.0에서 보완한 문답입니다. 출처 범주: ' + esc(x.origin || '공식기관 자료')
-        : '「중독 200문답」 v3.8의 질문과 핵심 내용을 모바일에서 읽기 쉽게 요약했습니다. 원문에는 더 상세한 설명과 근거문헌이 있습니다.') + '</div></article>' +
+      '<article class="qadetail"><div class="meta">Q' + x.id + ' · ' + esc(x.cat) + '</div>' +
+      '<h2>' + esc(x.q) + '</h2><div class="answer">' + esc(x.a) + '</div>' + safety + '</article>' +
       '<div style="height:10px"></div><button class="btn sec sm" id="qa-ai-more">마음프로에게 더 물어보기</button>' +
       (x.urgent ? '<div style="height:8px"></div><button class="btn ghost sm" id="qa-help-open">헬프 열기</button>' : '');
     $('#qa-list-back').onclick = () => { qaState.selected=0; drawQA(); };
@@ -3185,10 +3182,10 @@ function drawQA(){
     return;
   }
   lv.classList.remove('hide'); one.classList.add('hide'); one.innerHTML='';
-  const cats = ['전체','알코올','도박','마약','가족','공통','보완'];
+  const cats = ['전체','알코올','도박','마약','가족','공통'];
   const cb=$('#qa-cats'); cb.innerHTML='';
   cats.forEach(c => {
-    const cnt = c === '전체' ? QA.length : c === '보완' ? QA.filter(x=>x.supplement).length : QA.filter(x=>x.cat===c).length;
+    const cnt = c === '전체' ? QA.length : QA.filter(x=>x.cat===c).length;
     const b=el('button','opt'+(qaState.cat===c?' on':''),c+' '+cnt);
     b.onclick=()=>{ qaState.cat=c; qaState.limit=30; drawQA(); };
     cb.appendChild(b);
@@ -3200,7 +3197,7 @@ function drawQA(){
   const box=$('#qa-list'); box.innerHTML='';
   rows.slice(0,qaState.limit).forEach(x => {
     const b=el('button','qaitem');
-    b.innerHTML='<span class="meta"><span>Q'+x.id+'</span><span>·</span><span>'+esc(x.cat)+'</span>'+(x.supplement?'<span class="badge w">보완</span>':'')+'</span>'+
+    b.innerHTML='<span class="meta"><span>Q'+x.id+'</span><span>·</span><span>'+esc(x.cat)+'</span></span>'+
       '<b>'+esc(x.q)+'</b><span class="sum">'+esc(x.a)+'</span>';
     b.onclick=()=>{ qaState.selected=x.id; drawQA(); $('#view').scrollTop=0; };
     box.appendChild(b);
@@ -6430,7 +6427,7 @@ function boot(){
   applyTheme();
   $('#intro-ico').innerHTML = markSVG(52);   /* 홈 화면 아이콘과 같은 그림 */
   $('#af-ico').innerHTML = ico('wave');
-  $$('[data-ico]').forEach(n => { n.innerHTML = ico(n.dataset.ico); });
+  refreshIcons();
   drawIntro();
   drawUrge();
   if(S.started){ go('home'); } else { go('intro'); }

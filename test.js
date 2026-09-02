@@ -157,7 +157,9 @@ const srv = http.createServer((req, res) => {
   });
 
   // 회복도구 — Q&A 224문답은 AI 없이 로컬에서 검색
+  const toolErrBefore = errs.length;
   await pg.click('#tabs button[data-t="tools"]'); await pg.waitForTimeout(250);
+  assert(errs.length === toolErrBefore, '회복도구 진입 시 JavaScript 오류가 없어야 함');
   assert(await pg.isVisible('#tool-qa'), '하단 회복도구가 열려야 함');
   assert(!(await pg.$('#tool-share')), '회복도구에서 추천하기가 빠져야 함');
   assert(await pg.evaluate(() => Array.isArray(window.QA_ITEMS) && window.QA_ITEMS.length === 224), 'Q&A가 224문답이어야 함');
@@ -167,6 +169,9 @@ const srv = http.createServer((req, res) => {
   assert((await pg.$$eval('#qa-list .qaitem', a => a.length)) > 0, 'Q&A 갈망 검색 결과 존재');
   await pg.click('#qa-list .qaitem'); await pg.waitForTimeout(150);
   assert(await pg.isVisible('#qa-one .qadetail'), 'Q&A 상세 답변 표시');
+  const qaVisible = await pg.$eval('#p-qa', e => e.innerText);
+  assert(!qaVisible.includes('중독 200문답'), 'Q&A 사용자 화면에 원자료 제작 문구가 노출되지 않아야 함');
+  assert(!qaVisible.includes('보완 문답'), 'Q&A 사용자 화면에 제작상 보완 구분이 노출되지 않아야 함');
   await shot('10-tools-qa');
 
   // 기록은 하단에서 내정보 → 내 발자취로 이동
