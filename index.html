@@ -376,6 +376,9 @@ addEventListener('appinstalled', function(){
   .help .go{flex:0 0 auto;padding:8px 11px;border-radius:10px;display:inline-block;
     background:var(--accbg);color:var(--acc);font-weight:600;font-size:12.5px;white-space:nowrap}
   .help.urgent .go{background:var(--bad);color:#fff}
+  .help.mindrx{align-items:flex-start}
+  .help.mindrx .rxacts{display:flex;gap:7px;margin-top:9px}
+  .help.mindrx .rxacts .btn{flex:1;width:auto;margin:0;padding:9px 8px;font-size:12.5px}
 
   /* 통계 */
   .bars{display:flex;align-items:flex-end;gap:2px;height:96px;margin:10px 0 4px}
@@ -653,8 +656,8 @@ addEventListener('appinstalled', function(){
 
 <!-- ══════════ 위기 분기 ══════════ -->
 <section class="pg" id="p-panic">
-  <h1>지금 어떤 상태인가요?</h1>
-  <p class="muted" style="margin:-10px 0 18px">가장 가까운 것을 눌러주세요.</p>
+  <h1>지금 어떤 도움이 필요한가요?</h1>
+  <p class="muted" style="margin:-10px 0 18px">지금 가장 가까운 도움을 골라주세요.</p>
 
   <button class="help" id="pk-urge" style="width:100%;text-align:left">
     <span class="ic" data-ico="wave"></span>
@@ -662,6 +665,17 @@ addEventListener('appinstalled', function(){
       <span>충동은 파도처럼 지나갑니다. 같이 버텨봐요</span></span>
     <span class="go">시작</span>
   </button>
+
+  <div class="help mindrx" id="pk-mindrx">
+    <span class="ic" data-ico="sprout"></span>
+    <div class="b"><b>마음 처방전</b>
+      <span>지금 마음에 맞는 글을 읽거나 음악과 함께 잠시 머물러보세요.</span>
+      <div class="rxacts">
+        <button class="btn sec sm" id="go-read">도움이 되는 글</button>
+        <button class="btn sec sm" id="go-listen">듣는 글</button>
+      </div>
+    </div>
+  </div>
 
   <button class="help urgent" id="pk-with" style="width:100%;text-align:left">
     <span class="ic" data-ico="emerg"></span>
@@ -991,18 +1005,6 @@ addEventListener('appinstalled', function(){
   <p class="muted" style="margin:-5px 0 10px">지금 사람에게 바로 연결되는 상담·응급 전화입니다.</p>
   <div id="help-lines"></div>
 
-  <h2>읽고 듣기</h2>
-  <button class="help" id="go-read" style="width:100%;text-align:left">
-    <span class="ic" data-ico="sprout"></span>
-    <span class="b"><b>도움이 되는 글</b><span>충동 · 밤 · 죄책감 · 외로움 · 다시 시작</span></span>
-    <span class="acts"><span class="go">읽기</span></span>
-  </button>
-  <button class="help" id="go-listen" style="width:100%;text-align:left">
-    <span class="ic" data-ico="wave"></span>
-    <span class="b"><b>듣는 글</b><span>서른 가지 상황 · 짧은 글과 그때 들을 곡</span></span>
-    <span class="acts"><span class="go">보기</span></span>
-  </button>
-
   <h2>모임 찾기</h2>
   <button class="help" id="go-meet-me" style="width:100%;text-align:left">
     <span class="ic" data-ico="people"></span>
@@ -1245,7 +1247,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V5.2';
+const BUILD = 'V5.3';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -3703,8 +3705,8 @@ function renderMeet(){
   list.innerHTML = out;
 }
 
-$('#go-read').onclick   = () => openRead('help');
-$('#go-listen').onclick = () => openListen('help');
+$('#go-read').onclick   = () => openRead('panic');
+$('#go-listen').onclick = () => openListen('panic');
 $('#go-ai-home').onclick = () => openAI('home');
 $('#go-meet-me').onclick  = () => { mt.target = 'me';  mt.mode = 'today'; mt.todayArea=''; mt.q = ''; mt.kind = ''; go('meet'); };
 $('#go-meet-fam').onclick = () => { mt.target = 'fam'; mt.mode = 'today'; mt.todayArea=''; mt.q = ''; mt.kind = '전체'; go('meet'); };
@@ -4237,7 +4239,7 @@ function aiFollowHTML(){
   const cfg={
     'nav-urge':['충동 대응 열기','urge'], 'nav-relapse':['다시 시작하기 열기','relapse'],
     'nav-breathe':['호흡 가이드 열기','urge'], 'nav-panic':['위기 도움 열기','panic'],
-    'nav-listen':['읽고 듣기 열기','listen'], 'nav-familyguide':['가족 안내 열기','fam'],
+    'nav-listen':['듣는 글 열기','listen'], 'nav-familyguide':['가족 안내 열기','fam'],
     'nav-night':['하루 마무리 열기','night'], 'nav-me':['내정보 열기','me'],
     'nav-help':['헬프 열기','help'], 'nav-home':['홈 열기','home'],
     'nav-rec-mood':['기분 기록 열기','rec'], 'nav-rec-urge':['충동 기록 열기','rec'],
@@ -4266,9 +4268,13 @@ function aiBindFollow(){
     const b=$('#ai-follow-help'); if(b) b.onclick=()=>{ai.follow='';go('help');};
     return;
   }
+  if(ai.follow==='nav-listen'){
+    const b=$('#ai-follow-nav'); if(b) b.onclick=()=>{ ai.follow=''; openListen('ai'); };
+    return;
+  }
   const cfg={
     'nav-urge':['urge',''], 'nav-relapse':['relapse',''], 'nav-breathe':['urge',''], 'nav-panic':['panic',''],
-    'nav-listen':['listen',''], 'nav-familyguide':['fam',''], 'nav-night':['night',''], 'nav-me':['me',''],
+    'nav-familyguide':['fam',''], 'nav-night':['night',''], 'nav-me':['me',''],
     'nav-help':['help',''], 'nav-home':['home',''],
     'nav-rec-mood':['rec','mood'], 'nav-rec-urge':['rec','urge'], 'nav-rec-day':['rec','day'],
     'nav-rec-body':['rec','body'], 'nav-rec-relapse':['rec','relapse'], 'nav-rec-stat':['rec','stat']
@@ -4456,11 +4462,11 @@ function aiLocalNav(intent){
     ai.follow='nav-breathe'; drawAI(); return true;
   }
   if(intent === 'panic'){
-    aiAdd('assistant','위기 도움에서는 몸의 이상, 죽고 싶은 마음, 강한 충동처럼 지금 가장 급한 상황을 먼저 구분해서 119·109·도움 기능으로 연결합니다.', true);
+    aiAdd('assistant','위기 도움에서는 강한 충동, 마음을 가라앉힐 글·듣는 글, 몸의 이상, 죽고 싶은 마음 중 지금 가장 가까운 도움을 고를 수 있어요. 몸이나 생명이 위급할 때는 119·109 연결을 우선합니다.', true);
     ai.follow='nav-panic'; drawAI(); return true;
   }
   if(intent === 'listen'){
-    aiAdd('assistant','[읽고 듣기]에는 앱에 검토해 둔 짧은 글과 직접 재생 가능한 음악이 준비되어 있어요. 지금 상태와 가까운 글을 골라 천천히 읽거나 들을 수 있습니다.', true);
+    aiAdd('assistant','[마음 처방전]에는 앱에 검토해 둔 도움글과 직접 재생 가능한 듣는 글이 준비되어 있어요. 지금 마음과 가까운 내용을 골라 천천히 읽거나 들을 수 있습니다.', true);
     ai.follow='nav-listen'; drawAI(); return true;
   }
   if(intent === 'familyguide'){
@@ -4482,7 +4488,7 @@ function aiLocalNav(intent){
     ai.follow='nav-me'; drawAI(); return true;
   }
   if(intent === 'help'){
-    aiAdd('assistant','헬프에는 헬프콜, 자조모임, 센터·병원, 읽고 듣기처럼 사람과 실제 자원으로 연결되는 기능이 모여 있어요.', true);
+    aiAdd('assistant','헬프에는 헬프콜, 자조모임, 센터·병원처럼 사람과 실제 자원으로 연결되는 기능이 모여 있어요. 도움글과 듣는 글은 [지금 위험해요]의 마음 처방전에서 바로 열 수 있습니다.', true);
     ai.follow='nav-help'; drawAI(); return true;
   }
   if(intent === 'home'){
@@ -5000,7 +5006,7 @@ function rdTop(){ const v = $('#view'); if(v) v.scrollTop = 0; }
 /* ══════════ 듣는 글 ══════════
    ★ 서른 편은 한 화면에 다 못 담습니다. 목록에서 고르고, 그 뒤에는 앞뒤로 넘깁니다.
    ★ 외부 음악서비스 검색은 두지 않습니다. 검증된 직접재생 후보만 씁니다. */
-let ls = { i: -1, back: 'help' };
+let ls = { i: -1, back: 'panic' };
 
 function openListen(back){
   ls.back = back || 'help';
