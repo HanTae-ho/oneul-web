@@ -447,6 +447,46 @@ addEventListener('appinstalled', function(){
   .bigico{display:flex;justify-content:center;color:var(--acc)}
   .bigico .ic-s{width:46px;height:46px;stroke-width:1.4}
   .empty{text-align:center;color:var(--faint);font-size:13.5px;padding:30px 10px;line-height:1.7}
+
+
+  /* ── 회복도구 V6.0 ──
+     Q&A는 AI/서버를 쓰지 않고 qa-data.js 안의 검토 콘텐츠만 검색합니다. */
+  .toolhero{background:linear-gradient(145deg,var(--accbg),var(--bg2));border:1px solid var(--line);
+    border-radius:var(--r);padding:16px;margin-bottom:13px}
+  .toolhero h2{margin:0 0 5px;font-size:18px}.toolhero p{margin:0}
+  .toolgrid{display:grid;grid-template-columns:1fr;gap:9px}
+  .toolcard{display:flex;gap:11px;align-items:center;width:100%;padding:14px 13px;text-align:left;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;color:var(--tx)}
+  .toolcard .ic{flex:0 0 40px;height:40px;border-radius:12px;background:var(--accbg);color:var(--acc);
+    display:flex;align-items:center;justify-content:center}
+  .toolcard .ic .ic-s{width:22px;height:22px}.toolcard .b{flex:1;min-width:0}
+  .toolcard .b b{display:block;font-size:15.5px}.toolcard .b span{display:block;margin-top:2px;font-size:12.5px;
+    color:var(--dim);line-height:1.45}.toolcard .go{font-size:12px;font-weight:700;color:var(--acc);white-space:nowrap}
+  .toolcard.soon{opacity:.78}.toolcard.soon .go{color:var(--faint)}
+  .qasearch{position:sticky;top:calc(var(--st) - 1px);z-index:5;background:var(--bg);padding:1px 0 8px}
+  .qasearch input{width:100%;margin:0}
+  .qacats{display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;padding:8px 0 2px;scrollbar-width:none}
+  .qacats::-webkit-scrollbar{display:none}.qacats .opt{flex:0 0 auto;padding:7px 10px;font-size:12px;white-space:nowrap}
+  .qaitem{display:block;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);
+    border-radius:13px;padding:13px 14px;margin-bottom:8px;color:var(--tx)}
+  .qaitem .meta{display:flex;gap:6px;align-items:center;margin-bottom:4px;font-size:11px;color:var(--faint)}
+  .qaitem b{display:block;font-size:14.5px;line-height:1.5;font-weight:600;word-break:keep-all}
+  .qaitem .sum{display:block;margin-top:5px;font-size:12.5px;line-height:1.55;color:var(--dim);
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .qadetail{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:19px 17px}
+  .qadetail .meta{font-size:11.5px;color:var(--acc);font-weight:700;margin-bottom:7px}
+  .qadetail h2{font-size:19px;line-height:1.5;margin:0 0 14px;word-break:keep-all}
+  .qadetail .answer{font-size:15px;line-height:1.82;white-space:pre-line;word-break:keep-all}
+  .qadetail .src{margin-top:15px;padding-top:12px;border-top:1px solid var(--line);font-size:11.5px;
+    line-height:1.6;color:var(--faint)}
+  .learnlist .help{cursor:pointer}.learnlist .help .b span{line-height:1.45}
+
+
+  .fbitem{border:1px solid var(--line);border-radius:16px;padding:12px;margin:0 0 10px;background:var(--card)}
+  .fbitem .fbmeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:7px}
+  .fbitem .fbmsg{white-space:pre-wrap;line-height:1.65;margin:0 0 10px}
+  .fbitem textarea{min-height:72px}
+  .fbitem select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
 </style>
 </head>
 <body>
@@ -525,7 +565,7 @@ addEventListener('appinstalled', function(){
     <button class="tiny" style="color:var(--acc);font-weight:600" id="ad-out">로그아웃</button>
   </div>
   <p class="muted" style="margin:-6px 0 14px">
-    모임·센터·병원 목록을 고치는 곳입니다. 실제 고치기는 구글 시트에서 이뤄집니다.
+    모임·센터·병원 목록을 관리하고, 사용자들이 보낸 앱 개선 의견을 확인하는 곳입니다.
   </p>
 
   <div class="card">
@@ -562,9 +602,36 @@ addEventListener('appinstalled', function(){
     <p class="tiny" id="ad-res" style="margin:10px 0 0;white-space:pre-line"></p>
   </div>
 
+  <div class="card" id="fb-ad-card">
+    <h3>앱에 바라는 점</h3>
+    <p class="muted" style="margin:-4px 0 11px">
+      사용자들이 보낸 의견을 한곳에서 확인합니다. 의견 내용과 앱 버전만 접수되며
+      회복기록·회복일·위치정보는 자동으로 전송되지 않습니다.
+    </p>
+    <p class="tiny" id="fb-ad-connect" style="margin:0 0 10px"></p>
+    <div id="fb-ad-auth">
+      <input id="fb-ad-key" type="password" placeholder="의견 관리 열쇠말" autocomplete="off">
+      <div style="height:8px"></div>
+      <button class="btn sec sm" id="fb-ad-load">의견 불러오기</button>
+      <p class="tiny" style="margin:8px 0 0">열쇠말은 이 기기에 저장하지 않습니다. Apps Script의 FEEDBACK_ADMIN_KEY와 같아야 합니다.</p>
+    </div>
+    <div class="hide" id="fb-ad-manage">
+      <div class="sp" style="align-items:center;margin-bottom:9px">
+        <p class="tiny" id="fb-ad-stats" style="margin:0"></p>
+        <button class="tiny" id="fb-ad-lock" style="color:var(--acc);font-weight:600">다시 잠그기</button>
+      </div>
+      <div class="opts" id="fb-ad-filter" style="margin-bottom:9px"></div>
+      <input id="fb-ad-q" type="search" placeholder="의견 내용 검색">
+      <div style="height:10px"></div>
+      <div id="fb-ad-list"></div>
+      <button class="btn ghost sm hide" id="fb-ad-more">더 보기</button>
+    </div>
+  </div>
+
   <div class="note w">
     이 자물쇠는 화면을 정리하기 위한 것입니다. 목록을 실제로 지키는 것은
     구글 계정입니다 — 시트를 고칠 수 있는 사람은 시트 주인뿐입니다.
+    앱에 바라는 점의 전체 조회·수정은 별도 의견 서버의 관리 열쇠말로 한 번 더 보호합니다.
   </div>
 </section>
 
@@ -910,9 +977,71 @@ addEventListener('appinstalled', function(){
   <div id="fam-foot"></div>
 </section>
 
-<!-- ══════════ 기록 ══════════ -->
+<!-- ══════════ 회복도구 V6.1 ══════════ -->
+<section class="pg" id="p-tools">
+  <h1>회복도구</h1>
+  <div class="toolhero">
+    <h2>배우고, 점검하고, 찾아보는 곳</h2>
+    <p class="muted">검토된 회복 정보를 기기 안에서 바로 확인합니다. Q&A 검색은 AI 연결 없이 작동합니다.</p>
+  </div>
+  <div class="toolgrid">
+    <button class="toolcard" id="tool-qa">
+      <span class="ic" data-ico="speak"></span>
+      <span class="b"><b>중독 Q&A</b><span id="tool-qa-s">중독 200문답과 보완 문답을 검색합니다</span></span>
+      <span class="go">열기</span>
+    </button>
+    <button class="toolcard" id="tool-learn">
+      <span class="ic" data-ico="sprout"></span>
+      <span class="b"><b>회복학습</b><span>중독 이해 · 갈망 · 재발 · 치료 · 가족을 주제별로 살펴봅니다</span></span>
+      <span class="go">학습</span>
+    </button>
+    <button class="toolcard soon" id="tool-check">
+      <span class="ic" data-ico="check"></span>
+      <span class="b"><b>자가점검</b><span>검증된 선별도구를 안전하게 적용하기 위해 준비하고 있습니다</span></span>
+      <span class="go">V7.0</span>
+    </button>
+  </div>
+</section>
+
+<!-- ══════════ 중독 Q&A ══════════ -->
+<section class="pg" id="p-qa">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0">중독 Q&A</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" id="qa-back">← 회복도구</button>
+  </div>
+  <div class="note w" style="margin-bottom:12px">
+    일반적인 회복정보입니다. 개인의 진단과 치료를 대신하지 않습니다. 경련·환각·의식저하·호흡곤란 또는
+    급한 자해·자살·타해 위험이 있으면 Q&A보다 119·109·112 등 즉시 도움 연결이 먼저입니다.
+  </div>
+  <div id="qa-list-view">
+    <div class="qasearch">
+      <input id="qa-search" type="search" placeholder="무엇이 궁금한가요? 예: 갈망, 재발, 도박 빚, 가족">
+      <div class="qacats" id="qa-cats"></div>
+    </div>
+    <p class="tiny" id="qa-count" style="margin:3px 2px 10px"></p>
+    <div id="qa-list"></div>
+    <button class="btn ghost sm hide" id="qa-more">더 보기</button>
+  </div>
+  <div class="hide" id="qa-one"></div>
+</section>
+
+<!-- ══════════ 회복학습 ══════════ -->
+<section class="pg" id="p-learn">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0">회복학습</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('tools')">← 회복도구</button>
+  </div>
+  <p class="muted" style="margin:-2px 0 14px">긴 강의 대신, 꼭 알아둘 주제를 Q&A와 연결해 하나씩 살펴봅니다.</p>
+  <div class="learnlist" id="learn-list"></div>
+</section>
+
+<!-- ══════════ 내 발자취 ══════════ -->
 <section class="pg" id="p-rec">
-  <h1>기록</h1>
+  <div class="sp" style="margin-bottom:8px">
+    <h1 style="margin:0">내 발자취</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('me')">← 내정보</button>
+  </div>
+  <p class="muted" style="margin:0 0 14px">감정 · 충동 · 하루 · 몸 · 다시 시작 · 통계를 돌아봅니다.</p>
   <div class="opts" id="rec-tab" style="margin-bottom:14px"></div>
   <div id="rec-body"></div>
 </section>
@@ -1190,12 +1319,23 @@ addEventListener('appinstalled', function(){
   </div>
 
   <div class="acc">
+    <button class="acc-h" id="me-share">
+      <span class="acc-n"><b>추천하기</b><span>회복에 도움이 될 사람에게 오늘 한 걸음을 알려주세요</span></span>
+      <span class="tiny" style="color:var(--acc);font-weight:600">공유</span>
+    </button>
+  </div>
+
+  <div class="acc">
     <button class="acc-h">
-      <span class="acc-n"><b>내 기록</b><span>파일로 내보내기 · 불러오기 · 전체 지우기</span></span>
+      <span class="acc-n"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 다시 시작 · 통계 · 기록 관리</span></span>
       <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
     </button>
     <div class="acc-b">
-      <p class="muted" style="margin:0 0 11px">
+      <p class="muted" style="margin:0 0 11px">지금까지의 회복 과정을 한곳에서 돌아봅니다.</p>
+      <button class="btn sec sm" id="me-trail-open">발자취 보기</button>
+      <div class="sep"></div>
+      <h3>기록 관리</h3>
+      <p class="muted" style="margin:-4px 0 11px">
         기록은 이 기기의 브라우저 안에만 있습니다. 브라우저 데이터를 지우면
         함께 사라지니, 가끔 파일로 내보내 두세요.
       </p>
@@ -1208,11 +1348,32 @@ addEventListener('appinstalled', function(){
     </div>
   </div>
 
+  <div class="acc">
+    <button class="acc-h">
+      <span class="acc-n"><b>앱에 바라는 점</b><span>불편한 점 · 고쳤으면 하는 내용 · 새로 있었으면 하는 기능</span></span>
+      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
+    </button>
+    <div class="acc-b">
+      <p class="muted" style="margin:0 0 11px">
+        사용하면서 불편했던 점, 고쳤으면 하는 내용, 새로 있었으면 하는 기능을 자유롭게 알려주세요.
+      </p>
+      <textarea id="me-feedback-text" maxlength="2000" rows="5" placeholder="내용을 입력해주세요"></textarea>
+      <div class="sp" style="align-items:center;margin-top:9px">
+        <p class="tiny" id="me-feedback-st" style="margin:0;flex:1"></p>
+        <button class="btn sec sm" id="me-feedback-send" style="width:auto">보내기</button>
+      </div>
+      <p class="tiny" style="margin:9px 0 0">
+        작성한 내용과 앱 버전만 전송됩니다. 이름·회복유형·회복일·기록·위치정보는 자동으로 보내지지 않습니다.
+        민감한 개인정보는 입력하지 않는 것이 좋습니다.
+      </p>
+    </div>
+  </div>
+
   <!-- 목록을 고치는 사람(팀장님)만 들어갑니다. 자물쇠는 화면을 정리하기 위한 것이지
        목록을 지키는 것이 아닙니다 — 목록을 지키는 것은 구글 계정입니다. -->
   <div class="acc">
     <button class="acc-h">
-      <span class="acc-n"><b>관리자</b><span>모임 · 센터 · 병원 목록 고치기</span></span>
+      <span class="acc-n"><b>관리자</b><span>자원 목록 관리 · 앱에 바라는 점 전체보기</span></span>
       <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
     </button>
     <div class="acc-b">
@@ -1232,22 +1393,23 @@ addEventListener('appinstalled', function(){
 
   <nav id="tabs">
     <button data-t="home"><svg viewBox="0 0 24 24"><path d="M3 10.2 12 3l9 7.2V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>홈</button>
-    <button data-t="rec"><svg viewBox="0 0 24 24"><path d="M5 3h11l4 4v14H5z"/><path d="M9 12h7M9 16h5M9 8h4"/></svg>기록</button>
+    <button data-t="tools"><svg viewBox="0 0 24 24"><path d="M5 4.2h14v15.6H5z"/><path d="M8.2 8h7.6M8.2 12h7.6M8.2 16h4.6"/><path d="M3.2 7h3M3.2 12h3M3.2 17h3"/></svg>회복도구</button>
     <button data-t="help"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 21 11c0 5.4-7 10-7 10z"/></svg>헬프</button>
     <button data-t="ai"><svg viewBox="0 0 24 24"><path d="M12 20.2S5 16 5 10.8A4.4 4.4 0 0 1 12 7.3a4.4 4.4 0 0 1 7 3.5c0 5.2-7 9.4-7 9.4z"/><path d="M12 15.5V9.2"/><path d="M12 11.2c-2.5 0-4.1-1.5-4.3-3.8 2.5 0 4.1 1.5 4.3 3.8zM12 10.1c2.7 0 4.4-1.7 4.6-4.1-2.7 0-4.4 1.7-4.6 4.1z"/></svg>마음프로</button>
-    <!-- 다섯 번째 자리는 소셜 기능을 만들 때 사용합니다. 내정보는 홈 상단으로 이동했습니다. -->
+    <!-- 다섯 번째 자리는 소셜 기능을 만들 때 사용합니다. 기록은 내정보 → 내 발자취로 이동했습니다. -->
     <button data-t="admin" id="tab-admin" class="hide"><svg viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8.5 10.5V7.6a3.5 3.5 0 0 1 7 0v2.9"/></svg>관리자</button>
   </nav>
 </div>
 
 <div id="mod"><div id="modbox"><div class="grab"></div><div id="modin"></div></div></div>
 
+<script src="./qa-data.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V5.3';
+const BUILD = 'V6.1';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1255,6 +1417,10 @@ const KEY = 'ohg.v1';
    모임·센터·병원 목록을 바로 받습니다. 주소가 바뀌면 이 한 줄만 고치면 됩니다.
    비워두면 앱 안의 기본 목록을 씁니다. */
 const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwNj9eYnGNH-ZlNrOdjRry9EXR6Q6Z_oLq1chc2zhscbppOkipjkMjEkcZOqPL9SQ/exec';
+
+/* 별도 의견 서버의 /exec 주소. 보통 자원시트 [설정]의 FEEDBACK_URL에서 받습니다.
+   공개 웹앱 주소일 뿐이며 관리 열쇠말은 절대 여기에 넣지 않습니다. */
+const FEEDBACK_URL_DEFAULT = '';
 
 /* ── 저장 ── */
 const BLANK = {
@@ -1966,7 +2132,7 @@ function closeModal(){ $('#mod').classList.remove('on'); }
 $('#mod').addEventListener('click', e => { if(e.target.id === 'mod') closeModal(); });
 
 /* ── 라우팅 ── */
-const TABBED = ['home','rec','help','ai'];
+const TABBED = ['home','tools','help','ai'];
 let cur = 'home';
 
 function go(p){
@@ -1977,11 +2143,15 @@ function go(p){
   if(p === 'ai' && prev !== 'ai') ai.actionsOpen = false;
   cur = p;
   $('#tabs').style.display = (p === 'intro') ? 'none' : 'flex';
-  $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === p));
+  const tabP = (p === 'qa' || p === 'learn') ? 'tools' : p;
+  $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tabP));
   $('#view').classList.toggle('ai-mode', p === 'ai');
   if(p !== 'ai') $('#view').scrollTop = 0;
-  if(p === 'home') drawHome();
-  if(p === 'rec')  drawRec();
+  if(p === 'home')  drawHome();
+  if(p === 'tools') drawTools();
+  if(p === 'qa')    drawQA();
+  if(p === 'learn') drawLearn();
+  if(p === 'rec')   drawRec();
   if(p === 'help') drawHelp();
   if(p === 'ai')   drawAI();
   if(p === 'me')   drawMe();
@@ -2964,7 +3134,118 @@ function riskWindow(k){
            inside: now >= Math.max(1, lo - 3) && now <= hi + 3 };
 }
 
-/* ══════════ 기록 ══════════ */
+/* ══════════ 회복도구 · 중독 Q&A V6.0 ══════════ */
+const QA = Array.isArray(window.QA_ITEMS) ? window.QA_ITEMS : [];
+let qaState = { cat:'전체', q:'', limit:30, selected:0 };
+
+function drawTools(){
+  const n = QA.length;
+  const sup = QA.filter(x => x.supplement).length;
+  const m = $('#tool-qa-s');
+  if(m) m.textContent = '중독 200문답 + 보완 ' + sup + '문답 · 총 ' + n + '개';
+  refreshIcons();
+}
+
+function qaNorm(x){
+  return String(x || '').toLowerCase().replace(/[^0-9a-z가-힣]+/g,' ').trim();
+}
+function qaFiltered(){
+  const q = qaNorm(qaState.q);
+  const toks = q ? q.split(/\s+/).filter(Boolean) : [];
+  return QA.filter(x => {
+    if(qaState.cat === '보완' && !x.supplement) return false;
+    if(qaState.cat !== '전체' && qaState.cat !== '보완' && x.cat !== qaState.cat) return false;
+    if(!toks.length) return true;
+    const hay = qaNorm([x.q,x.a,(x.tags||[]).join(' '),x.cat].join(' '));
+    return toks.every(t => hay.indexOf(t) >= 0);
+  });
+}
+function drawQA(){
+  const lv = $('#qa-list-view'), one = $('#qa-one');
+  if(qaState.selected){
+    const x = QA.find(y => y.id === qaState.selected);
+    if(!x){ qaState.selected=0; return drawQA(); }
+    lv.classList.add('hide'); one.classList.remove('hide');
+    const sup = x.supplement ? '<span class="badge w">보완 문답</span>' : '';
+    const safety = x.urgent ? '<div class="note b" style="margin:14px 0 0">이 항목에는 안전과 관련된 내용이 있습니다. 지금 위험하면 정보 검색보다 즉시 도움 연결이 우선입니다.</div>' : '';
+    one.innerHTML = '<button class="tiny" id="qa-list-back" style="color:var(--acc);font-weight:600;margin-bottom:12px">← 질문 목록</button>' +
+      '<article class="qadetail"><div class="meta">Q' + x.id + ' · ' + esc(x.cat) + ' ' + sup + '</div>' +
+      '<h2>' + esc(x.q) + '</h2><div class="answer">' + esc(x.a) + '</div>' + safety +
+      '<div class="src">' + (x.supplement
+        ? '공식기관 자료를 바탕으로 V6.0에서 보완한 문답입니다. 출처 범주: ' + esc(x.origin || '공식기관 자료')
+        : '「중독 200문답」 v3.8의 질문과 핵심 내용을 모바일에서 읽기 쉽게 요약했습니다. 원문에는 더 상세한 설명과 근거문헌이 있습니다.') + '</div></article>' +
+      '<div style="height:10px"></div><button class="btn sec sm" id="qa-ai-more">마음프로에게 더 물어보기</button>' +
+      (x.urgent ? '<div style="height:8px"></div><button class="btn ghost sm" id="qa-help-open">헬프 열기</button>' : '');
+    $('#qa-list-back').onclick = () => { qaState.selected=0; drawQA(); };
+    $('#qa-ai-more').onclick = () => {
+      const q = x.q; go('ai');
+      const inp=$('#ai-input'); if(inp){ inp.value=q; inp.focus(); }
+    };
+    if(x.urgent && $('#qa-help-open')) $('#qa-help-open').onclick = () => go('help');
+    return;
+  }
+  lv.classList.remove('hide'); one.classList.add('hide'); one.innerHTML='';
+  const cats = ['전체','알코올','도박','마약','가족','공통','보완'];
+  const cb=$('#qa-cats'); cb.innerHTML='';
+  cats.forEach(c => {
+    const cnt = c === '전체' ? QA.length : c === '보완' ? QA.filter(x=>x.supplement).length : QA.filter(x=>x.cat===c).length;
+    const b=el('button','opt'+(qaState.cat===c?' on':''),c+' '+cnt);
+    b.onclick=()=>{ qaState.cat=c; qaState.limit=30; drawQA(); };
+    cb.appendChild(b);
+  });
+  const inp=$('#qa-search');
+  if(inp.value !== qaState.q) inp.value=qaState.q;
+  const rows=qaFiltered();
+  $('#qa-count').textContent = rows.length + '개 질문' + (qaState.q ? ' · 검색어 “' + qaState.q + '”' : '');
+  const box=$('#qa-list'); box.innerHTML='';
+  rows.slice(0,qaState.limit).forEach(x => {
+    const b=el('button','qaitem');
+    b.innerHTML='<span class="meta"><span>Q'+x.id+'</span><span>·</span><span>'+esc(x.cat)+'</span>'+(x.supplement?'<span class="badge w">보완</span>':'')+'</span>'+
+      '<b>'+esc(x.q)+'</b><span class="sum">'+esc(x.a)+'</span>';
+    b.onclick=()=>{ qaState.selected=x.id; drawQA(); $('#view').scrollTop=0; };
+    box.appendChild(b);
+  });
+  const more=$('#qa-more');
+  more.classList.toggle('hide', rows.length <= qaState.limit);
+  more.textContent = '더 보기 (' + Math.min(rows.length,qaState.limit) + '/' + rows.length + ')';
+}
+
+const LEARN = [
+  {id:1,  t:'중독은 의지의 문제일까?', d:'중독을 질환과 회복의 관점에서 이해합니다.'},
+  {id:3,  t:'갈망은 왜 다시 올라올까?', d:'갈망의 성질과 대처의 기본을 살펴봅니다.'},
+  {id:13, t:'재발은 어디서부터 시작될까?', d:'고위험 상황과 초기 신호를 미리 알아봅니다.'},
+  {id:10, t:'치료에는 무엇이 있을까?', d:'약물·심리치료·모임의 역할을 구분합니다.'},
+  {id:51, t:'회복모임은 왜 도움이 될까?', d:'동료지지와 일상 회복의 의미를 살펴봅니다.'},
+  {id:101,t:'도움과 조장은 어떻게 다를까?', d:'가족의 선의가 소진으로 바뀌지 않도록 경계를 봅니다.'},
+  {id:81, t:'도박도 중독일까?', d:'도박장애의 특징과 회복 원리를 살펴봅니다.'},
+  {id:88, t:'마약류 중독은 무엇이 다를까?', d:'법적·사회적 조건과 치료·재활을 함께 봅니다.'}
+];
+function drawLearn(){
+  const box=$('#learn-list'); box.innerHTML='';
+  LEARN.forEach((m,i)=>{
+    const b=el('button','help');
+    b.style.width='100%'; b.style.textAlign='left';
+    b.innerHTML='<span class="ic">'+ico(i<5?'sprout':(i===6?'gamble':i===7?'drug':'family'))+'</span>'+
+      '<span class="b"><b>'+esc(m.t)+'</b><span>'+esc(m.d)+'</span></span><span class="acts"><span class="go">보기</span></span>';
+    b.onclick=()=>{ qaState.selected=m.id; qaState.q=''; qaState.cat='전체'; go('qa'); };
+    box.appendChild(b);
+  });
+}
+function openSelfCheckInfo(){
+  modal('<h2>자가점검은 V7.0에서 제공합니다</h2>' +
+    '<p class="muted" style="margin:7px 0 13px">선별도구는 문항·채점·해석 기준이 정확해야 합니다. 알코올·도박·약물·우울·불안 도구의 사용조건과 공식 기준을 확인한 뒤 넣겠습니다.</p>' +
+    '<div class="note">자가점검 결과는 진단이 아니라 상담이나 평가가 필요한지 살펴보는 신호로 사용합니다.</div>' +
+    '<div style="height:11px"></div><button class="btn ghost" onclick="closeModal()">확인</button>');
+}
+function shareApp(){
+  const url = location.origin && location.origin !== 'null' ? location.origin + location.pathname : location.href.split('#')[0];
+  const data={ title:'오늘 한 걸음', text:'회복을 하루씩 이어가는 데 사용할 수 있는 웹앱 오늘 한 걸음입니다.', url:url };
+  if(navigator.share){ navigator.share(data).catch(()=>{}); return; }
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(()=>toast('앱 주소를 복사했습니다.')).catch(()=>toast('주소를 복사하지 못했습니다.')); return; }
+  modal('<h2>오늘 한 걸음 추천하기</h2><p class="muted">아래 주소를 복사해 전달해주세요. 내 회복 기록은 포함되지 않습니다.</p><input value="'+esc(url)+'" readonly onclick="this.select()"><div style="height:10px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
+}
+
+/* ══════════ 내 발자취 ══════════ */
 let recTab = 'mood';
 
 function drawRec(){
@@ -5234,6 +5515,7 @@ function fetchRes(url){
 function drawMe(){
   const fam = famMode();
   drawThemeSetting();
+  drawFeedbackStatus();
 
   const rb = $('#me-role'); rb.innerHTML = '';
   ROLES.forEach(r => {
@@ -5500,6 +5782,153 @@ function drawNotify(){
   }
 }
 
+/* ══════════ 앱에 바라는 점 · 별도 의견 서버 V6.1 ══════════
+   사용자 화면은 분류를 요구하지 않고 한 칸만 받습니다.
+   서버로 자동 전송하는 것은 작성 내용과 BUILD뿐입니다.
+   이름·회복유형·회복일·기록·위치정보는 이 요청에 넣지 않습니다. */
+let feedbackAdminKey = '';      /* 관리자 열쇠말 — 메모리에만. 새로고침하면 사라집니다. */
+let fbAdmin = { status:'전체', q:'', offset:0, total:0, allTotal:0, unseen:0, items:[], loading:false };
+
+function feedbackEndpoint(){
+  const c = S.res && S.res.config;
+  const raw = c && (c.feedbackUrl || c.FEEDBACK_URL || c.feedback_url);
+  const u = String(raw || FEEDBACK_URL_DEFAULT || '').trim();
+  return /^https:\/\/script\.google\.com\/macros\/s\//i.test(u) || /^https:\/\/script\.googleusercontent\.com\//i.test(u) ? u : '';
+}
+
+function drawFeedbackStatus(){
+  const st = $('#me-feedback-st');
+  if(!st) return;
+  st.textContent = feedbackEndpoint()
+    ? '의견 접수 서버가 연결되어 있습니다.'
+    : '의견 접수 서버를 준비 중입니다. 관리자 설정 후 보낼 수 있습니다.';
+}
+
+async function feedbackRequest(body){
+  const url = feedbackEndpoint();
+  if(!url){ const e = new Error('의견 접수 서버가 연결되지 않았습니다.'); e.fbCode='CONFIG'; throw e; }
+  let r;
+  try{
+    r = await fetch(url, {
+      method:'POST', credentials:'omit', redirect:'follow', cache:'no-store',
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(body || {})
+    });
+  }catch(e){ const x=new Error('의견 서버에 연결하지 못했습니다.'); x.fbCode='NETWORK'; throw x; }
+  let j;
+  try{ j = await r.json(); }
+  catch(e){ const x=new Error('의견 서버 응답을 읽지 못했습니다.'); x.fbCode='INVALID_JSON'; throw x; }
+  if(!r.ok || !j || j.ok === false){
+    const x = new Error((j && j.error) || '요청을 처리하지 못했습니다.');
+    x.fbCode = (j && j.code) || 'SERVER'; throw x;
+  }
+  return j;
+}
+
+async function sendFeedback(){
+  const ta=$('#me-feedback-text'), btn=$('#me-feedback-send'), st=$('#me-feedback-st');
+  const message=String(ta && ta.value || '').trim();
+  if(!message){ toast('내용을 입력해주세요.'); if(ta) ta.focus(); return; }
+  if(message.length > 2000){ toast('내용은 2,000자 이내로 적어주세요.'); return; }
+  btn.disabled=true; st.textContent='보내는 중…';
+  try{
+    await feedbackRequest({action:'submit', appVersion:BUILD, message:message});
+    ta.value=''; st.textContent='보내주셔서 감사합니다. 의견을 접수했습니다.'; toast('의견을 보냈습니다.');
+  }catch(e){
+    st.textContent = e.fbCode==='CONFIG'
+      ? '의견 접수 서버가 아직 연결되지 않았습니다.'
+      : '지금은 보내지 못했습니다. 잠시 뒤 다시 시도해주세요.';
+  }finally{ btn.disabled=false; }
+}
+
+function drawFeedbackAdmin(){
+  const c=$('#fb-ad-connect'); if(!c) return;
+  const url=feedbackEndpoint();
+  c.textContent = url
+    ? '별도 의견 서버가 연결되어 있습니다.'
+    : '의견 서버가 아직 연결되지 않았습니다. 자원시트 [설정]의 FEEDBACK_URL에 의견 웹앱 /exec 주소를 넣어주세요.';
+  const auth=$('#fb-ad-auth'), manage=$('#fb-ad-manage');
+  if(feedbackAdminKey && url){ auth.classList.add('hide'); manage.classList.remove('hide'); renderFeedbackAdmin(); }
+  else { auth.classList.remove('hide'); manage.classList.add('hide'); }
+}
+
+function fbDate(v){
+  const d=new Date(v); return isNaN(d.getTime()) ? String(v || '') : d.toLocaleString('ko-KR');
+}
+function fbStatusClass(s){ return s==='반영완료'?'g':s==='확인'?'':'w'; }
+
+function renderFeedbackAdmin(){
+  const filters=['전체','미확인','확인','반영완료'];
+  const box=$('#fb-ad-filter'); if(!box) return;
+  box.innerHTML='';
+  filters.forEach(x=>{
+    const b=el('button','opt'+(fbAdmin.status===x?' on':''),x);
+    b.onclick=()=>{ fbAdmin.status=x; loadFeedbackAdmin(true); };
+    box.appendChild(b);
+  });
+  $('#fb-ad-stats').textContent='전체 '+fbAdmin.allTotal+'건 · 미확인 '+fbAdmin.unseen+'건';
+  const list=$('#fb-ad-list');
+  if(fbAdmin.loading){ list.innerHTML='<p class="tiny">불러오는 중…</p>'; return; }
+  if(!fbAdmin.items.length){ list.innerHTML='<p class="tiny">조건에 맞는 의견이 없습니다.</p>'; }
+  else list.innerHTML=fbAdmin.items.map(x=>
+    '<div class="fbitem" data-fb-id="'+esc(x.id)+'">'+
+      '<div class="fbmeta"><span class="tag">'+esc(x.appVersion||'버전 미상')+'</span><span class="tag '+fbStatusClass(x.status)+'">'+esc(x.status||'미확인')+'</span><span class="tiny">'+esc(fbDate(x.receivedAt))+'</span></div>'+
+      '<p class="fbmsg">'+esc(x.message||'')+'</p>'+
+      '<select class="fb-status"><option'+(x.status==='미확인'?' selected':'')+'>미확인</option><option'+(x.status==='확인'?' selected':'')+'>확인</option><option'+(x.status==='반영완료'?' selected':'')+'>반영완료</option></select>'+
+      '<div style="height:7px"></div><textarea class="fb-memo" maxlength="2000" rows="3" placeholder="관리자 메모">'+esc(x.adminMemo||'')+'</textarea>'+
+      '<div style="height:7px"></div><button class="btn sec sm fb-save">저장</button>'+
+    '</div>').join('');
+  [...list.querySelectorAll('.fb-save')].forEach(b=>b.onclick=()=>{
+    const row=b.closest('.fbitem');
+    updateFeedbackAdmin(row.dataset.fbId,row.querySelector('.fb-status').value,row.querySelector('.fb-memo').value,b);
+  });
+  const more=$('#fb-ad-more');
+  more.classList.toggle('hide', fbAdmin.items.length >= fbAdmin.total || fbAdmin.items.length===0);
+}
+
+async function loadFeedbackAdmin(reset){
+  if(!feedbackAdminKey){ drawFeedbackAdmin(); return; }
+  if(reset){ fbAdmin.offset=0; fbAdmin.items=[]; }
+  fbAdmin.q=String($('#fb-ad-q') && $('#fb-ad-q').value || '').trim();
+  fbAdmin.loading=true; renderFeedbackAdmin();
+  try{
+    const j=await feedbackRequest({action:'list', adminKey:feedbackAdminKey,
+      status:fbAdmin.status==='전체'?'':fbAdmin.status, q:fbAdmin.q, offset:fbAdmin.offset, limit:50});
+    const got=Array.isArray(j.items)?j.items:[];
+    fbAdmin.items = reset ? got : fbAdmin.items.concat(got);
+    fbAdmin.total=Number(j.total||0); fbAdmin.allTotal=Number(j.allTotal||j.total||0); fbAdmin.unseen=Number(j.unseen||0); fbAdmin.offset=fbAdmin.items.length;
+  }catch(e){
+    if(e.fbCode==='AUTH'){
+      feedbackAdminKey=''; toast('의견 관리 열쇠말이 맞지 않습니다.'); drawFeedbackAdmin(); return;
+    }
+    toast('의견을 불러오지 못했습니다.');
+  }finally{ fbAdmin.loading=false; renderFeedbackAdmin(); }
+}
+
+async function updateFeedbackAdmin(id,status,memo,btn){
+  if(!feedbackAdminKey) return;
+  const old=btn.textContent; btn.disabled=true; btn.textContent='저장 중…';
+  try{
+    await feedbackRequest({action:'update', adminKey:feedbackAdminKey, id:id, status:status, adminMemo:String(memo||'').slice(0,2000)});
+    const x=fbAdmin.items.find(v=>String(v.id)===String(id)); if(x){x.status=status;x.adminMemo=memo;}
+    toast('저장했습니다.'); await loadFeedbackAdmin(true);
+  }catch(e){
+    if(e.fbCode==='AUTH'){ feedbackAdminKey=''; drawFeedbackAdmin(); toast('다시 인증해주세요.'); }
+    else toast('저장하지 못했습니다.');
+  }finally{ btn.disabled=false; btn.textContent=old; }
+}
+
+$('#me-feedback-send').onclick=sendFeedback;
+$('#fb-ad-load').onclick=()=>{
+  const key=String($('#fb-ad-key').value||'').trim();
+  if(!feedbackEndpoint()){ toast('의견 서버부터 연결해주세요.'); return; }
+  if(!key){ toast('의견 관리 열쇠말을 입력해주세요.'); return; }
+  feedbackAdminKey=key; $('#fb-ad-key').value=''; drawFeedbackAdmin(); loadFeedbackAdmin(true);
+};
+$('#fb-ad-lock').onclick=()=>{ feedbackAdminKey=''; fbAdmin.items=[]; drawFeedbackAdmin(); };
+$('#fb-ad-more').onclick=()=>loadFeedbackAdmin(false);
+let fbSearchTimer=0;
+$('#fb-ad-q').oninput=()=>{ clearTimeout(fbSearchTimer); fbSearchTimer=setTimeout(()=>loadFeedbackAdmin(true),350); };
+
 /* ══════════ 관리자 ══════════
    ★ 이 자물쇠가 지키는 것은 '화면' 이지 '목록' 이 아닙니다.
      앱 코드는 공개 깃허브에 있으니 아래 열쇠값도 누구나 볼 수 있습니다.
@@ -5528,6 +5957,7 @@ function adminLogin(){
     st.textContent = '확인하는 중…';
     sha256(pw.value).then(h => {
       if(h === ADMIN_HASH){
+        feedbackAdminKey = pw.value;   /* 메모리에만 둡니다. 새로고침하면 사라집니다. */
         S.admin = 1; save(); closeModal(); drawMe();
         $('#tab-admin').classList.add('hide');
         go('admin');
@@ -5545,6 +5975,7 @@ function adminLogin(){
 }
 
 function adminLogout(){
+  feedbackAdminKey = ''; fbAdmin.items = [];
   S.admin = 0; save();
   $('#tab-admin').classList.add('hide');
   go('me');
@@ -5556,8 +5987,8 @@ function drawAdmin(){
   const b = $('#me-admin'); b.innerHTML = '';
   $('#tab-admin').classList.add('hide');
   $('#me-admin-m').textContent = S.admin
-    ? '관리자로 들어와 있습니다. 아래 [관리자 화면 열기]에서 목록을 고칠 수 있습니다.'
-    : '모임·센터·병원 목록을 고치는 분만 들어갑니다.';
+    ? '관리자로 들어와 있습니다. 아래 [관리자 화면 열기]에서 자원 목록과 앱에 바라는 점을 관리할 수 있습니다.'
+    : '자원 목록과 앱에 바라는 점을 관리하는 분만 들어갑니다.';
   if(S.admin){
     const o = el('button', 'opt', '관리자 화면 열기');
     o.onclick = () => go('admin');
@@ -5574,6 +6005,7 @@ function drawAdmin(){
 /* 관리자 화면 */
 function drawAdminPage(){
   $('#ad-url').value = S.adminUrl || '';
+  drawFeedbackAdmin();
   $('#ad-st').textContent = S.adminUrl
     ? '저장돼 있습니다. 목록 줄마다 [고치기] 가 붙습니다.'
     : '주소를 넣기 전에는 [고치기] 가 안 붙습니다.';
@@ -5748,6 +6180,15 @@ $('#me-sheet-save').onclick = () => {
     .then(() => { drawMe(); toast('자원 목록을 받았습니다.'); })
     .catch(e => { $('#me-sheet-st').textContent = '받지 못했습니다: ' + e.message; });
 };
+
+$('#tool-qa').onclick = () => { qaState.selected=0; qaState.cat='전체'; qaState.q=''; qaState.limit=30; go('qa'); };
+$('#tool-learn').onclick = () => go('learn');
+$('#tool-check').onclick = openSelfCheckInfo;
+$('#me-share').onclick = shareApp;
+$('#qa-back').onclick = () => { qaState.selected=0; go('tools'); };
+$('#qa-search').addEventListener('input', e => { qaState.q=e.target.value || ''; qaState.limit=30; drawQA(); });
+$('#qa-more').onclick = () => { qaState.limit += 30; drawQA(); };
+$('#me-trail-open').onclick = () => go('rec');
 
 $('#me-export').onclick = () => {
   const blob = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' });

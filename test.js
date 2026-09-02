@@ -156,14 +156,35 @@ const srv = http.createServer((req, res) => {
     save();
   });
 
-  await pg.click('#tabs button[data-t="rec"]'); await pg.waitForTimeout(300);
-  await shot('10-rec-mood');
+  // 회복도구 — Q&A 224문답은 AI 없이 로컬에서 검색
+  await pg.click('#tabs button[data-t="tools"]'); await pg.waitForTimeout(250);
+  assert(await pg.isVisible('#tool-qa'), '하단 회복도구가 열려야 함');
+  assert(!(await pg.$('#tool-share')), '회복도구에서 추천하기가 빠져야 함');
+  assert(await pg.evaluate(() => Array.isArray(window.QA_ITEMS) && window.QA_ITEMS.length === 224), 'Q&A가 224문답이어야 함');
+  await pg.click('#tool-qa'); await pg.waitForTimeout(250);
+  assert((await pg.$eval('#qa-count', e => e.innerText)).includes('224'), 'Q&A 전체 224개 표시');
+  await pg.fill('#qa-search', '갈망'); await pg.waitForTimeout(200);
+  assert((await pg.$$eval('#qa-list .qaitem', a => a.length)) > 0, 'Q&A 갈망 검색 결과 존재');
+  await pg.click('#qa-list .qaitem'); await pg.waitForTimeout(150);
+  assert(await pg.isVisible('#qa-one .qadetail'), 'Q&A 상세 답변 표시');
+  await shot('10-tools-qa');
+
+  // 기록은 하단에서 내정보 → 내 발자취로 이동
+  await pg.click('#tabs button[data-t="home"]'); await pg.waitForTimeout(150);
+  await pg.click('#top-me'); await pg.waitForTimeout(250);
+  assert(await pg.isVisible('#me-share'), '내정보에 독립 추천하기 항목 존재');
+  assert(await pg.$('#me-feedback-send'), '내정보에 앱에 바라는 점 단일 입력 존재');
+  await pg.locator('#p-me .acc-h', {hasText:'내 발자취'}).click(); await pg.waitForTimeout(120);
+  assert(await pg.isVisible('#me-trail-open'), '내정보에 내 발자취 진입 버튼 존재');
+  await pg.click('#me-trail-open'); await pg.waitForTimeout(300);
+  assert((await pg.$eval('#p-rec h1', e => e.innerText)) === '내 발자취', '기록 화면 명칭은 내 발자취');
+  await shot('11-trail-mood');
   const rt = async i => { await pg.click(`#rec-tab button:nth-child(${i})`); await pg.waitForTimeout(300); };
-  await rt(2); await shot('11-rec-urge');
+  await rt(2); await shot('12-trail-urge');
   await rt(5); console.log('   다시시작 탭 =', (await pg.$eval('#rec-body', e => e.innerText)).replace(/\n+/g,' / ').slice(0,80));
   await rt(6);
   console.log('12. 통계 =', (await pg.$eval('#rec-body', e => e.innerText)).replace(/\n+/g, ' / ').slice(0, 200));
-  await shot('12-rec-stat');
+  await shot('13-trail-stat');
 
   // 도움
   await pg.click('#tabs button[data-t="help"]'); await pg.waitForTimeout(300);
@@ -189,7 +210,8 @@ const srv = http.createServer((req, res) => {
   console.log('    AI 전송 제외 =', await pg.evaluate(() => S.aiChat.filter(x => x.role === 'user').slice(-1)[0].local === 1));
   await shot('14-ai-local');
 
-  // 내 정보
+  // 내 정보 — 상단 내정보 아이콘은 홈에서 연다
+  await pg.click('#tabs button[data-t="home"]'); await pg.waitForTimeout(150);
   await pg.click('#top-me'); await pg.waitForTimeout(300);
   await shot('15-me');
 
