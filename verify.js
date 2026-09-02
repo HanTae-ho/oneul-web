@@ -14,9 +14,9 @@ const resourceGs = read('오늘한걸음_자원시트_v1.8.gs');
 const fail = msg => { throw new Error('VERIFY: ' + msg); };
 const ok = (cond, msg) => { if(!cond) fail(msg); console.log('OK - ' + msg); };
 
-ok(/const BUILD = 'V6\.4';/.test(index), 'index BUILD = V6.4');
-ok(/const APP_VERSION = 'V6\.4';/.test(sw), 'sw APP_VERSION = V6.4');
-ok(/const V = 'ohg-v604';/.test(sw), 'sw cache = ohg-v604');
+ok(/const BUILD = 'V6\.5';/.test(index), 'index BUILD = V6.5');
+ok(/const APP_VERSION = 'V6\.5';/.test(sw), 'sw APP_VERSION = V6.5');
+ok(/const V = 'ohg-v605';/.test(sw), 'sw cache = ohg-v605');
 ok(/'\.\/qa-data\.js'/.test(sw), '서비스워커가 qa-data.js 오프라인 캐시');
 ok(/'\.\/learning-data\.js'/.test(sw), '서비스워커가 learning-data.js 오프라인 캐시');
 ok(/<script src="\.\/qa-data\.js"><\/script>/.test(index), 'index가 qa-data.js 로드');
@@ -50,6 +50,7 @@ ok(/data-t="tools"/.test(index) && !/data-t="rec"/.test(index), '하단 기록 �
 ok(/<b>내 발자취<\/b>/.test(index) && /id="me-trail-open"/.test(index), '내정보 → 내 발자취 진입 존재');
 ok(/id="p-tools"/.test(index) && /id="p-qa"/.test(index) && /id="p-learn"/.test(index), '회복도구/Q&A/회복학습 화면 존재');
 ok(/\.qadetail \.answer\{[^}]*white-space:pre-line/.test(index), 'Q&A 상세가 답변 문단 줄바꿈을 화면에 유지');
+ok(/\.qadetail \.answer\{[^}]*font-size:16px;[^}]*line-height:1\.85/.test(index), 'Q&A 상세 답변 글씨 = 16px / 줄간격 = 1.85');
 ok(/function refreshIcons\(\)\{[\s\S]*?\$\$\('\[data-ico\]'\)/.test(index), '동적 화면용 refreshIcons 함수 정의');
 ok(/function drawTools\(\)[\s\S]*?refreshIcons\(\);/.test(index), '회복도구 그리기에서 refreshIcons 호출 가능');
 ok(!index.includes('중독 200문답'), 'Q&A 사용자 화면에서 중독 200문답 제작 문구 제거');
@@ -74,4 +75,4 @@ const life = panic.indexOf('id="pk-life"');
 ok(panicStart >= 0 && panicEnd > panicStart, '위기 화면 존재');
 ok(urge >= 0 && rx > urge && withdr > rx && life > withdr, '위기 순서 유지 = 충동 → 마음 처방전 → 몸 이상 → 죽고 싶어요');
 
-console.log('\nV6.4 핵심 검증 통과');
+console.log('\nV6.5 핵심 검증 통과');
