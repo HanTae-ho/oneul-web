@@ -466,7 +466,7 @@ addEventListener('appinstalled', function(){
   .toolcard .b b{display:block;font-size:15.5px}.toolcard .b span{display:block;margin-top:2px;font-size:12.5px;
     color:var(--dim);line-height:1.45}.toolcard .go{font-size:12px;font-weight:700;color:var(--acc);white-space:nowrap}
   .toolcard.soon{opacity:.78}.toolcard.soon .go{color:var(--faint)}
-  /* ── 자가점검 V7.0 ── */
+  /* ── 자가점검 V7.1 ── */
   .screen-group{margin:18px 0 8px}
   .screen-group h2{margin:0 0 4px;font-size:15px;color:var(--tx)}
   .screen-group>p{margin:0 0 9px}
@@ -493,6 +493,13 @@ addEventListener('appinstalled', function(){
   .trend-svg .grid{stroke:var(--line);stroke-width:1}.trend-svg .line{fill:none;stroke:var(--acc);stroke-width:2.4;
     stroke-linecap:round;stroke-linejoin:round}.trend-svg .pt{fill:var(--panel);stroke:var(--acc);stroke-width:2.2}
   .trend-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--faint);margin-top:2px}
+  .screen-record-list{margin-top:10px;border-top:1px solid var(--line);padding-top:6px}
+  .screen-record-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 1px;font-size:12px;border-bottom:1px solid var(--line)}
+  .screen-record-row:last-child{border-bottom:0}.screen-record-row .d{color:var(--dim)}
+  .screen-record-row .r{text-align:right}.screen-record-row .r b{font-size:13px}.screen-record-row .r span{display:block;color:var(--faint);font-size:10.5px;margin-top:1px}
+  .screen-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}
+  .screen-actions .btn{margin:0;width:100%;padding:10px 6px;font-size:12px;line-height:1.3}
+  @media(max-width:380px){.screen-actions{grid-template-columns:1fr}.screen-actions .btn{font-size:13px}}
   .qasearch{position:sticky;top:calc(var(--st) - 1px);z-index:5;background:var(--bg);padding:1px 0 8px}
   .qasearch input{width:100%;margin:0}
   .qacats{display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;padding:8px 0 2px;scrollbar-width:none}
@@ -1033,7 +1040,7 @@ addEventListener('appinstalled', function(){
   </div>
 </section>
 
-<!-- ══════════ 자가점검 V7.0 ══════════ -->
+<!-- ══════════ 자가점검 V7.1 ══════════ -->
 <section class="pg" id="p-screening">
   <div class="sp" style="margin-bottom:11px">
     <h1 style="margin:0">자가점검</h1>
@@ -1469,7 +1476,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V7.0';
+const BUILD = 'V7.1';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -3321,13 +3328,27 @@ function drawLearnTopic(){
   refreshIcons();
 }
 
-/* ══════════ 자가점검 V7.0 ══════════
+/* ══════════ 자가점검 V7.1 ══════════
    문항은 screening-data.js, 결과기록은 이 기기 localStorage에만 둡니다.
    답변 하나하나는 저장하지 않고 검사명·시각·총점·결과구간만 저장합니다. */
 const SCREENINGS = Array.isArray(window.SCREENING_TOOLS) ? window.SCREENING_TOOLS : [];
 let screenRun = null;
 function screenTool(id){ return SCREENINGS.find(x=>x.id===id); }
 function screenHistory(id){ return (S.screenings || []).filter(x=>x && x.id===id).sort((a,b)=>a.t-b.t); }
+function screenElapsedDays(t){ return t ? daysBetween(ymd(t), today()) : 0; }
+function screenRetestText(last){
+  if(!last) return '';
+  const d=screenElapsedDays(last.t);
+  if(d===0) return '오늘 점검';
+  return d+'일 전 점검'+(d>=28?' · 다시 점검해볼 수 있습니다':'');
+}
+function screenRecentRows(rows){
+  const a=(rows||[]).slice(-5).reverse();
+  if(!a.length) return '';
+  return '<div class="screen-record-list">'+a.map(r=>
+    '<div class="screen-record-row"><span class="d">'+esc(ymd(r.t))+'</span><span class="r"><b>'+Number(r.score)+'점</b>'+(r.level?'<span>'+esc(r.level)+'</span>':'')+'</span></div>'
+  ).join('')+'</div>';
+}
 function screenLevel(tool, score, sex){
   const ls = tool.sexCutoff ? (sex==='f' ? tool.levelsFemale : tool.levelsMale) : tool.levels;
   return (ls || []).find(x=>score<=x.max) || (ls || [])[ls.length-1] || {label:'결과 확인',detail:''};
@@ -3343,7 +3364,7 @@ function screenEligible(){
 function screenCardHtml(x){
   const h=screenHistory(x.id), last=h.length?h[h.length-1]:null;
   const sub=(x.short||'')+' · '+(x.questions||[]).length+'문항 · '+(x.period||'')+
-    (last?' · 최근 '+last.score+'점':'');
+    (last?' · 최근 '+last.score+'점 · '+screenRetestText(last):'');
   return '<button class="screen-card" data-screen="'+esc(x.id)+'"><span class="ic">'+ico(x.icon||'check')+'</span>'+ 
     '<span class="b"><b>'+esc(x.title)+'</b><span>'+esc(sub)+'</span></span><span class="go">'+(last?'다시':'시작')+'</span></button>';
 }
@@ -3435,10 +3456,19 @@ function drawScreenResult(tool){
     '<div class="den">/ '+tool.max+'점</div><div class="lv">'+esc(r.level.label)+'</div></div>'+ 
     '<div class="note">'+esc(r.level.detail)+'</div><p style="font-size:14px;line-height:1.65;margin:13px 0 0">'+change+'</p>'+ 
     '<p class="tiny" style="margin:9px 0 0">점수의 증가·감소는 변화 자체를 보여주는 것이며, 그것만으로 회복·악화를 단정하지 않습니다.</p>'+ 
+    '<div class="note" style="margin-top:11px">경과를 비교하려면 약 4주 후 다시 점검해볼 수 있습니다. 이는 앱의 경과관찰 안내이며, 척도의 공식 재검사 주기를 뜻하지 않습니다.</div>'+ 
     '<p class="screen-source">출처: '+esc(tool.source||'')+'</p></div>'+ 
+    '<div class="card tight"><b>다음에 할 수 있는 것</b><div class="screen-actions">'+
+      '<button class="btn ghost" id="screen-log-go">오늘 상태 기록</button>'+ 
+      '<button class="btn ghost" id="screen-help-go">도움 받을 곳</button>'+ 
+      '<button class="btn ghost" id="screen-ai-go">마음프로</button></div>'+ 
+      '<p class="tiny" style="margin:9px 0 0">검사 점수와 결과는 마음프로에 자동으로 전달되지 않습니다.</p></div>'+ 
     '<button class="btn sec" id="screen-stat-go">내 발자취에서 변화 보기</button><div style="height:8px"></div>'+ 
     '<button class="btn ghost" id="screen-again">다시 점검하기</button><div style="height:8px"></div>'+ 
     '<button class="btn ghost" id="screen-list-go">자가점검 목록</button>';
+  $('#screen-log-go').onclick=()=>{ recTab='mood'; screenRun=null; go('rec'); };
+  $('#screen-help-go').onclick=()=>{ screenRun=null; go('help'); };
+  $('#screen-ai-go').onclick=()=>{ screenRun=null; openAI('screening'); };
   $('#screen-stat-go').onclick=()=>{ recTab='stat'; screenRun=null; go('rec'); };
   $('#screen-again').onclick=()=>beginScreen(tool.id);
   $('#screen-list-go').onclick=()=>{screenRun=null;go('screening');};
@@ -3470,7 +3500,8 @@ function screeningStats(){
     if(prev){ const d=last.score-prev.score; ch=d===0?'이전과 같음':('이전보다 '+Math.abs(d)+'점 '+(d>0?'증가':'감소')); }
     c.innerHTML='<div class="screen-history-head"><div><b>'+esc(tool.title)+'</b><div class="tiny">'+esc(tool.short||'')+'</div></div>'+ 
       '<div style="text-align:right"><b style="font-size:20px;color:var(--acc)">'+last.score+'점</b><span style="display:block">'+esc(ch)+'</span></div></div>'+ 
-      trendSvg(tool,h)+'<div class="sp tiny" style="margin-top:9px"><span>기록 '+h.length+'회</span><span>최근 '+esc(ymd(last.t))+'</span></div>';
+      trendSvg(tool,h)+'<div class="sp tiny" style="margin-top:9px"><span>기록 '+h.length+'회</span><span>최근 '+esc(ymd(last.t))+'</span></div>'+ 
+      '<p class="tiny" style="margin:7px 0 0">'+esc(screenRetestText(last))+'</p>'+screenRecentRows(h);
     w.appendChild(c);
   });
   return w;

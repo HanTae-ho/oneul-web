@@ -176,7 +176,7 @@ const srv = http.createServer((req, res) => {
   await pg.click('#p-learn .sp button'); await pg.waitForTimeout(120);
   assert((await seen()) === 'p-tools', '회복학습에서 회복도구로 돌아갈 수 있어야 함');
 
-  // V7.0 자가점검 — 선택 회복영역만 + 공통 마음건강, 결과/변화통계는 로컬 저장
+  // V7.1 자가점검 — 선택 회복영역 + 공통 마음건강 + 행동연결/재점검 안내/최근기록
   assert(await pg.evaluate(() => Array.isArray(window.SCREENING_TOOLS) && window.SCREENING_TOOLS.length === 9), '자가점검 도구는 9종이어야 함');
   await pg.click('#tool-check'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-screening', '자가점검 목록이 열려야 함');
@@ -206,11 +206,14 @@ const srv = http.createServer((req, res) => {
   }
   const secondAudit = await pg.$eval('#screen-test-body', e => e.innerText);
   assert(secondAudit.includes('1점') && secondAudit.includes('1점 증가'), '두 번째 AUDIT-K는 이전 대비 1점 증가를 표시');
+  assert(secondAudit.includes('약 4주 후') && secondAudit.includes('공식 재검사 주기'), '결과에 경과관찰용 재점검 안내 표시');
+  assert(await pg.isVisible('#screen-log-go') && await pg.isVisible('#screen-help-go') && await pg.isVisible('#screen-ai-go'), '결과에서 기록·도움·마음프로 행동 연결 표시');
   await pg.click('#screen-stat-go'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-rec', '자가점검 결과에서 내 발자취 통계로 이동');
   const statTextV7 = await pg.$eval('#rec-body', e => e.innerText);
   assert(statTextV7.includes('자가점검 변화') && statTextV7.includes('AUDIT-K') && statTextV7.includes('이전보다 1점 증가'), '통계에 자가점검 최근점수와 이전 대비 변화 표시');
   assert((await pg.$$eval('#rec-body .trend-svg', a => a.length)) >= 1, '자가점검 통계에 검사별 꺾은선 그래프 표시');
+  assert((await pg.$$eval('#rec-body .screen-record-row', a => a.length)) >= 2, '자가점검 통계에 최근 검사일·점수 목록 표시');
   await shot('10-screening-stat');
 
   // 다시 회복도구로 돌아와 Q&A 검증
