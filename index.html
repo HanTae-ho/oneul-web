@@ -992,7 +992,7 @@ addEventListener('appinstalled', function(){
     </button>
     <button class="toolcard" id="tool-learn">
       <span class="ic" data-ico="sprout"></span>
-      <span class="b"><b>회복학습</b><span>중독 이해 · 갈망 · 재발 · 치료 · 가족을 주제별로 살펴봅니다</span></span>
+      <span class="b"><b>회복학습</b><span>12단계부터 시작해 회복 주제를 하나씩 배웁니다</span></span>
       <span class="go">학습</span>
     </button>
     <button class="toolcard soon" id="tool-check">
@@ -1031,8 +1031,18 @@ addEventListener('appinstalled', function(){
     <h1 style="margin:0">회복학습</h1>
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('tools')">← 회복도구</button>
   </div>
-  <p class="muted" style="margin:-2px 0 14px">긴 강의 대신, 꼭 알아둘 주제를 Q&A와 연결해 하나씩 살펴봅니다.</p>
+  <p class="muted" style="margin:-2px 0 14px">배우고 싶은 회복 주제를 선택해 차례대로 살펴봅니다.</p>
   <div class="learnlist" id="learn-list"></div>
+</section>
+
+<!-- ══════════ 회복학습 · 주제별 페이지 ══════════ -->
+<section class="pg" id="p-learn-topic">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0" id="learn-topic-title">회복학습</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" id="learn-topic-back">← 회복학습</button>
+  </div>
+  <p class="muted" style="margin:-2px 0 14px" id="learn-topic-desc"></p>
+  <div class="learnlist" id="learn-topic-sections"></div>
 </section>
 
 <!-- ══════════ 내 발자취 ══════════ -->
@@ -1404,12 +1414,13 @@ addEventListener('appinstalled', function(){
 <div id="mod"><div id="modbox"><div class="grab"></div><div id="modin"></div></div></div>
 
 <script src="./qa-data.js"></script>
+<script src="./learning-data.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V6.2';
+const BUILD = 'V6.4';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -2146,7 +2157,7 @@ function go(p){
   if(p === 'ai' && prev !== 'ai') ai.actionsOpen = false;
   cur = p;
   $('#tabs').style.display = (p === 'intro') ? 'none' : 'flex';
-  const tabP = (p === 'qa' || p === 'learn') ? 'tools' : p;
+  const tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic') ? 'tools' : p;
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tabP));
   $('#view').classList.toggle('ai-mode', p === 'ai');
   if(p !== 'ai') $('#view').scrollTop = 0;
@@ -2154,6 +2165,7 @@ function go(p){
   if(p === 'tools') drawTools();
   if(p === 'qa')    drawQA();
   if(p === 'learn') drawLearn();
+  if(p === 'learn-topic') drawLearnTopic();
   if(p === 'rec')   drawRec();
   if(p === 'help') drawHelp();
   if(p === 'ai')   drawAI();
@@ -3137,7 +3149,7 @@ function riskWindow(k){
            inside: now >= Math.max(1, lo - 3) && now <= hi + 3 };
 }
 
-/* ══════════ 회복도구 · 중독 Q&A V6.0 ══════════ */
+/* ══════════ 회복도구 · 중독 Q&A V6.4 ══════════ */
 const QA = Array.isArray(window.QA_ITEMS) ? window.QA_ITEMS : [];
 let qaState = { cat:'전체', q:'', limit:30, selected:0 };
 
@@ -3207,27 +3219,54 @@ function drawQA(){
   more.textContent = '더 보기 (' + Math.min(rows.length,qaState.limit) + '/' + rows.length + ')';
 }
 
-const LEARN = [
-  {id:1,  t:'중독은 의지의 문제일까?', d:'중독을 질환과 회복의 관점에서 이해합니다.'},
-  {id:3,  t:'갈망은 왜 다시 올라올까?', d:'갈망의 성질과 대처의 기본을 살펴봅니다.'},
-  {id:13, t:'재발은 어디서부터 시작될까?', d:'고위험 상황과 초기 신호를 미리 알아봅니다.'},
-  {id:10, t:'치료에는 무엇이 있을까?', d:'약물·심리치료·모임의 역할을 구분합니다.'},
-  {id:51, t:'회복모임은 왜 도움이 될까?', d:'동료지지와 일상 회복의 의미를 살펴봅니다.'},
-  {id:101,t:'도움과 조장은 어떻게 다를까?', d:'가족의 선의가 소진으로 바뀌지 않도록 경계를 봅니다.'},
-  {id:81, t:'도박도 중독일까?', d:'도박장애의 특징과 회복 원리를 살펴봅니다.'},
-  {id:88, t:'마약류 중독은 무엇이 다를까?', d:'법적·사회적 조건과 치료·재활을 함께 봅니다.'}
-];
+const LEARNING = Array.isArray(window.LEARNING_TOPICS) ? window.LEARNING_TOPICS : [];
+let learnState = { topic:'' };
+
 function drawLearn(){
   const box=$('#learn-list'); box.innerHTML='';
-  LEARN.forEach((m,i)=>{
+  if(!LEARNING.length){
+    box.innerHTML='<div class="note">준비된 회복학습이 아직 없습니다.</div>';
+    return;
+  }
+  LEARNING.forEach((m,i)=>{
     const b=el('button','help');
     b.style.width='100%'; b.style.textAlign='left';
-    b.innerHTML='<span class="ic">'+ico(i<5?'sprout':(i===6?'gamble':i===7?'drug':'family'))+'</span>'+
-      '<span class="b"><b>'+esc(m.t)+'</b><span>'+esc(m.d)+'</span></span><span class="acts"><span class="go">보기</span></span>';
-    b.onclick=()=>{ qaState.selected=m.id; qaState.q=''; qaState.cat='전체'; go('qa'); };
+    b.innerHTML='<span class="ic">'+ico(m.icon || 'sprout')+'</span>'+
+      '<span class="b"><b>'+esc(m.title)+'</b><span>'+esc(m.description || '')+'</span></span>'+
+      '<span class="acts"><span class="go">열기</span></span>';
+    b.onclick=()=>{ learnState.topic=m.id; go('learn-topic'); };
     box.appendChild(b);
   });
+  refreshIcons();
 }
+
+function drawLearnTopic(){
+  const topic=LEARNING.find(x=>x.id===learnState.topic) || LEARNING[0];
+  if(!topic){ go('learn'); return; }
+  learnState.topic=topic.id;
+  $('#learn-topic-title').textContent=topic.title || '회복학습';
+  $('#learn-topic-desc').textContent=topic.longDescription || topic.description || '';
+  const box=$('#learn-topic-sections'); box.innerHTML='';
+  (topic.sections || []).forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='help';
+    d.style.width='100%'; d.style.textAlign='left';
+    const ready = !!(s.content && String(s.content).trim());
+    d.innerHTML='<span class="ic">'+ico(s.icon || 'sprout')+'</span>'+
+      '<span class="b"><b>'+esc(s.title || ('학습 '+(i+1)))+'</b><span>'+
+      esc(ready ? (s.summary || '학습 내용을 살펴봅니다.') : '내용을 준비 중입니다.')+'</span></span>'+
+      '<span class="acts"><span class="go">'+(ready?'보기':'준비 중')+'</span></span>';
+    if(ready){
+      d.setAttribute('role','button'); d.tabIndex=0;
+      const open=()=>modal('<h2>'+esc(s.title)+'</h2><div class="readbody" style="margin-top:10px">'+esc(s.content).replace(/\n/g,'<br>')+'</div><div style="height:12px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
+      d.onclick=open; d.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); } };
+    }
+    box.appendChild(d);
+  });
+  if(!(topic.sections || []).length) box.innerHTML='<div class="note">학습 내용을 준비 중입니다.</div>';
+  refreshIcons();
+}
+
 function openSelfCheckInfo(){
   modal('<h2>자가점검은 V7.0에서 제공합니다</h2>' +
     '<p class="muted" style="margin:7px 0 13px">선별도구는 문항·채점·해석 기준이 정확해야 합니다. 알코올·도박·약물·우울·불안 도구의 사용조건과 공식 기준을 확인한 뒤 넣겠습니다.</p>' +
@@ -6180,6 +6219,7 @@ $('#me-sheet-save').onclick = () => {
 
 $('#tool-qa').onclick = () => { qaState.selected=0; qaState.cat='전체'; qaState.q=''; qaState.limit=30; go('qa'); };
 $('#tool-learn').onclick = () => go('learn');
+$('#learn-topic-back').onclick = () => go('learn');
 $('#tool-check').onclick = openSelfCheckInfo;
 $('#me-share').onclick = shareApp;
 $('#qa-back').onclick = () => { qaState.selected=0; go('tools'); };
