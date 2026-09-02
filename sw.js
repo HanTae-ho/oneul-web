@@ -3,12 +3,12 @@
 
    ★ 배포할 때 APP_VERSION · 내부 캐시 V · index.html 의 BUILD 를 함께 갱신하세요. */
 /* 사용자에게 보이는 앱 버전. index.html 의 BUILD 와 반드시 맞춥니다. */
-const APP_VERSION = 'V6.5';
+const APP_VERSION = 'V7.0';
 /* 내부 캐시 리비전. 기존 v46 클라이언트도 새 판을 감지하도록 숫자형 키를 유지합니다.
    V4.6 → 406, V4.7 → 407, V4.10 → 410, V5.0 → 500, V5.1 → 501, V5.2 → 502 */
-const V = 'ohg-v605';
+const V = 'ohg-v700';
 const SHELL = ['./', './index.html',
-  './qa-data.js', './learning-data.js', './manifest.json',
+  './qa-data.js', './learning-data.js', './screening-data.js', './manifest.json',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-32.png'];
 
 self.addEventListener('install', e => {

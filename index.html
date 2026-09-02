@@ -85,9 +85,12 @@ addEventListener('appinstalled', function(){
   #tabs button[data-t="help"]{position:relative}
   #tabs button[data-t="help"]::after{content:"";position:absolute;top:8px;left:calc(50% + 8px);
     width:6px;height:6px;border-radius:50%;background:var(--bad);box-shadow:0 0 0 2px var(--panel)}
-  #top-me{color:var(--faint);display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:11px}
-  #top-me:active{background:var(--accbg);color:var(--acc)}
-  #top-me svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  #top-me{color:var(--dim);display:flex;align-items:center;justify-content:center;width:40px;height:40px;
+    border-radius:50%;border:1.5px solid var(--line2,var(--line));background:var(--panel);overflow:hidden;
+    box-shadow:0 1px 5px #0000000d}
+  #top-me:active{background:var(--accbg);color:var(--acc);border-color:var(--acc2)}
+  #top-me svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  #top-me img{width:100%;height:100%;object-fit:cover;display:block}
   #tabs svg{width:23px;height:23px;stroke:currentColor;fill:none;
     stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 
@@ -463,6 +466,33 @@ addEventListener('appinstalled', function(){
   .toolcard .b b{display:block;font-size:15.5px}.toolcard .b span{display:block;margin-top:2px;font-size:12.5px;
     color:var(--dim);line-height:1.45}.toolcard .go{font-size:12px;font-weight:700;color:var(--acc);white-space:nowrap}
   .toolcard.soon{opacity:.78}.toolcard.soon .go{color:var(--faint)}
+  /* ── 자가점검 V7.0 ── */
+  .screen-group{margin:18px 0 8px}
+  .screen-group h2{margin:0 0 4px;font-size:15px;color:var(--tx)}
+  .screen-group>p{margin:0 0 9px}
+  .screen-card{display:flex;align-items:center;gap:11px;width:100%;padding:13px 12px;margin-bottom:8px;
+    text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+  .screen-card .ic{width:40px;height:40px;border-radius:12px;background:var(--accbg);color:var(--acc);
+    display:flex;align-items:center;justify-content:center;flex:none}
+  .screen-card .ic .ic-s{width:22px;height:22px}.screen-card .b{flex:1;min-width:0}
+  .screen-card .b b{display:block;font-size:15px}.screen-card .b span{display:block;margin-top:2px;font-size:12px;
+    color:var(--dim);line-height:1.45}.screen-card .go{font-size:12px;font-weight:700;color:var(--acc);white-space:nowrap}
+  .screen-progress{height:7px;border-radius:99px;background:var(--bg2);overflow:hidden;margin:9px 0 18px}
+  .screen-progress>i{display:block;height:100%;background:var(--acc);border-radius:99px;transition:width .18s ease}
+  .screen-q{font-size:18px;font-weight:650;line-height:1.55;letter-spacing:-.25px;margin:0 0 15px}
+  .screen-opts{display:grid;gap:8px}.screen-opts .opt{width:100%;text-align:left;padding:12px 13px;line-height:1.45}
+  .screen-opts .opt.on{border-color:var(--acc);background:var(--accbg);color:var(--acc);font-weight:600}
+  .screen-opts .opt small{display:block;font-size:11px;color:var(--faint);font-weight:400;margin-top:2px}
+  .screen-nav{display:flex;gap:8px;margin-top:15px}.screen-nav .btn{flex:1;margin:0;width:auto}
+  .screen-score{text-align:center;padding:18px 10px 15px}.screen-score .n{font-size:48px;font-weight:750;color:var(--acc);line-height:1}
+  .screen-score .den{font-size:14px;color:var(--faint);margin-top:4px}.screen-score .lv{font-size:18px;font-weight:700;margin-top:12px}
+  .screen-source{font-size:10.5px;color:var(--faint);line-height:1.55;margin-top:13px}
+  .screen-history-head{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin-bottom:8px}
+  .screen-history-head b{font-size:15px}.screen-history-head span{font-size:12px;color:var(--dim)}
+  .trendwrap{margin-top:10px}.trend-svg{display:block;width:100%;height:130px;overflow:visible}
+  .trend-svg .grid{stroke:var(--line);stroke-width:1}.trend-svg .line{fill:none;stroke:var(--acc);stroke-width:2.4;
+    stroke-linecap:round;stroke-linejoin:round}.trend-svg .pt{fill:var(--panel);stroke:var(--acc);stroke-width:2.2}
+  .trend-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--faint);margin-top:2px}
   .qasearch{position:sticky;top:calc(var(--st) - 1px);z-index:5;background:var(--bg);padding:1px 0 8px}
   .qasearch input{width:100%;margin:0}
   .qacats{display:flex;gap:6px;overflow-x:auto;flex-wrap:nowrap;padding:8px 0 2px;scrollbar-width:none}
@@ -995,12 +1025,30 @@ addEventListener('appinstalled', function(){
       <span class="b"><b>회복학습</b><span>12단계부터 시작해 회복 주제를 하나씩 배웁니다</span></span>
       <span class="go">학습</span>
     </button>
-    <button class="toolcard soon" id="tool-check">
+    <button class="toolcard" id="tool-check">
       <span class="ic" data-ico="check"></span>
-      <span class="b"><b>자가점검</b><span>검증된 선별도구를 안전하게 적용하기 위해 준비하고 있습니다</span></span>
-      <span class="go">V7.0</span>
+      <span class="b"><b>자가점검</b><span>내 회복영역과 우울·불안·스트레스 변화를 점검합니다</span></span>
+      <span class="go">열기</span>
     </button>
   </div>
+</section>
+
+<!-- ══════════ 자가점검 V7.0 ══════════ -->
+<section class="pg" id="p-screening">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0">자가점검</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('tools')">← 회복도구</button>
+  </div>
+  <div class="note w" style="margin-bottom:13px">자가점검은 진단이 아닙니다. 점수는 현재 상태를 살펴보고 상담이나 전문 평가가 필요한지 확인하는 참고자료입니다. 결과는 이 기기에만 저장됩니다.</div>
+  <div id="screening-list"></div>
+</section>
+
+<section class="pg" id="p-screen-test">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0" id="screen-test-title">자가점검</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" id="screen-test-close">닫기</button>
+  </div>
+  <div id="screen-test-body"></div>
 </section>
 
 <!-- ══════════ 중독 Q&A ══════════ -->
@@ -1415,12 +1463,13 @@ addEventListener('appinstalled', function(){
 
 <script src="./qa-data.js"></script>
 <script src="./learning-data.js"></script>
+<script src="./screening-data.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V6.5';
+const BUILD = 'V7.0';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1445,7 +1494,7 @@ const BLANK = {
   eats: [], eatLog: [],                       /* 식사 — 복약과 같은 틀 */
   sleep: { on: 0, bed: '23:00', up: '07:00' },
   sleepLog: [],                               /* [{t, q}] q: good|soso|bad */
-  moods: [], halts: [], urges: [], nights: [], relapses: [],
+  moods: [], halts: [], urges: [], nights: [], relapses: [], screenings: [],
   aiChat: [], aiClient: '', aiConsent: 0,       /* AI 대화는 이 기기에만 저장 */
   sheet: '', res: null, resAt: 0, resVer: '', theme: '',
   notify: 0, fired: [],
@@ -1465,6 +1514,7 @@ function load(){
    v17 부터는 아침·점심·저녁·자기 전으로 바뀌었으니, 예전에 적어둔 것을
    시간을 보고 알맞은 때로 옮겨 줍니다. 옮기지 않으면 화면이 비어 보입니다. */
 function migrate(s){
+  if(!Array.isArray(s.screenings)) s.screenings = [];
   const old = (s.meds || []).filter(m => m && m.n !== undefined && m.s === undefined);
   if(old.length){
     const slotOf = t => {
@@ -1994,6 +2044,8 @@ const ICO = {
 
   /* 도움 */
   phone:  '<path d="M6.4 3.4h3.1l1.6 4.1-2.1 1.5a12.4 12.4 0 0 0 5.9 5.9l1.5-2.1 4.1 1.6v3.1a2.1 2.1 0 0 1-2.3 2.1A17.4 17.4 0 0 1 4.3 5.7a2.1 2.1 0 0 1 2.1-2.3z"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/>',
+  game: '<rect x="3.2" y="7.2" width="17.6" height="10.4" rx="4.2"/><path d="M8.2 10.2v4M6.2 12.2h4"/><circle class="f" cx="15.8" cy="11.2" r="1"/><circle class="f" cx="18.1" cy="13.5" r="1"/>',
   people: '<circle cx="9.2" cy="8.2" r="3.3"/><path d="M3.4 19.2a5.8 5.8 0 0 1 11.6 0"/>' +
           '<path d="M16.2 5.4a3.3 3.3 0 0 1 0 6.2"/><path d="M17.2 14.2a5.8 5.8 0 0 1 3.4 5"/>',
   family: '<circle cx="7.6" cy="7.4" r="2.9"/><circle cx="16.4" cy="7.4" r="2.9"/>' +
@@ -2157,7 +2209,7 @@ function go(p){
   if(p === 'ai' && prev !== 'ai') ai.actionsOpen = false;
   cur = p;
   $('#tabs').style.display = (p === 'intro') ? 'none' : 'flex';
-  const tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic') ? 'tools' : p;
+  const tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'screening' || p === 'screen-test') ? 'tools' : p;
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tabP));
   $('#view').classList.toggle('ai-mode', p === 'ai');
   if(p !== 'ai') $('#view').scrollTop = 0;
@@ -2166,6 +2218,8 @@ function go(p){
   if(p === 'qa')    drawQA();
   if(p === 'learn') drawLearn();
   if(p === 'learn-topic') drawLearnTopic();
+  if(p === 'screening') drawScreening();
+  if(p === 'screen-test') drawScreenTest();
   if(p === 'rec')   drawRec();
   if(p === 'help') drawHelp();
   if(p === 'ai')   drawAI();
@@ -3267,12 +3321,162 @@ function drawLearnTopic(){
   refreshIcons();
 }
 
-function openSelfCheckInfo(){
-  modal('<h2>자가점검은 V7.0에서 제공합니다</h2>' +
-    '<p class="muted" style="margin:7px 0 13px">선별도구는 문항·채점·해석 기준이 정확해야 합니다. 알코올·도박·약물·우울·불안 도구의 사용조건과 공식 기준을 확인한 뒤 넣겠습니다.</p>' +
-    '<div class="note">자가점검 결과는 진단이 아니라 상담이나 평가가 필요한지 살펴보는 신호로 사용합니다.</div>' +
-    '<div style="height:11px"></div><button class="btn ghost" onclick="closeModal()">확인</button>');
+/* ══════════ 자가점검 V7.0 ══════════
+   문항은 screening-data.js, 결과기록은 이 기기 localStorage에만 둡니다.
+   답변 하나하나는 저장하지 않고 검사명·시각·총점·결과구간만 저장합니다. */
+const SCREENINGS = Array.isArray(window.SCREENING_TOOLS) ? window.SCREENING_TOOLS : [];
+let screenRun = null;
+function screenTool(id){ return SCREENINGS.find(x=>x.id===id); }
+function screenHistory(id){ return (S.screenings || []).filter(x=>x && x.id===id).sort((a,b)=>a.t-b.t); }
+function screenLevel(tool, score, sex){
+  const ls = tool.sexCutoff ? (sex==='f' ? tool.levelsFemale : tool.levelsMale) : tool.levels;
+  return (ls || []).find(x=>score<=x.max) || (ls || [])[ls.length-1] || {label:'결과 확인',detail:''};
 }
+function screenEligible(){
+  const types = S.types || [];
+  return {
+    recovery: SCREENINGS.filter(x=>x.group==='recovery' && types.includes(x.domain)),
+    common: SCREENINGS.filter(x=>x.group==='common'),
+    other: types.includes('etc') ? SCREENINGS.filter(x=>x.group==='other') : []
+  };
+}
+function screenCardHtml(x){
+  const h=screenHistory(x.id), last=h.length?h[h.length-1]:null;
+  const sub=(x.short||'')+' · '+(x.questions||[]).length+'문항 · '+(x.period||'')+
+    (last?' · 최근 '+last.score+'점':'');
+  return '<button class="screen-card" data-screen="'+esc(x.id)+'"><span class="ic">'+ico(x.icon||'check')+'</span>'+ 
+    '<span class="b"><b>'+esc(x.title)+'</b><span>'+esc(sub)+'</span></span><span class="go">'+(last?'다시':'시작')+'</span></button>';
+}
+function drawScreening(){
+  const box=$('#screening-list'); if(!box) return;
+  const g=screenEligible();
+  let h='';
+  if(!famMode()){
+    h+='<div class="screen-group"><h2>내 회복영역 점검</h2><p class="tiny">내정보에서 선택한 회복영역에 맞는 검사만 표시합니다.</p>';
+    if(g.recovery.length) h+=g.recovery.map(screenCardHtml).join('');
+    else h+='<div class="note">현재 알코올·도박·약물 영역이 선택되어 있지 않습니다. 내정보에서 회복영역을 변경할 수 있습니다.</div>';
+    h+='</div>';
+  } else {
+    h+='<div class="note" style="margin-bottom:13px">가족·보호자 모드에서는 당사자 대신 중독 선별검사를 작성하지 않습니다. 아래 마음건강 점검은 이 앱을 사용하는 본인의 상태를 살펴보는 용도입니다.</div>';
+  }
+  h+='<div class="screen-group"><h2>마음건강 공통점검</h2><p class="tiny">우울 · 불안 · 스트레스는 모든 사용자에게 공통으로 표시합니다.</p>'+g.common.map(screenCardHtml).join('')+'</div>';
+  if(!famMode() && g.other.length){
+    h+='<div class="screen-group"><h2>기타중독 점검</h2><p class="tiny">내정보에서 기타 회복영역을 선택한 경우 표시됩니다.</p>'+g.other.map(screenCardHtml).join('')+'</div>';
+  }
+  if(!famMode() && !(S.types||[]).includes('etc')){
+    h+='<div class="note" style="margin-top:14px">인터넷·게임·스마트폰 사용 점검은 <b>내정보 → 회복영역 → 기타</b>를 선택하면 나타납니다.</div>';
+  }
+  box.innerHTML=h;
+  $$('[data-screen]').forEach(b=>b.onclick=()=>beginScreen(b.dataset.screen));
+}
+function beginScreen(id){
+  const tool=screenTool(id); if(!tool) return;
+  if(tool.sexCutoff){
+    modal('<h2>AUDIT-K 결과 기준 선택</h2><p class="muted" style="margin:7px 0 12px">원자료의 결과 기준이 남성과 여성으로 구분되어 있습니다. 해당하는 검사 기준을 선택해주세요. 이 선택값은 저장하지 않습니다.</p>'+ 
+      '<button class="btn sec" id="screen-sex-m">남성 기준</button><div style="height:8px"></div>'+ 
+      '<button class="btn ghost" id="screen-sex-f">여성 기준</button><div style="height:8px"></div>'+ 
+      '<button class="btn ghost" onclick="closeModal()">취소</button>');
+    $('#screen-sex-m').onclick=()=>{ closeModal(); startScreenNow(tool,'m'); };
+    $('#screen-sex-f').onclick=()=>{ closeModal(); startScreenNow(tool,'f'); };
+    return;
+  }
+  startScreenNow(tool,'');
+}
+function startScreenNow(tool,sex){
+  screenRun={id:tool.id,i:0,a:new Array((tool.questions||[]).length).fill(null),sex:sex,result:null};
+  go('screen-test');
+}
+function drawScreenTest(){
+  const body=$('#screen-test-body'); if(!body) return;
+  if(!screenRun){ go('screening'); return; }
+  const tool=screenTool(screenRun.id); if(!tool){ go('screening'); return; }
+  $('#screen-test-title').textContent=tool.title;
+  if(screenRun.result){ drawScreenResult(tool); return; }
+  const i=screenRun.i, q=tool.questions[i], total=tool.questions.length;
+  if(!q){ finishScreen(tool); return; }
+  const opts=q.o || tool.options || [];
+  const selected=screenRun.a[i];
+  let h='';
+  if(i===0){
+    h+='<div class="card tight"><b>'+esc(tool.short||tool.title)+'</b><p class="muted" style="margin:5px 0 0">'+esc(tool.intro||'')+'</p>'+ 
+       (tool.note?'<p class="tiny" style="margin:8px 0 0">'+esc(tool.note)+'</p>':'')+'</div>';
+  }
+  h+='<div class="sp tiny"><span>'+esc(tool.period||'')+'</span><span>'+(i+1)+' / '+total+'</span></div>'+ 
+    '<div class="screen-progress"><i style="width:'+(((i+1)/total)*100).toFixed(1)+'%"></i></div>'+ 
+    '<p class="screen-q">'+esc(q.q)+'</p><div class="screen-opts">';
+  opts.forEach(o=>{
+    h+='<button class="opt'+(selected===o.v?' on':'')+'" data-screen-v="'+o.v+'">'+esc(o.l)+(o.s?'<small>'+esc(o.s)+'</small>':'')+'</button>';
+  });
+  h+='</div><div class="screen-nav"><button class="btn ghost" id="screen-prev"'+(i===0?' disabled':'')+'>이전</button>'+ 
+     '<button class="btn sec" id="screen-next"'+(selected==null?' disabled':'')+'>'+(i===total-1?'결과 보기':'다음')+'</button></div>'+ 
+     '<p class="screen-source">출처: '+esc(tool.source||'')+'</p>';
+  body.innerHTML=h;
+  $$('[data-screen-v]').forEach(b=>b.onclick=()=>{ screenRun.a[i]=Number(b.dataset.screenV); drawScreenTest(); });
+  $('#screen-prev').onclick=()=>{ if(screenRun.i>0){screenRun.i--;drawScreenTest();} };
+  $('#screen-next').onclick=()=>{ if(screenRun.a[i]==null)return; if(i>=total-1) finishScreen(tool); else {screenRun.i++;drawScreenTest();} };
+}
+function finishScreen(tool){
+  if(!screenRun || screenRun.a.some(v=>v==null)){ toast('답하지 않은 문항이 있습니다.'); return; }
+  const score=screenRun.a.reduce((a,b)=>a+Number(b||0),0);
+  const lv=screenLevel(tool,score,screenRun.sex);
+  const rec={id:tool.id,t:Date.now(),score:score,level:lv.label};
+  if(!Array.isArray(S.screenings)) S.screenings=[];
+  S.screenings.push(rec);
+  /* 답변 원문과 AUDIT 성별 기준은 저장하지 않습니다. */
+  save();
+  screenRun.result={score:score,level:lv};
+  drawScreenTest();
+}
+function drawScreenResult(tool){
+  const r=screenRun.result, hist=screenHistory(tool.id), prev=hist.length>1?hist[hist.length-2]:null;
+  let change='첫 기록입니다.';
+  if(prev){ const d=r.score-prev.score; change=d===0?'이전 점수와 같습니다.':('이전보다 <b>'+Math.abs(d)+'점 '+(d>0?'증가':'감소')+'</b>했습니다.'); }
+  $('#screen-test-body').innerHTML='<div class="card"><div class="screen-score"><div class="n">'+r.score+'</div>'+ 
+    '<div class="den">/ '+tool.max+'점</div><div class="lv">'+esc(r.level.label)+'</div></div>'+ 
+    '<div class="note">'+esc(r.level.detail)+'</div><p style="font-size:14px;line-height:1.65;margin:13px 0 0">'+change+'</p>'+ 
+    '<p class="tiny" style="margin:9px 0 0">점수의 증가·감소는 변화 자체를 보여주는 것이며, 그것만으로 회복·악화를 단정하지 않습니다.</p>'+ 
+    '<p class="screen-source">출처: '+esc(tool.source||'')+'</p></div>'+ 
+    '<button class="btn sec" id="screen-stat-go">내 발자취에서 변화 보기</button><div style="height:8px"></div>'+ 
+    '<button class="btn ghost" id="screen-again">다시 점검하기</button><div style="height:8px"></div>'+ 
+    '<button class="btn ghost" id="screen-list-go">자가점검 목록</button>';
+  $('#screen-stat-go').onclick=()=>{ recTab='stat'; screenRun=null; go('rec'); };
+  $('#screen-again').onclick=()=>beginScreen(tool.id);
+  $('#screen-list-go').onclick=()=>{screenRun=null;go('screening');};
+}
+function trendSvg(tool, rows){
+  const a=rows.slice(-8); if(!a.length) return '';
+  const W=300,H=118,L=12,R=12,T=10,B=16;
+  const min=Number(tool.min||0),max=Number(tool.max||1),range=Math.max(1,max-min);
+  const x=i=>a.length===1?W/2:L+i*(W-L-R)/(a.length-1);
+  const y=v=>T+(max-v)/range*(H-T-B);
+  let grid=''; [0,.5,1].forEach(z=>{const yy=T+z*(H-T-B);grid+='<line class="grid" x1="'+L+'" y1="'+yy+'" x2="'+(W-R)+'" y2="'+yy+'"/>';});
+  const pts=a.map((r,i)=>x(i).toFixed(1)+','+y(r.score).toFixed(1)).join(' ');
+  const circles=a.map((r,i)=>'<circle class="pt" cx="'+x(i).toFixed(1)+'" cy="'+y(r.score).toFixed(1)+'" r="3.5"><title>'+esc(ymd(r.t))+' · '+r.score+'점</title></circle>').join('');
+  const first=a[0],last=a[a.length-1];
+  return '<div class="trendwrap"><svg class="trend-svg" viewBox="0 0 '+W+' '+H+'" aria-label="'+esc(tool.title)+' 점수 변화">'+grid+(a.length>1?'<polyline class="line" points="'+pts+'"/>':'')+circles+'</svg>'+ 
+    '<div class="trend-labels"><span>'+esc((ymd(first.t)).slice(5).replace('-','.'))+'</span><span>'+esc((ymd(last.t)).slice(5).replace('-','.'))+'</span></div></div>';
+}
+function screeningStats(){
+  const ids=[...new Set((S.screenings||[]).map(x=>x.id))];
+  if(!ids.length) return null;
+  const w=el('div');
+  const title=el('div','card tight','<h3 style="margin:0 0 4px">자가점검 변화</h3><p class="tiny" style="margin:0">검사별 점수는 서로 척도가 다르므로 각각 따로 표시합니다. 점수 차이는 회복·악화의 진단이 아닙니다.</p>');
+  w.appendChild(title);
+  ids.forEach(id=>{
+    const tool=screenTool(id); if(!tool)return;
+    const h=screenHistory(id),last=h[h.length-1],prev=h.length>1?h[h.length-2]:null;
+    const c=el('div','card');
+    let ch='첫 기록';
+    if(prev){ const d=last.score-prev.score; ch=d===0?'이전과 같음':('이전보다 '+Math.abs(d)+'점 '+(d>0?'증가':'감소')); }
+    c.innerHTML='<div class="screen-history-head"><div><b>'+esc(tool.title)+'</b><div class="tiny">'+esc(tool.short||'')+'</div></div>'+ 
+      '<div style="text-align:right"><b style="font-size:20px;color:var(--acc)">'+last.score+'점</b><span style="display:block">'+esc(ch)+'</span></div></div>'+ 
+      trendSvg(tool,h)+'<div class="sp tiny" style="margin-top:9px"><span>기록 '+h.length+'회</span><span>최근 '+esc(ymd(last.t))+'</span></div>';
+    w.appendChild(c);
+  });
+  return w;
+}
+$('#screen-test-close').onclick=()=>{ screenRun=null; go('screening'); };
+
 function shareApp(){
   const url = location.origin && location.origin !== 'null' ? location.origin + location.pathname : location.href.split('#')[0];
   const data={ title:'오늘 한 걸음', text:'회복을 하루씩 이어가는 데 사용할 수 있는 웹앱 오늘 한 걸음입니다.', url:url };
@@ -3659,7 +3863,7 @@ function recRelapse(){
 
 function recStat(){
   const w = el('div');
-  if(!S.urges.length && !S.halts.length && !S.moods.length)
+  if(!S.urges.length && !S.halts.length && !S.moods.length && !(S.screenings||[]).length)
     return emptyBox('기록이 쌓이면 여기에 나의 회복 패턴이 보입니다.');
 
   /* KPI */
@@ -3680,6 +3884,8 @@ function recStat(){
       '<div><b>' + S.relapses.length + '</b><span>다시 시작한 날</span></div>' +
       '</div>';
   w.appendChild(k);
+
+  const ss=screeningStats(); if(ss) w.appendChild(ss);
 
   /* 잠 막대는 [몸] 탭으로 옮겼습니다 — 몸은 몸끼리 모아놔야 읽힙니다. */
 
@@ -6220,7 +6426,7 @@ $('#me-sheet-save').onclick = () => {
 $('#tool-qa').onclick = () => { qaState.selected=0; qaState.cat='전체'; qaState.q=''; qaState.limit=30; go('qa'); };
 $('#tool-learn').onclick = () => go('learn');
 $('#learn-topic-back').onclick = () => go('learn');
-$('#tool-check').onclick = openSelfCheckInfo;
+$('#tool-check').onclick = () => go('screening');
 $('#me-share').onclick = shareApp;
 $('#qa-back').onclick = () => { qaState.selected=0; go('tools'); };
 $('#qa-search').addEventListener('input', e => { qaState.q=e.target.value || ''; qaState.limit=30; drawQA(); });

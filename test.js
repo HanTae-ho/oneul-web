@@ -175,6 +175,46 @@ const srv = http.createServer((req, res) => {
   await pg.click('#learn-topic-back'); await pg.waitForTimeout(100);
   await pg.click('#p-learn .sp button'); await pg.waitForTimeout(120);
   assert((await seen()) === 'p-tools', '회복학습에서 회복도구로 돌아갈 수 있어야 함');
+
+  // V7.0 자가점검 — 선택 회복영역만 + 공통 마음건강, 결과/변화통계는 로컬 저장
+  assert(await pg.evaluate(() => Array.isArray(window.SCREENING_TOOLS) && window.SCREENING_TOOLS.length === 9), '자가점검 도구는 9종이어야 함');
+  await pg.click('#tool-check'); await pg.waitForTimeout(180);
+  assert((await seen()) === 'p-screening', '자가점검 목록이 열려야 함');
+  const selfScreens = await pg.$$eval('[data-screen]', a => a.map(x => x.dataset.screen));
+  assert(JSON.stringify(selfScreens) === JSON.stringify(['audit-k','pgsi','nds-bv','nas-bv','nss-bv']), '알코올+도박 프로필에는 AUDIT-K·PGSI와 공통 3종만 보여야 함');
+
+  // AUDIT-K 첫 검사: 남성 기준, 모두 0점
+  await pg.click('[data-screen="audit-k"]'); await pg.waitForTimeout(100);
+  assert(await pg.isVisible('#screen-sex-m') && await pg.isVisible('#screen-sex-f'), 'AUDIT-K는 원자료 성별 기준을 선택해야 함');
+  await pg.click('#screen-sex-m'); await pg.waitForTimeout(100);
+  for(let i=0;i<10;i++){
+    await pg.click('[data-screen-v="0"]');
+    await pg.click('#screen-next');
+    await pg.waitForTimeout(35);
+  }
+  assert((await pg.$eval('.screen-score .n', e => e.innerText)) === '0', 'AUDIT-K 0점 결과');
+  assert((await pg.$eval('#screen-test-body', e => e.innerText)).includes('첫 기록'), '첫 자가점검은 첫 기록으로 표시');
+  await pg.click('#screen-list-go'); await pg.waitForTimeout(100);
+
+  // AUDIT-K 두 번째 검사: 첫 문항 1점, 나머지 0점 → 이전보다 1점 증가
+  await pg.click('[data-screen="audit-k"]'); await pg.waitForTimeout(80);
+  await pg.click('#screen-sex-m'); await pg.waitForTimeout(80);
+  for(let i=0;i<10;i++){
+    await pg.click(i===0 ? '[data-screen-v="1"]' : '[data-screen-v="0"]');
+    await pg.click('#screen-next');
+    await pg.waitForTimeout(35);
+  }
+  const secondAudit = await pg.$eval('#screen-test-body', e => e.innerText);
+  assert(secondAudit.includes('1점') && secondAudit.includes('1점 증가'), '두 번째 AUDIT-K는 이전 대비 1점 증가를 표시');
+  await pg.click('#screen-stat-go'); await pg.waitForTimeout(180);
+  assert((await seen()) === 'p-rec', '자가점검 결과에서 내 발자취 통계로 이동');
+  const statTextV7 = await pg.$eval('#rec-body', e => e.innerText);
+  assert(statTextV7.includes('자가점검 변화') && statTextV7.includes('AUDIT-K') && statTextV7.includes('이전보다 1점 증가'), '통계에 자가점검 최근점수와 이전 대비 변화 표시');
+  assert((await pg.$$eval('#rec-body .trend-svg', a => a.length)) >= 1, '자가점검 통계에 검사별 꺾은선 그래프 표시');
+  await shot('10-screening-stat');
+
+  // 다시 회복도구로 돌아와 Q&A 검증
+  await pg.click('#tabs button[data-t="tools"]'); await pg.waitForTimeout(120);
   assert(await pg.evaluate(() => Array.isArray(window.QA_ITEMS) && window.QA_ITEMS.length === 224), 'Q&A가 224문답이어야 함');
   assert(await pg.evaluate(() => window.QA_ITEMS.every(x => { const n=String(x.a||'').split(/\n\s*\n/).filter(Boolean).length; return n>=2 && n<=3; })), 'Q&A 224개 답변이 모두 2~3문단이어야 함');
   await pg.click('#tool-qa'); await pg.waitForTimeout(250);
@@ -186,7 +226,7 @@ const srv = http.createServer((req, res) => {
   const qaVisible = await pg.$eval('#p-qa', e => e.innerText);
   assert(!qaVisible.includes('중독 200문답'), 'Q&A 사용자 화면에 원자료 제작 문구가 노출되지 않아야 함');
   assert(!qaVisible.includes('보완 문답'), 'Q&A 사용자 화면에 제작상 보완 구분이 노출되지 않아야 함');
-  await shot('10-tools-qa');
+  await shot('11-tools-qa');
 
   // 기록은 하단에서 내정보 → 내 발자취로 이동
   await pg.click('#tabs button[data-t="home"]'); await pg.waitForTimeout(150);
