@@ -1177,14 +1177,14 @@ addEventListener('appinstalled', function(){
   <div id="wb-body"></div>
 </section>
 
-<!-- ══════════ 치료관리 V8.1 ══════════ -->
+<!-- ══════════ 일정·알림 · 치료 일정 V8.1.3 ══════════ -->
 <section class="pg" id="p-treatment">
   <div class="sp" style="margin-bottom:8px">
-    <h1 style="margin:0">치료관리</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('me')">← 돌아가기</button>
+    <h1 style="margin:0">치료 일정</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('me')">← 일정·알림</button>
   </div>
   <p class="muted" style="margin:0 0 14px">
-    복약과 외래 일정을 한곳에서 관리합니다. 약 이름이나 진단명은 묻지 않습니다. 기록은 이 기기에만 저장됩니다.
+    복약과 외래 일정을 관리합니다. 약 이름이나 진단명은 묻지 않습니다. 기록은 이 기기에만 저장됩니다.
   </p>
   <div id="treat-master"></div>
   <div id="treat-body"></div>
@@ -1374,10 +1374,10 @@ addEventListener('appinstalled', function(){
     </div>
   </div>
 
-  <!-- 위험시간·식사·잠은 일상 챙기기입니다. 복약·외래는 V8.1부터 별도 치료관리로 분리합니다. -->
+  <!-- V8.1.3: 생활·치료·알림의 진입점을 하나로 합칩니다. 내부 저장·예약 엔진은 그대로 유지합니다. -->
   <div class="acc">
     <button class="acc-h">
-      <span class="acc-n"><b>챙기기</b><span id="acc-care-s">위험한 시간대 · 식사 · 잠 · 알림</span></span>
+      <span class="acc-n"><b>일정·알림</b><span id="acc-care-s">생활 일정 · 치료 일정 · 알림</span></span>
       <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
     </button>
     <div class="acc-b">
@@ -1392,11 +1392,11 @@ addEventListener('appinstalled', function(){
       </div>
 
       <div class="me-self">
-        <h3>복약 · 외래</h3>
+        <h3>치료 일정</h3>
         <p class="muted" style="margin:-4px 0 11px">
-          복약 시간, 처방일수와 다음 외래일은 별도의 치료관리에서 설정합니다.
+          복약 시간, 처방일수와 다음 외래일을 관리합니다.
         </p>
-        <button class="btn sec sm" onclick="go('treatment')">치료관리 열기</button>
+        <button class="btn sec sm" onclick="go('treatment')">복약·외래 일정 설정</button>
         <div class="sep"></div>
       </div>
       <h3>식사 · 잠</h3>
@@ -1411,25 +1411,12 @@ addEventListener('appinstalled', function(){
       <div id="me-sleep" style="margin-top:11px"></div>
 
       <div class="sep"></div>
-      <h3>알림</h3>
+      <h3>알림 설정</h3>
       <p class="muted" style="margin:-4px 0 11px">
-        위험한 시간대 · 복약 · 식사 · 잘 시간에 알려드립니다.
+        위험한 시간대 · 복약 · 식사 · 잘 시간 · 외래 일정을 한곳에서 알려드립니다.
       </p>
       <div class="opts" id="me-notify"></div>
       <p class="tiny" id="me-notify-st" style="margin:10px 0 0"></p>
-    </div>
-  </div>
-
-  <div class="acc me-self">
-    <button class="acc-h">
-      <span class="acc-n"><b>치료관리</b><span>복약 · 처방일수 · 외래 일정 · 치료 알림</span></span>
-      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
-    </button>
-    <div class="acc-b">
-      <p class="muted" style="margin:0 0 11px">
-        필요한 경우에만 켜서 사용합니다. 끄더라도 기존 복약·외래 설정과 기록은 지우지 않습니다.
-      </p>
-      <button class="btn sec sm" onclick="go('treatment')">치료관리 설정</button>
     </div>
   </div>
 
@@ -1573,7 +1560,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.1.2';
+const BUILD = 'V8.1.3';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -5568,7 +5555,7 @@ function aiLocalNav(intent){
     ai.follow='nav-rec-'+(['mood','urge','day','body','relapse','stat'].indexOf(tab)>=0?tab:'mood'); drawAI(); return true;
   }
   if(intent === 'me'){
-    aiAdd('assistant','내정보에서는 회복 영역·시작일·지역·챙기기 설정과 앱 설정, 기록 내보내기 등을 관리할 수 있어요.', true);
+    aiAdd('assistant','내정보에서는 회복 영역·시작일·지역·일정·알림 설정과 앱 설정, 기록 내보내기 등을 관리할 수 있어요.', true);
     ai.follow='nav-me'; drawAI(); return true;
   }
   if(intent === 'help'){
@@ -6340,8 +6327,8 @@ function drawMe(){
   $$('.me-self').forEach(n => { n.style.display = fam ? 'none' : ''; });
   /* 가족에게는 '위험한 시간대' 가 없으니 묶음 설명에서도 뺍니다 */
   $('#acc-care-s').textContent = fam
-    ? '식사 · 잠 · 알림'
-    : '위험한 시간대 · 식사 · 잠 · 알림';
+    ? '생활 일정 · 알림'
+    : '생활 일정 · 치료 일정 · 알림';
 
   const tb = $('#me-types'); tb.innerHTML = '';
   TYPES.forEach(t => {
@@ -6556,7 +6543,7 @@ function drawTreatmentHome(box){
   const d=diffYmd(today(),v);
   const cls=d===0 ? 'note' : 'card tight';
   box.insertAdjacentHTML('beforeend','<div class="'+cls+'" style="margin-bottom:12px">'+
-    '<div class="sp"><div><b>'+esc(d===0?'오늘 외래':'치료관리')+'</b><div class="muted" style="margin-top:3px">'+esc(label)+'</div></div>'+
+    '<div class="sp"><div><b>'+esc(d===0?'오늘 외래':'치료 일정')+'</b><div class="muted" style="margin-top:3px">'+esc(label)+'</div></div>'+
     '<button class="btn sec sm" style="width:auto;padding:7px 12px" id="home-treatment-open">보기</button></div></div>');
   const b=$('#home-treatment-open'); if(b) b.onclick=()=>go('treatment');
 }
@@ -6572,14 +6559,14 @@ function drawTreatment(){
   const master=$('#treat-master'), body=$('#treat-body');
   if(!master||!body) return;
   if(famMode()){
-    master.innerHTML='<div class="note w">치료관리는 현재 본인 회복모드에서만 사용합니다. 가족의 복약·진료를 대신 관리하는 기능은 별도로 설계합니다.</div>';
+    master.innerHTML='<div class="note w">치료 일정은 현재 본인 회복모드에서만 사용합니다. 가족의 복약·진료를 대신 관리하는 기능은 별도로 설계합니다.</div>';
     body.innerHTML=''; return;
   }
   const t=treatmentCfg();
-  master.innerHTML='<div class="card"><h3>치료관리 사용</h3><p class="muted" style="margin:-4px 0 11px">필요한 경우에만 켜세요. 끄더라도 기존 설정과 기록은 삭제하지 않습니다.</p><div class="opts" id="treat-on"></div></div>';
+  master.innerHTML='<div class="card"><h3>치료 일정 사용</h3><p class="muted" style="margin:-4px 0 11px">필요한 경우에만 켜세요. 끄더라도 기존 설정과 기록은 삭제하지 않습니다.</p><div class="opts" id="treat-on"></div></div>';
   treatToggle($('#treat-on'),t.on,'사용함','사용하지 않음',v=>{ t.on=v; save(); drawTreatment(); drawHome(); });
   if(!t.on){
-    body.innerHTML='<div class="note"><b>치료관리를 사용하지 않습니다.</b><br><span class="muted">기존 복약·외래 설정과 기록은 보존됩니다.</span>' +
+    body.innerHTML='<div class="note"><b>치료 일정을 사용하지 않습니다.</b><br><span class="muted">기존 복약·외래 설정과 기록은 보존됩니다.</span>' +
       (nativeAndroidApp() ? '<div style="height:9px"></div><button class="btn sec sm" id="treat-sync-off">Android 예약알림에도 반영</button>' : '') + '</div>';
     const so=$('#treat-sync-off'); if(so) so.onclick=openNativeReminderSettings;
     return;
