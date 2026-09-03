@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#1f6f8a">
@@ -1416,7 +1416,7 @@ addEventListener('appinstalled', function(){
 
   <div class="acc">
     <button class="acc-h">
-      <span class="acc-n"><b>앱</b><span id="acc-app-s">자원 목록 · 화면 설정 · 앱 새로고침 · 홈 화면에 추가</span></span>
+      <span class="acc-n"><b>앱</b><span id="acc-app-s">자원 목록 · 화면 설정 · 앱 새로고침 · 앱 설치</span></span>
       <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
     </button>
     <div class="acc-b">
@@ -1451,12 +1451,12 @@ addEventListener('appinstalled', function(){
       <button class="btn sec sm" id="me-reload">앱 새로고침</button>
 
       <div class="sep"></div>
-      <h3>홈 화면에 추가하기</h3>
+      <h3>앱 설치하기</h3>
       <p class="muted" style="margin:-4px 0 11px" id="me-add-m">
         홈 화면에 두면 주소창 없이 앱처럼 열리고, 인터넷이 끊겨도 씁니다.
         알림도 훨씬 잘 잡힙니다.
       </p>
-      <button class="btn sec sm" id="me-add">홈 화면에 추가</button>
+      <button class="btn sec sm" id="me-add">설치 방법 보기</button>
     </div>
   </div>
 
@@ -1554,7 +1554,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V7.11';
+const BUILD = 'V7.13';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1913,7 +1913,7 @@ const LINES = [
   {n:'자살예방 상담전화', t:'109', d:'24시간 · 무료 · 죽고 싶은 마음이 들 때', u:1},
   {n:'응급 신고', t:'119', d:'손떨림·경련·환각 등 금단 증상이 있을 때', u:1},
   {n:'정신건강 상담전화', t:'1577-0199', d:'24시간 · 지역 정신건강복지센터 연결'},
-  {n:'도박문제 헬프라인', t:'1336', d:'24시간 · 한국도박문제예방치유원'},
+  {n:'도박문제 헬프라인', t:'1336', d:'365일 09:00~22:00 · 한국도박문제예방치유원'},
   {n:'보건복지상담센터', t:'129', d:'복지·의료 서비스 안내'},
   /* ★ 1899-0893 은 옛 번호입니다. 2024년 4월부터 1342(24시간 원스톱 마약 상담)로
        바뀌었습니다. 식약처와 한국마약퇴치운동본부가 함께 받습니다. */
@@ -2076,7 +2076,7 @@ const FAMILY = [
    t:'02-855-5004', k:'도박'},
   {n:'나란온 약물중독자 가족모임', d:'약물 · NA 사무국을 통해 안내받을 수 있습니다',
    w:'https://nakr.org/', k:'약물'},
-  {n:'도박문제 헬프라인', d:'가족 상담도 받습니다 · 24시간', t:'1336', k:'도박'}
+  {n:'도박문제 헬프라인', d:'가족 상담도 받습니다 · 365일 09:00~22:00', t:'1336', k:'도박'}
 ];
 
 const CENTERS = [
@@ -6367,8 +6367,10 @@ function drawMe(){
   /* 이미 홈 화면에서 열고 있으면 권할 것이 없습니다 */
   $('#me-add').style.display = isInstalled() ? 'none' : '';
   $('#me-add-m').textContent = isInstalled()
-    ? '홈 화면 앱으로 열고 계십니다. 잘 하셨습니다.'
-    : '홈 화면에 두면 주소창 없이 앱처럼 열리고, 인터넷이 끊겨도 씁니다. 알림도 훨씬 잘 잡힙니다.';
+    ? '설치된 앱으로 열고 계십니다. 잘 하셨습니다.'
+    : isSamsung
+      ? '삼성 인터넷에서는 주소창의 설치 아이콘으로 앱스 화면에 설치하는 방법이 가장 안정적입니다.'
+      : '설치하면 주소창 없이 앱처럼 열리고, 인터넷이 끊겨도 씁니다. 알림도 훨씬 잘 잡힙니다.';
 
   $('#me-sheet-st').textContent = S.resAt
     ? '마지막으로 받았습니다 — ' + new Date(S.resAt).toLocaleString('ko-KR') +
@@ -6875,7 +6877,7 @@ async function appReload(){
     /* 1) 서비스 워커가 쥐고 있는 캐시를 비웁니다 */
     if(window.caches){
       const ks = await caches.keys();
-      await Promise.all(ks.map(k => caches.delete(k)));
+      await Promise.all(ks.filter(k => k.startsWith('ohg-')).map(k => caches.delete(k)));
     }
     /* 2) 브라우저 HTTP 캐시를 건너뛰고 새 파일을 받아 둡니다.
           이걸 안 하면 다시 열어도 브라우저가 옛 index.html 을 그대로 줍니다. */
@@ -6885,8 +6887,8 @@ async function appReload(){
     ]);
     /* 3) 서비스 워커도 새로 받게 합니다 (sw.js 가 skipWaiting 하므로 바로 바뀝니다) */
     if(navigator.serviceWorker){
-      const rs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(rs.map(r => r.update().catch(() => {})));
+      const reg = await navigator.serviceWorker.getRegistration('./');
+      if(reg) await reg.update().catch(() => {});
     }
   }catch(e){}
   location.reload();
@@ -6899,9 +6901,9 @@ function markAppAcc(){
   const s = $('#acc-app-s');
   if(!s) return;
   s.innerHTML = updReady
-    ? '자원 목록 · 화면 설정 · 앱 새로고침 · 홈 화면에 추가<br><span class="flag">새 판 ' +
+    ? '자원 목록 · 화면 설정 · 앱 새로고침 · 앱 설치<br><span class="flag">새 판 ' +
       esc(updReady) + ' 이 나와 있습니다</span>'
-    : '자원 목록 · 화면 설정 · 앱 새로고침 · 홈 화면에 추가';
+    : '자원 목록 · 화면 설정 · 앱 새로고침 · 앱 설치';
 }
 
 function drawReload(){
@@ -7138,13 +7140,26 @@ function addEvtNow(){ return window.__addEvt; }
 window.__onAddEvt = () => { if(cur === 'me') drawMe(); };
 
 function askAdd(){
-  if(isInstalled()){ toast('이미 홈 화면에서 열고 계십니다.'); return; }
+  if(isInstalled()){ toast('이미 설치된 앱으로 열고 계십니다.'); return; }
   const ev = addEvtNow();
   let steps = '', btn = '', tail = '';
 
-  if(ev){
-    /* 브라우저가 신호를 준 경우 — 단추 한 번으로 끝납니다 */
-    btn = '<button class="btn" id="add-go">홈 화면에 추가</button><div style="height:9px"></div>';
+  /* 삼성 인터넷은 beforeinstallprompt 가 있어도 브라우저 자체 설치 아이콘 경로를 먼저 안내합니다.
+     실제 Galaxy 기기에서는 이 경로가 가장 일관적입니다. */
+  if(isSamsung){
+    steps = '<div class="note" style="margin-bottom:12px"><b>삼성 인터넷 권장 방법</b><br>' +
+      '주소창에 보이는 <b>설치 아이콘</b>을 눌러 설치하는 방법이 가장 안정적입니다.</div>' +
+      '<ol class="steps">' +
+      '<li>주소창의 <b>설치 아이콘</b>을 누릅니다</li>' +
+      '<li>아래에 뜨는 <b>앱스 화면에 설치</b>를 확인합니다</li>' +
+      '<li>설치가 끝나면 앱스 화면의 <b>오늘 한 걸음</b>을 엽니다</li></ol>' +
+      '<p class="tiny">설치 아이콘이 안 보이면 <b>메뉴(≡) → 현재 페이지 추가</b>에서 ' +
+      '<b>앱스 화면</b> 또는 <b>홈 화면</b>을 선택해보세요.</p>';
+    if(ev){
+      btn = '<button class="btn sec" id="add-go">브라우저 설치창 직접 열기</button><div style="height:9px"></div>';
+    }
+    tail = '<p class="tiny">삼성 인터넷에서 계속 설치가 되지 않으면 이 주소를 <b>Chrome</b>에서 열어 ' +
+      '<b>앱 설치</b>를 선택하면 같은 앱이 설치됩니다.</p>';
   } else if(isIOS){
     steps = '<ol class="steps">' +
       '<li>화면 아래(사파리) 또는 위의 <b>공유</b> 단추 <b>&#9633;&#8593;</b> 를 누릅니다</li>' +
@@ -7153,30 +7168,29 @@ function askAdd(){
       '<li>홈 화면의 <b>오늘 한 걸음</b> 아이콘으로 다시 엽니다</li></ol>';
     tail = '<p class="tiny">아이폰은 <b>사파리</b>에서만 됩니다. 크롬이나 카카오톡 안에서 열려 있다면 ' +
       '주소를 복사해 사파리에서 다시 열어주세요.</p>';
-  } else if(isSamsung){
-    steps = '<ol class="steps">' +
-      '<li>오른쪽 아래 <b>메뉴(≡)</b> 를 누릅니다</li>' +
-      '<li><b>현재 페이지 추가</b> → <b>홈 화면</b> 을 고릅니다</li></ol>';
+  } else if(ev){
+    /* Chrome 등 표준 설치 신호를 주는 브라우저 */
+    btn = '<button class="btn" id="add-go">앱 설치</button><div style="height:9px"></div>';
+    steps = '<p class="tiny">위 단추를 누르면 브라우저의 공식 설치창이 열립니다.</p>';
   } else if(isAndroid){
     steps = '<ol class="steps">' +
       '<li>오른쪽 위 <b>점 세 개(⋮)</b> 를 누릅니다</li>' +
       '<li><b>앱 설치</b> 또는 <b>홈 화면에 추가</b> 를 고릅니다</li></ol>';
     tail = '<p class="tiny">카카오톡·네이버 앱 안에서 열려 있으면 이 메뉴가 없습니다. ' +
-      '메뉴에서 <b>다른 브라우저로 열기</b>(크롬)를 고른 뒤 다시 해보세요.</p>';
+      '메뉴에서 <b>다른 브라우저로 열기</b>(Chrome)를 고른 뒤 다시 해보세요.</p>';
   } else {
     steps = '<ol class="steps">' +
       '<li>주소창 오른쪽 끝의 <b>설치</b> 아이콘을 누릅니다</li>' +
-      '<li>안 보이면 <b>점 세 개(⋮)</b> → <b>캐스트·저장 및 공유</b> → <b>페이지를 앱으로 설치</b></li></ol>';
+      '<li>안 보이면 브라우저 메뉴에서 <b>페이지를 앱으로 설치</b>를 선택합니다</li></ol>';
   }
 
-  if(!ev && !isIOS){
-    tail += '<p class="tiny">전에 한 번 설치했다가 지우셨다면, 브라우저가 한동안 다시 묻지 않습니다. ' +
-      '그때는 위 메뉴로 직접 넣어주세요.</p>';
+  if(!ev && !isIOS && !isSamsung){
+    tail += '<p class="tiny">전에 한 번 설치했다가 지우셨다면 브라우저가 한동안 다시 묻지 않을 수 있습니다. ' +
+      '그때는 위 메뉴에서 직접 설치해주세요.</p>';
   }
 
-  modal('<h3>앱처럼 쓰시겠어요?</h3>' +
-    '<p class="muted">홈 화면에 두면 <b>주소창 없이</b> 전체 화면으로 열리고, ' +
-    '인터넷이 끊겨도 씁니다. 알림도 훨씬 잘 잡힙니다.</p>' +
+  modal('<h3>오늘 한 걸음을 앱으로 설치</h3>' +
+    '<p class="muted">설치하면 <b>주소창 없이</b> 앱처럼 열리고, 인터넷이 끊겨도 사용할 수 있습니다.</p>' +
     steps + btn + tail +
     '<div style="height:9px"></div>' +
     '<button class="btn ghost" onclick="closeModal()">나중에</button>');
@@ -7184,18 +7198,22 @@ function askAdd(){
   const g = $('#add-go');
   if(g) g.onclick = () => {
     const e = addEvtNow();
-    window.__addEvt = null;
-    closeModal();
-    if(!e){ toast('설치 신호를 놓쳤습니다. 브라우저 메뉴에서 넣어주세요.'); return; }
+    if(!e){ toast('설치 신호가 없습니다. 브라우저의 설치 메뉴를 이용해주세요.'); return; }
     try{
       e.prompt();
+      /* beforeinstallprompt 이벤트는 prompt() 한 번으로 소모됩니다.
+         수락/취소와 관계없이 즉시 비워 다음 시도에서는 브라우저 메뉴 경로를 안내합니다. */
+      window.__addEvt = null;
       e.userChoice.then(r => {
-        toast(r && r.outcome === 'accepted'
-          ? '추가했습니다. 홈 화면 아이콘으로 열어보세요.'
-          : '나중에 [내 정보]에서 다시 하실 수 있습니다.');
+        if(r && r.outcome === 'accepted'){
+          closeModal();
+          toast('설치를 시작했습니다. 앱스 화면에서 오늘 한 걸음을 열어보세요.');
+        } else {
+          toast('나중에 [내 정보 → 앱]에서 다시 설치할 수 있습니다.');
+        }
         if(cur === 'me') drawMe();
       }).catch(() => {});
-    }catch(err){ toast('브라우저 메뉴에서 [앱 설치]를 골라주세요.'); }
+    }catch(err){ toast('브라우저의 설치 아이콘이나 메뉴를 이용해주세요.'); }
   };
 }
 $('#me-add').onclick = askAdd;

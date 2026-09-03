@@ -3,19 +3,25 @@ const path = require('path');
 const vm = require('vm');
 const root=__dirname;
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
-const index=read('index.html'), sw=read('sw.js'), test=read('test.js');
+const index=read('index.html'), sw=read('sw.js'), test=read('test.js'), manifest=read('manifest.json');
 const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningSrc=read('screening-data.js'), workbookSrc=read('workbook-data.js');
 const feedbackGs=read('오늘한걸음_의견_v1.0.gs'), resourceGs=read('오늘한걸음_자원시트_v1.8.gs');
 const fail=m=>{throw new Error('VERIFY: '+m)}; const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
-ok(/const BUILD = 'V7\.11';/.test(index),'index BUILD = V7.11');
-ok(/const APP_VERSION = 'V7\.11';/.test(sw),'sw APP_VERSION = V7.11');
-ok(/const V = 'ohg-v711';/.test(sw),'sw cache = ohg-v711');
+ok(/const BUILD = 'V7\.13';/.test(index),'index BUILD = V7.13');
+ok(/const APP_VERSION = 'V7\.13';/.test(sw),'sw APP_VERSION = V7.13');
+ok(/const V = 'ohg-v713';/.test(sw),'sw cache = ohg-v713');
 ['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
   ok(index.includes('<script src="./'+f+'"></script>'),'index가 '+f+' 로드');
 });
 ok(/function recoveryDay\(from, to\)/.test(index) && /daysBetween\(from, to\) \+ 1/.test(index),'회복 시작 당일 1일째 규칙 유지');
+ok(/도박문제 헬프라인', t:'1336', d:'365일 09:00~22:00/.test(index) && /가족 상담도 받습니다 · 365일 09:00~22:00/.test(index),'1336 운영시간 최신 표기 365일 09:00~22:00');
+ok(!/user-scalable=no/.test(index),'접근성: 사용자 화면 확대 차단 없음');
+ok(/ks\.filter\(k => k\.startsWith\('ohg-'\)\)/.test(index),'앱 새로고침은 오늘 한 걸음 캐시만 삭제');
+ok(/getRegistration\('\.\/'\)/.test(index) && !/getRegistrations\(\)/.test(index),'앱 새로고침은 현재 앱 서비스워커만 갱신');
+ok(/k\.startsWith\('ohg-'\) && k !== V/.test(sw),'서비스워커 활성화 시 다른 앱 캐시를 삭제하지 않음');
+
 ok(/id="tool-listen"/.test(index),'회복도구에 듣는 글 메뉴 존재');
 ok(/\$\('#tool-listen'\)\.onclick = \(\) => openListen\('tools'\)/.test(index),'회복도구 듣는 글이 기존 듣는 글 화면으로 연결');
 ok(/p === 'listen' && ls\.back === 'tools'/.test(index),'회복도구에서 듣는 글 진입 시 회복도구 탭 강조 유지');
@@ -173,4 +179,11 @@ ok(/id="me-feedback-text"/.test(index)&&/id="me-feedback-send"/.test(index),'앱
 ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
 ok(/GS_VER\s*=\s*'v1\.8'/.test(resourceGs)&&/FEEDBACK_URL/.test(resourceGs),'자원시트 v1.8 유지');
 
-console.log('\nV7.11 핵심 검증 통과');
+
+ok(/const isSamsung = \/SamsungBrowser\/i.test\(navigator.userAgent\)/.test(index),'Samsung Internet 감지');
+ok(index.includes('삼성 인터넷 권장 방법'),'Samsung Internet 전용 설치 안내');
+ok(index.includes('앱스 화면에 설치'),'Samsung Internet 앱스 화면 설치 안내');
+ok(index.indexOf('if(isSamsung){') < index.indexOf('} else if(isIOS){'),'Samsung 설치 분기를 표준 prompt보다 우선');
+ok(manifest.includes('\"id\": \"./index.html\"'),'manifest 안정적 app id');
+
+console.log('\nV7.13 설치 안정화 검증 통과');
