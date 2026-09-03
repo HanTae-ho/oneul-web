@@ -1554,7 +1554,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.0';
+const BUILD = 'V8.0.4';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -6545,8 +6545,10 @@ function notifyWanted(){ return !!S.notify; }
    예약을 보관합니다. 웹에서 Android로 전달하는 것은 시간대/슬롯뿐이며
    약 이름·회복일·갈망·선별점수·상담내용은 보내지 않습니다. */
 function nativeAndroidApp(){
-  try{ return new URLSearchParams(location.search || '').get('native') === '1'; }
-  catch(e){ return false; }
+  try{
+    if(new URLSearchParams(location.search || '').get('native') === '1') return true;
+    return new URLSearchParams((location.hash || '').replace(/^#/, '')).get('native') === '1';
+  }catch(e){ return false; }
 }
 function nativeSlotCode(k){
   return ({'아침':'am','점심':'noon','저녁':'pm','자기전':'bed'})[k] || '';
