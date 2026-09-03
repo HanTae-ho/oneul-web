@@ -1,0 +1,37 @@
+name: Publish V8.1.2 test release
+
+on:
+  push:
+    branches: [android-v8.1.2-treatment-recurring]
+    paths:
+      - '.github/workflows/publish-v812-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.1.2 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33812892546 -n oneul-v8.1.2-treatment-apk -D dist-apk
+          gh run download 33812892546 -n oneul-v8.1.2-treatment-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.1.2.apk
+          cp dist-aab/*.aab oneul-v8.1.2.aab
+          test -s oneul-v8.1.2.apk
+          test -s oneul-v8.1.2.aab
+      - name: Publish stable direct-download test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.1.2-test --yes --cleanup-tag || true
+          gh release create v8.1.2-test oneul-v8.1.2.apk oneul-v8.1.2.aab \
+            --target android-v8.1.2-treatment-recurring \
+            --title '오늘 한 걸음 V8.1.2 치료관리 테스트' \
+            --notes '복약관리 중복 선택 제거 및 외래 일정 자동 반복 알림 테스트 빌드입니다.' \
+            --prerelease
