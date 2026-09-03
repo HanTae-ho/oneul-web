@@ -1,0 +1,50 @@
+name: Apply V8.1 Treatment Management
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.1-treatment-management
+          fetch-depth: 0
+      - name: Apply treatment patch
+        run: python3 tools/patch_v81_treatment.py
+      - name: Validate version and treatment wiring
+        run: |
+          grep -q "const BUILD = 'V8.1';" index.html
+          grep -q "const APP_VERSION = 'V8.1';" sw.js
+          grep -q "const V = 'ohg-v810-treatment';" sw.js
+          grep -q 'id="p-treatment"' index.html
+          grep -q 'function drawTreatment()' index.html
+          grep -q 'function drawTreatmentHome(box)' index.html
+          grep -q 'Android 예약알림 반영' index.html
+          grep -q 'visitAlerts' index.html
+          grep -q '다섯 번째 자리는 소셜 기능을 만들 때 사용합니다' index.html
+          test "$(grep -o 'data-t="home"' index.html | wc -l)" -ge 1
+      - name: JavaScript syntax check
+        run: |
+          python3 - <<'PY'
+          import re, pathlib
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',s,re.S|re.I)
+          pathlib.Path('/tmp/inline.js').write_text('\n'.join(blocks),encoding='utf-8')
+          PY
+          node --check /tmp/inline.js
+      - name: Verify targeted diff only
+        run: |
+          git diff --check
+          git diff -- index.html sw.js
+      - name: Commit patched app
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html sw.js
+          git commit -m "V8.1 treatment management MVP"
+          git push origin HEAD:v8.1-treatment-management
