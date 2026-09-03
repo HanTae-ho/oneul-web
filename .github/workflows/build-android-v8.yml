@@ -5,7 +5,8 @@ on:
     branches: [android-v8-build]
     paths:
       - 'android-v8-source.zip'
-      - 'android-v8.0.2-patch.sh'
+      - 'android-v8.0.1-patch.sh'
+      - 'android-v8.0.2-fix.sh'
       - '.github/workflows/build-android-v8.yml'
   workflow_dispatch:
 
@@ -30,7 +31,7 @@ jobs:
           mkdir android-v8
           unzip -q android-v8-source.zip -d android-v8
       - name: Apply V8.0.2 TWA status bar patch
-        run: bash android-v8.0.2-patch.sh
+        run: bash android-v8.0.2-fix.sh
       - name: Restore release keystore
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
