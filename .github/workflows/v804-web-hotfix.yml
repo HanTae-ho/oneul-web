@@ -21,29 +21,26 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
 
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
 
           old_build = "const BUILD = 'V8.0';"
-          new_build = "const BUILD = 'V8.0.4';"
           if s.count(old_build) != 1:
               raise SystemExit(f'Expected exactly one BUILD marker, found {s.count(old_build)}')
-          s = s.replace(old_build, new_build, 1)
+          s = s.replace(old_build, "const BUILD = 'V8.0.4';", 1)
 
-          old_fn = """function nativeAndroidApp(){
-            const p=new URLSearchParams(location.search);
-            return p.get('native')==='1';
-          }"""
-          new_fn = """function nativeAndroidApp(){
-            const p=new URLSearchParams(location.search);
-            if(p.get('native')==='1') return true;
-            const h=new URLSearchParams((location.hash||'').replace(/^#/,''));
-            return h.get('native')==='1';
-          }"""
-          if s.count(old_fn) != 1:
-              raise SystemExit(f'Expected exactly one nativeAndroidApp function, found {s.count(old_fn)}')
-          s = s.replace(old_fn, new_fn, 1)
+          pattern = re.compile(r"function\s+nativeAndroidApp\(\)\s*\{\s*const\s+p\s*=\s*new\s+URLSearchParams\(location\.search\);\s*return\s+p\.get\('native'\)\s*===\s*'1';\s*\}", re.S)
+          replacement = """function nativeAndroidApp(){
+    const p=new URLSearchParams(location.search);
+    if(p.get('native')==='1') return true;
+    const h=new URLSearchParams((location.hash||'').replace(/^#/,''));
+    return h.get('native')==='1';
+  }"""
+          s, n = pattern.subn(replacement, s, count=1)
+          if n != 1:
+              raise SystemExit(f'Expected exactly one legacy nativeAndroidApp function, found {n}')
           p.write_text(s, encoding='utf-8')
 
           p = Path('sw.js')
@@ -63,6 +60,8 @@ jobs:
           grep -Fq "const APP_VERSION = 'V8.0.4';" sw.js
           grep -Fq "const V = 'ohg-v804';" sw.js
           git diff --check
+          CHANGED="$(git diff --name-only | sort)"
+          test "$CHANGED" = $'index.html\nsw.js'
           git diff -- index.html sw.js
       - name: Commit V8.0.4 web bridge fix
         run: |
