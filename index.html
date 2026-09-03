@@ -1554,7 +1554,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V7.8';
+const BUILD = 'V7.10';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -3405,7 +3405,57 @@ function drawQA(){
 }
 
 const LEARNING = Array.isArray(window.LEARNING_TOPICS) ? window.LEARNING_TOPICS : [];
+const TWELVE_STEP_WORDINGS = (window.TWELVE_STEP_WORDINGS && window.TWELVE_STEP_WORDINGS.sets) ? window.TWELVE_STEP_WORDINGS : {sets:{}};
 let learnState = { topic:'' };
+
+/* ── 12단계 단계문장 선택 V7.10 ──
+   단계문장은 회복영역(domain)이 고르고, 당사자/가족(role)은 고르지 않습니다.
+   가족용 확장에서는 같은 단계문장을 읽되 해설·성찰질문·점검시트를 가족 관점으로 분리합니다.
+   AA·GA·NA는 각각 독립 공식 문안 세트를 사용합니다. 복수/기타 영역만 '중독' 통합형을 사용합니다. */
+function twelveStepDomain(){
+  const types=(S.types||[]).filter(k=>['alcohol','gambling','drug','etc'].includes(k));
+  if(types.length===1){
+    if(types[0]==='alcohol') return 'alcohol';
+    if(types[0]==='drug') return 'drug';
+    if(types[0]==='gambling' && TWELVE_STEP_WORDINGS.sets.gambling) return 'gambling';
+  }
+  return 'addiction';
+}
+function twelveStepNumber(section){
+  const m=String(section && section.id || '').match(/^step-(\d+)$/);
+  return m ? parseInt(m[1],10) : 0;
+}
+function twelveStepSet(){
+  const key=twelveStepDomain();
+  return TWELVE_STEP_WORDINGS.sets[key] || TWELVE_STEP_WORDINGS.sets.addiction || TWELVE_STEP_WORDINGS.sets.alcohol || null;
+}
+function twelveStepSentence(section){
+  const n=twelveStepNumber(section);
+  if(!n) return '';
+  const set=twelveStepSet();
+  return set && Array.isArray(set.steps) ? (set.steps[n-1] || '') : '';
+}
+function twelveStepWordingNotice(){
+  const set=twelveStepSet();
+  return set && set.adapted ? (set.note || '복수 회복영역에서는 중독 통합형 문안으로 표시합니다.') : '';
+}
+function learningCardText(topic, section, ready){
+  if(!ready) return '내용을 준비 중입니다.';
+  if(topic && topic.id==='twelve-steps'){
+    const sentence=twelveStepSentence(section);
+    if(sentence) return sentence;
+  }
+  return section.summary || '학습 내용을 살펴봅니다.';
+}
+/* 향후 가족/영역별 해설 확장용 오버레이.
+   현재 section.perspectives 데이터는 비어 있으므로 기존 해설을 그대로 반환합니다.
+   가족 자료가 검토되면 perspectives.family에 body/reflection/practice/actions만 추가하면 됩니다. */
+function learningSectionPerspective(section){
+  if(!section) return section;
+  const role=famMode() ? 'family' : 'self';
+  const overlay=section.perspectives && section.perspectives[role];
+  return overlay && typeof overlay==='object' ? Object.assign({},section,overlay) : section;
+}
 
 function drawLearn(){
   const box=$('#learn-list'); box.innerHTML='';
@@ -3484,17 +3534,18 @@ function learningAction(type){
 function openLearnSection(topic,s){
   const sections=Array.isArray(topic.sections)?topic.sections:[];
   const idx=Math.max(0,sections.indexOf(s));
-  const paragraphs = Array.isArray(s.body) ? s.body : (s.content ? String(s.content).split(/\n\s*\n/) : []);
+  const v=learningSectionPerspective(s);
+  const paragraphs = Array.isArray(v.body) ? v.body : (v.content ? String(v.content).split(/\n\s*\n/) : []);
   let h='';
-  if(s.part) h+='<div class="learn-part">'+esc(s.part)+'</div>';
-  h+='<h2>'+esc(s.title || '회복학습')+'</h2>';
+  if(v.part) h+='<div class="learn-part">'+esc(v.part)+'</div>';
+  h+='<h2>'+esc(v.title || '회복학습')+'</h2>';
   h+='<div class="learnbody" style="margin-top:12px">'+paragraphs.map(p=>'<p>'+esc(p)+'</p>').join('')+'</div>';
-  if(Array.isArray(s.reflection) && s.reflection.length){
-    h+='<div class="learn-reflect"><h3>잠시 멈추어 생각해보기</h3><ol>'+s.reflection.map(q=>'<li>'+esc(q)+'</li>').join('')+'</ol></div>';
+  if(Array.isArray(v.reflection) && v.reflection.length){
+    h+='<div class="learn-reflect"><h3>잠시 멈추어 생각해보기</h3><ol>'+v.reflection.map(q=>'<li>'+esc(q)+'</li>').join('')+'</ol></div>';
   }
-  if(s.practice) h+='<div class="learn-practice"><b>오늘 해보기</b>'+esc(s.practice)+'</div>';
-  if(Array.isArray(s.actions) && s.actions.length){
-    h+='<div class="learn-actions">'+s.actions.map((a,i)=>'<button class="btn '+(i?'ghost':'sec')+'" data-learn-act="'+esc(a.type)+'">'+esc(a.label)+'</button>').join('')+'</div>';
+  if(v.practice) h+='<div class="learn-practice"><b>오늘 해보기</b>'+esc(v.practice)+'</div>';
+  if(Array.isArray(v.actions) && v.actions.length){
+    h+='<div class="learn-actions">'+v.actions.map((a,i)=>'<button class="btn '+(i?'ghost':'sec')+'" data-learn-act="'+esc(a.type)+'">'+esc(a.label)+'</button>').join('')+'</div>';
   }
   /* sourceNote는 내부 출처 관리용 데이터로만 남기고 사용자 화면에는 표시하지 않습니다. */
   h+='<div class="rdnav" style="margin-top:16px">'+
@@ -3516,6 +3567,13 @@ function drawLearnTopic(){
   $('#learn-topic-title').textContent=topic.title || '회복학습';
   $('#learn-topic-desc').textContent=topic.longDescription || topic.description || '';
   const box=$('#learn-topic-sections'); box.innerHTML='';
+  if(topic.id==='twelve-steps'){
+    const notice=twelveStepWordingNotice();
+    if(notice){
+      const n=el('div','note',esc(notice));
+      n.style.marginBottom='12px'; box.appendChild(n);
+    }
+  }
   (topic.sections || []).forEach((s,i)=>{
     const d=document.createElement('div');
     d.className='help';
@@ -3523,7 +3581,7 @@ function drawLearnTopic(){
     const ready = (Array.isArray(s.body) && s.body.length) || !!(s.content && String(s.content).trim());
     d.innerHTML='<span class="ic">'+ico(s.icon || 'sprout')+'</span>'+ 
       '<span class="b"><b>'+esc(s.title || ('학습 '+(i+1)))+'</b><span>'+ 
-      esc(ready ? (s.summary || '학습 내용을 살펴봅니다.') : '내용을 준비 중입니다.')+'</span></span>'+ 
+      esc(learningCardText(topic,s,ready))+'</span></span>'+ 
       '<span class="acts"><span class="go">'+(ready?'보기':'준비 중')+'</span></span>';
     if(ready){
       d.setAttribute('role','button'); d.tabIndex=0;

@@ -8,9 +8,9 @@ const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningS
 const feedbackGs=read('오늘한걸음_의견_v1.0.gs'), resourceGs=read('오늘한걸음_자원시트_v1.8.gs');
 const fail=m=>{throw new Error('VERIFY: '+m)}; const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
-ok(/const BUILD = 'V7\.8';/.test(index),'index BUILD = V7.8');
-ok(/const APP_VERSION = 'V7\.8';/.test(sw),'sw APP_VERSION = V7.8');
-ok(/const V = 'ohg-v708';/.test(sw),'sw cache = ohg-v708');
+ok(/const BUILD = 'V7\.10';/.test(index),'index BUILD = V7.10');
+ok(/const APP_VERSION = 'V7\.10';/.test(sw),'sw APP_VERSION = V7.10');
+ok(/const V = 'ohg-v710';/.test(sw),'sw cache = ohg-v710');
 ['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
   ok(index.includes('<script src="./'+f+'"></script>'),'index가 '+f+' 로드');
@@ -33,13 +33,35 @@ ok(!/\.toISOString\s*\(/.test(test),'자동테스트에서 toISOString() 미사�
 ok(/timezoneId: 'Asia\/Seoul'/.test(test),'기존 브라우저 회귀테스트 시간대 Asia/Seoul 유지');
 ok(!/\/opt\/pw-browsers\/chromium/.test(test),'자동테스트 Chromium 경로 하드코딩 제거');
 ok(/process\.env\.CHROMIUM_PATH/.test(test),'필요 시 CHROMIUM_PATH 사용자 지정 지원');
+ok(/회복학습 목록에는 12단계·회복의 기초 이해·단계별 점검 3개/.test(test),'test.js 회복학습 3메뉴 기준으로 갱신');
+ok(/알코올 영역 1단계 카드에 AA 단계문장 표시/.test(test)&&/도박 영역 1단계 카드에 GA 단계문장 표시/.test(test)&&/약물 영역 1단계 카드에 NA 단계문장 표시/.test(test),'test.js AA·GA·NA 영역별 단계문장 회귀검사');
 
 let box={window:{}};vm.createContext(box);vm.runInContext(qaSrc,box);const qa=box.window.QA_ITEMS;
 ok(Array.isArray(qa)&&qa.length===224,'Q&A 224문답 유지');
 ok(qa.every(x=>{const n=x.a.split(/\n\s*\n/).filter(Boolean).length;return n>=2&&n<=3;}),'Q&A 답변 2~3문단 유지');
 ok(/\.qadetail \.answer\{[^}]*font-size:16px;[^}]*line-height:1\.85/.test(index),'Q&A 상세 16px / 1.85 유지');
 
-box={window:{}};vm.createContext(box);vm.runInContext(learningSrc,box);const learning=box.window.LEARNING_TOPICS;
+box={window:{}};vm.createContext(box);vm.runInContext(learningSrc,box);const learning=box.window.LEARNING_TOPICS; const stepWords=box.window.TWELVE_STEP_WORDINGS;
+ok(stepWords&&stepWords.version==='V7.10'&&stepWords.sets,'12단계 영역별 단계문장 V7.10 데이터 등록');
+ok(['alcohol','gambling','drug','addiction'].every(k=>stepWords.sets[k]&&stepWords.sets[k].steps.length===12),'AA·GA·NA·중독 통합형 각각 12개 단계문장');
+ok(stepWords.sets.gambling.official===true&&stepWords.sets.gambling.verified===true,'GA 공식 문안 독립 세트 등록');
+ok(stepWords.sets.gambling.steps[0]==='우리는 도박에 무력하며 - 정상적으로 생활할 수 없게 되었음을 시인했습니다.','GA 1단계 비교표 문안 정확히 등록');
+ok(stepWords.sets.gambling.steps[3].includes('도덕적, 재정적 목록'),'GA 4단계 재정적 목록 핵심 표현 유지');
+ok(stepWords.sets.gambling.steps[11].includes('다른 도박중독자들에게 이 메시지를 전하려고 노력했습니다.'),'GA 12단계 도박 영역어 유지');
+ok(['alcohol','gambling','drug'].every(k=>stepWords.sets[k].official===true&&stepWords.sets[k].verified===true),'AA·GA·NA 공식/검증 세트 표시');
+ok(stepWords.sets.alcohol.steps[0]==='우리는 알코올에 무력했으며, 우리의 삶을 수습할 수 없게 되었다는 것을 시인했다.','AA 1단계 문안 정확히 등록');
+ok(stepWords.sets.alcohol.steps[1]==='우리보다 위대하신 힘이 우리를 본정신으로 돌아오게 해 주실 수 있다는 것을 믿게 되었다.','AA 2단계 비교표 문안 등록');
+ok(stepWords.sets.alcohol.steps[11].includes('알코올중독자들에게 이 메시지를 전하려고 노력했으며'),'AA 12단계 영역어 유지');
+ok(stepWords.sets.drug.steps[0]==='우리는 중독에 무력했으며, 우리의 삶을 스스로 수습할 수 없게 되었다는 것을 시인했다.','NA 1단계 문안 정확히 등록');
+ok(stepWords.sets.drug.steps[11].includes('약물 중독자들에게 이 메시지를 전하려고 노력했으며'),'NA 12단계 비교표 영역어 유지');
+ok(stepWords.sets.addiction.adapted===true&&stepWords.sets.addiction.official===false&&stepWords.sets.addiction.label==='통합형(중독)'&&stepWords.sets.addiction.steps[0].includes('중독에 무력했으며')&&stepWords.sets.addiction.steps[11].includes('중독자들에게'),'복수/기타 영역 중독 통합형을 공식 문안과 명확히 구분');
+ok(/function twelveStepDomain\(\)/.test(index)&&/function twelveStepSentence\(section\)/.test(index)&&/function learningCardText\(topic, section, ready\)/.test(index),'영역별 단계문장 선택 함수 존재');
+ok(/if\(types\[0\]==='alcohol'\) return 'alcohol'/.test(index)&&/if\(types\[0\]==='drug'\) return 'drug'/.test(index),'알코올·약물 단일영역 분기');
+ok(/types\[0\]==='gambling'.*sets\.gambling/.test(index),'도박 단일영역 GA 세트 분기');
+ok(!/function twelveStepDomain\(\)[\s\S]{0,500}S\.role/.test(index),'단계문장 선택은 self/family 역할과 독립');
+ok(/function learningSectionPerspective\(section\)/.test(index)&&/perspectives\[role\]/.test(index),'향후 가족 해설을 별도 오버레이로 추가할 구조 준비');
+ok(/learningCardText\(topic,s,ready\)/.test(index),'12단계 카드 작은글씨가 동적 단계문장 함수 사용');
+ok(/function twelveStepWordingNotice\(\)/.test(index)&&/set\.adapted/.test(index),'복수영역 통합형 안내를 공식 문안과 구분해 표시');
 ok(Array.isArray(learning)&&learning.length===2&&learning[0].id==='twelve-steps'&&learning[1].id==='recovery-foundations','회복학습 2개 독립 주제 등록');
 ok(learning[0].sections.length===14,'12단계 소개 + 기초 + 1~12단계 14개');
 ok(learning[0].status==='content-ready','12단계 학습 콘텐츠 준비 완료 상태');
@@ -128,4 +150,4 @@ ok(/id="me-feedback-text"/.test(index)&&/id="me-feedback-send"/.test(index),'앱
 ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
 ok(/GS_VER\s*=\s*'v1\.8'/.test(resourceGs)&&/FEEDBACK_URL/.test(resourceGs),'자원시트 v1.8 유지');
 
-console.log('\nV7.8 핵심 검증 통과');
+console.log('\nV7.10 핵심 검증 통과');
