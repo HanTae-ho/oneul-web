@@ -55,7 +55,7 @@ public class DelegationService extends com.google.androidbrowserhelper.trusted.D
 EOF
 
 sed -i 's/MainActivity.class/LauncherActivity.class/g' "$PKG/NotificationHelper.java" "$PKG/NotificationSettingsActivity.java"
-sed -i 's#index.html?native=1&from=reminder#index.html#native=1#g; s#index.html?native=1#index.html#native=1#g' "$PKG/NotificationHelper.java" "$PKG/NotificationSettingsActivity.java"
+sed -i 's|index.html?native=1&from=reminder|index.html#native=1|g; s|index.html?native=1|index.html#native=1|g' "$PKG/NotificationHelper.java" "$PKG/NotificationSettingsActivity.java"
 
 cat > "$SRC/app/src/main/AndroidManifest.xml" <<'EOF'
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
