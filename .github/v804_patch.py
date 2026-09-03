@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 
 # index.html: build marker + Android native marker detection.
 p = Path('index.html')
@@ -9,22 +8,21 @@ if "const BUILD = 'V8.0.4';" not in s:
         raise SystemExit('Unexpected BUILD marker')
     s = s.replace("const BUILD = 'V8.0';", "const BUILD = 'V8.0.4';", 1)
 
-if "new URLSearchParams((location.hash||'').replace(/^#/,''))" not in s:
-    pattern = re.compile(
-        r"function\s+nativeAndroidApp\(\)\s*\{\s*"
-        r"const\s+p\s*=\s*new\s+URLSearchParams\(location\.search\);\s*"
-        r"return\s+p\.get\('native'\)\s*===\s*'1';\s*\}",
-        re.S,
-    )
-    replacement = """function nativeAndroidApp(){
-    const p=new URLSearchParams(location.search);
-    if(p.get('native')==='1') return true;
-    const h=new URLSearchParams((location.hash||'').replace(/^#/,''));
-    return h.get('native')==='1';
-  }"""
-    s, n = pattern.subn(replacement, s, count=1)
-    if n != 1:
-        raise SystemExit(f'Legacy nativeAndroidApp match count={n}')
+hash_probe = "new URLSearchParams((location.hash || '').replace(/^#/, ''))"
+if hash_probe not in s:
+    old_fn = """function nativeAndroidApp(){
+  try{ return new URLSearchParams(location.search || '').get('native') === '1'; }
+  catch(e){ return false; }
+}"""
+    new_fn = """function nativeAndroidApp(){
+  try{
+    if(new URLSearchParams(location.search || '').get('native') === '1') return true;
+    return new URLSearchParams((location.hash || '').replace(/^#/, '')).get('native') === '1';
+  }catch(e){ return false; }
+}"""
+    if s.count(old_fn) != 1:
+        raise SystemExit(f'Actual nativeAndroidApp match count={s.count(old_fn)}')
+    s = s.replace(old_fn, new_fn, 1)
 p.write_text(s, encoding='utf-8')
 
 # sw.js: advance service-worker version/cache with app build.
