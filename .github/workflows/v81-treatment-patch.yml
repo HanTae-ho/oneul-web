@@ -2,12 +2,18 @@ name: Apply V8.1 Treatment Management
 
 on:
   workflow_dispatch:
+  push:
+    branches: [v8.1-treatment-management]
+    paths:
+      - 'tools/patch_v81_treatment.py'
+      - '.github/workflows/v81-treatment-patch.yml'
 
 permissions:
   contents: write
 
 jobs:
   patch:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
