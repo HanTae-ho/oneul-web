@@ -8,9 +8,9 @@ const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningS
 const feedbackGs=read('오늘한걸음_의견_v1.0.gs'), resourceGs=read('오늘한걸음_자원시트_v1.8.gs');
 const fail=m=>{throw new Error('VERIFY: '+m)}; const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
-ok(/const BUILD = 'V7\.13';/.test(index),'index BUILD = V7.13');
-ok(/const APP_VERSION = 'V7\.13';/.test(sw),'sw APP_VERSION = V7.13');
-ok(/const V = 'ohg-v713';/.test(sw),'sw cache = ohg-v713');
+ok(/const BUILD = 'V7\.14';/.test(index),'index BUILD = V7.14');
+ok(/const APP_VERSION = 'V7\.14';/.test(sw),'sw APP_VERSION = V7.14');
+ok(/const V = 'ohg-v714';/.test(sw),'sw cache = ohg-v714');
 ['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
   ok(index.includes('<script src="./'+f+'"></script>'),'index가 '+f+' 로드');
@@ -21,6 +21,11 @@ ok(!/user-scalable=no/.test(index),'접근성: 사용자 화면 확대 차단 �
 ok(/ks\.filter\(k => k\.startsWith\('ohg-'\)\)/.test(index),'앱 새로고침은 오늘 한 걸음 캐시만 삭제');
 ok(/getRegistration\('\.\/'\)/.test(index) && !/getRegistrations\(\)/.test(index),'앱 새로고침은 현재 앱 서비스워커만 갱신');
 ok(/k\.startsWith\('ohg-'\) && k !== V/.test(sw),'서비스워커 활성화 시 다른 앱 캐시를 삭제하지 않음');
+ok(/registration\.showNotification|reg\.showNotification/.test(index),'Android/TWA 시스템 알림은 서비스워커 showNotification 우선');
+ok(/function testNotify\(\)/.test(index)&&/시험 알림 보내기/.test(index),'시험 알림 기능 존재');
+ok(/function notifyWanted\(\)/.test(index)&&/const wanted = notifyWanted\(\)/.test(index),'알림 사용자 설정과 실제 권한 상태를 분리 표시');
+ok(/휴대폰 설정 → 앱 → 오늘 한 걸음 → 알림/.test(index),'TWA/Android 알림 차단 시 앱 알림 설정 안내');
+ok(/self\.addEventListener\('notificationclick'/.test(sw),'서비스워커 알림 클릭 시 앱 복귀 처리');
 
 ok(/id="tool-listen"/.test(index),'회복도구에 듣는 글 메뉴 존재');
 ok(/\$\('#tool-listen'\)\.onclick = \(\) => openListen\('tools'\)/.test(index),'회복도구 듣는 글이 기존 듣는 글 화면으로 연결');
@@ -186,4 +191,4 @@ ok(index.includes('앱스 화면에 설치'),'Samsung Internet 앱스 화면 설
 ok(index.indexOf('if(isSamsung){') < index.indexOf('} else if(isIOS){'),'Samsung 설치 분기를 표준 prompt보다 우선');
 ok(manifest.includes('\"id\": \"./index.html\"'),'manifest 안정적 app id');
 
-console.log('\nV7.13 설치 안정화 검증 통과');
+console.log('\nV7.14 알림 안정화 검증 통과');

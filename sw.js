@@ -3,10 +3,10 @@
 
    ★ 배포할 때 APP_VERSION · 내부 캐시 V · index.html 의 BUILD 를 함께 갱신하세요. */
 /* 사용자에게 보이는 앱 버전. index.html 의 BUILD 와 반드시 맞춥니다. */
-const APP_VERSION = 'V7.13';
+const APP_VERSION = 'V7.14';
 /* 내부 캐시 리비전. 기존 v46 클라이언트도 새 판을 감지하도록 숫자형 키를 유지합니다.
    V4.6 → 406, V4.7 → 407, V4.10 → 410, V5.0 → 500, V5.1 → 501, V5.2 → 502 */
-const V = 'ohg-v713';
+const V = 'ohg-v714';
 const SHELL = ['./', './index.html',
   './qa-data.js', './learning-data.js', './screening-data.js', './workbook-data.js', './manifest.json',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-32.png'];
@@ -46,5 +46,22 @@ self.addEventListener('fetch', e => {
       caches.open(V).then(c => c.put(e.request, copy)).catch(() => {});
       return res;
     }).catch(() => caches.match(e.request).then(hit => hit || caches.match('./index.html')))
+  );
+});
+
+
+/* V7.14 — 서비스워커가 띄운 알림을 누르면 기존 앱 창을 앞으로 가져옵니다. */
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const target = (e.notification.data && e.notification.data.url) || './index.html';
+  const scope = self.registration && self.registration.scope ? self.registration.scope : '';
+  e.waitUntil(
+    self.clients.matchAll({ type:'window', includeUncontrolled:true }).then(list => {
+      for(const c of list){
+        /* 같은 github.io origin의 다른 프로젝트 창을 잘못 앞으로 가져오지 않습니다. */
+        if((!scope || String(c.url || '').startsWith(scope)) && 'focus' in c) return c.focus();
+      }
+      return self.clients.openWindow ? self.clients.openWindow(target) : undefined;
+    })
   );
 });
