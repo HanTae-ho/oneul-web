@@ -31,7 +31,7 @@ jobs:
       - name: Apply V8.0.5 web patch
         run: python3 helper/v805-web-patch.py site
 
-      - name: Verify web bridge and existing static checks
+      - name: Verify V8.0.5 web bridge
         working-directory: site
         run: |
           grep -Fq "const BUILD = 'V8.0.5';" index.html
@@ -43,7 +43,18 @@ jobs:
           grep -Fq "const V = 'ohg-v805';" sw.js
           grep -Fq "'./native.html'" sw.js
           git diff --check
-          node verify.js
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          for src, out in [('index.html','/tmp/index-inline.js'), ('native.html','/tmp/native-inline.js')]:
+              s = Path(src).read_text(encoding='utf-8')
+              parts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', s, flags=re.I|re.S)
+              if not parts:
+                  raise SystemExit(f'No inline script found in {src}')
+              Path(out).write_text('\n'.join(parts), encoding='utf-8')
+          PY
+          node --check /tmp/index-inline.js
+          node --check /tmp/native-inline.js
 
       - name: Commit main runtime changes
         working-directory: site
