@@ -1573,7 +1573,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.1.1';
+const BUILD = 'V8.1.2';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -6418,64 +6418,6 @@ function drawMe(){
   $('#me-ver').textContent = '오늘 한 걸음 ' + BUILD;
 }
 
-/* ── 복약 ──
-   약 이름은 묻지 않습니다. 이 앱이 알 필요가 없고, 이름을 적게 하면
-   오타와 중복만 생깁니다. '하루 몇 번' 과 '언제' 만 있으면 체크는 됩니다. */
-function drawMed(){
-  const cb = $('#me-med-cnt'); cb.innerHTML = '';
-  [[0,'안 먹습니다'],[1,'1일 1회'],[2,'1일 2회'],[3,'1일 3회'],[4,'1일 4회']].forEach(([n,l]) => {
-    const b = el('button', 'opt' + ((S.medCnt || 0) === n ? ' on' : ''), l);
-    b.onclick = () => {
-      S.medCnt = n;
-      if(!n) S.meds = [];
-      save(); drawMed();
-    };
-    cb.appendChild(b);
-  });
-
-  const mb = $('#me-meds'); mb.innerHTML = '';
-  const hint = $('#me-med-hint');
-  if(!(S.medCnt || 0)){
-    hint.textContent = '';
-    return;
-  }
-
-  S.meds = S.meds || [];
-  MEDSLOT.forEach(s => {
-    const cur = S.meds.filter(m => m.s === s.k)[0];
-    const r = el('div', 'sp');
-    r.style.padding = '5px 0';
-
-    const b = el('button', 'opt' + (cur ? ' on' : ''),
-      ico(cur ? 'check' : 'box') + '<span>' + s.l + '</span>');
-    b.style.flex = '1';
-    b.style.justifyContent = 'flex-start';
-    b.onclick = () => {
-      if(cur) S.meds = S.meds.filter(m => m.s !== s.k);
-      else S.meds.push({ s: s.k, t: s.d });
-      save(); drawMed();
-    };
-    r.appendChild(b);
-
-    if(cur){
-      const t = el('input');
-      t.type = 'time';
-      t.value = cur.t || s.d;
-      t.style.width = '138px';   /* 오전/오후 표시가 잘리지 않을 만큼 */
-      t.onchange = () => { cur.t = t.value; save(); };
-      r.appendChild(t);
-    }
-    mb.appendChild(r);
-  });
-
-  const n = S.meds.length, want = S.medCnt;
-  hint.textContent = n === want
-    ? '하루 ' + want + '번, 다 정하셨습니다.'
-    : n < want
-      ? '하루 ' + want + '번 중 ' + n + '개를 정하셨습니다. ' + (want - n) + '개 더 골라주세요.'
-      : '하루 ' + want + '번인데 ' + n + '개를 고르셨습니다. 횟수를 다시 보시겠어요?';
-}
-
 /* ── 식사 · 잠 ──
    복약과 같은 틀입니다(때 + 시간 + 알림). 다른 점은 '하루 몇 회' 를 안 묻는다는 것.
    끼니는 세 때가 정해져 있고, 억지로 횟수를 맞추게 하면 그것대로 부담이 됩니다. */
@@ -6566,8 +6508,9 @@ $('#me-goal-save').onclick = () => { S.goal = $('#me-goal').value.trim(); save()
    처방일수는 다음 외래일을 '제안'하는 계산에만 쓰며 실제 예약일을 확정하지 않습니다. */
 function treatmentCfg(){
   if(!S.treat || typeof S.treat !== 'object'){
-    S.treat = {on:0,medOn:0,outpatientOn:0,lastVisit:'',rxDays:0,nextVisit:'',alertD3:1,alertD1:1,alertDay:1,alertTime:'09:00'};
+    S.treat = {on:0,medOn:0,outpatientOn:0,lastVisit:'',rxDays:0,intervalDays:0,nextVisit:'',alertD3:1,alertD1:1,alertDay:1,alertTime:'09:00'};
   }
+  if(S.treat.intervalDays == null || isNaN(+S.treat.intervalDays)) S.treat.intervalDays = Math.max(0, parseInt(S.treat.rxDays,10) || 0);
   return S.treat;
 }
 function treatmentMedOn(){ const t=treatmentCfg(); return !famMode() && !!t.on && !!t.medOn; }
@@ -6584,22 +6527,33 @@ function diffYmd(from,to){
   return Math.round((Date.UTC(b[0],b[1]-1,b[2])-Date.UTC(a[0],a[1]-1,a[2]))/86400000);
 }
 function treatmentRxEnd(){ const t=treatmentCfg(), n=parseInt(t.rxDays,10); return t.lastVisit && n>0 ? addYmd(t.lastVisit,n-1) : ''; }
-function treatmentSuggestedVisit(){ const t=treatmentCfg(), n=parseInt(t.rxDays,10); return t.lastVisit && n>0 ? addYmd(t.lastVisit,n) : ''; }
+function treatmentInterval(){ const t=treatmentCfg(); return Math.max(0, parseInt(t.intervalDays,10) || 0); }
+function treatmentSuggestedVisit(){ const t=treatmentCfg(), n=treatmentInterval(); return t.lastVisit && n>0 ? addYmd(t.lastVisit,n) : ''; }
+function treatmentEffectiveVisit(){
+  const t=treatmentCfg(), n=treatmentInterval();
+  let v=t.nextVisit || treatmentSuggestedVisit();
+  if(!v) return '';
+  let guard=0;
+  while(n>0 && diffYmd(v,today())>0 && guard++<1000) v=addYmd(v,n);
+  return v;
+}
 function treatmentVisitLabel(){
-  const t=treatmentCfg(); if(!t.on||!t.outpatientOn||!t.nextVisit) return '';
-  const d=diffYmd(today(),t.nextVisit);
+  const t=treatmentCfg(); if(!t.on||!t.outpatientOn) return '';
+  const v=treatmentEffectiveVisit(); if(!v) return '';
+  const d=diffYmd(today(),v);
   if(d===null) return '';
   if(d===0) return '오늘은 외래 예정일입니다.';
-  if(d>0) return '다음 외래 D-' + d + ' · ' + t.nextVisit;
+  if(d>0) return '다음 외래 D-' + d + ' · ' + v;
   return '외래 예정일이 ' + Math.abs(d) + '일 지났습니다. 일정을 확인해주세요.';
 }
 function drawTreatmentHome(box){
   if(famMode()) return;
   const t=treatmentCfg();
-  if(!t.on || !t.outpatientOn || !t.nextVisit) return;
+  if(!t.on || !t.outpatientOn) return;
+  const v=treatmentEffectiveVisit(); if(!v) return;
   const label=treatmentVisitLabel();
   if(!label) return;
-  const d=diffYmd(today(),t.nextVisit);
+  const d=diffYmd(today(),v);
   const cls=d===0 ? 'note' : 'card tight';
   box.insertAdjacentHTML('beforeend','<div class="'+cls+'" style="margin-bottom:12px">'+
     '<div class="sp"><div><b>'+esc(d===0?'오늘 외래':'치료관리')+'</b><div class="muted" style="margin-top:3px">'+esc(label)+'</div></div>'+
@@ -6632,7 +6586,7 @@ function drawTreatment(){
   }
 
   body.innerHTML='<div class="card"><h3>복약 관리</h3><p class="muted" style="margin:-4px 0 11px">약 이름은 적지 않습니다. 하루 몇 번, 언제 챙길지만 정합니다.</p><div class="opts" id="treat-med-on"></div><div id="treat-med-settings" style="margin-top:13px"></div></div>'+
-    '<div class="card"><h3>외래 관리</h3><p class="muted" style="margin:-4px 0 11px">처방일수로 약이 끝날 예상일과 다음 외래일을 계산해 제안합니다. 실제 예약일은 직접 확정해주세요.</p><div class="opts" id="treat-out-on"></div><div id="treat-out-settings" style="margin-top:13px"></div></div>'+
+    '<div class="card"><h3>외래 관리</h3><p class="muted" style="margin:-4px 0 11px">이번 외래일과 외래 주기를 기준으로 다음 외래일을 자동 계산하고 같은 간격으로 반복합니다. 실제 예약일이 다르면 직접 수정할 수 있습니다.</p><div class="opts" id="treat-out-on"></div><div id="treat-out-settings" style="margin-top:13px"></div></div>'+
     '<div class="note" id="treat-native-note"></div>';
 
   treatToggle($('#treat-med-on'),t.medOn,'복약 관리 사용','복약 관리 안 함',v=>{ t.medOn=v; save(); drawTreatment(); drawHome(); });
@@ -6640,9 +6594,9 @@ function drawTreatment(){
   if(t.medOn){
     ms.innerHTML='<p class="tiny" style="margin:0 0 8px">하루 복약 횟수</p><div class="opts" id="treat-med-cnt"></div><div id="treat-meds" style="margin-top:12px"></div><p class="tiny" id="treat-med-hint" style="margin:9px 0 0"></p><p class="tiny" style="margin:11px 0 0">복용 여부·용량·약 변경은 처방한 의사나 약사와 상의하세요.</p>';
     const cb=$('#treat-med-cnt');
-    [[0,'안 먹습니다'],[1,'1일 1회'],[2,'1일 2회'],[3,'1일 3회'],[4,'1일 4회']].forEach(([n,l])=>{
+    [[1,'1일 1회'],[2,'1일 2회'],[3,'1일 3회'],[4,'1일 4회']].forEach(([n,l])=>{
       const b=el('button','opt'+((S.medCnt||0)===n?' on':''),l);
-      b.onclick=()=>{ S.medCnt=n; if(!n) t.medOn=0; save(); drawTreatment(); drawHome(); };
+      b.onclick=()=>{ S.medCnt=n; save(); drawTreatment(); drawHome(); };
       cb.appendChild(b);
     });
     if(S.medCnt){
@@ -6665,20 +6619,26 @@ function drawTreatment(){
   const os=$('#treat-out-settings');
   if(t.outpatientOn){
     os.innerHTML='<label class="tiny">이번 외래·처방일</label><input type="date" id="treat-last" style="margin:5px 0 12px">'+
-      '<label class="tiny">처방일수</label><div class="sp" style="margin:5px 0 12px"><input type="number" id="treat-days" min="1" max="365" inputmode="numeric" placeholder="예: 14" style="flex:1"><span class="muted">일분</span></div>'+
+      '<label class="tiny">처방일수</label><div class="sp" style="margin:5px 0 12px"><input type="number" id="treat-days" min="1" max="365" inputmode="numeric" placeholder="예: 7" style="flex:1"><span class="muted">일분</span></div>'+
+      '<label class="tiny">외래 주기</label><div class="sp" style="margin:5px 0 12px"><input type="number" id="treat-interval" min="1" max="365" inputmode="numeric" placeholder="예: 7" style="flex:1"><span class="muted">일 간격</span></div>'+
       '<div class="note" id="treat-calc" style="margin-bottom:12px"></div>'+
-      '<label class="tiny">실제 다음 외래 예정일</label><input type="date" id="treat-next" style="margin:5px 0 8px"><button class="btn ghost sm" id="treat-apply-suggest">제안 날짜로 입력</button>'+
+      '<label class="tiny">다음 외래 예정일 <span class="muted">(자동계산 · 수정 가능)</span></label><input type="date" id="treat-next" style="margin:5px 0 8px">'+
+      '<p class="tiny" style="margin:0 0 12px">실제 예약일이 자동계산 날짜와 다르면 이 날짜만 바꾸세요. 이후에는 설정한 외래 주기로 다시 반복됩니다.</p>'+
       '<div class="sep"></div><h3 style="font-size:14px">외래 알림</h3><div class="opts" id="treat-alerts"></div><div style="height:10px"></div><label class="tiny">알림 시간</label><input type="time" id="treat-alert-time" style="margin-top:5px">'+
       '<p class="tiny" style="margin:10px 0 0">잠금화면에는 병명·약 이름을 표시하지 않고 외래 일정만 중립적으로 알려드립니다.</p>';
-    const last=$('#treat-last'), days=$('#treat-days'), next=$('#treat-next'), at=$('#treat-alert-time');
-    last.value=t.lastVisit||''; days.value=t.rxDays||''; next.value=t.nextVisit||''; at.value=t.alertTime||'09:00';
-    const saveDate=()=>{ t.lastVisit=last.value; t.rxDays=Math.max(0,parseInt(days.value,10)||0); save(); drawTreatment(); drawHome(); };
-    last.onchange=saveDate; days.onchange=saveDate;
+    const last=$('#treat-last'), days=$('#treat-days'), interval=$('#treat-interval'), next=$('#treat-next'), at=$('#treat-alert-time');
+    if(!t.intervalDays && t.rxDays) t.intervalDays=parseInt(t.rxDays,10)||0;
+    if(!t.nextVisit && t.lastVisit && treatmentInterval()) t.nextVisit=addYmd(t.lastVisit,treatmentInterval());
+    last.value=t.lastVisit||''; days.value=t.rxDays||''; interval.value=t.intervalDays||''; next.value=t.nextVisit||''; at.value=t.alertTime||'09:00';
+    last.onchange=()=>{ t.lastVisit=last.value; if(t.lastVisit&&treatmentInterval()) t.nextVisit=addYmd(t.lastVisit,treatmentInterval()); save(); drawTreatment(); drawHome(); };
+    days.onchange=()=>{ t.rxDays=Math.max(0,parseInt(days.value,10)||0); if(t.rxDays>0) t.intervalDays=t.rxDays; if(t.lastVisit&&treatmentInterval()) t.nextVisit=addYmd(t.lastVisit,treatmentInterval()); save(); drawTreatment(); drawHome(); };
+    interval.onchange=()=>{ t.intervalDays=Math.max(0,parseInt(interval.value,10)||0); if(t.lastVisit&&treatmentInterval()) t.nextVisit=addYmd(t.lastVisit,treatmentInterval()); save(); drawTreatment(); drawHome(); };
     next.onchange=()=>{t.nextVisit=next.value;save();drawTreatment();drawHome();};
     at.onchange=()=>{t.alertTime=at.value||'09:00';save();};
-    const end=treatmentRxEnd(), sug=treatmentSuggestedVisit();
-    $('#treat-calc').innerHTML=end&&sug?'약 소진 예상일 <b>'+esc(end)+'</b><br>다음 외래 제안일 <b>'+esc(sug)+'</b><br><span class="tiny">처방일수 기준 계산일 뿐 실제 예약일은 아닙니다.</span>':'처방일과 처방일수를 입력하면 약 소진 예상일과 다음 외래 제안일을 보여드립니다.';
-    const apply=$('#treat-apply-suggest'); apply.disabled=!sug; apply.onclick=()=>{if(!sug)return;t.nextVisit=sug;save();drawTreatment();drawHome();};
+    const end=treatmentRxEnd(), n=treatmentInterval(), eff=treatmentEffectiveVisit();
+    $('#treat-calc').innerHTML=t.lastVisit&&n>0
+      ? (end?'약 소진 예상일 <b>'+esc(end)+'</b><br>':'')+'다음 외래 예정일 <b>'+esc(t.nextVisit||treatmentSuggestedVisit())+'</b><br><span class="tiny">이후 매 '+n+'일 간격으로 자동 반복'+(eff&&eff!==(t.nextVisit||'')?' · 현재 다음 회차 '+esc(eff):'')+'</span>'
+      : '이번 외래일과 외래 주기를 입력하면 다음 외래일을 자동 계산합니다.';
     const ab=$('#treat-alerts');
     [[3,'3일 전','alertD3'],[1,'1일 전','alertD1'],[0,'당일','alertDay']].forEach(([d,l,k])=>{
       const b=el('button','opt'+(t[k]?' on':''),ico(t[k]?'check':'box')+'<span>'+l+'</span>');
@@ -6726,14 +6686,16 @@ function nativeReminderPayload(){
   }).filter(Boolean).join('|');
   const sp = S.sleep || {};
   const tr = treatmentCfg();
-  const visitActive = !famMode() && tr.on && tr.outpatientOn && /^\d{4}-\d{2}-\d{2}$/.test(String(tr.nextVisit || ''));
+  const visitDate = treatmentEffectiveVisit();
+  const visitActive = !famMode() && tr.on && tr.outpatientOn && /^\d{4}-\d{2}-\d{2}$/.test(String(visitDate || '')) && treatmentInterval()>0;
   const visitAlerts = visitActive ? [tr.alertD3 ? 3 : null, tr.alertD1 ? 1 : null, tr.alertDay ? 0 : null].filter(x => x !== null).join(',') : '';
   return {
     risk: (S.role === 'family' ? [] : (S.hours || [])).filter(h => Number.isInteger(+h)).map(Number).join(','),
     meds: treatmentMedOn() ? pack(S.meds) : '',
     eats: pack(S.eats),
     bed: sp.on && /^\d{2}:\d{2}$/.test(String(sp.bed || '')) ? String(sp.bed) : '',
-    visit: visitActive ? tr.nextVisit : '',
+    visit: visitActive ? visitDate : '',
+    visitInterval: visitActive ? String(treatmentInterval()) : '',
     visitAlerts: visitAlerts,
     visitTime: visitActive && /^\d{2}:\d{2}$/.test(String(tr.alertTime || '')) ? tr.alertTime : '',
     build: BUILD
