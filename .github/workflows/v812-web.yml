@@ -1,0 +1,49 @@
+name: V8.1.2 web treatment recurring
+
+on:
+  push:
+    branches: [v8.1.2-web]
+    paths:
+      - 'v812-web-patch.py'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply V8.1.2 treatment patch
+        run: python3 v812-web-patch.py
+      - name: Validate JavaScript and treatment invariants
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          sw=Path('sw.js').read_text(encoding='utf-8')
+          assert "const BUILD = 'V8.1.2';" in s
+          assert "const APP_VERSION = 'V8.1.2';" in sw
+          assert "const V = 'ohg-v812-treatment';" in sw
+          assert "'안 먹습니다'" not in s
+          assert 'function drawMed()' not in s
+          assert 'intervalDays' in s and 'visitInterval' in s
+          assert 'treatmentEffectiveVisit' in s
+          assert '자동계산 · 수정 가능' in s
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          Path('/tmp/inline.js').write_text('\n'.join(scripts),encoding='utf-8')
+          print('static validation PASS')
+          PY
+          node --check /tmp/inline.js
+          git diff --check
+      - name: Commit V8.1.2 web
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js
+          git diff --cached --check
+          git commit -m 'Add recurring outpatient schedule and simplify medication management'
+          git push origin v8.1.2-web
