@@ -8,9 +8,9 @@ const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningS
 const feedbackGs=read('오늘한걸음_의견_v1.0.gs'), resourceGs=read('오늘한걸음_자원시트_v1.8.gs');
 const fail=m=>{throw new Error('VERIFY: '+m)}; const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
-ok(/const BUILD = 'V7\.10';/.test(index),'index BUILD = V7.10');
-ok(/const APP_VERSION = 'V7\.10';/.test(sw),'sw APP_VERSION = V7.10');
-ok(/const V = 'ohg-v710';/.test(sw),'sw cache = ohg-v710');
+ok(/const BUILD = 'V7\.11';/.test(index),'index BUILD = V7.11');
+ok(/const APP_VERSION = 'V7\.11';/.test(sw),'sw APP_VERSION = V7.11');
+ok(/const V = 'ohg-v711';/.test(sw),'sw cache = ohg-v711');
 ['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
   ok(index.includes('<script src="./'+f+'"></script>'),'index가 '+f+' 로드');
@@ -41,8 +41,14 @@ ok(Array.isArray(qa)&&qa.length===224,'Q&A 224문답 유지');
 ok(qa.every(x=>{const n=x.a.split(/\n\s*\n/).filter(Boolean).length;return n>=2&&n<=3;}),'Q&A 답변 2~3문단 유지');
 ok(/\.qadetail \.answer\{[^}]*font-size:16px;[^}]*line-height:1\.85/.test(index),'Q&A 상세 16px / 1.85 유지');
 
-box={window:{}};vm.createContext(box);vm.runInContext(learningSrc,box);const learning=box.window.LEARNING_TOPICS; const stepWords=box.window.TWELVE_STEP_WORDINGS;
-ok(stepWords&&stepWords.version==='V7.10'&&stepWords.sets,'12단계 영역별 단계문장 V7.10 데이터 등록');
+box={window:{}};vm.createContext(box);vm.runInContext(learningSrc,box);const learning=box.window.LEARNING_TOPICS; const stepWords=box.window.TWELVE_STEP_WORDINGS; const famLearn=box.window.FAMILY_TWELVE_STEP_PERSPECTIVES;
+ok(stepWords&&stepWords.version==='V7.10'&&stepWords.sets,'AA·GA·NA 영역별 단계문장 데이터 유지');
+ok(famLearn&&Object.keys(famLearn).length===14,'가족 12단계 소개·기초·1~12단계 오버레이 14개 등록');
+ok(['step-1','step-4','step-8','step-9','step-10','step-11','step-12'].every(k=>famLearn[k]&&Array.isArray(famLearn[k].reflection)&&famLearn[k].reflection.length>=4),'가족 핵심단계 성찰질문 4문항 이상');
+ok(famLearn.intro&&famLearn.intro.body.join(' ').includes('상대의 회복을 위해 바라는 것')===false&&famLearn.intro.body.join(' ').includes('가족이 자신의 삶·관계·경계·안전을 다시 돌아보는 회복의 지도'),'가족용 12단계 소개가 상대 변화가 아닌 가족 자신의 회복에 초점');
+ok(famLearn.foundation&&famLearn.foundation.body.join(' ').includes('무조건 참는 것이 아닙니다')&&famLearn.foundation.body.join(' ').includes('반드시 화해·재결합·직접 접촉'),'가족용 12단계 기초에서 겸손·용서와 자기희생·화해를 구분');
+ok(!learningSrc.includes('중독행동의 선택과 중단은 결국 그 사람의 몫')&&learningSrc.includes('치료와 회복을 선택하고 실천하는 책임까지 가족이 대신 맡을 수는 없습니다'),'중독 자체를 단순한 선택으로 오해하지 않도록 가족 1단계 문구 정제');
+ok(famLearn['step-1'].body.join(' ').includes('대신 멈추게 할 수 없었다')&&famLearn['step-4'].body.join(' ').includes('가족의 탓')&&famLearn['step-9'].body.join(' ').includes('통제의 수단'),'가족 1·4·9단계 핵심 안전 관점 반영');
 ok(['alcohol','gambling','drug','addiction'].every(k=>stepWords.sets[k]&&stepWords.sets[k].steps.length===12),'AA·GA·NA·중독 통합형 각각 12개 단계문장');
 ok(stepWords.sets.gambling.official===true&&stepWords.sets.gambling.verified===true,'GA 공식 문안 독립 세트 등록');
 ok(stepWords.sets.gambling.steps[0]==='우리는 도박에 무력하며 - 정상적으로 생활할 수 없게 되었음을 시인했습니다.','GA 1단계 비교표 문안 정확히 등록');
@@ -59,7 +65,7 @@ ok(/function twelveStepDomain\(\)/.test(index)&&/function twelveStepSentence\(se
 ok(/if\(types\[0\]==='alcohol'\) return 'alcohol'/.test(index)&&/if\(types\[0\]==='drug'\) return 'drug'/.test(index),'알코올·약물 단일영역 분기');
 ok(/types\[0\]==='gambling'.*sets\.gambling/.test(index),'도박 단일영역 GA 세트 분기');
 ok(!/function twelveStepDomain\(\)[\s\S]{0,500}S\.role/.test(index),'단계문장 선택은 self/family 역할과 독립');
-ok(/function learningSectionPerspective\(section\)/.test(index)&&/perspectives\[role\]/.test(index),'향후 가족 해설을 별도 오버레이로 추가할 구조 준비');
+ok(/FAMILY_TWELVE_STEP_PERSPECTIVES/.test(index)&&/function learningSectionPerspective\(section\)/.test(index),'가족 12단계 해설 오버레이 연결');
 ok(/learningCardText\(topic,s,ready\)/.test(index),'12단계 카드 작은글씨가 동적 단계문장 함수 사용');
 ok(/function twelveStepWordingNotice\(\)/.test(index)&&/set\.adapted/.test(index),'복수영역 통합형 안내를 공식 문안과 구분해 표시');
 ok(Array.isArray(learning)&&learning.length===2&&learning[0].id==='twelve-steps'&&learning[1].id==='recovery-foundations','회복학습 2개 독립 주제 등록');
@@ -79,7 +85,7 @@ ok(deep.sections.every(x=>Array.isArray(x.body)&&x.body.length>=4&&Array.isArray
 ok(/철학적·영적 해석 틀이며/.test(learningSrc)&&/의학적 진단/.test(learningSrc),'심화학습 해석 관점과 의학적 진단 구분');
 ok(/type:'rec-mood'/.test(learningSrc)&&/type:'halt'/.test(learningSrc)&&/type:'meditation'/.test(learningSrc),'심화학습 감정기록·HALT·명상 연결');
 
-box={window:{}};vm.createContext(box);vm.runInContext(workbookSrc,box);const wb=box.window.STEP_WORKSHEETS;
+box={window:{}};vm.createContext(box);vm.runInContext(workbookSrc,box);const wb=box.window.STEP_WORKSHEETS; const fwb=box.window.FAMILY_STEP_WORKSHEETS;
 ok(wb&&['step1','step4','step8','step9','step10','step11','step12'].every(k=>wb[k]),'1·4·8·9·10·11·12단계 검토·실천 데이터 등록');
 ok(Object.keys(wb).join(',')==='step1,step4,step8,step9,step10,step11,step12','검토·실천 workbook 7종만 등록');
 ok(wb.step1.sections.map(x=>x.id).join(',')==='powerless,unmanageable,loss','1단계 검토: 무력함 / 수습할 수 없는 삶 / 상실과 애도');
@@ -92,12 +98,29 @@ ok(wb.step11.sections.map(x=>x.id).join(',')==='connect,prayer,practice','11단�
 ok(wb.step12.sections.map(x=>x.id).join(',')==='principle,message,share','12단계: 원칙 / 삶의 메시지 / 나눔');
 ok(/특정 종교를 전제로 하지 않습니다/.test(workbookSrc),'11단계 비종교 사용자 안전 문구');
 ok(/다른 사람을 치료하거나 책임지라는 뜻이 아닙니다/.test(workbookSrc),'12단계 과도한 도움 역할 방지 문구');
-ok(/stepWorks: \[\], stepDrafts: \{\}/.test(index),'검토 저장기록·자동저장 초안 localStorage 상태 추가');
+ok(fwb&&['step1','step4','step8','step9','step10','step11','step12'].every(k=>fwb[k]),'가족 1·4·8·9·10·11·12단계 점검 7종 등록');
+ok(Object.keys(fwb).join(',')==='step1,step4,step8,step9,step10,step11,step12','가족 workbook 7종만 등록');
+ok(fwb.step1.sections.map(x=>x.id).join(',')==='control,rescue,life','가족 1단계: 통제 / 대신 수습 / 내 삶 회복');
+ok(fwb.step4.sections.map(x=>x.id).join(',')==='resentment,fear,overresponsibility,strength','가족 4단계: 원한 / 두려움 / 과잉책임 / 강점');
+ok(fwb.step8.sections.map(x=>x.id).join(',')==='people,self,notmine','가족 8단계: 보상대상 / 자기보상 / 책임 구분');
+ok(fwb.step9.sections.map(x=>x.id).join(',')==='plan,attitude,self','가족 9단계: 보상계획 / 태도 / 자기보상');
+ok(fwb.step10.sections.map(x=>x.id).join(',')==='review,boundary','가족 10단계: 오늘 점검 / 경계·자기돌봄');
+ok(fwb.step11.sections.map(x=>x.id).join(',')==='pause,direction','가족 11단계: 멈춤 / 오늘의 방향');
+ok(fwb.step12.sections.map(x=>x.id).join(',')==='principle,share,life','가족 12단계: 원칙 / 나눔 / 나의 삶');
+ok(fwb.step4.safety.includes('폭력·학대 등 위해 행동의 책임은 행위자에게')&&fwb.step4.safety.includes('중독이 생긴 원인을 가족의 탓으로 돌리지 않습니다'),'가족 4단계가 위해행동 책임과 중독 원인에 대한 가족 죄책감을 분리');
+ok(!workbookSrc.includes('구원자 역할')&&fwb.step12.subtitle.includes('다른 사람의 문제를 대신 책임지는 역할'),'가족 12단계 나눔을 구원자 역할이 아닌 책임 경계 언어로 정제');
+ok(/familyStepWorks: \[\], familyStepDrafts: \{\}/.test(index),'가족 12단계 기록·초안 별도 로컬 저장소');
+ok(/function workbookDefs\(scope\)/.test(index)&&/FAMILY_WORKSHEETS/.test(index),'역할별 workbook 정의 선택 엔진');
+ok(/workbookState = \{kind:'step1', from:'learn-topic', scope:'self'\}/.test(index),'workbook 역할 scope 상태 분리');
+ok(/mt\.target=famMode\(\)\?'fam':'me'/.test(index),'가족 12단계 모임 action이 가족모임으로 분기');
+ok(/\{v:'work',l:'12단계 점검'\}/.test(index),'가족 내 발자취 12단계 점검 탭');
+
+ok(/stepWorks: \[\], stepDrafts: \{\}/.test(index),'당사자 검토 저장기록·자동저장 초안 localStorage 상태 유지');
 ok(/function drawWorkbook\(\)/.test(index)&&/function saveWorkbookRecord\(kind\)/.test(index),'검토시트 작성·저장 UI 존재');
 ok(/function recWorkbook\(\)/.test(index)&&/12단계 검토/.test(index),'내 발자취 12단계 검토 재조회 탭 존재');
 ok(/자원시트·의견서버·마음프로로 자동 전송되지 않습니다/.test(index),'검토 내용 서버·AI 자동전송 방지 안내');
 ok(['step1','step4','step8','step9','step10','step11','step12'].every(k=>new RegExp("type:'"+k+"-workbook'").test(learningSrc)),'1·4·8·9·10·11·12단계 학습에서 검토·실천 직접 연결');
-ok(/S\.stepDrafts\[kind\]=workbookEmptyData/.test(index)&&/workbookQueueSave/.test(index),'검토 작성 중 기기내 초안 자동저장');
+ok(/workbookDraftStore\(scope\)\[kind\]=workbookEmptyData/.test(index)&&/workbookQueueSave/.test(index),'역할별 검토 작성 중 기기내 초안 자동저장');
 ok(/wb-record-delete/.test(index),'저장한 개별 검토 기록 삭제 기능');
 
 box={window:{}};vm.createContext(box);vm.runInContext(screeningSrc,box);const sc=box.window.SCREENING_TOOLS;
@@ -150,4 +173,4 @@ ok(/id="me-feedback-text"/.test(index)&&/id="me-feedback-send"/.test(index),'앱
 ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
 ok(/GS_VER\s*=\s*'v1\.8'/.test(resourceGs)&&/FEEDBACK_URL/.test(resourceGs),'자원시트 v1.8 유지');
 
-console.log('\nV7.10 핵심 검증 통과');
+console.log('\nV7.11 핵심 검증 통과');

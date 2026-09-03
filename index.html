@@ -1554,7 +1554,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V7.10';
+const BUILD = 'V7.11';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -1581,6 +1581,7 @@ const BLANK = {
   sleepLog: [],                               /* [{t, q}] q: good|soso|bad */
   moods: [], halts: [], urges: [], nights: [], relapses: [], screenings: [],
   stepWorks: [], stepDrafts: {},
+  familyStepWorks: [], familyStepDrafts: {},
   aiChat: [], aiClient: '', aiConsent: 0,       /* AI 대화는 이 기기에만 저장 */
   sheet: '', res: null, resAt: 0, resVer: '', theme: '',
   notify: 0, fired: [],
@@ -1603,6 +1604,8 @@ function migrate(s){
   if(!Array.isArray(s.screenings)) s.screenings = [];
   if(!Array.isArray(s.stepWorks)) s.stepWorks = [];
   if(!s.stepDrafts || typeof s.stepDrafts !== 'object' || Array.isArray(s.stepDrafts)) s.stepDrafts = {};
+  if(!Array.isArray(s.familyStepWorks)) s.familyStepWorks = [];
+  if(!s.familyStepDrafts || typeof s.familyStepDrafts !== 'object' || Array.isArray(s.familyStepDrafts)) s.familyStepDrafts = {};
   const old = (s.meds || []).filter(m => m && m.n !== undefined && m.s === undefined);
   if(old.length){
     const slotOf = t => {
@@ -3447,13 +3450,15 @@ function learningCardText(topic, section, ready){
   }
   return section.summary || '학습 내용을 살펴봅니다.';
 }
-/* 향후 가족/영역별 해설 확장용 오버레이.
-   현재 section.perspectives 데이터는 비어 있으므로 기존 해설을 그대로 반환합니다.
-   가족 자료가 검토되면 perspectives.family에 body/reflection/practice/actions만 추가하면 됩니다. */
+/* 역할별 12단계 해설 오버레이 V7.11.
+   단계 문장은 영역(AA·GA·NA/통합형)이 고르고, 해설·성찰·실천은 역할이 고릅니다.
+   가족용 데이터는 learning-data.js 의 FAMILY_TWELVE_STEP_PERSPECTIVES에 따로 둡니다. */
+const FAMILY_TWELVE_STEP_PERSPECTIVES = (window.FAMILY_TWELVE_STEP_PERSPECTIVES && typeof window.FAMILY_TWELVE_STEP_PERSPECTIVES==='object') ? window.FAMILY_TWELVE_STEP_PERSPECTIVES : {};
 function learningSectionPerspective(section){
   if(!section) return section;
   const role=famMode() ? 'family' : 'self';
-  const overlay=section.perspectives && section.perspectives[role];
+  let overlay=section.perspectives && section.perspectives[role];
+  if(role==='family' && FAMILY_TWELVE_STEP_PERSPECTIVES[section.id]) overlay=FAMILY_TWELVE_STEP_PERSPECTIVES[section.id];
   return overlay && typeof overlay==='object' ? Object.assign({},section,overlay) : section;
 }
 
@@ -3485,9 +3490,10 @@ function drawLearn(){
 
 function drawWorkbookList(){
   const box=$('#workbook-list'); if(!box) return; box.innerHTML='';
+  const defs=workbookDefs(famMode()?'family':'self');
   const order=['step1','step4','step8','step9','step10','step11','step12'];
   order.forEach(k=>{
-    const d=WORKSHEETS[k]; if(!d) return;
+    const d=defs[k]; if(!d) return;
     const b=el('button','help'); b.style.width='100%'; b.style.textAlign='left';
     b.innerHTML='<span class="ic">'+ico(k==='step9'?'people':k==='step11'?'sprout':'check')+'</span>'+
       '<span class="b"><b>'+esc(d.title)+'</b><span>'+esc(d.subtitle||d.intro||'')+'</span></span>'+
@@ -3517,7 +3523,7 @@ function learningAction(type){
     return;
   }
   if(type === 'meet'){
-    mt.target='me'; mt.mode='today'; mt.todayArea=''; mt.q=''; mt.kind=''; go('meet'); return;
+    mt.target=famMode()?'fam':'me'; mt.mode='today'; mt.todayArea=''; mt.q=''; mt.kind=''; go('meet'); return;
   }
   if(type === 'help'){ go('help'); return; }
   if(type === 'rec-mood'){ recTab='mood'; go('rec'); return; }
@@ -3568,6 +3574,10 @@ function drawLearnTopic(){
   $('#learn-topic-desc').textContent=topic.longDescription || topic.description || '';
   const box=$('#learn-topic-sections'); box.innerHTML='';
   if(topic.id==='twelve-steps'){
+    if(famMode()){
+      const f=el('div','note','같은 12단계 문장을 가족의 자리에서 읽습니다. 해설과 성찰질문은 상대를 바꾸는 방법이 아니라 가족 자신의 회복·경계·자기돌봄을 중심으로 보여드립니다.');
+      f.style.marginBottom='12px'; box.appendChild(f);
+    }
     const notice=twelveStepWordingNotice();
     if(notice){
       const n=el('div','note',esc(notice));
@@ -3598,13 +3608,32 @@ function drawLearnTopic(){
    원고의 1·4단계 검토, 8·9단계 보상 준비, 10·11·12단계 매일 실천을 모바일 입력형으로 옮겼습니다.
    작성 중 초안과 저장 기록 모두 S 안에만 두며 서버로 자동 전송하지 않습니다. */
 const WORKSHEETS = (window.STEP_WORKSHEETS && typeof window.STEP_WORKSHEETS==='object') ? window.STEP_WORKSHEETS : {};
-let workbookState = {kind:'step1', from:'learn-topic'};
+const FAMILY_WORKSHEETS = (window.FAMILY_STEP_WORKSHEETS && typeof window.FAMILY_STEP_WORKSHEETS==='object') ? window.FAMILY_STEP_WORKSHEETS : {};
+let workbookState = {kind:'step1', from:'learn-topic', scope:'self'};
 let workbookSaveTimer = 0;
 
+function workbookDefs(scope){ return scope==='family' ? FAMILY_WORKSHEETS : WORKSHEETS; }
+function workbookScope(){ return workbookState.scope==='family' ? 'family' : 'self'; }
+function workbookDef(kind,scope){ return workbookDefs(scope || workbookScope())[kind]; }
+function workbookDraftStore(scope){
+  if(scope==='family'){
+    if(!S.familyStepDrafts || typeof S.familyStepDrafts!=='object' || Array.isArray(S.familyStepDrafts)) S.familyStepDrafts={};
+    return S.familyStepDrafts;
+  }
+  if(!S.stepDrafts || typeof S.stepDrafts!=='object' || Array.isArray(S.stepDrafts)) S.stepDrafts={};
+  return S.stepDrafts;
+}
+function workbookRecordStore(scope){
+  if(scope==='family'){ if(!Array.isArray(S.familyStepWorks)) S.familyStepWorks=[]; return S.familyStepWorks; }
+  if(!Array.isArray(S.stepWorks)) S.stepWorks=[]; return S.stepWorks;
+}
+function setWorkbookRecordStore(scope,rows){ if(scope==='family') S.familyStepWorks=rows; else S.stepWorks=rows; }
+
 function openWorkbook(kind, from){
-  if(famMode()){ toast('12단계 검토시트는 회복 당사자가 자신의 경험을 적는 공간입니다.'); return; }
-  if(!WORKSHEETS[kind]) return;
+  const scope=famMode()?'family':'self';
+  if(!workbookDefs(scope)[kind]) return;
   workbookState.kind=kind;
+  workbookState.scope=scope;
   workbookState.from=from || cur || 'learn-topic';
   go('workbook');
 }
@@ -3625,10 +3654,10 @@ function workbookEmptyData(def){
   return d;
 }
 function workbookDraft(kind){
-  const def=WORKSHEETS[kind]; if(!def) return null;
-  if(!S.stepDrafts || typeof S.stepDrafts!=='object' || Array.isArray(S.stepDrafts)) S.stepDrafts={};
-  if(!S.stepDrafts[kind] || !S.stepDrafts[kind].sections) S.stepDrafts[kind]=workbookEmptyData(def);
-  const d=S.stepDrafts[kind];
+  const scope=workbookScope(), def=workbookDef(kind,scope); if(!def) return null;
+  const store=workbookDraftStore(scope);
+  if(!store[kind] || !store[kind].sections) store[kind]=workbookEmptyData(def);
+  const d=store[kind];
   (def.sections||[]).forEach(sec=>{
     if(!Array.isArray(d.sections[sec.id]) || !d.sections[sec.id].length){
       d.sections[sec.id]=(sec.fixedLabels||[]).length ? sec.fixedLabels.map(l=>({_label:l})) : [{}];
@@ -3667,7 +3696,8 @@ function workbookRowHtml(sec,row,ri){
   return h+'</div>';
 }
 function drawWorkbook(){
-  const def=WORKSHEETS[workbookState.kind] || WORKSHEETS.step1;
+  const defs=workbookDefs(workbookScope());
+  const def=defs[workbookState.kind] || defs.step1;
   if(!def){ $('#wb-body').innerHTML='<div class="note">검토시트 데이터를 찾을 수 없습니다.</div>'; return; }
   workbookState.kind=def.id;
   const d=workbookDraft(def.id);
@@ -3707,21 +3737,21 @@ function drawWorkbook(){
   $('#wb-clear-draft').onclick=()=>clearWorkbookDraft(def.id);
 }
 function clearWorkbookDraft(kind){
-  const def=WORKSHEETS[kind]; if(!def) return;
+  const scope=workbookScope(), def=workbookDef(kind,scope); if(!def) return;
   modal('<h2>작성 중인 초안을 비울까요?</h2><p class="muted" style="margin:6px 0 14px">아직 내 발자취에 저장하지 않은 입력 내용만 지웁니다. 이미 저장한 검토 기록은 그대로 남습니다.</p><button class="btn danger" id="wb-clear-yes">초안 비우기</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">그만두기</button>');
-  $('#wb-clear-yes').onclick=()=>{ S.stepDrafts[kind]=workbookEmptyData(def); save(); closeModal(); drawWorkbook(); toast('작성 중인 초안을 비웠습니다.'); };
+  $('#wb-clear-yes').onclick=()=>{ const store=workbookDraftStore(scope); store[kind]=workbookEmptyData(def); save(); closeModal(); drawWorkbook(); toast('작성 중인 초안을 비웠습니다.'); };
 }
 function saveWorkbookRecord(kind){
-  const def=WORKSHEETS[kind], d=workbookDraft(kind); if(!def||!d) return;
+  const scope=workbookScope(), def=workbookDef(kind,scope), d=workbookDraft(kind); if(!def||!d) return;
   if(!workbookHasText(def,d)){ toast('적은 내용이 아직 없습니다.'); return; }
   clearTimeout(workbookSaveTimer);
-  if(!Array.isArray(S.stepWorks)) S.stepWorks=[];
-  S.stepWorks.push({rid:'ws-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),kind:kind,t:Date.now(),data:JSON.parse(JSON.stringify(d))});
-  S.stepDrafts[kind]=workbookEmptyData(def); save();
-  recTab='work'; workbookState.from='rec'; go('rec'); toast(def.step+' 검토를 내 발자취에 저장했습니다.');
+  const records=workbookRecordStore(scope);
+  records.push({rid:'ws-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),kind:kind,scope:scope,t:Date.now(),data:JSON.parse(JSON.stringify(d))});
+  workbookDraftStore(scope)[kind]=workbookEmptyData(def); save();
+  recTab='work'; workbookState.from='rec'; go('rec'); toast(def.step+(scope==='family'?' 가족 점검':' 검토')+'을 내 발자취에 저장했습니다.');
 }
 function workbookRecordSummary(r){
-  const def=WORKSHEETS[r.kind]; if(!def) return '';
+  const def=workbookDef(r.kind,r.scope || workbookScope()); if(!def) return '';
   const n=workbookFilledCount(def,r.data||{});
   const first=[];
   (def.sections||[]).some(sec=>{
@@ -3735,7 +3765,7 @@ function workbookRecordSummary(r){
   return n+'개 항목 작성'+(first.length?' · '+first[0].slice(0,48)+(first[0].length>48?'…':''):'');
 }
 function workbookRecordHtml(r){
-  const def=WORKSHEETS[r.kind]; if(!def) return '<div class="note">이 기록의 양식을 찾을 수 없습니다.</div>';
+  const def=workbookDef(r.kind,r.scope || workbookScope()); if(!def) return '<div class="note">이 기록의 양식을 찾을 수 없습니다.</div>';
   const d=r.data||{}, ss=d.sections||{};
   let h='<div class="learn-part">'+esc(def.step)+'</div><h2>'+esc(def.title)+'</h2><p class="tiny" style="margin:4px 0 3px">'+esc(when(r.t).replace('\\n',' '))+'</p>';
   (def.sections||[]).forEach(sec=>{
@@ -3753,25 +3783,40 @@ function workbookRecordHtml(r){
   return h;
 }
 function openWorkbookRecord(rid){
-  const r=(S.stepWorks||[]).find(x=>x.rid===rid); if(!r) return;
+  const scope=famMode()?'family':'self';
+  const r=workbookRecordStore(scope).find(x=>x.rid===rid); if(!r) return;
   modal(workbookRecordHtml(r));
   const b=$('#wb-record-delete'); if(b) b.onclick=()=>{
-    modal('<h2>이 검토 기록을 삭제할까요?</h2><p class="muted" style="margin:6px 0 14px">이 기록 한 건만 기기에서 삭제합니다. 되돌릴 수 없습니다.</p><button class="btn danger" id="wb-delete-yes">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">그만두기</button>');
-    $('#wb-delete-yes').onclick=()=>{ S.stepWorks=(S.stepWorks||[]).filter(x=>x.rid!==rid); save(); closeModal(); drawRec(); toast('검토 기록을 삭제했습니다.'); };
+    modal('<h2>이 점검 기록을 삭제할까요?</h2><p class="muted" style="margin:6px 0 14px">이 기록 한 건만 기기에서 삭제합니다. 되돌릴 수 없습니다.</p><button class="btn danger" id="wb-delete-yes">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">그만두기</button>');
+    $('#wb-delete-yes').onclick=()=>{ setWorkbookRecordStore(scope,workbookRecordStore(scope).filter(x=>x.rid!==rid)); save(); closeModal(); drawRec(); toast('점검 기록을 삭제했습니다.'); };
   };
 }
 function recWorkbook(){
+  const scope=famMode()?'family':'self', defs=workbookDefs(scope);
   const w=el('div');
   const head=el('div','card');
-  head.innerHTML='<h3>12단계 검토</h3><p class="muted" style="margin:-2px 0 12px">책의 검토시트를 앱에서 작성하고 다시 볼 수 있습니다. 내용은 이 기기에만 저장됩니다.</p><div class="row wrap"><button class="btn sec sm" id="rec-wb1">1단계 검토 작성</button><button class="btn sec sm" id="rec-wb4">4단계 검토 작성</button><button class="btn sec sm" id="rec-wb8">8단계 보상 준비 검토 작성</button><button class="btn sec sm" id="rec-wb9">9단계 직접 보상 계획 작성</button></div><div class="sep"></div><h3 style="margin-bottom:5px">회복의 실제 · 매일 실천</h3><p class="muted" style="margin:-2px 0 12px">10·11·12단계는 한 번 끝내는 과제가 아니라 일상에서 반복하는 실천입니다.</p><div class="row wrap"><button class="btn sec sm" id="rec-wb10">10단계 오늘의 검토</button><button class="btn sec sm" id="rec-wb11">11단계 기도·명상 실천</button><button class="btn sec sm" id="rec-wb12">12단계 생활 속 실천</button></div>';
-  const wb1=head.querySelector('#rec-wb1'), wb4=head.querySelector('#rec-wb4'), wb8=head.querySelector('#rec-wb8'), wb9=head.querySelector('#rec-wb9'), wb10=head.querySelector('#rec-wb10'), wb11=head.querySelector('#rec-wb11'), wb12=head.querySelector('#rec-wb12');
-  wb1.onclick=()=>openWorkbook('step1','rec'); wb4.onclick=()=>openWorkbook('step4','rec'); wb8.onclick=()=>openWorkbook('step8','rec'); wb9.onclick=()=>openWorkbook('step9','rec'); wb10.onclick=()=>openWorkbook('step10','rec'); wb11.onclick=()=>openWorkbook('step11','rec'); wb12.onclick=()=>openWorkbook('step12','rec');
+  const order=['step1','step4','step8','step9','step10','step11','step12'];
+  if(scope==='family'){
+    head.innerHTML='<h3>가족 12단계 점검</h3><p class="muted" style="margin:-2px 0 12px">같은 12단계를 가족의 자리에서 돌아봅니다. 상대의 중독 자체가 아니라 나의 반응·경계·자기돌봄을 기록하며, 내용은 이 기기에만 저장됩니다.</p><div class="row wrap" id="rec-wb-buttons"></div>';
+  }else{
+    head.innerHTML='<h3>12단계 검토</h3><p class="muted" style="margin:-2px 0 12px">책의 검토시트를 앱에서 작성하고 다시 볼 수 있습니다. 내용은 이 기기에만 저장됩니다.</p><div class="row wrap" id="rec-wb-buttons"></div>';
+  }
+  const btnbox=head.querySelector('#rec-wb-buttons');
+  order.forEach(k=>{
+    const d=defs[k]; if(!d) return;
+    const b=el('button','btn sec sm',d.title); b.onclick=()=>openWorkbook(k,'rec'); btnbox.appendChild(b);
+  });
   w.appendChild(head);
-  const rows=(S.stepWorks||[]).slice().sort((a,b)=>b.t-a.t);
-  if(!rows.length){ w.appendChild(emptyBox('아직 저장한 12단계 검토가 없습니다.<br>1·4·8·9단계 검토 또는 10·11·12단계의 매일 실천 중 지금 필요한 자리부터 시작해보세요.')); return w; }
-  const c=el('div','card'); c.innerHTML='<h3>저장한 검토 '+rows.length+'건</h3>';
+  const rows=workbookRecordStore(scope).slice().sort((a,b)=>b.t-a.t);
+  if(!rows.length){
+    w.appendChild(emptyBox(scope==='family'
+      ? '아직 저장한 가족 12단계 점검이 없습니다.<br>1·4·8·9·10·11·12단계 중 지금 필요한 자리부터 천천히 시작해보세요.'
+      : '아직 저장한 12단계 검토가 없습니다.<br>1·4·8·9단계 검토 또는 10·11·12단계의 매일 실천 중 지금 필요한 자리부터 시작해보세요.'));
+    return w;
+  }
+  const c=el('div','card'); c.innerHTML='<h3>저장한 '+(scope==='family'?'가족 점검 ':'검토 ')+rows.length+'건</h3>';
   rows.forEach(r=>{
-    const def=WORKSHEETS[r.kind]; if(!def) return;
+    const def=workbookDef(r.kind,scope); if(!def) return;
     const b=el('button','ws-saved'); b.style.width='100%'; b.style.textAlign='left';
     b.innerHTML='<span class="date">'+esc(ymd(r.t))+'<br>'+esc(new Date(r.t).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}))+'</span><span class="body"><b>'+esc(def.title)+'</b><span>'+esc(workbookRecordSummary(r))+'</span></span><span class="go">보기</span>';
     b.onclick=()=>openWorkbookRecord(r.rid); c.appendChild(b);
@@ -3974,7 +4019,7 @@ let recTab = 'mood';
 function drawRec(){
   /* 가족은 충동·재발을 기록하지 않습니다. 그건 그 사람의 기록입니다. */
   const tabs = famMode()
-    ? [{v:'mood',l:'감정'},{v:'day',l:'하루'},{v:'body',l:'몸'},{v:'stat',l:'통계'}]
+    ? [{v:'mood',l:'감정'},{v:'day',l:'하루'},{v:'body',l:'몸'},{v:'work',l:'12단계 점검'},{v:'stat',l:'통계'}]
     : [{v:'mood',l:'감정'},{v:'urge',l:'충동'},{v:'day',l:'하루'},{v:'body',l:'몸'},
        {v:'relapse',l:'다시 시작'},{v:'work',l:'12단계 검토'},{v:'stat',l:'통계'}];
   if(!tabs.some(t => t.v === recTab)) recTab = 'mood';

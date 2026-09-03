@@ -194,6 +194,12 @@ const srv = http.createServer((req, res) => {
   assert((await pg.$$eval('#learn-topic-sections .help .b span', a => a[2].innerText)) === '우리는 알코올에 무력했으며, 우리의 삶을 수습할 수 없게 되었다는 것을 시인했다.', '가족모드도 같은 영역 단계문장 사용');
   await pg.evaluate(() => { S.types=['gambling']; drawLearnTopic(); });
   assert((await pg.$$eval('#learn-topic-sections .help .b span', a => a[2].innerText)).startsWith('우리는 도박에 무력하며'), '가족모드 도박도 같은 GA 단계문장 사용');
+  assert(await pg.evaluate(() => window.FAMILY_TWELVE_STEP_PERSPECTIVES && Object.keys(FAMILY_TWELVE_STEP_PERSPECTIVES).length===12), '가족 12단계 해설 오버레이 12개 로드');
+  await pg.evaluate(() => { S.types=['alcohol']; drawLearnTopic(); });
+  await pg.click('#learn-topic-sections .help:nth-child(4)'); await pg.waitForTimeout(80);
+  assert((await pg.$eval('#modin', e => e.innerText)).includes('그 사람의 중독을 내가 대신 멈추게 할 수 없었다'), '가족 1단계 해설이 가족 관점으로 표시');
+  await pg.click('#learn-modal-close');
+  assert(await pg.evaluate(() => window.FAMILY_STEP_WORKSHEETS && Object.keys(FAMILY_STEP_WORKSHEETS).length===7), '가족 단계별 점검 7종 로드');
   await pg.evaluate(() => { S.role='self'; S.types=['alcohol']; drawLearnTopic(); save(); });
   await pg.click('#learn-topic-sections .help'); await pg.waitForTimeout(100);
   assert(await pg.isVisible('#mod.on'), '12단계 소개 상세 모달이 열려야 함');
@@ -314,7 +320,7 @@ const srv = http.createServer((req, res) => {
   const rt = async i => { await pg.click(`#rec-tab button:nth-child(${i})`); await pg.waitForTimeout(300); };
   await rt(2); await shot('12-trail-urge');
   await rt(5); console.log('   다시시작 탭 =', (await pg.$eval('#rec-body', e => e.innerText)).replace(/\n+/g,' / ').slice(0,80));
-  await rt(6); assert((await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토 2건'), '내 발자취 12단계 검토 탭에서 저장 기록 재조회');
+  await rt(6); assert((await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토 7건'), '내 발자취 12단계 검토 탭에서 저장 기록 7건 재조회');
   await rt(7);
   console.log('12. 통계 =', (await pg.$eval('#rec-body', e => e.innerText)).replace(/\n+/g, ' / ').slice(0, 200));
   await shot('13-trail-stat');
