@@ -20,16 +20,21 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p=Path('index.html'); s=p.read_text(encoding='utf-8')
-          anchor="  /* 그 밖 */\n  check: '<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 12.3l2.9 2.9 5.1-5.4\"/>',\n"
-          repl="""  /* 그 밖 */
-  cal:   '<rect x=\"3.5\" y=\"5.2\" width=\"17\" height=\"15.3\" rx=\"2.5\"/><path d=\"M7.2 3.5v3.4M16.8 3.5v3.4M3.5 9.2h17\"/><path d=\"M7.5 13h2M12 13h2M16.5 13h.1M7.5 16.7h2M12 16.7h2\"/>',
-  bell:  '<path d=\"M6.2 9.8a5.8 5.8 0 0 1 11.6 0v4.1l1.8 2.5H4.4l1.8-2.5z\"/><path d=\"M9.7 19a2.5 2.5 0 0 0 4.6 0\"/>',
-  check: '<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 12.3l2.9 2.9 5.1-5.4\"/>',
-"""
-          if s.count(anchor)!=1: raise SystemExit('icon anchor count='+str(s.count(anchor)))
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          anchor = "  /* 그 밖 */\n  check: '<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 12.3l2.9 2.9 5.1-5.4\"/>',\n"
+          lines = [
+              "  /* 그 밖 */",
+              "  cal:   '<rect x=\"3.5\" y=\"5.2\" width=\"17\" height=\"15.3\" rx=\"2.5\"/><path d=\"M7.2 3.5v3.4M16.8 3.5v3.4M3.5 9.2h17\"/><path d=\"M7.5 13h2M12 13h2M16.5 13h.1M7.5 16.7h2M12 16.7h2\"/>',",
+              "  bell:  '<path d=\"M6.2 9.8a5.8 5.8 0 0 1 11.6 0v4.1l1.8 2.5H4.4l1.8-2.5z\"/><path d=\"M9.7 19a2.5 2.5 0 0 0 4.6 0\"/>',",
+              "  check: '<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 12.3l2.9 2.9 5.1-5.4\"/>',",
+              ""
+          ]
+          repl='\n'.join(lines)
+          if s.count(anchor)!=1:
+              raise SystemExit('icon anchor count='+str(s.count(anchor)))
           s=s.replace(anchor,repl,1)
-          s=s.replace('<button class=\"tiny\" style=\"color:var(--acc);font-weight:600\" id=\"workbook-list-back\">← 회복학습</button>', '<button class=\"tiny\" style=\"color:var(--acc);font-weight:600\" id=\"workbook-list-back\">← 돌아가기</button>',1)
+          s=s.replace('id=\"workbook-list-back\">← 회복학습</button>', 'id=\"workbook-list-back\">← 돌아가기</button>',1)
           p.write_text(s,encoding='utf-8')
           PY
           grep -q "cal:   '<rect" index.html
