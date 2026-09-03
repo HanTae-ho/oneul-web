@@ -1,0 +1,73 @@
+name: V8.0.4 Web Native Bridge Hotfix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/v804-web-hotfix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch V8.0.4 native detection and service worker version
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          old_build = "const BUILD = 'V8.0';"
+          new_build = "const BUILD = 'V8.0.4';"
+          if s.count(old_build) != 1:
+              raise SystemExit(f'Expected exactly one BUILD marker, found {s.count(old_build)}')
+          s = s.replace(old_build, new_build, 1)
+
+          old_fn = """function nativeAndroidApp(){
+            const p=new URLSearchParams(location.search);
+            return p.get('native')==='1';
+          }"""
+          new_fn = """function nativeAndroidApp(){
+            const p=new URLSearchParams(location.search);
+            if(p.get('native')==='1') return true;
+            const h=new URLSearchParams((location.hash||'').replace(/^#/,''));
+            return h.get('native')==='1';
+          }"""
+          if s.count(old_fn) != 1:
+              raise SystemExit(f'Expected exactly one nativeAndroidApp function, found {s.count(old_fn)}')
+          s = s.replace(old_fn, new_fn, 1)
+          p.write_text(s, encoding='utf-8')
+
+          p = Path('sw.js')
+          s = p.read_text(encoding='utf-8')
+          old_ver = "const APP_VERSION = 'V8.0';"
+          old_cache = "const V = 'ohg-v800';"
+          if s.count(old_ver) != 1 or s.count(old_cache) != 1:
+              raise SystemExit('Unexpected service-worker version markers')
+          s = s.replace(old_ver, "const APP_VERSION = 'V8.0.4';", 1)
+          s = s.replace(old_cache, "const V = 'ohg-v804';", 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Verify only intended runtime changes
+        run: |
+          grep -Fq "const BUILD = 'V8.0.4';" index.html
+          grep -Fq "new URLSearchParams((location.hash||'').replace(/^#/,''))" index.html
+          grep -Fq "const APP_VERSION = 'V8.0.4';" sw.js
+          grep -Fq "const V = 'ohg-v804';" sw.js
+          git diff --check
+          git diff -- index.html sw.js
+      - name: Commit V8.0.4 web bridge fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html sw.js
+          git commit -m "Fix V8.0.4 Android native bridge detection"
+          git push origin main
