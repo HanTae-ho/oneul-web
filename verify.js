@@ -8,9 +8,9 @@ const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningS
 const feedbackGs=read('오늘한걸음_의견_v1.0.gs'), resourceGs=read('오늘한걸음_자원시트_v1.8.gs');
 const fail=m=>{throw new Error('VERIFY: '+m)}; const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
-ok(/const BUILD = 'V7\.14';/.test(index),'index BUILD = V7.14');
-ok(/const APP_VERSION = 'V7\.14';/.test(sw),'sw APP_VERSION = V7.14');
-ok(/const V = 'ohg-v714';/.test(sw),'sw cache = ohg-v714');
+ok(/const BUILD = 'V8\.0';/.test(index),'index BUILD = V8.0');
+ok(/const APP_VERSION = 'V8\.0';/.test(sw),'sw APP_VERSION = V8.0');
+ok(/const V = 'ohg-v800';/.test(sw),'sw cache = ohg-v800');
 ['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
   ok(index.includes('<script src="./'+f+'"></script>'),'index가 '+f+' 로드');
@@ -191,4 +191,4 @@ ok(index.includes('앱스 화면에 설치'),'Samsung Internet 앱스 화면 설
 ok(index.indexOf('if(isSamsung){') < index.indexOf('} else if(isIOS){'),'Samsung 설치 분기를 표준 prompt보다 우선');
 ok(manifest.includes('\"id\": \"./index.html\"'),'manifest 안정적 app id');
 
-console.log('\nV7.14 알림 안정화 검증 통과');
+console.log('\nV8.0 네이티브 예약알림 웹 회귀검증 통과');

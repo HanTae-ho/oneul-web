@@ -3,10 +3,10 @@
 
    ★ 배포할 때 APP_VERSION · 내부 캐시 V · index.html 의 BUILD 를 함께 갱신하세요. */
 /* 사용자에게 보이는 앱 버전. index.html 의 BUILD 와 반드시 맞춥니다. */
-const APP_VERSION = 'V7.14';
+const APP_VERSION = 'V8.0';
 /* 내부 캐시 리비전. 기존 v46 클라이언트도 새 판을 감지하도록 숫자형 키를 유지합니다.
    V4.6 → 406, V4.7 → 407, V4.10 → 410, V5.0 → 500, V5.1 → 501, V5.2 → 502 */
-const V = 'ohg-v714';
+const V = 'ohg-v800';
 const SHELL = ['./', './index.html',
   './qa-data.js', './learning-data.js', './screening-data.js', './workbook-data.js', './manifest.json',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-32.png'];
@@ -50,7 +50,7 @@ self.addEventListener('fetch', e => {
 });
 
 
-/* V7.14 — 서비스워커가 띄운 알림을 누르면 기존 앱 창을 앞으로 가져옵니다. */
+/* V8.0 — 브라우저 알림 호환 경로. Android 패키지는 네이티브 예약알림을 주 경로로 씁니다. */
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   const target = (e.notification.data && e.notification.data.url) || './index.html';
