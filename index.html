@@ -1573,7 +1573,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.1';
+const BUILD = 'V8.1.1';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -6391,7 +6391,7 @@ function drawMe(){
     save(); drawMe();
   });
 
-  drawMed();
+  /* V8.1.1: 복약 설정은 치료관리 화면에서만 그립니다. */
   drawBody();
   drawNotify();
   drawAdmin();
