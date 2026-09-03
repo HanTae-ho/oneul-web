@@ -1,0 +1,55 @@
+name: Apply V8.0.5 Native Entry Bridge
+
+on:
+  push:
+    branches: [android-v8-build]
+    paths:
+      - 'v805-web-patch.py'
+      - '.github/workflows/v805-web-bridge.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout helper from Android branch
+        uses: actions/checkout@v4
+        with:
+          ref: android-v8-build
+          path: helper
+
+      - name: Checkout main site
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          path: site
+
+      - name: Apply V8.0.5 web patch
+        run: python3 helper/v805-web-patch.py site
+
+      - name: Verify web bridge and existing static checks
+        working-directory: site
+        run: |
+          grep -Fq "const BUILD = 'V8.0.5';" index.html
+          grep -Fq "sessionStorage.getItem('ohg.native.app') === '1'" index.html
+          grep -Fq "Android 앱 연결 확인됨 · " index.html
+          grep -Fq "sessionStorage.setItem('ohg.native.app', '1')" native.html
+          grep -Fq "location.replace('./index.html')" native.html
+          grep -Fq "const APP_VERSION = 'V8.0.5';" sw.js
+          grep -Fq "const V = 'ohg-v805';" sw.js
+          grep -Fq "'./native.html'" sw.js
+          git diff --check
+          node verify.js
+
+      - name: Commit main runtime changes
+        working-directory: site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html sw.js native.html
+          git commit -m "V8.0.5 robust Android native entry bridge"
+          git push origin main
