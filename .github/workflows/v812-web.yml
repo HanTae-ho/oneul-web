@@ -5,6 +5,7 @@ on:
     branches: [v8.1.2-web]
     paths:
       - 'v812-web-patch.py'
+      - '.github/workflows/v812-web.yml'
 
 permissions:
   contents: write
