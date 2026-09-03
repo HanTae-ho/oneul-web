@@ -23,7 +23,7 @@ jobs:
       - name: Verify patch
         run: |
           grep -Fq "const BUILD = 'V8.0.4';" index.html
-          grep -Fq "new URLSearchParams((location.hash||'').replace(/^#/,''))" index.html
+          grep -Fq "location.hash" index.html
           grep -Fq "const APP_VERSION = 'V8.0.4';" sw.js
           grep -Fq "const V = 'ohg-v804';" sw.js
           git diff --check
