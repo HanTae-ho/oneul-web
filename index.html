@@ -491,6 +491,16 @@ addEventListener('appinstalled', function(){
   @media(max-width:350px){.learnmini{grid-template-columns:1fr}.minitool{min-height:0;flex-direction:row;text-align:left;gap:10px;padding:12px}.minitool .ic{margin:0;flex:none}.minitool b{min-width:70px}.minitool span{margin:0;flex:1}.practicegrid,.checkmini{grid-template-columns:1fr}.practicecard{min-height:0}}
   /* V8.1.5 — 습관: 추천 예시를 복사해 쓰고, 내 습관은 자유롭게 수정합니다. */
   .habit-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:17px 0 9px}.habit-head h2{margin:0!important;color:var(--tx)!important;font-weight:700!important}.habit-list{display:grid;gap:9px}.habit-card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px}.habit-card.done{opacity:.72}.habit-card .top{display:flex;align-items:flex-start;gap:10px}.habit-card .top .grow b{display:block;font-size:15.5px}.habit-card .meta{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.5}.habit-card .checkline{display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}.habit-card .checkline button{width:31px;height:31px;border-radius:9px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc);background:var(--bg)}.habit-card .checkline button.on{background:var(--acc);color:#fff;border-color:var(--acc)}.habit-card .checkline span{flex:1;font-size:13px;line-height:1.45}.habit-actions{display:flex;gap:7px;margin-top:10px}.habit-actions .btn{margin:0;width:auto;flex:1;padding:8px 7px;font-size:12px}.habit-template{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:8px}.habit-template b{font-size:14.5px}.habit-template p{margin:3px 0 9px;font-size:12px;color:var(--dim);line-height:1.5}.habit-template .rowbtn{display:flex;gap:7px}.habit-template .rowbtn .btn{margin:0;padding:8px 7px;font-size:12px}.habit-edit .field{margin-bottom:15px}.habit-edit .field>label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.habit-edit .opts{gap:6px}.habit-edit .opt{padding:8px 10px;font-size:12.5px}.weekday-opts{grid-template-columns:repeat(7,minmax(0,1fr));gap:5px!important}.weekday-opts .opt{padding:8px 2px;justify-content:center}.habit-home{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}.habit-home h3{margin:0 0 9px}.habit-home-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--line)}.habit-home-row:first-of-type{border-top:0}.habit-home-row .hcheck{width:31px;height:31px;flex:none;border-radius:9px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc)}.habit-home-row .hcheck.on{background:var(--acc);color:#fff;border-color:var(--acc)}.habit-home-row .txt{flex:1;min-width:0}.habit-home-row .txt b{display:block;font-size:13.5px}.habit-home-row .txt span{display:block;font-size:11.5px;color:var(--dim);margin-top:1px}.habit-home-row .time{font-size:11.5px;color:var(--faint);white-space:nowrap}
+  /* V8.1.6 — 홈의 습관·복약·식사·잠·외래를 한 장의 오늘 일정으로 모읍니다. */
+  .today-home{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+  .today-home h3{margin:0}.today-summary{font-size:11.5px;color:var(--dim);margin-top:2px}
+  .today-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line)}
+  .today-row.first{border-top:0}.today-row .tcheck{width:31px;height:31px;flex:none;border-radius:9px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc);background:var(--bg)}
+  .today-row .tcheck.on{background:var(--acc);color:#fff;border-color:var(--acc)}.today-row .tcheck.static{border-color:transparent;background:var(--accbg)}
+  .today-row .txt{flex:1;min-width:0}.today-row .txt b{display:block;font-size:13.5px}.today-row .txt span{display:block;font-size:11.5px;color:var(--dim);margin-top:1px;line-height:1.45}
+  .today-row .time{font-size:11.5px;color:var(--faint);white-space:nowrap}.today-upcoming{margin-top:7px;padding-top:10px;border-top:1px dashed var(--line)}
+  .today-upcoming .k{display:block;font-size:11px;font-weight:700;color:var(--acc);margin-bottom:4px}.today-upcoming button{width:100%;text-align:left}
+  .today-sleepq{margin-top:8px;padding-top:11px;border-top:1px solid var(--line)}.today-sleepq p{margin:0 0 8px;font-size:12px;color:var(--dim)}
   /* ── 자가점검 V7.1 ── */
   .screen-group{margin:18px 0 8px}
   .screen-group h2{margin:0 0 4px;font-size:15px;color:var(--tx)}
@@ -801,7 +811,7 @@ addEventListener('appinstalled', function(){
   <button class="btn sec" id="go-ai-home">마음프로와 이야기하기</button>
   <div style="height:10px"></div>
 
-  <div id="home-habits"></div>
+  <div id="home-today"></div>
   <div id="home-alert"></div>
 
   <div class="card">
@@ -1637,7 +1647,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.1.5';
+const BUILD = 'V8.1.6';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -2653,7 +2663,7 @@ function todayRec(arr){
 function drawHome(){
   const fam = famMode();
   drawDailyHome();
-  drawHabitHome();
+  drawTodayScheduleHome();
 
   /* 가족 모드에서는 화면의 주어가 바뀝니다.
      ★ 회복일 카운터를 가족에게 보여주면 안 됩니다 — 그 숫자는 그 사람의 것이고,
@@ -2755,36 +2765,7 @@ function drawHome(){
     if(x) x.onclick = () => { updHid = true; drawHome(); };
   }
 
-  /* 복약 — 치료관리에서 사용할 때만 홈에 표시합니다. */
-  if(treatmentMedOn() && (S.meds || []).length){
-    /* 정해둔 때 순서로 — 아침 약이 저녁 약 밑에 있으면 눈에 안 들어옵니다 */
-    const ord = MEDSLOT.map(x => x.k);
-    const list = S.meds.slice().sort((x, y) => ord.indexOf(x.s) - ord.indexOf(y.s));
-    const done = todayRec(S.medLog).map(m => m.n);
-    let html = '<div class="card tight"><h3>오늘 복약</h3>';
-    list.forEach(m => {
-      const slot = MEDSLOT.filter(x => x.k === m.s)[0] || { l: m.s };
-      const ok = done.includes(m.s);
-      html += '<div class="sp" style="padding:6px 0"><span>' +
-        ico(ok ? 'check' : 'box', 'ic-i') + esc(slot.l) +
-        (m.t ? ' <span class="tiny">' + esc(m.t) + '</span>' : '') + '</span>' +
-        (ok ? '<span class="tiny">완료</span>'
-            : '<button class="btn sec sm" style="width:auto;padding:7px 13px" data-med="' + esc(m.s) + '">체크</button>') +
-        '</div>';
-    });
-    html += '</div>';
-    a.insertAdjacentHTML('beforeend', html);
-    a.querySelectorAll('[data-med]').forEach(b => b.onclick = () => {
-      S.medLog.push({ t: Date.now(), n: b.dataset.med });
-      save(); drawHome();
-    });
-  }
-
-  /* 외래 일정 요약 */
-  drawTreatmentHome(a);
-
-  /* 식사 · 잠 */
-  drawBodyHome(a);
+  /* V8.1.6: 복약·외래·식사·잠은 위의 「오늘 일정」 카드에서 함께 표시합니다. */
 
   /* HALT */
   /* ── HALT ──
@@ -3489,16 +3470,94 @@ function habitNotifyPack(){
     return [String(h.id||''),h.time,h.start,String(Math.max(0,parseInt(h.days,10)||0)),wd].join('@');
   }).filter(x=>x.split('@')[0]).join('|');
 }
-function drawHabitHome(){
-  const box=$('#home-habits'); if(!box) return; const rows=habitToday();
-  if(!rows.length){ box.innerHTML=''; return; }
-  box.innerHTML='<div class="habit-home"><div class="sp"><h3>오늘의 습관</h3><button class="tiny link" id="home-habit-all">전체 보기</button></div>'+rows.map(h=>
-    '<div class="habit-home-row"><button class="hcheck'+(habitDoneOn(h,today())?' on':'')+'" data-home-habit="'+esc(h.id)+'">'+ico(habitDoneOn(h,today())?'check':'box')+'</button><div class="txt"><b>'+esc(h.name)+'</b><span>'+esc(h.check||'오늘 실천했습니다')+' · '+esc(habitProgressText(h))+'</span></div><span class="time">'+(h.notify?esc(h.time||''):'')+'</span></div>'
-  ).join('')+'</div>';
-  const all=$('#home-habit-all'); if(all) all.onclick=()=>go('habit');
-  $$('[data-home-habit]').forEach(b=>b.onclick=()=>{ const h=habitList().find(x=>x.id===b.dataset.homeHabit); if(!h)return; habitToggle(h,today()); drawHabitHome(); drawTools(); });
+function homeTimeKey(v){
+  const m=String(v||'').match(/^(\d{2}):(\d{2})$/); return m?(+m[1]*60 + +m[2]):9999;
+}
+function drawTodayScheduleHome(){
+  const box=$('#home-today'); if(!box) return;
+  const fam=famMode(), d=today(), items=[];
+  let actionable=0, completed=0;
+
+  habitToday().forEach(h=>{
+    const done=habitDoneOn(h,d); actionable++; if(done) completed++;
+    items.push({kind:'habit',id:h.id,time:h.notify?(h.time||''):'',label:h.name,sub:(h.check||'오늘 실천했습니다')+' · '+habitProgressText(h),done:done,action:1});
+  });
+
+  if(!fam && treatmentMedOn() && (S.meds||[]).length){
+    const ord=MEDSLOT.map(x=>x.k), done=todayRec(S.medLog||[]).map(x=>x.n);
+    S.meds.slice().sort((a,b)=>ord.indexOf(a.s)-ord.indexOf(b.s)).forEach(m=>{
+      const slot=MEDSLOT.find(x=>x.k===m.s)||{l:m.s}, ok=done.indexOf(m.s)>=0; actionable++; if(ok) completed++;
+      items.push({kind:'med',id:m.s,time:m.t||'',label:slot.l+' 약',sub:'복약',done:ok,action:1});
+    });
+  }
+
+  const eord=EATSLOT.map(x=>x.k), edone=todayRec(S.eatLog||[]).map(x=>x.n);
+  (S.eats||[]).slice().sort((a,b)=>eord.indexOf(a.s)-eord.indexOf(b.s)).forEach(m=>{
+    const slot=EATSLOT.find(x=>x.k===m.s)||{l:m.s}, ok=edone.indexOf(m.s)>=0; actionable++; if(ok) completed++;
+    items.push({kind:'eat',id:m.s,time:m.t||'',label:slot.l,sub:'식사',done:ok,action:1});
+  });
+
+  const sp=S.sleep||{};
+  if(sp.on && /^\d{2}:\d{2}$/.test(String(sp.bed||'')))
+    items.push({kind:'sleep',id:'bed',time:sp.bed,label:'잠자리',sub:'잘 시간',done:false,action:0});
+
+  items.sort((a,b)=>homeTimeKey(a.time)-homeTimeKey(b.time));
+
+  let visitHtml='';
+  if(!fam){
+    const t=treatmentCfg();
+    if(t.outpatientOn){
+      const v=treatmentEffectiveVisit(), label=treatmentVisitLabel();
+      if(v && label){
+        const dd=diffYmd(d,v);
+        if(dd===0){
+          items.unshift({kind:'visit',id:'visit',time:'',label:'오늘 외래',sub:label,done:false,action:0});
+        }else{
+          visitHtml='<div class="today-upcoming"><span class="k">다가오는 일정</span><button id="home-today-visit"><b>외래</b><div class="muted" style="margin-top:2px">'+esc(label)+'</div></button></div>';
+        }
+      }
+    }
+  }
+
+  const askSleep=!!sp.on && todayRec(S.sleepLog||[]).length===0;
+  const configured=items.length || visitHtml || askSleep;
+  if(!configured){ box.innerHTML=''; return; }
+
+  let html='<div class="today-home"><div class="sp" style="align-items:flex-start"><div><h3>오늘 일정</h3>'+
+    (actionable?'<div class="today-summary">'+completed+' / '+actionable+' 완료</div>':'')+
+    '</div><button class="tiny link" id="home-today-manage">일정 관리</button></div>';
+  items.forEach((x,i)=>{
+    const icon=x.kind==='sleep'?'moon':x.kind==='visit'?'cal':(x.done?'check':'box');
+    const btn=x.action?'<button class="tcheck'+(x.done?' on':'')+'" data-today-kind="'+x.kind+'" data-today-id="'+esc(x.id)+'">'+ico(icon)+'</button>':'<span class="tcheck static">'+ico(icon)+'</span>';
+    html+='<div class="today-row'+(i===0?' first':'')+'">'+btn+'<div class="txt"><b>'+esc(x.label)+'</b><span>'+esc(x.sub)+'</span></div><span class="time">'+esc(x.time||'')+'</span></div>';
+  });
+  html+=visitHtml;
+  if(askSleep){
+    html+='<div class="today-sleepq"><p>어젯밤 잠은 어떠셨나요?</p><div class="opts">'+SLEEPQ.map(q=>'<button class="opt" data-today-sleep="'+q.k+'">'+q.l+'</button>').join('')+'</div></div>';
+  }
+  html+='</div>';
+  box.innerHTML=html;
+
+  const manage=$('#home-today-manage'); if(manage) manage.onclick=()=>go('schedule');
+  const visit=$('#home-today-visit'); if(visit) visit.onclick=()=>go('treatment');
+  box.querySelectorAll('[data-today-kind]').forEach(b=>b.onclick=()=>{
+    if(b.dataset.todayKind==='habit'){
+      const h=habitList().find(x=>x.id===b.dataset.todayId); if(h) habitToggle(h,d);
+    }else if(b.dataset.todayKind==='med'){
+      S.medLog=S.medLog||[]; if(todayRec(S.medLog).map(x=>x.n).indexOf(b.dataset.todayId)<0) S.medLog.push({t:Date.now(),n:b.dataset.todayId});
+    }else if(b.dataset.todayKind==='eat'){
+      S.eatLog=S.eatLog||[]; if(todayRec(S.eatLog).map(x=>x.n).indexOf(b.dataset.todayId)<0) S.eatLog.push({t:Date.now(),n:b.dataset.todayId});
+    }
+    save(); drawTodayScheduleHome(); drawTools();
+  });
+  box.querySelectorAll('[data-today-sleep]').forEach(b=>b.onclick=()=>{
+    S.sleepLog=S.sleepLog||[]; S.sleepLog.push({t:Date.now(),q:b.dataset.todaySleep}); save(); drawTodayScheduleHome();
+    toast(b.dataset.todaySleep==='bad'?'기록했습니다. 오늘은 무리하지 마세요.':'기록했습니다.');
+  });
   refreshIcons();
 }
+/* V8.1.5 내부 호출과의 호환. 습관 체크 뒤에도 홈의 전체 일정이 갱신됩니다. */
+function drawHabitHome(){ drawTodayScheduleHome(); }
 function startHabitNew(data){
   const d=habitClone(data||{name:'',days:21,freq:'daily',weekdays:[0,1,2,3,4,5,6],check:'오늘 실천했습니다',notify:0,time:'18:00'});
   d.id=d.id&&String(d.id).startsWith('h')?d.id:habitNewId(); d.start=d.start||today(); d.done=d.done||[];
