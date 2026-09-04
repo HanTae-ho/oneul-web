@@ -3244,7 +3244,7 @@ function drawUrge(){
   const box=$('#ur-th'); box.innerHTML='';
   THOUGHTS.forEach(t=>{
     const b=el('button','opt'+(urge.thoughts.indexOf(t)>=0?' on':''),'"'+t+'"');
-    b.onclick=()=>{ urge.touched=true; const i=urge.thoughts.indexOf(t); if(i<0) urge.thoughts.push(t); else urge.thoughts.splice(i,1); queueUrgeDraft(); drawUrge(); };
+    b.onclick=()=>{ urge.touched=true; const i=urge.thoughts.indexOf(t); if(i<0) urge.thoughts.push(t); else urge.thoughts.splice(i,1); queueUrgeDraft(); b.classList.toggle('on',urge.thoughts.indexOf(t)>=0); };
     box.appendChild(b);
   });
   setUrgeTrackOpen(!!(urge.loc||urge.company||urge.triggers.length));
