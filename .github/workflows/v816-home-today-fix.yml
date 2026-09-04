@@ -1,0 +1,65 @@
+name: Apply V8.1.6 Home Today Schedule Fix
+
+on:
+  push:
+    branches: [v8.1.6-home-today-schedule]
+    paths:
+      - '.github/workflows/v816-home-today-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.1.6-home-today-schedule
+      - name: Fix replacement mode and apply patch
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('v816-home-today-patch.py')
+          s=p.read_text(encoding='utf-8')
+          old='s2,n=re.subn(pat,new,s,count=1,flags=re.S)'
+          assert s.count(old)==1, s.count(old)
+          p.write_text(s.replace(old,'s2,n=re.subn(pat,lambda m:new,s,count=1,flags=re.S)',1),encoding='utf-8')
+          PY
+          python3 v816-home-today-patch.py
+      - name: Verify home integration and JavaScript
+        run: |
+          python3 - <<'PY'
+          import pathlib,re
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          assert s.count('id="home-today"')==1
+          assert 'id="home-habits"' not in s
+          assert 'function drawTodayScheduleHome()' in s
+          assert '오늘 일정' in s and '다가오는 일정' in s
+          assert "const BUILD = 'V8.1.6'" in s
+          sw=pathlib.Path('sw.js').read_text(encoding='utf-8')
+          assert "const APP_VERSION = 'V8.1.6'" in sw
+          assert "const V = 'ohg-v816-home-today'" in sw
+          m=re.search(r'function drawHome\(\)\{(.*?)\n\}',s,re.S)
+          assert m
+          b=m.group(1)
+          assert 'drawTodayScheduleHome();' in b
+          assert 'drawTreatmentHome(a);' not in b
+          assert 'drawBodyHome(a);' not in b
+          ids=re.findall(r'id="([^"]+)"',s)
+          dup=sorted({x for x in ids if ids.count(x)>1})
+          assert not dup, dup[:20]
+          scripts=[]
+          for attrs,body in re.findall(r'<script([^>]*)>(.*?)</script>',s,re.S|re.I):
+              if 'src=' not in attrs.lower(): scripts.append(body)
+          pathlib.Path('/tmp/inline.js').write_text('\n'.join(scripts),encoding='utf-8')
+          PY
+          node --check /tmp/inline.js
+          git diff --check
+      - name: Commit V8.1.6 web files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js
+          git commit -m 'V8.1.6 unify home today schedule'
+          git push
