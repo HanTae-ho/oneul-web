@@ -501,6 +501,8 @@ addEventListener('appinstalled', function(){
   .today-row .time{font-size:11.5px;color:var(--faint);white-space:nowrap}.today-upcoming{margin-top:7px;padding-top:10px;border-top:1px dashed var(--line)}
   .today-upcoming .k{display:block;font-size:11px;font-weight:700;color:var(--acc);margin-bottom:4px}.today-upcoming button{width:100%;text-align:left}
   .today-sleepq{margin-top:8px;padding-top:11px;border-top:1px solid var(--line)}.today-sleepq p{margin:0 0 8px;font-size:12px;color:var(--dim)}
+  /* V8.1.7 — 오늘 일정이 많으면 홈은 5개까지만 보여주고 필요할 때 펼칩니다. */
+  .today-more{width:100%;margin-top:5px;padding:9px 4px;border-top:1px dashed var(--line);text-align:center;font-size:12px;font-weight:700;color:var(--acc);background:transparent}
   /* ── 자가점검 V7.1 ── */
   .screen-group{margin:18px 0 8px}
   .screen-group h2{margin:0 0 4px;font-size:15px;color:var(--tx)}
@@ -1647,7 +1649,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.1.6';
+const BUILD = 'V8.1.7';
 const KEY = 'ohg.v1';
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
@@ -2263,6 +2265,7 @@ const ICO = {
 
   /* 그 밖 */
   cal:   '<rect x="3.5" y="5.2" width="17" height="15.3" rx="2.5"/><path d="M7.2 3.5v3.4M16.8 3.5v3.4M3.5 9.2h17"/><path d="M7.5 13h2M12 13h2M16.5 13h.1M7.5 16.7h2M12 16.7h2"/>',
+  sleep: '<path d="M19.8 15.2A8.4 8.4 0 1 1 10.1 4.1a6.8 6.8 0 0 0 9.7 11.1z"/><path d="M16.2 4.4h3.2l-3.2 3.4h3.2"/>',
   bell:  '<path d="M6.2 9.8a5.8 5.8 0 0 1 11.6 0v4.1l1.8 2.5H4.4l1.8-2.5z"/><path d="M9.7 19a2.5 2.5 0 0 0 4.6 0"/>',
   check: '<circle cx="12" cy="12" r="9"/><path d="M8 12.3l2.9 2.9 5.1-5.4"/>',
   theme: '<path d="M12 3a9 9 0 0 0 0 18z" class="f"/><circle cx="12" cy="12" r="9"/>',
@@ -3470,6 +3473,7 @@ function habitNotifyPack(){
     return [String(h.id||''),h.time,h.start,String(Math.max(0,parseInt(h.days,10)||0)),wd].join('@');
   }).filter(x=>x.split('@')[0]).join('|');
 }
+let homeTodayExpanded=false;
 function homeTimeKey(v){
   const m=String(v||'').match(/^(\d{2}):(\d{2})$/); return m?(+m[1]*60 + +m[2]):9999;
 }
@@ -3487,7 +3491,8 @@ function drawTodayScheduleHome(){
     const ord=MEDSLOT.map(x=>x.k), done=todayRec(S.medLog||[]).map(x=>x.n);
     S.meds.slice().sort((a,b)=>ord.indexOf(a.s)-ord.indexOf(b.s)).forEach(m=>{
       const slot=MEDSLOT.find(x=>x.k===m.s)||{l:m.s}, ok=done.indexOf(m.s)>=0; actionable++; if(ok) completed++;
-      items.push({kind:'med',id:m.s,time:m.t||'',label:slot.l+' 약',sub:'복약',done:ok,action:1});
+      const medLabel=/약$/.test(String(slot.l||''))?slot.l:slot.l+' 약';
+      items.push({kind:'med',id:m.s,time:m.t||'',label:medLabel,sub:'복약',done:ok,action:1});
     });
   }
 
@@ -3523,14 +3528,20 @@ function drawTodayScheduleHome(){
   const configured=items.length || visitHtml || askSleep;
   if(!configured){ box.innerHTML=''; return; }
 
+  const homeLimit=5, canFold=items.length>homeLimit;
+  const shown=(canFold&&!homeTodayExpanded)?items.slice(0,homeLimit):items;
   let html='<div class="today-home"><div class="sp" style="align-items:flex-start"><div><h3>오늘 일정</h3>'+
-    (actionable?'<div class="today-summary">'+completed+' / '+actionable+' 완료</div>':'')+
+    (actionable?'<div class="today-summary">오늘 실천 '+completed+' / '+actionable+' 완료</div>':'')+
     '</div><button class="tiny link" id="home-today-manage">일정 관리</button></div>';
-  items.forEach((x,i)=>{
-    const icon=(x.kind==='sleep'||x.kind==='visit')?'cal':(x.done?'check':'box');
+  shown.forEach((x,i)=>{
+    const icon=x.kind==='sleep'?'sleep':(x.kind==='visit'?'cal':(x.done?'check':'box'));
     const btn=x.action?'<button class="tcheck'+(x.done?' on':'')+'" data-today-kind="'+x.kind+'" data-today-id="'+esc(x.id)+'">'+ico(icon)+'</button>':'<span class="tcheck static">'+ico(icon)+'</span>';
     html+='<div class="today-row'+(i===0?' first':'')+'">'+btn+'<div class="txt"><b>'+esc(x.label)+'</b><span>'+esc(x.sub)+'</span></div><span class="time">'+esc(x.time||'')+'</span></div>';
   });
+  if(canFold){
+    const hidden=Math.max(0,items.length-homeLimit);
+    html+='<button class="today-more" id="home-today-more">'+(homeTodayExpanded?'간단히 보기':'전체 보기 · '+hidden+'개 더')+'</button>';
+  }
   html+=visitHtml;
   if(askSleep){
     html+='<div class="today-sleepq"><p>어젯밤 잠은 어떠셨나요?</p><div class="opts">'+SLEEPQ.map(q=>'<button class="opt" data-today-sleep="'+q.k+'">'+q.l+'</button>').join('')+'</div></div>';
@@ -3539,6 +3550,7 @@ function drawTodayScheduleHome(){
   box.innerHTML=html;
 
   const manage=$('#home-today-manage'); if(manage) manage.onclick=()=>go('schedule');
+  const more=$('#home-today-more'); if(more) more.onclick=()=>{homeTodayExpanded=!homeTodayExpanded;drawTodayScheduleHome();};
   const visit=$('#home-today-visit'); if(visit) visit.onclick=()=>go('treatment');
   box.querySelectorAll('[data-today-kind]').forEach(b=>b.onclick=()=>{
     if(b.dataset.todayKind==='habit'){
