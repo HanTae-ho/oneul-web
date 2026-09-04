@@ -22,13 +22,13 @@ jobs:
       - name: Print reminder source
         run: |
           PKG=android-v8/app/src/main/java/io/github/hantae_ho/twa
-          echo '=== NotificationSettingsActivity ==='
-          cat "$PKG/NotificationSettingsActivity.java"
-          echo '=== ReminderStore ==='
-          cat "$PKG/ReminderStore.java"
-          echo '=== ReminderScheduler ==='
-          cat "$PKG/ReminderScheduler.java"
-          echo '=== ReminderReceiver ==='
-          cat "$PKG/ReminderReceiver.java"
+          echo '=== files ==='
+          ls -1 "$PKG"
+          echo '=== Reminder ==='
+          cat "$PKG/Reminder.java"
+          echo '=== AlarmReceiver ==='
+          cat "$PKG/AlarmReceiver.java"
+          echo '=== BootReceiver ==='
+          cat "$PKG/BootReceiver.java" || true
           echo '=== AndroidManifest ==='
           cat android-v8/app/src/main/AndroidManifest.xml
