@@ -16,7 +16,7 @@ rep("  <div class=\"habit-head\"><h2>추천 습관</h2><span class=\"tiny\">예�
 
 rep("let habitEditState = null;", "let habitEditState = null;\nlet habitTemplatesOpen = false; /* V8.1.9: 추천 습관은 기본 접힘. 개인 습관 데이터에는 저장하지 않습니다. */")
 
-old="  tmp.innerHTML=HABIT_TEMPLATES.map(t=>'<div class=\\\"habit-template\\\"><b>'+esc(t.name)+'</b><p>'+esc(habitPeriodText(t))+' · '+esc(habitFreqText(t))+' · '+esc(t.check)+' · '+esc(t.time)+' 알림</p><div class=\\\"rowbtn\\\"><button class=\\\"btn sec sm\\\" data-template-use=\\\"'+t.id+'\\\">그대로 사용</button><button class=\\\"btn ghost sm\\\" data-template-edit=\\\"'+t.id+'\\\">수정해서 사용</button></div></div>').join('');"
+old="""  tmp.innerHTML=HABIT_TEMPLATES.map(t=>'<div class="habit-template"><b>'+esc(t.name)+'</b><p>'+esc(habitPeriodText(t))+' · '+esc(habitFreqText(t))+' · '+esc(t.check)+' · '+esc(t.time)+' 알림</p><div class="rowbtn"><button class="btn sec sm" data-template-use="'+t.id+'">그대로 사용</button><button class="btn ghost sm" data-template-edit="'+t.id+'">수정해서 사용</button></div></div>').join('');"""
 new=old+"\n  const tt=$('#habit-template-toggle'), tc=$('#habit-template-count'), th=$('#habit-template-hint');\n  if(tc) tc.textContent=HABIT_TEMPLATES.length+'개';\n  const syncHabitTemplates=()=>{\n    tmp.classList.toggle('hide',!habitTemplatesOpen);\n    if(tt){ tt.classList.toggle('on',habitTemplatesOpen); tt.setAttribute('aria-expanded',habitTemplatesOpen?'true':'false'); }\n    if(th) th.textContent=habitTemplatesOpen?'추천 예시를 접습니다':'회복에 도움이 되는 기본 습관 · 눌러서 보기';\n  };\n  syncHabitTemplates();\n  if(tt) tt.onclick=()=>{ habitTemplatesOpen=!habitTemplatesOpen; syncHabitTemplates(); };"
 rep(old,new)
 
