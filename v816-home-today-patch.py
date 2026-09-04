@@ -15,8 +15,8 @@ def once(old,new,label):
 once('  <div id="home-habits"></div>\n  <div id="home-alert"></div>',
      '  <div id="home-today"></div>\n  <div id="home-alert"></div>', 'home container')
 
-# V8.1.6 UI styles.
-css_anchor='  .habit-home-row .time{font-size:11.5px;color:var(--faint);white-space:nowrap}\n'
+# V8.1.6 UI styles. V8.1.5 habit styles are stored on one long CSS line.
+css_anchor='.habit-home-row .time{font-size:11.5px;color:var(--faint);white-space:nowrap}\n'
 css_add=css_anchor+'''  /* V8.1.6 — 홈의 습관·복약·식사·잠·외래를 한 장의 오늘 일정으로 모읍니다. */\n  .today-home{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}\n  .today-home h3{margin:0}.today-summary{font-size:11.5px;color:var(--dim);margin-top:2px}\n  .today-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line)}\n  .today-row.first{border-top:0}.today-row .tcheck{width:31px;height:31px;flex:none;border-radius:9px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc);background:var(--bg)}\n  .today-row .tcheck.on{background:var(--acc);color:#fff;border-color:var(--acc)}.today-row .tcheck.static{border-color:transparent;background:var(--accbg)}\n  .today-row .txt{flex:1;min-width:0}.today-row .txt b{display:block;font-size:13.5px}.today-row .txt span{display:block;font-size:11.5px;color:var(--dim);margin-top:1px;line-height:1.45}\n  .today-row .time{font-size:11.5px;color:var(--faint);white-space:nowrap}.today-upcoming{margin-top:7px;padding-top:10px;border-top:1px dashed var(--line)}\n  .today-upcoming .k{display:block;font-size:11px;font-weight:700;color:var(--acc);margin-bottom:4px}.today-upcoming button{width:100%;text-align:left}\n  .today-sleepq{margin-top:8px;padding-top:11px;border-top:1px solid var(--line)}.today-sleepq p{margin:0 0 8px;font-size:12px;color:var(--dim)}\n'''
 once(css_anchor,css_add,'today css')
 
