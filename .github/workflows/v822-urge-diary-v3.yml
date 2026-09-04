@@ -1,0 +1,66 @@
+name: Apply V8.2.2 Urge Diary v3
+
+on:
+  push:
+    branches: [v8.2.2-urge-diary]
+    paths:
+      - 'v822-whitespace-fix.py'
+      - '.github/workflows/v822-urge-diary-v3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.2-urge-diary
+          fetch-depth: 0
+      - name: Fix helper matcher
+        run: python v822-helper-fix.py
+      - name: Remove helper trailing whitespace
+        run: python v822-whitespace-fix.py
+      - name: Apply V8.2.2 patch
+        run: python v822-urge-diary.py
+      - name: Verify JavaScript and diary structure
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,flags=re.S|re.I)
+          js=max(blocks,key=len)
+          with tempfile.NamedTemporaryFile('w',suffix='.js',delete=False,encoding='utf-8') as f:
+              f.write(js); name=f.name
+          subprocess.run(['node','--check',name],check=True)
+          required=["const BUILD = 'V8.2.2'",'const DATA_SCHEMA = 5;','id="p-urge-diary"','id="tool-urge-diary"','S.urgeDraft','queueUrgeDraft','drawUrgeDiary','openUrgeDiaryEditor',"loc:urge.loc||''","with:urge.company||''","trg:urge.triggers.slice()",'자동으로 임시저장','SMART Recovery의 충동일지 구조','심한 떨림·경련·환각은 응급 신호일 수 있습니다',"u.src !== 'diary'",'DEADs 원리']
+          for x in required:
+              if x not in s: raise SystemExit('missing '+x)
+          for x in ['id="ur-ctx"','손떨림·식은땀·경련·환각은 응급상황일 수 있습니다']:
+              if x in s: raise SystemExit('old content remains '+x)
+          sw=Path('sw.js').read_text(encoding='utf-8')
+          if "const APP_VERSION = 'V8.2.2'" not in sw or "ohg-v822-urge-diary" not in sw:
+              raise SystemExit('service worker mismatch')
+          print('V8.2.2 JS/UI verification PASS')
+          PY
+      - name: Verify source-informed fields
+        run: |
+          grep -F "얼마나 지속됐나요?" index.html
+          grep -F "무엇이 촉발했나요?" index.html
+          grep -F "어떻게 대처했나요?" index.html
+          grep -F "충동 강도" index.html
+      - name: Verify limited product scope
+        run: |
+          git diff --check
+          bad=$(git diff --name-only | grep -Ev '^(index.html|sw.js|v822-urge-diary.py)$' || true)
+          test -z "$bad"
+      - name: Commit V8.2.2 product files
+        run: |
+          git config user.name 'HanTae-ho'
+          git config user.email '64190685+HanTae-ho@users.noreply.github.com'
+          git add index.html sw.js
+          git commit -m 'V8.2.2 add SMART-informed urge diary and draft save'
+          git push origin v8.2.2-urge-diary
