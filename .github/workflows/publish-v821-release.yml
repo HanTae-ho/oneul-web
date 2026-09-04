@@ -1,0 +1,37 @@
+name: Publish V8.2.1 test release
+
+on:
+  push:
+    branches: [android-v8.2.1-trigger-tracking]
+    paths:
+      - '.github/workflows/publish-v821-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.1 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33874666194 -n oneul-v8.2.1-trigger-tracking-apk -D dist-apk
+          gh run download 33874666194 -n oneul-v8.2.1-trigger-tracking-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.1.apk
+          cp dist-aab/*.aab oneul-v8.2.1.aab
+          test -s oneul-v8.2.1.apk
+          test -s oneul-v8.2.1.aab
+      - name: Publish V8.2.1 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.1-test --yes --cleanup-tag || true
+          gh release create v8.2.1-test oneul-v8.2.1.apk oneul-v8.2.1.aab \
+            --target android-v8.2.1-trigger-tracking \
+            --title '오늘 한 걸음 V8.2.1 Trigger Tracking V2 테스트' \
+            --notes '충동 대응에 선택형 상황·촉발 기록을 추가했습니다. 위기 대응을 늦추지 않도록 기본 접힘이며 정확한 위치나 자유서술은 저장하지 않습니다. 상황은 집·직장/학교·이동 중·혼자·사람들과 함께·모임/약속 중, 촉발요인은 갈등·외로움·지루함·스트레스·돈 문제·과거 기억·중독 관련 노출·특정 사람 범주로 기록합니다. 몸이 이상해요 설명도 짧게 다듬었습니다. 기존 충동강도·허용사고·5/15/30분 타이머와 Android 습관·생활·치료 예약알림 엔진은 변경하지 않았습니다.' \
+            --prerelease
