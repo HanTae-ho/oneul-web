@@ -1,0 +1,47 @@
+name: Refine V8.1.5 Web
+
+on:
+  push:
+    branches: [v8.1.5-habits]
+    paths:
+      - 'v815-web-refine.py'
+      - '.github/workflows/v815-web-refine.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.1.5-habits
+      - name: Apply refinement
+        run: python3 v815-web-refine.py
+      - name: Verify alert ownership and JavaScript
+        run: |
+          ! grep -q 'id="treat-alerts"' index.html
+          ! grep -q 'id="treat-alert-time"' index.html
+          ! grep -q 'visitAlerts:' index.html
+          ! grep -q 'visitTime:' index.html
+          grep -q '외래 알림 시점과 시간은 <b>일정·알림 → 알림 설정</b>에서 관리합니다' index.html
+          grep -q 'habits: habitsPacked' index.html
+          grep -q '.weekday-opts{grid-template-columns' index.html
+          python3 - <<'PY'
+          import re,pathlib
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          scripts=[]
+          for attrs,body in re.findall(r'<script([^>]*)>(.*?)</script>',s,re.S|re.I):
+              if 'src=' not in attrs.lower(): scripts.append(body)
+          pathlib.Path('/tmp/inline.js').write_text('\n'.join(scripts),encoding='utf-8')
+          PY
+          node --check /tmp/inline.js
+          git diff --check
+      - name: Commit refinement
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'V8.1.5 move outpatient alert choices to notification settings'
+          git push
