@@ -1,0 +1,37 @@
+name: Publish V8.1.7 test release
+
+on:
+  push:
+    branches: [android-v8.1.7-home-polish]
+    paths:
+      - '.github/workflows/publish-v817-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.1.7 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33845253971 -n oneul-v8.1.7-home-polish-apk -D dist-apk
+          gh run download 33845253971 -n oneul-v8.1.7-home-polish-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.1.7.apk
+          cp dist-aab/*.aab oneul-v8.1.7.aab
+          test -s oneul-v8.1.7.apk
+          test -s oneul-v8.1.7.aab
+      - name: Publish V8.1.7 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.1.7-test --yes --cleanup-tag || true
+          gh release create v8.1.7-test oneul-v8.1.7.apk oneul-v8.1.7.aab \
+            --target android-v8.1.7-home-polish \
+            --title '오늘 한 걸음 V8.1.7 홈 일정 마감 정리 테스트' \
+            --notes '홈 오늘 일정 표시를 다듬었습니다. 복약 이름의 중복된 약 표기를 제거하고, 완료 요약을 오늘 실천 기준으로 명확하게 바꾸고, 잠자리에 전용 수면 아이콘을 적용했습니다. 오늘 일정이 5개를 넘으면 홈에서는 5개까지만 보여주고 전체 보기로 펼칠 수 있습니다. V8.1.6의 습관·생활·치료 Android 예약알림 엔진과 외래 반복 예약 로직은 변경하지 않았습니다.' \
+            --prerelease
