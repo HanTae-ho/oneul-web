@@ -3513,7 +3513,7 @@ function drawTodayScheduleHome(){
         if(dd===0){
           items.unshift({kind:'visit',id:'visit',time:'',label:'오늘 외래',sub:label,done:false,action:0});
         }else{
-          visitHtml='<div class="today-upcoming"><span class="k">다가오는 일정</span><button id="home-today-visit"><b>외래</b><div class="muted" style="margin-top:2px">'+esc(label)+'</div></button></div>';
+          visitHtml='<div class="today-upcoming"><span class="k">'+(dd>0?'다가오는 일정':'일정 확인')+'</span><button id="home-today-visit"><b>외래</b><div class="muted" style="margin-top:2px">'+esc(label)+'</div></button></div>';
         }
       }
     }
@@ -3527,7 +3527,7 @@ function drawTodayScheduleHome(){
     (actionable?'<div class="today-summary">'+completed+' / '+actionable+' 완료</div>':'')+
     '</div><button class="tiny link" id="home-today-manage">일정 관리</button></div>';
   items.forEach((x,i)=>{
-    const icon=x.kind==='sleep'?'moon':x.kind==='visit'?'cal':(x.done?'check':'box');
+    const icon=(x.kind==='sleep'||x.kind==='visit')?'cal':(x.done?'check':'box');
     const btn=x.action?'<button class="tcheck'+(x.done?' on':'')+'" data-today-kind="'+x.kind+'" data-today-id="'+esc(x.id)+'">'+ico(icon)+'</button>':'<span class="tcheck static">'+ico(icon)+'</span>';
     html+='<div class="today-row'+(i===0?' first':'')+'">'+btn+'<div class="txt"><b>'+esc(x.label)+'</b><span>'+esc(x.sub)+'</span></div><span class="time">'+esc(x.time||'')+'</span></div>';
   });
