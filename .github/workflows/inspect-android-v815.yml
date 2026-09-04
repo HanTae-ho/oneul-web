@@ -1,0 +1,34 @@
+name: Inspect Android V8.1.5 Reminder Source
+
+on:
+  push:
+    branches: [android-v8.1.5-habits]
+    paths:
+      - '.github/workflows/inspect-android-v815.yml'
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: android-v8.1.5-habits
+      - name: Extract and apply V8.1.4 native patch
+        run: |
+          rm -rf android-v8
+          mkdir android-v8
+          unzip -q android-v8-source.zip -d android-v8
+          bash android-v8.1.4-tools-practice.sh
+      - name: Print reminder source
+        run: |
+          PKG=android-v8/app/src/main/java/io/github/hantae_ho/twa
+          echo '=== NotificationSettingsActivity ==='
+          cat "$PKG/NotificationSettingsActivity.java"
+          echo '=== ReminderStore ==='
+          cat "$PKG/ReminderStore.java"
+          echo '=== ReminderScheduler ==='
+          cat "$PKG/ReminderScheduler.java"
+          echo '=== ReminderReceiver ==='
+          cat "$PKG/ReminderReceiver.java"
+          echo '=== AndroidManifest ==='
+          cat android-v8/app/src/main/AndroidManifest.xml
