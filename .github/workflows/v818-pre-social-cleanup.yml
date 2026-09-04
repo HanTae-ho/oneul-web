@@ -26,9 +26,11 @@ jobs:
           from pathlib import Path
           import re
           s=Path('index.html').read_text(encoding='utf-8')
-          m=re.search(r'<script>([\s\S]*)</script>\s*</body>',s)
-          assert m, 'main script not found'
-          Path('/tmp/app.js').write_text(m.group(1),encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>',s)
+          blocks=[b for b in blocks if b.strip()]
+          assert blocks, 'inline script not found'
+          for i,b in enumerate(blocks):
+              Path(f'/tmp/app-{i}.js').write_text(b,encoding='utf-8')
           assert "const DATA_SCHEMA = 2;" in s
           assert "dataSchema: DATA_SCHEMA" in s
           assert "s.dataSchema = DATA_SCHEMA;" in s
@@ -37,8 +39,9 @@ jobs:
           assert "내 정보에서 이 시간을 위험 시간대로" not in s
           assert "내정보에서는 회복 영역·시작일·지역·일정·알림 설정" not in s
           assert "회복도구 → 일정·알림" in s
+          print('inline scripts',len(blocks))
           PY
-          node --check /tmp/app.js
+          for f in /tmp/app-*.js; do node --check "$f"; done
           grep -q "const APP_VERSION = 'V8.1.8'" sw.js
           grep -q "ohg-v818-pre-social" sw.js
       - name: Verify limited scope
