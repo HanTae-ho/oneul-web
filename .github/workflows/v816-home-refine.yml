@@ -1,0 +1,54 @@
+name: Refine V8.1.6 Home Today Schedule
+
+on:
+  push:
+    branches: [v8.1.6-home-today-schedule]
+    paths:
+      - '.github/workflows/v816-home-refine.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.1.6-home-today-schedule
+      - name: Refine icon and overdue label
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html'); s=p.read_text(encoding='utf-8')
+          old="const icon=x.kind==='sleep'?'moon':x.kind==='visit'?'cal':(x.done?'check':'box');"
+          new="const icon=(x.kind==='sleep'||x.kind==='visit')?'cal':(x.done?'check':'box');"
+          assert s.count(old)==1, s.count(old)
+          s=s.replace(old,new,1)
+          old2="visitHtml='<div class=\"today-upcoming\"><span class=\"k\">다가오는 일정</span><button id=\"home-today-visit\"><b>외래</b><div class=\"muted\" style=\"margin-top:2px\">'+esc(label)+'</div></button></div>';"
+          new2="visitHtml='<div class=\"today-upcoming\"><span class=\"k\">'+(dd>0?'다가오는 일정':'일정 확인')+'</span><button id=\"home-today-visit\"><b>외래</b><div class=\"muted\" style=\"margin-top:2px\">'+esc(label)+'</div></button></div>';"
+          assert s.count(old2)==1, s.count(old2)
+          s=s.replace(old2,new2,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Verify JavaScript
+        run: |
+          python3 - <<'PY'
+          import pathlib,re
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          assert "x.kind==='sleep'||x.kind==='visit'" in s
+          assert "dd>0?'다가오는 일정':'일정 확인'" in s
+          scripts=[]
+          for attrs,body in re.findall(r'<script([^>]*)>(.*?)</script>',s,re.S|re.I):
+              if 'src=' not in attrs.lower(): scripts.append(body)
+          pathlib.Path('/tmp/inline.js').write_text('\n'.join(scripts),encoding='utf-8')
+          PY
+          node --check /tmp/inline.js
+          git diff --check
+      - name: Commit refinement
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Refine V8.1.6 home schedule display'
+          git push
