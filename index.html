@@ -871,6 +871,7 @@ addEventListener('appinstalled', function(){
         <button class="btn sec sm" id="go-read">도움이 되는 글</button>
         <button class="btn sec sm" id="go-listen">듣는 글</button>
       </div>
+      <button class="btn sec sm hide" id="go-capsule-panic" style="width:100%;margin-top:7px">초심 다시 보기</button>
     </div>
   </div>
 
@@ -1138,6 +1139,11 @@ addEventListener('appinstalled', function(){
         <span class="ic" data-ico="wave"></span><b>듣는 글</b><span>마음에 도움이 되는 이야기</span>
       </button>
     </div>
+    <button class="toolcard" id="tool-capsule" style="margin-top:9px">
+      <span class="ic" data-ico="speak"></span>
+      <span class="b"><b>미래의 나에게</b><span id="tool-capsule-s">회복을 시작한 마음을 남겨두기</span></span>
+      <span class="go">열기</span>
+    </button>
   </div>
 
   <div class="toolsec">
@@ -1150,6 +1156,49 @@ addEventListener('appinstalled', function(){
         <span class="ic" data-ico="speak"></span><b>중독 Q&A</b><span id="tool-qa-s">궁금한 내용을 질문하고 답변 보기</span>
       </button>
     </div>
+  </div>
+</section>
+
+<!-- ══════════ 미래의 나에게 V8.2.0 ══════════ -->
+<section class="pg" id="p-capsule">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0">미래의 나에게</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" id="capsule-back">← 회복도구</button>
+  </div>
+  <div class="note" style="margin-bottom:12px">
+    회복을 시작한 날의 마음을 남겨두세요. 힘든 순간에 그때의 내가 지금의 나에게 해주고 싶은 말을 다시 볼 수 있습니다. <b>내용은 이 기기에만 저장</b>됩니다.
+  </div>
+
+  <div id="capsule-view" class="hide">
+    <div class="card">
+      <h3>그날의 내가 지금의 나에게</h3>
+      <div class="quote" id="capsule-message" style="text-align:left;white-space:pre-wrap"></div>
+      <p class="tiny" id="capsule-meta" style="margin:10px 1px 0"></p>
+    </div>
+    <div id="capsule-manage">
+      <button class="btn sec" id="capsule-edit-btn">수정하기</button>
+      <div style="height:8px"></div>
+      <button class="btn ghost" id="capsule-delete">삭제</button>
+    </div>
+    <div id="capsule-panic-actions" class="hide">
+      <button class="btn" id="capsule-urge">충동 대응 계속하기</button>
+      <div style="height:8px"></div>
+      <button class="btn ghost" id="capsule-panic-back">위기 도움으로 돌아가기</button>
+    </div>
+  </div>
+
+  <div id="capsule-edit" class="hide">
+    <div class="card">
+      <h3>어떤 말을 남기고 싶나요?</h3>
+      <p class="muted" style="margin:-4px 0 11px">
+        왜 회복을 시작했는지, 다시 돌아가고 싶지 않은 이유, 힘든 날의 나에게 해주고 싶은 말을 자유롭게 적어보세요.
+      </p>
+      <textarea id="capsule-text" maxlength="800" style="min-height:190px" placeholder="예: 내가 왜 여기까지 오게 되었는지 기억하자. 오늘 하루만 지나가도 된다. 힘들면 혼자 견디지 말고 사람에게 연락하자."></textarea>
+      <p class="tiny" id="capsule-count" style="text-align:right;margin:5px 1px 0">0 / 800</p>
+    </div>
+    <button class="btn" id="capsule-save">이 말을 남겨두기</button>
+    <div style="height:8px"></div>
+    <button class="btn ghost" id="capsule-cancel">취소</button>
   </div>
 </section>
 
@@ -1659,12 +1708,12 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.1.9';
+const BUILD = 'V8.2.0';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
 const KEY = 'ohg.v1';
-const DATA_SCHEMA = 2;
+const DATA_SCHEMA = 3;
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
    여기에 주소를 적어두면 앱을 처음 여는 사람도 따로 연결하지 않고
@@ -1692,6 +1741,7 @@ const BLANK = {
   moods: [], halts: [], urges: [], nights: [], relapses: [], screenings: [],
   stepWorks: [], stepDrafts: {},
   familyStepWorks: [], familyStepDrafts: {},
+  timeCapsule: { text:'', createdAt:0, updatedAt:0 }, /* 미래의 나에게 — 개인 회복기록, 기기 안에만 저장 */
   aiChat: [], aiClient: '', aiConsent: 0,       /* AI 대화는 이 기기에만 저장 */
   sheet: '', res: null, resAt: 0, resVer: '', theme: '',
   notify: 0, fired: [],
@@ -1726,6 +1776,9 @@ function migrate(s){
   if(!s.stepDrafts || typeof s.stepDrafts !== 'object' || Array.isArray(s.stepDrafts)) s.stepDrafts = {};
   if(!Array.isArray(s.familyStepWorks)) s.familyStepWorks = [];
   if(!s.familyStepDrafts || typeof s.familyStepDrafts !== 'object' || Array.isArray(s.familyStepDrafts)) s.familyStepDrafts = {};
+  if(!s.timeCapsule || typeof s.timeCapsule !== 'object' || Array.isArray(s.timeCapsule)) s.timeCapsule = { text:'', createdAt:0, updatedAt:0 };
+  s.timeCapsule = Object.assign({ text:'', createdAt:0, updatedAt:0 }, s.timeCapsule);
+  s.timeCapsule.text = String(s.timeCapsule.text || '');
   const old = (s.meds || []).filter(m => m && m.n !== undefined && m.s === undefined);
   if(old.length){
     const slotOf = t => {
@@ -2443,7 +2496,7 @@ function go(p,opt){
   if(p === 'ai' && prev !== 'ai') ai.actionsOpen = false;
   cur = p;
   $('#tabs').style.display = (p === 'intro') ? 'none' : 'flex';
-  let tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'workbook-list' || p === 'workbook' || p === 'screening' || p === 'screen-test' || p === 'habit' || p === 'habit-edit' || p === 'schedule' || p === 'life-schedule' || p === 'notify-schedule' || p === 'treatment') ? 'tools' : p;
+  let tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'workbook-list' || p === 'workbook' || p === 'screening' || p === 'screen-test' || p === 'habit' || p === 'habit-edit' || p === 'schedule' || p === 'life-schedule' || p === 'notify-schedule' || p === 'treatment' || p === 'capsule') ? 'tools' : p;
   if(p === 'listen' && ls.back === 'tools') tabP = 'tools';
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tabP));
   $('#view').classList.toggle('ai-mode', p === 'ai');
@@ -2452,6 +2505,7 @@ function go(p,opt){
   if(p === 'tools') drawTools();
   if(p === 'habit') drawHabits();
   if(p === 'habit-edit') drawHabitEdit();
+  if(p === 'capsule') drawCapsule();
   if(p === 'schedule') drawScheduleHub();
   if(p === 'life-schedule') drawLifeSchedule();
   if(p === 'notify-schedule') drawNotifySchedule();
@@ -3014,9 +3068,12 @@ function drawPanic(){
   $('#pk-urge-t').textContent = w.length
     ? w.join('·') + ' 생각이 올라와요'
     : '충동이 올라와요';
+  const cp=$('#go-capsule-panic');
+  if(cp) cp.classList.toggle('hide', famMode() || !capsuleHas());
 }
 
 $('#pk-urge').onclick = () => go('urge');
+$('#go-capsule-panic').onclick = () => openCapsule('panic',false);
 
 $('#pk-with').onclick = () => modal(
   '<h2>지금 확인해주세요</h2>' +
@@ -3646,6 +3703,75 @@ function drawHabitEdit(){
   refreshIcons();
 }
 
+/* ══════════ 미래의 나에게 V8.2.0 ══════════
+   처음에는 텍스트만 저장합니다. 음성은 별도 단계에서 검토합니다.
+   개인 회복기록 S에 들어가므로 기존 JSON 백업에는 포함되지만 서버로 자동 전송되지 않습니다. */
+let capsuleEditing=false;
+let capsuleFrom='tools';
+function capsuleData(){
+  if(!S.timeCapsule || typeof S.timeCapsule!=='object' || Array.isArray(S.timeCapsule)) S.timeCapsule={text:'',createdAt:0,updatedAt:0};
+  S.timeCapsule=Object.assign({text:'',createdAt:0,updatedAt:0},S.timeCapsule);
+  S.timeCapsule.text=String(S.timeCapsule.text||'');
+  return S.timeCapsule;
+}
+function capsuleHas(){ return !!capsuleData().text.trim(); }
+function capsuleDate(ts){
+  if(!ts) return '';
+  const d=new Date(ts);
+  return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.';
+}
+function openCapsule(from,edit){
+  capsuleFrom=from==='panic'?'panic':'tools';
+  capsuleEditing=!!edit || !capsuleHas();
+  go('capsule');
+}
+function drawCapsule(){
+  const c=capsuleData(), has=!!c.text.trim();
+  if(!has) capsuleEditing=true;
+  const view=$('#capsule-view'), edit=$('#capsule-edit');
+  if(!view||!edit) return;
+  const back=$('#capsule-back');
+  if(back){
+    back.textContent=capsuleFrom==='panic'?'← 위기 도움':'← 회복도구';
+    back.onclick=()=>capsuleFrom==='panic'?go('panic'):go('tools');
+  }
+  view.classList.toggle('hide',capsuleEditing||!has);
+  edit.classList.toggle('hide',!capsuleEditing);
+  const manage=$('#capsule-manage'), pa=$('#capsule-panic-actions');
+  if(manage) manage.classList.toggle('hide',capsuleFrom==='panic');
+  if(pa) pa.classList.toggle('hide',capsuleFrom!=='panic');
+
+  if(has && !capsuleEditing){
+    $('#capsule-message').textContent=c.text;
+    $('#capsule-meta').textContent=(c.updatedAt?'마지막 수정 ':'처음 남긴 ')+capsuleDate(c.updatedAt||c.createdAt);
+    $('#capsule-edit-btn').onclick=()=>{ capsuleEditing=true; drawCapsule(); };
+    $('#capsule-delete').onclick=()=>{
+      modal('<h2>이 메시지를 삭제할까요?</h2><p class="muted" style="margin:7px 0 14px">삭제하면 복구할 수 없습니다. 필요하면 먼저 내 정보에서 기록을 내보내세요.</p><button class="btn danger" id="capsule-delete-ok">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
+      $('#capsule-delete-ok').onclick=()=>{ S.timeCapsule={text:'',createdAt:0,updatedAt:0}; save(); closeModal(); capsuleEditing=true; capsuleFrom='tools'; drawCapsule(); drawTools(); drawPanic(); toast('삭제했습니다.'); };
+    };
+    $('#capsule-urge').onclick=()=>go('urge');
+    $('#capsule-panic-back').onclick=()=>go('panic');
+  }
+
+  if(capsuleEditing){
+    const ta=$('#capsule-text'), cnt=$('#capsule-count');
+    ta.value=has?c.text:'';
+    const sync=()=>{ if(cnt) cnt.textContent=ta.value.length+' / 800'; };
+    ta.oninput=sync; sync();
+    $('#capsule-save').onclick=()=>{
+      const text=ta.value.trim();
+      if(!text){ toast('미래의 나에게 남길 말을 적어주세요.'); return; }
+      const now=Date.now();
+      S.timeCapsule={text:text,createdAt:c.createdAt||now,updatedAt:now};
+      save(); capsuleEditing=false; capsuleFrom='tools'; drawCapsule(); drawTools(); drawPanic(); toast('미래의 나에게 남겨두었습니다.');
+    };
+    const cancel=$('#capsule-cancel');
+    cancel.style.display=has?'block':'none';
+    cancel.onclick=()=>{ capsuleEditing=false; drawCapsule(); };
+  }
+  refreshIcons();
+}
+
 /* ══════════ 회복도구 · 중독 Q&A V6.5 ══════════ */
 const QA = Array.isArray(window.QA_ITEMS) ? window.QA_ITEMS : [];
 let qaState = { cat:'전체', q:'', limit:30, selected:0 };
@@ -3656,6 +3782,9 @@ function drawTools(){
   const n = QA.length;
   const m = $('#tool-qa-s');
   if(m) m.textContent = '회복 Q&A · 총 ' + n + '문답';
+  const cap=$('#tool-capsule'), caps=$('#tool-capsule-s');
+  if(cap) cap.style.display=famMode()?'none':'flex';
+  if(caps) caps.textContent=capsuleHas()?'내가 남긴 메시지가 있습니다 · 힘들 때 다시 보기':'회복을 시작한 마음을 남겨두기';
   const ss = $('#tool-schedule-s');
   if(ss){
     const t = treatmentCfg();
@@ -7452,6 +7581,7 @@ $('#me-sheet-save').onclick = () => {
 
 $('#tool-qa').onclick = () => { qaState.selected=0; qaState.cat='전체'; qaState.q=''; qaState.limit=30; go('qa'); };
 $('#tool-habit').onclick = () => go('habit');
+$('#tool-capsule').onclick = () => openCapsule('tools',false);
 $('#tool-schedule').onclick = () => go('schedule');
 $('#tool-learn').onclick = () => go('learn');
 $('#tool-workbook').onclick = () => go('workbook-list');
