@@ -1,0 +1,37 @@
+name: Publish V8.1.9 test release
+
+on:
+  push:
+    branches: [android-v8.1.9-habit-collapse]
+    paths:
+      - '.github/workflows/publish-v819-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.1.9 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33851767045 -n oneul-v8.1.9-habit-collapse-apk -D dist-apk
+          gh run download 33851767045 -n oneul-v8.1.9-habit-collapse-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.1.9.apk
+          cp dist-aab/*.aab oneul-v8.1.9.aab
+          test -s oneul-v8.1.9.apk
+          test -s oneul-v8.1.9.aab
+      - name: Publish V8.1.9 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.1.9-test --yes --cleanup-tag || true
+          gh release create v8.1.9-test oneul-v8.1.9.apk oneul-v8.1.9.aab \
+            --target android-v8.1.9-habit-collapse \
+            --title '오늘 한 걸음 V8.1.9 추천 습관 접기 테스트' \
+            --notes '습관 화면의 추천 습관 8개를 기본적으로 접어 화면 길이를 줄였습니다. 내 습관과 + 새 습관은 항상 보이며, 추천 습관 영역을 누르면 펼치고 다시 접을 수 있습니다. 그대로 사용/수정해서 사용, 습관 체크 기록, 홈 오늘 일정, Android 습관·생활·치료 예약알림 엔진은 변경하지 않았습니다.' \
+            --prerelease
