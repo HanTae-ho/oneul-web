@@ -878,7 +878,7 @@ addEventListener('appinstalled', function(){
   <button class="help urgent" id="pk-with" style="width:100%;text-align:left">
     <span class="ic" data-ico="emerg"></span>
     <span class="b"><b>몸이 이상해요</b>
-      <span>손떨림·식은땀·경련·환각이 있다면 응급 상황입니다</span></span>
+      <span>손떨림·식은땀·경련·환각은 응급상황일 수 있습니다</span></span>
     <span class="go">확인</span>
   </button>
 
@@ -910,6 +910,20 @@ addEventListener('appinstalled', function(){
 
   <button class="btn" id="ur-start">5분만 같이 버텨보기</button>
   <div style="height:9px"></div>
+
+  <button class="btn ghost" id="ur-track-toggle" aria-expanded="false">상황·촉발 기록 (선택) · 눌러서 기록</button>
+  <div id="ur-track" class="hide" style="margin-top:9px">
+    <div class="card">
+      <h3>지금 어떤 상황인가요? <span class="tiny" style="font-weight:400">(선택)</span></h3>
+      <p class="muted" style="margin:-4px 0 11px">해당하는 것을 골라주세요. 정확한 위치는 저장하지 않습니다.</p>
+      <div class="opts" id="ur-ctx"></div>
+      <div class="sep"></div>
+      <h3>무엇이 촉발했나요? <span class="tiny" style="font-weight:400">(선택)</span></h3>
+      <p class="muted" style="margin:-4px 0 11px">여러 개를 골라도 되고, 건너뛰어도 됩니다.</p>
+      <div class="opts" id="ur-trg"></div>
+    </div>
+  </div>
+
   <button class="btn sec" id="ur-read">도움이 되는 글 읽기</button>
   <div style="height:9px"></div>
   <button class="btn sec" id="ur-help">지금 사람에게 도움 받기</button>
@@ -1708,12 +1722,12 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.0';
+const BUILD = 'V8.2.1';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
 const KEY = 'ohg.v1';
-const DATA_SCHEMA = 3;
+const DATA_SCHEMA = 4;
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
    여기에 주소를 적어두면 앱을 처음 여는 사람도 따로 연결하지 않고
@@ -3109,13 +3123,55 @@ $('#pk-life').onclick = () => modal(
 );
 
 /* ══════════ 충동 대응 ══════════ */
-let urge = { before: 5, after: null, thoughts: [], start: 0, type: null };
+/* Trigger Tracking V2 — 정확한 위치나 자유서술 대신 범주만 기기 안에 저장합니다.
+   위기 대응을 늦추지 않도록 선택 기록은 기본 접힘이며 건너뛰어도 됩니다. */
+const URGE_CONTEXTS = ['집','직장·학교','이동 중','혼자','사람들과 함께','모임·약속 중'];
+const URGE_TRIGGERS = ['갈등','외로움','지루함','스트레스','돈 문제','과거 기억','중독 관련 노출','특정 사람'];
+let urgeTrackOpen = false;
+let urge = { before: 5, after: null, thoughts: [], contexts: [], triggers: [], start: 0, type: null };
+
+function drawUrgeTrack(){
+  const ctx=$('#ur-ctx'), trg=$('#ur-trg');
+  if(!ctx || !trg) return;
+  ctx.innerHTML=''; trg.innerHTML='';
+  URGE_CONTEXTS.forEach(x=>{
+    const b=el('button','opt'+(urge.contexts.indexOf(x)>=0?' on':''),x);
+    b.onclick=()=>{
+      urge.touched=true;
+      const i=urge.contexts.indexOf(x);
+      if(i<0) urge.contexts.push(x); else urge.contexts.splice(i,1);
+      drawUrgeTrack();
+    };
+    ctx.appendChild(b);
+  });
+  URGE_TRIGGERS.forEach(x=>{
+    const b=el('button','opt'+(urge.triggers.indexOf(x)>=0?' on':''),x);
+    b.onclick=()=>{
+      urge.touched=true;
+      const i=urge.triggers.indexOf(x);
+      if(i<0) urge.triggers.push(x); else urge.triggers.splice(i,1);
+      drawUrgeTrack();
+    };
+    trg.appendChild(b);
+  });
+}
+function setUrgeTrackOpen(open){
+  urgeTrackOpen=!!open;
+  const box=$('#ur-track'), btn=$('#ur-track-toggle');
+  if(box) box.classList.toggle('hide',!urgeTrackOpen);
+  if(btn){
+    btn.setAttribute('aria-expanded',urgeTrackOpen?'true':'false');
+    btn.textContent=urgeTrackOpen?'상황·촉발 기록 접기':'상황·촉발 기록 (선택) · 눌러서 기록';
+  }
+  if(urgeTrackOpen) drawUrgeTrack();
+}
 
 function drawUrge(){
   /* touched = 사람이 실제로 손댔는가. 화면만 열었다 닫은 것은 기록하지 않습니다.
      saved   = 이미 저장했는가. 같은 충동을 두 번 세면 통계가 거짓말이 됩니다. */
-  urge = { before: 5, after: null, thoughts: [], start: 0, touched: false, saved: false,
+  urge = { before: 5, after: null, thoughts: [], contexts: [], triggers: [], start: 0, touched: false, saved: false,
            type: S.types[0] || 'etc' };
+  setUrgeTrackOpen(false);
   $('#ur-r').value = 5;
   $('#ur-n').textContent = 5;
   const box = $('#ur-th');
@@ -3136,6 +3192,7 @@ $('#ur-r').oninput = e => {
   $('#ur-n').textContent = e.target.value;
 };
 $('#ur-start').onclick = () => { urge.touched = true; startTimer(0); };
+$('#ur-track-toggle').onclick = () => setUrgeTrackOpen(!urgeTrackOpen);
 
 /* ★ 예전에는 이 두 갈래가 저장 없이 화면만 넘겼습니다.
      충동을 적어놓고 [괜찮아졌어요] 를 누르면 아무것도 안 남았습니다.
@@ -3255,6 +3312,8 @@ function saveUrge(){
     a: urge.after == null ? urge.before : urge.after,
     sec: urge.start ? Math.round((Date.now() - urge.start) / 1000) : 0,
     th: urge.thoughts.slice(),
+    ctx: urge.contexts.slice(),
+    trg: urge.triggers.slice(),
     ok: urge.ok ? 1 : 0
   });
   save();
