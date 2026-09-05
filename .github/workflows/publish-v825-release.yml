@@ -1,0 +1,37 @@
+name: Publish V8.2.5 test release
+
+on:
+  push:
+    branches: [android-v8.2.5-smart-hov]
+    paths:
+      - '.github/workflows/publish-v825-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.5 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33933825990 -n oneul-v8.2.5-smart-hov-apk -D dist-apk
+          gh run download 33933825990 -n oneul-v8.2.5-smart-hov-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.5.apk
+          cp dist-aab/*.aab oneul-v8.2.5.aab
+          test -s oneul-v8.2.5.apk
+          test -s oneul-v8.2.5.aab
+      - name: Publish V8.2.5 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.5-test --yes --cleanup-tag || true
+          gh release create v8.2.5-test oneul-v8.2.5.apk oneul-v8.2.5.aab \
+            --target android-v8.2.5-smart-hov \
+            --title '오늘 한 걸음 V8.2.5 SMART Recovery HOV 테스트' \
+            --notes '회복학습 → SMART Recovery → Point 1에 HOV(가치의 계층) 작성형 도구를 추가했습니다. 내 삶에서 중요한 가치 5개를 순위대로 적고, 중독행동 또는 중독 문제 때문에 가치가 밀려난 모습, 다시 보호하고 싶은 가치, 오늘의 작은 행동을 기록할 수 있습니다. 기록은 기기 내부 개인 회복기록에 저장되며 여러 시점의 HOV를 저장·보기·수정·삭제할 수 있습니다. 당사자와 가족 기록은 역할별로 분리되며, 가족 모드에서는 상대를 평가하지 않고 자신의 가치와 삶에 초점을 둡니다. 기존 SMART 학습, 충동일기, 12단계 및 Android 습관·생활·치료·외래 예약알림 엔진은 변경하지 않았습니다.' \
+            --prerelease
