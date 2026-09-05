@@ -1,0 +1,42 @@
+name: V8.2.6 CBA modal root fix
+
+on:
+  push:
+    branches: [v8.2.6-smart-cba]
+    paths:
+      - 'v826-cba-modal-fix.py'
+      - '.github/workflows/v826-cba-modal-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.6-smart-cba
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python v826-cba-modal-fix.py
+      - name: Verify
+        run: |
+          grep -q "const root=document.querySelector('#modin')||document.body;" index.html
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', s, flags=re.S)
+          Path('/tmp/oneul-main.js').write_text(blocks[-1], encoding='utf-8')
+          PY
+          node --check /tmp/oneul-main.js
+          git diff --check
+      - name: Commit
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Fix SMART CBA modal row root' || true
+          git push
