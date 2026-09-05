@@ -1,0 +1,37 @@
+name: Publish V8.2.4 test release
+
+on:
+  push:
+    branches: [android-v8.2.4-daily-meditation]
+    paths:
+      - '.github/workflows/publish-v824-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.4 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33932830601 -n oneul-v8.2.4-daily-meditation-apk -D dist-apk
+          gh run download 33932830601 -n oneul-v8.2.4-daily-meditation-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.4.apk
+          cp dist-aab/*.aab oneul-v8.2.4.aab
+          test -s oneul-v8.2.4.apk
+          test -s oneul-v8.2.4.aab
+      - name: Publish V8.2.4 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.4-test --yes --cleanup-tag || true
+          gh release create v8.2.4-test oneul-v8.2.4.apk oneul-v8.2.4.aab \
+            --target android-v8.2.4-daily-meditation \
+            --title '오늘 한 걸음 V8.2.4 매일의 명상 회전 수정 테스트' \
+            --notes '홈 매일의 명상에서 앞 문장만 매일 바뀌고 뒤 문장이 24일 동안 유지되던 조합 로직을 수정했습니다. 이제 앞·뒤 두 문장이 모두 매일 바뀌며 24×24 총 576개 조합을 576일 동안 중복 없이 순환합니다. 날짜 판정과 자정/화면복귀 갱신 로직은 기존대로 유지합니다. SMART Recovery, 충동일기, 개인 데이터 스키마, 12단계 및 Android 예약알림 엔진은 변경하지 않았습니다.' \
+            --prerelease
