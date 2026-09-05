@@ -22,7 +22,18 @@ jobs:
         with:
           node-version: '22'
       - name: Apply SMART DEADS patch
-        run: python v829-smart-deads.py
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('v829-smart-deads.py')
+          s=p.read_text(encoding='utf-8')
+          old="nav=\"p === 'smart-hov' || p === 'smart-cba' || p === 'smart-change-plan' || p === 'smart-three-questions'\""
+          new="nav=\"p === 'smart-hov' || p === 'smart-cba'\""
+          assert old in s
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+          python v829-smart-deads.py
+          git checkout -- v829-smart-deads.py
       - name: Verify product changes
         run: |
           grep -q "const BUILD = 'V8.2.9'" index.html
