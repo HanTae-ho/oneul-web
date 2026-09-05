@@ -1197,6 +1197,20 @@ addEventListener('appinstalled', function(){
   <div id="urge-diary-list" style="margin-top:12px"></div>
 </section>
 
+<!-- ══════════ SMART Recovery · HOV V8.2.5 ══════════ -->
+<section class="pg" id="p-smart-hov">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0">가치의 계층 HOV</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('learn-topic')">← SMART Recovery</button>
+  </div>
+  <div class="note" style="margin-bottom:12px">
+    내 삶에서 가장 중요한 가치를 분명히 하고, 지금의 행동이 그 가치와 얼마나 맞는지 돌아봅니다. SMART Recovery의 <b>Hierarchy of Values(HOV)</b>를 앱에 맞게 재구성했으며, <b>내용은 이 기기에만 저장</b>됩니다.
+  </div>
+  <div id="smart-hov-role-note"></div>
+  <button class="btn sec" id="smart-hov-new">+ HOV 새로 작성하기</button>
+  <div id="smart-hov-list" style="margin-top:12px"></div>
+</section>
+
 <!-- ══════════ 미래의 나에게 V8.2.0 ══════════ -->
 <section class="pg" id="p-capsule">
   <div class="sp" style="margin-bottom:11px">
@@ -1746,12 +1760,12 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.4';
+const BUILD = 'V8.2.5';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
 const KEY = 'ohg.v1';
-const DATA_SCHEMA = 5;
+const DATA_SCHEMA = 6;
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
    여기에 주소를 적어두면 앱을 처음 여는 사람도 따로 연결하지 않고
@@ -1778,6 +1792,7 @@ const BLANK = {
   sleepLog: [],                               /* [{t, q}] q: good|soso|bad */
   moods: [], halts: [], urges: [], urgeDraft: null, nights: [], relapses: [], screenings: [],
   stepWorks: [], stepDrafts: {},
+  smartWorks: [],                         /* SMART Recovery 작성형 도구 — [{tool, role, ...}] */
   familyStepWorks: [], familyStepDrafts: {},
   timeCapsule: { text:'', createdAt:0, updatedAt:0 }, /* 미래의 나에게 — 개인 회복기록, 기기 안에만 저장 */
   aiChat: [], aiClient: '', aiConsent: 0,       /* AI 대화는 이 기기에만 저장 */
@@ -1812,6 +1827,7 @@ function migrate(s){
   if(!Array.isArray(s.screenings)) s.screenings = [];
   if(s.urgeDraft && (typeof s.urgeDraft !== 'object' || Array.isArray(s.urgeDraft))) s.urgeDraft = null;
   if(!Array.isArray(s.stepWorks)) s.stepWorks = [];
+  if(!Array.isArray(s.smartWorks)) s.smartWorks = [];
   if(!s.stepDrafts || typeof s.stepDrafts !== 'object' || Array.isArray(s.stepDrafts)) s.stepDrafts = {};
   if(!Array.isArray(s.familyStepWorks)) s.familyStepWorks = [];
   if(!s.familyStepDrafts || typeof s.familyStepDrafts !== 'object' || Array.isArray(s.familyStepDrafts)) s.familyStepDrafts = {};
@@ -2541,7 +2557,7 @@ function go(p,opt){
   if(p === 'ai' && prev !== 'ai') ai.actionsOpen = false;
   cur = p;
   $('#tabs').style.display = (p === 'intro') ? 'none' : 'flex';
-  let tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'workbook-list' || p === 'workbook' || p === 'screening' || p === 'screen-test' || p === 'habit' || p === 'habit-edit' || p === 'schedule' || p === 'life-schedule' || p === 'notify-schedule' || p === 'treatment' || p === 'capsule' || p === 'urge-diary') ? 'tools' : p;
+  let tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'workbook-list' || p === 'workbook' || p === 'screening' || p === 'screen-test' || p === 'habit' || p === 'habit-edit' || p === 'schedule' || p === 'life-schedule' || p === 'notify-schedule' || p === 'treatment' || p === 'capsule' || p === 'urge-diary' || p === 'smart-hov') ? 'tools' : p;
   if(p === 'listen' && ls.back === 'tools') tabP = 'tools';
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tabP));
   $('#view').classList.toggle('ai-mode', p === 'ai');
@@ -2552,6 +2568,7 @@ function go(p,opt){
   if(p === 'habit-edit') drawHabitEdit();
   if(p === 'capsule') drawCapsule();
   if(p === 'urge-diary') drawUrgeDiary();
+  if(p === 'smart-hov') drawSmartHov();
   if(p === 'schedule') drawScheduleHub();
   if(p === 'life-schedule') drawLifeSchedule();
   if(p === 'notify-schedule') drawNotifySchedule();
@@ -4040,6 +4057,88 @@ function openUrgeDiaryEditor(record){
   };
 }
 
+/* ══════════ SMART Recovery · 가치의 계층(HOV) V8.2.5 ══════════
+   사용자 번역 SMART Recovery 핸드북의 HOV 구조를 앱용으로 재구성했습니다.
+   상대를 평가하는 도구가 아니라 '내가 중요하게 여기는 가치'와 실제 행동의 불일치를 돌아봅니다. */
+function smartWorkId(){ return 'sw'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function smartRole(){ return famMode() ? 'family' : 'self'; }
+function smartHovRows(){
+  return (S.smartWorks||[]).filter(r=>r && r.tool==='hov' && (r.role||'self')===smartRole())
+    .slice().sort((a,b)=>Number(b.t||0)-Number(a.t||0));
+}
+function smartHovValues(r){ return (r&&Array.isArray(r.values)?r.values:[]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,5); }
+function smartHovDate(ts){
+  if(!ts) return '';
+  const d=new Date(ts); return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.';
+}
+function drawSmartHov(){
+  const list=$('#smart-hov-list'), rn=$('#smart-hov-role-note'), add=$('#smart-hov-new');
+  if(!list||!add) return;
+  if(rn){
+    rn.innerHTML=famMode()
+      ? '<div class="note" style="margin-bottom:12px"><b>가족의 자리에서도 내 가치부터 봅니다.</b><br>상대의 행동을 평가하지 않고, 중독 문제에 내 삶이 붙들릴 때 내가 중요하게 여기는 가치가 어떻게 밀려났는지 돌아봅니다.</div>'
+      : '';
+  }
+  const rows=smartHovRows();
+  if(!rows.length){
+    list.innerHTML='<div class="empty">아직 작성한 HOV가 없습니다.<br>내 삶에서 가장 중요한 다섯 가치를 적어보세요.</div>';
+  }else{
+    let h='<div class="card"><h3>저장한 HOV '+rows.length+'건</h3>';
+    rows.forEach(r=>{
+      const vals=smartHovValues(r);
+      h+='<button class="ws-saved" style="width:100%;text-align:left" data-hov-rid="'+esc(r.rid||String(r.t))+'">'
+        +'<span class="date">'+esc(smartHovDate(r.t))+'</span>'
+        +'<span class="body"><b>'+esc(vals.slice(0,3).join(' · ') || '가치 기록')+'</b><span>'+(vals.length>3?esc('외 '+(vals.length-3)+'개'):'내 가치와 행동을 돌아본 기록')+'</span></span>'
+        +'<span class="go">보기</span></button>';
+    });
+    h+='</div>'; list.innerHTML=h;
+    list.querySelectorAll('[data-hov-rid]').forEach(b=>b.onclick=()=>{
+      const r=rows.find(x=>(x.rid||String(x.t))===b.dataset.hovRid); if(r) openSmartHovRecord(r);
+    });
+  }
+  add.onclick=()=>openSmartHovEditor();
+}
+function openSmartHovRecord(r){
+  const vals=smartHovValues(r);
+  let v='<ol style="margin:0;padding-left:22px">'+vals.map(x=>'<li style="padding:4px 0"><b>'+esc(x)+'</b></li>').join('')+'</ol>';
+  let extra='';
+  if(r.conflict) extra+='<div class="sep"></div><h3>가치와 어긋났던 모습</h3><p style="white-space:pre-wrap">'+esc(r.conflict)+'</p>';
+  if(r.protect) extra+='<div class="sep"></div><h3>먼저 보호하고 싶은 가치</h3><p><b>'+esc(r.protect)+'</b></p>';
+  if(r.action) extra+='<div class="sep"></div><h3>오늘의 작은 행동</h3><p style="white-space:pre-wrap">'+esc(r.action)+'</p>';
+  modal('<h2>나의 가치의 계층</h2><p class="tiny" style="margin:4px 0 12px">'+esc(smartHovDate(r.t))+' 작성</p><div class="card"><h3>내 삶에서 중요한 가치</h3>'+v+extra+'</div><button class="btn sec" id="smart-hov-edit">수정</button><div style="height:8px"></div><button class="btn danger" id="smart-hov-delete">이 기록 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
+  $('#smart-hov-edit').onclick=()=>openSmartHovEditor(r);
+  $('#smart-hov-delete').onclick=()=>{
+    const key=r.rid||String(r.t);
+    modal('<h2>이 HOV 기록을 삭제할까요?</h2><p class="muted" style="margin:6px 0 14px">이 기록 한 건만 기기에서 삭제하며 되돌릴 수 없습니다.</p><button class="btn danger" id="smart-hov-delete-ok">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
+    $('#smart-hov-delete-ok').onclick=()=>{ S.smartWorks=(S.smartWorks||[]).filter(x=>(x.rid||String(x.t))!==key); save(); closeModal(); drawSmartHov(); toast('삭제했습니다.'); };
+  };
+}
+function openSmartHovEditor(record){
+  const edit=!!record, vals=smartHovValues(record);
+  while(vals.length<5) vals.push('');
+  const conflictPrompt=famMode()
+    ? '중독 문제에 내 삶이 붙들려 있을 때, 이 가치들은 실제 생활에서 어떻게 밀려났나요?'
+    : '중독행동을 할 때, 이 가치들은 실제 생활에서 어떻게 밀려났나요?';
+  const valueInputs=vals.map((x,i)=>'<div class="field"><label>'+(i+1)+'순위 가치</label><input class="hov-value" maxlength="40" value="'+esc(x)+'" placeholder="'+(i===0?'예: 가족, 건강, 신뢰, 자유처럼 나에게 중요한 것':'가치 '+(i+1))+'"></div>').join('');
+  modal('<h2>'+(edit?'HOV 수정':'가치의 계층 HOV 작성')+'</h2>'
+    +'<p class="muted" style="margin:5px 0 14px">SMART Recovery HOV는 내 목표와 현재 행동의 차이를 알아차리는 도구입니다. 가장 중요한 가치부터 순서대로 다섯 가지를 적어보세요.</p>'
+    +'<div class="card"><h3>1. 내 삶에서 가장 중요한 다섯 가치</h3>'+valueInputs+'</div>'
+    +'<div class="card"><h3>2. 가치와 실제 행동 돌아보기</h3><p class="muted" style="margin:-4px 0 9px">'+esc(conflictPrompt)+'</p><textarea id="hov-conflict" maxlength="400" placeholder="예: 가족과 보내려던 시간보다 중독행동에 시간과 주의를 더 많이 썼다">'+esc(edit?(record.conflict||''):'')+'</textarea></div>'
+    +'<div class="card"><h3>3. 회복으로 다시 보호할 것</h3><label>지금 가장 먼저 보호하고 싶은 가치</label><input id="hov-protect" maxlength="40" value="'+esc(edit?(record.protect||''):'')+'" placeholder="위의 가치 중 하나를 적어보세요"><div class="field" style="margin-top:12px"><label>오늘 할 수 있는 작은 행동</label><textarea id="hov-action" maxlength="220" placeholder="예: 오늘 저녁 가족과 20분 산책하기">'+esc(edit?(record.action||''):'')+'</textarea></div></div>'
+    +'<button class="btn" id="hov-save">'+(edit?'수정 저장':'HOV 저장')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
+  $('#hov-save').onclick=()=>{
+    const values=Array.from(document.querySelectorAll('.hov-value')).map(x=>x.value.trim());
+    if(values.some(x=>!x)){ toast('가장 중요한 가치 다섯 가지를 모두 적어주세요.'); return; }
+    const now=Date.now();
+    const rec={rid:edit?(record.rid||smartWorkId()):smartWorkId(),tool:'hov',role:smartRole(),t:edit?Number(record.t||now):now,updatedAt:now,values:values.slice(0,5),conflict:$('#hov-conflict').value.trim(),protect:$('#hov-protect').value.trim(),action:$('#hov-action').value.trim()};
+    const rows=S.smartWorks||[];
+    const key=edit?(record.rid||String(record.t)):'';
+    const i=edit?rows.findIndex(x=>(x.rid||String(x.t))===key):-1;
+    if(i>=0) rows[i]=rec; else rows.push(rec);
+    S.smartWorks=rows; save(); closeModal(); drawSmartHov(); toast(edit?'HOV를 수정했습니다.':'HOV를 저장했습니다.');
+  };
+}
+
 function drawScheduleHub(){
   const fam = famMode();
   const life = [];
@@ -4234,6 +4333,7 @@ function drawWorkbookList(){
 function learningAction(type){
   closeModal();
   if(type === 'urge-diary'){ go('urge-diary'); return; }
+  if(type === 'smart-hov'){ go('smart-hov'); return; }
   if(type === 'halt'){
     go('home');
     setTimeout(()=>{ const n=$('#home-halt'); if(n) n.scrollIntoView({behavior:'smooth',block:'center'}); },80);
