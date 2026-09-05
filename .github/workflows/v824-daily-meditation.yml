@@ -1,0 +1,67 @@
+name: V8.2.4 Daily Meditation Rotation
+
+on:
+  push:
+    branches: [v8.2.4-daily-meditation]
+    paths:
+      - 'v824-daily-meditation.py'
+      - '.github/workflows/v824-daily-meditation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.4-daily-meditation
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply daily meditation patch
+        run: python v824-daily-meditation.py
+      - name: Verify 576-day rotation
+        run: |
+          python - <<'PY'
+          seen=set()
+          prev_b=None
+          for serial in range(576):
+              a=serial % 24
+              cycle=serial // 24
+              b=(cycle+a) % 24
+              pair=(a,b)
+              if pair in seen:
+                  raise SystemExit(f'duplicate pair at day {serial}: {pair}')
+              if prev_b is not None and b == prev_b:
+                  raise SystemExit(f'B did not change on day {serial}: {b}')
+              seen.add(pair)
+              prev_b=b
+          assert len(seen)==576
+          print('576 unique pairs / daily B change PASS')
+          PY
+      - name: Verify product version and syntax
+        run: |
+          grep -q "const BUILD = 'V8.2.4'" index.html
+          grep -q "const APP_VERSION = 'V8.2.4'" sw.js
+          grep -q "ohg-v824-daily-meditation" sw.js
+          grep -q "const bIdx = (cycle + aIdx) % bLen;" index.html
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', s, flags=re.S)
+          Path('/tmp/oneul-main.js').write_text(blocks[-1], encoding='utf-8')
+          PY
+          node --check /tmp/oneul-main.js
+          git diff --check
+      - name: Commit product changes
+        run: |
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "index.html sw.js "
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js
+          git commit -m 'V8.2.4 rotate both daily meditation sentences' || true
+          git push
