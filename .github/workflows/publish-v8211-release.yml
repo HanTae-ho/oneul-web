@@ -1,0 +1,37 @@
+name: Publish V8.2.11 test release
+
+on:
+  push:
+    branches: [android-v8.2.11-smart-tools-hub]
+    paths:
+      - '.github/workflows/publish-v8211-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.11 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33999615904 -n oneul-v8.2.11-smart-tools-hub-apk -D dist-apk
+          gh run download 33999615904 -n oneul-v8.2.11-smart-tools-hub-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.11.apk
+          cp dist-aab/*.aab oneul-v8.2.11.aab
+          test -s oneul-v8.2.11.apk
+          test -s oneul-v8.2.11.aab
+      - name: Publish V8.2.11 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.11-test --yes --cleanup-tag || true
+          gh release create v8.2.11-test oneul-v8.2.11.apk oneul-v8.2.11.aab \
+            --target android-v8.2.11-smart-tools-hub \
+            --title '오늘 한 걸음 V8.2.11 SMART 실천도구 허브 테스트' \
+            --notes '회복도구 → 배우고 연습하기에 SMART 실천도구 허브를 추가했습니다. SMART Recovery의 4-Point 구조로 실천도구를 모아 Point 1에는 HOV, 나의 3가지 질문, 변화 계획, CBA를, Point 2에는 DEADS, DISARM, 기존 충동일기를 연결했습니다. Point 3과 Point 4는 이후 ABC·DIB/DIBS 및 생활 균형·가치에 맞는 활동·목표/주간계획 도구를 추가할 수 있도록 준비 중 영역으로 표시합니다. 회복학습의 SMART Recovery와 SMART 실천도구 사이에는 양방향 연결을 추가했고, 개별 SMART 도구의 뒤로가기는 실제 진입 경로에 따라 학습 또는 허브로 돌아가도록 정리했습니다. 가족모드에서는 Point 1의 가족용 도구는 유지하되 DEADS·DISARM·충동일기를 상대 감시·통제 용도로 사용하지 않도록 Point 2 실행목록을 숨기고 안내를 표시합니다. 기존 SMART 기록 데이터, 미래의 나에게, 12단계 및 Android 습관·생활·치료·외래 예약알림 엔진은 변경하지 않았으며 DATA_SCHEMA는 6을 유지합니다.' \
+            --prerelease
