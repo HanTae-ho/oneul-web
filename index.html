@@ -1239,6 +1239,20 @@ addEventListener('appinstalled', function(){
   <div id="smart-change-plan-list" style="margin-top:12px"></div>
 </section>
 
+<!-- ══════════ SMART Recovery · My Three Questions V8.2.8 ══════════ -->
+<section class="pg" id="p-smart-three-questions">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0">나의 3가지 질문</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('learn-topic')">← SMART Recovery</button>
+  </div>
+  <div class="note" style="margin-bottom:12px">
+    내가 원하는 미래와 현재 행동의 차이를 알아차리고, 그 차이를 변화 동기로 활용합니다. SMART Recovery의 <b>My Three Questions worksheet</b>를 앱에 맞게 재구성했으며, <b>내용은 이 기기에만 저장</b>됩니다.
+  </div>
+  <div id="smart-three-role-note"></div>
+  <button class="btn sec" id="smart-three-new">+ 새로 작성하기</button>
+  <div id="smart-three-list" style="margin-top:12px"></div>
+</section>
+
 <!-- ══════════ 미래의 나에게 V8.2.0 ══════════ -->
 <section class="pg" id="p-capsule">
   <div class="sp" style="margin-bottom:11px">
@@ -1788,7 +1802,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.7';
+const BUILD = 'V8.2.8';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -2599,6 +2613,7 @@ function go(p,opt){
   if(p === 'smart-hov') drawSmartHov();
   if(p === 'smart-cba') drawSmartCba();
   if(p === 'smart-change-plan') drawSmartChangePlan();
+  if(p === 'smart-three-questions') drawSmartThreeQuestions();
   if(p === 'schedule') drawScheduleHub();
   if(p === 'life-schedule') drawLifeSchedule();
   if(p === 'notify-schedule') drawNotifySchedule();
@@ -4519,17 +4534,17 @@ function smartChangePlanRating(label,id,value,help){
   let opts=''; for(let i=1;i<=10;i++) opts+='<option value="'+i+'"'+(i===n?' selected':'')+'>'+i+'</option>';
   return '<div><label>'+esc(label)+'</label><select id="'+id+'">'+opts+'</select><div class="tiny" style="margin-top:4px">'+esc(help)+'</div></div>';
 }
-function openSmartChangePlanEditor(record){
-  const edit=!!record;
+function openSmartChangePlanEditor(record,seed){
+  const edit=!!record; seed=seed||{};
   modal('<h2>'+(edit?'변화 계획 수정':'변화 계획 작성')+'</h2>'
     +'<p class="muted" style="margin:5px 0 14px">목표를 작은 단계로 나누고, 도움과 방해요인까지 미리 적어두면 계획을 실행하기 쉬워집니다.</p>'
-    +'<div class="card"><label>내가 만들고 싶은 변화</label><input id="cp-change" maxlength="120" value="'+esc(edit?(record.change||''):'')+'" placeholder="예: 술을 마시지 않는 생활을 시작하기"></div>'
+    +'<div class="card"><label>내가 만들고 싶은 변화</label><input id="cp-change" maxlength="120" value="'+esc(edit?(record.change||''):(seed.change||''))+'" placeholder="예: 술을 마시지 않는 생활을 시작하기"></div>'
     +'<div class="card"><div class="grid2">'
       +smartChangePlanRating('이 변화는 얼마나 중요한가요?','cp-importance',edit?record.importance:8,'1 = 중요하지 않음 · 10 = 매우 중요함')
       +smartChangePlanRating('이 변화를 할 수 있다고 얼마나 자신하나요?','cp-confidence',edit?record.confidence:5,'1 = 전혀 자신 없음 · 10 = 매우 자신 있음')
     +'</div></div>'
-    +'<div class="card"><label>이 변화를 만들고 싶은 가장 중요한 이유</label><textarea id="cp-reasons" maxlength="800" placeholder="이유를 한 줄에 하나씩 적어도 좋습니다.">'+esc(edit?(record.reasons||''):'')+'</textarea></div>'
-    +'<div class="card"><label>변화를 위해 내가 계획하는 단계</label><textarea id="cp-steps" maxlength="1200" placeholder="예:\n1. 오늘 집에 있는 술을 치운다.\n2. 이번 주 모임에 한 번 참여한다.\n3. 외래 예약을 지킨다.">'+esc(edit?(record.steps||''):'')+'</textarea></div>'
+    +'<div class="card"><label>이 변화를 만들고 싶은 가장 중요한 이유</label><textarea id="cp-reasons" maxlength="800" placeholder="이유를 한 줄에 하나씩 적어도 좋습니다.">'+esc(edit?(record.reasons||''):(seed.reasons||''))+'</textarea></div>'
+    +'<div class="card"><label>변화를 위해 내가 계획하는 단계</label><textarea id="cp-steps" maxlength="1200" placeholder="예:\n1. 오늘 집에 있는 술을 치운다.\n2. 이번 주 모임에 한 번 참여한다.\n3. 외래 예약을 지킨다.">'+esc(edit?(record.steps||''):(seed.steps||''))+'</textarea></div>'
     +'<div class="card"><label>다른 사람들이 나를 도울 수 있는 방법</label><textarea id="cp-help" maxlength="800" placeholder="누가, 어떤 방식으로 도와줄 수 있는지 적어보세요.">'+esc(edit?(record.help||''):'')+'</textarea></div>'
     +'<div class="card"><label>내 계획이 작동하고 있음을 알 수 있는 신호</label><textarea id="cp-signs" maxlength="800" placeholder="예: 술집을 피하고 있다, 수면이 규칙적이다, 약속을 지키고 있다">'+esc(edit?(record.signs||''):'')+'</textarea></div>'
     +'<div class="card"><label>내 계획을 방해할 수 있는 것</label><textarea id="cp-obstacles" maxlength="800" placeholder="예: 회식, 외로움, 돈 문제, 갈등, 피로">'+esc(edit?(record.obstacles||''):'')+'</textarea></div>'
@@ -4573,12 +4588,96 @@ function openSmartChangePlanView(id){
   };
 }
 
+/* ── SMART Recovery · 나의 3가지 질문 V8.2.8 ──
+   원자료 명칭은 My Three Questions이지만 실제 워크시트는 처음 3문항 뒤 추가 2문항으로 이어집니다.
+   3번(현재 행동의 느낌)과 5번(변화 뒤 예상 느낌)의 차이를 변화 동기로 확인합니다. */
+function smartThreeRecords(){
+  return (Array.isArray(S.smartWorks)?S.smartWorks:[])
+    .filter(r=>r && r.kind==='three-questions' && (r.role||'self')===(famMode()?'family':'self'))
+    .sort((a,b)=>(b.updatedAt||b.ts||0)-(a.updatedAt||a.ts||0));
+}
+function smartThreeDate(ts){
+  if(!ts) return '';
+  const d=new Date(ts); return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.';
+}
+function drawSmartThreeQuestions(){
+  const list=$('#smart-three-list'), rn=$('#smart-three-role-note'), add=$('#smart-three-new');
+  if(!list||!add) return;
+  if(rn){
+    rn.innerHTML=famMode()
+      ? '<div class="note" style="margin-bottom:12px"><b>가족도 내 미래와 내 행동을 질문합니다.</b><br>상대의 변화 여부가 아니라, 내가 원하는 삶과 현재 내가 하고 있는 행동 사이의 차이를 살펴봅니다.</div>'
+      : '';
+  }
+  add.onclick=()=>openSmartThreeEditor(null);
+  const rows=smartThreeRecords();
+  if(!rows.length){
+    list.innerHTML='<div class="card"><b>아직 작성한 기록이 없습니다.</b><p class="muted" style="margin:5px 0 0">먼저 내가 원하는 미래를 한 문장으로 적어보세요.</p></div>';
+    return;
+  }
+  list.innerHTML='<div class="card"><h3>저장한 기록 '+rows.length+'건</h3>'
+    +rows.map(r=>'<div class="sp" style="gap:10px;padding:11px 0;border-top:1px solid var(--line)"><div style="min-width:0;flex:1"><div class="tiny">'+esc(smartThreeDate(r.updatedAt||r.ts))+'</div><b style="display:block;margin-top:2px">'+esc(r.future||'나의 3가지 질문')+'</b><div class="muted" style="margin-top:3px">현재와 원하는 미래의 차이를 돌아본 기록</div></div><button class="tiny" style="color:var(--acc);font-weight:600" onclick="openSmartThreeView(\''+esc(r.id)+'\')">보기</button></div>').join('')
+    +'</div>';
+}
+function openSmartThreeEditor(record){
+  const edit=!!record;
+  const q=(n,title,help,id,val,ph)=>'<div class="card"><div class="tiny" style="color:var(--acc);font-weight:700">질문 '+n+'</div><h3 style="margin-top:4px">'+esc(title)+'</h3>'+(help?'<p class="muted" style="margin:-5px 0 9px">'+esc(help)+'</p>':'')+'<textarea id="'+id+'" maxlength="900" placeholder="'+esc(ph)+'">'+esc(edit?(val||''):'')+'</textarea></div>';
+  modal('<h2>'+(edit?'나의 3가지 질문 수정':'나의 3가지 질문 작성')+'</h2>'
+    +'<p class="muted" style="margin:5px 0 14px">도구 이름은 ‘3가지 질문’이지만, 처음 세 질문 뒤에 두 질문을 더 이어서 답합니다.</p>'
+    +'<div class="note" style="margin-bottom:12px"><b>먼저 세 가지 질문</b><br>내가 원하는 미래와 지금의 행동을 비교합니다.</div>'
+    +q(1,'내 미래에 대해 어떤 것을 원하나요?','', 'three-future', edit?record.future:'','예: 좋은 부모가 되고 싶다. 건강하고 안정된 생활을 하고 싶다.')
+    +q(2,'그것을 달성하기 위해 나는 현재 무엇을 하고 있나요?','현재 실제로 하고 있는 행동을 적어보세요.', 'three-current', edit?record.current:'','예: 술을 마시며 약속을 미루고 있다. 반대로 모임과 외래는 유지하고 있다.')
+    +q(3,'현재 내가 하고 있는 일(행동)에 대해 어떤 느낌을 가지고 있나요?','감정을 옳고 그름으로 판단하지 말고 있는 그대로 적어보세요.', 'three-feeling-now', edit?record.feelingNow:'','예: 죄책감, 답답함, 불안, 지침, 갇힌 느낌')
+    +'<div class="note" style="margin:14px 0 12px"><b>이제 다음 두 질문</b><br>원하는 미래를 위해 달리할 수 있는 행동과, 변화 뒤의 느낌을 생각합니다.</div>'
+    +q(4,'내가 원하는 미래를 달성하거나 이루기 위해 무엇을 달리할 수 있을까요?','가능하면 작고 구체적인 행동으로 적어보세요.', 'three-different', edit?record.different:'','예: 오늘 술자리를 피하고 회복 동료에게 연락한다.')
+    +q(5,'내가 하는 일(행동)을 바꾸거나 내가 원하는 것을 얻으면 어떤 느낌이 들까요?','3번에서 적은 현재의 느낌과 비교해보세요.', 'three-feeling-after', edit?record.feelingAfter:'','예: 안도감, 자신감, 자유로움, 가족에게 떳떳함')
+    +'<div class="card"><h3>내가 발견한 차이</h3><p class="muted" style="margin:-5px 0 9px">3번과 5번의 느낌 차이에서, 지금 변화를 시작할 이유를 한 문장으로 적어보세요.</p><textarea id="three-gap" maxlength="500" placeholder="예: 지금은 갇힌 느낌이지만, 행동을 바꾸면 자유롭고 떳떳해질 수 있다.">'+esc(edit?(record.gap||''):'')+'</textarea></div>'
+    +'<button class="btn" id="three-save">'+(edit?'수정 저장':'기록 저장')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
+  $('#three-save').onclick=()=>{
+    const future=$('#three-future').value.trim(), current=$('#three-current').value.trim(), feelingNow=$('#three-feeling-now').value.trim(), different=$('#three-different').value.trim(), feelingAfter=$('#three-feeling-after').value.trim();
+    if(!future||!current||!feelingNow||!different||!feelingAfter){ toast('다섯 질문에 모두 답해 주세요.'); return; }
+    const now=Date.now();
+    const rec={
+      id:edit?record.id:('tq-'+now+'-'+Math.random().toString(36).slice(2,7)), kind:'three-questions', role:famMode()?'family':'self',
+      ts:edit?(record.ts||now):now, updatedAt:now,
+      future, current, feelingNow, different, feelingAfter, gap:$('#three-gap').value.trim()
+    };
+    if(!Array.isArray(S.smartWorks)) S.smartWorks=[];
+    if(edit){ const i=S.smartWorks.findIndex(x=>x&&x.id===record.id); if(i>=0) S.smartWorks[i]=rec; else S.smartWorks.push(rec); }
+    else S.smartWorks.push(rec);
+    save(); closeModal(); drawSmartThreeQuestions(); toast(edit?'기록을 수정했습니다.':'기록을 저장했습니다.');
+  };
+}
+function openSmartThreeView(id){
+  const r=(Array.isArray(S.smartWorks)?S.smartWorks:[]).find(x=>x&&x.id===id&&x.kind==='three-questions');
+  if(!r) return;
+  const sec=(n,title,text)=>'<div class="card"><div class="tiny" style="color:var(--acc);font-weight:700">질문 '+n+'</div><h3 style="margin-top:4px">'+esc(title)+'</h3><div style="white-space:pre-wrap">'+esc(text||'')+'</div></div>';
+  modal('<h2>나의 3가지 질문</h2><div class="muted" style="margin:-4px 0 12px">'+esc(smartThreeDate(r.updatedAt||r.ts))+'</div>'
+    +sec(1,'내 미래에 대해 원하는 것',r.future)
+    +sec(2,'그것을 위해 현재 하고 있는 것',r.current)
+    +sec(3,'현재 행동에 대한 느낌',r.feelingNow)
+    +sec(4,'달리할 수 있는 것',r.different)
+    +sec(5,'행동을 바꾸거나 원하는 것을 얻었을 때의 느낌',r.feelingAfter)
+    +(r.gap?'<div class="note" style="margin-bottom:12px"><b>내가 발견한 차이</b><br><span style="white-space:pre-wrap">'+esc(r.gap)+'</span></div>':'')
+    +'<button class="btn" id="three-to-plan">이 답을 바탕으로 변화 계획 작성하기</button><div style="height:8px"></div><button class="btn sec" id="three-edit">수정</button><div style="height:8px"></div><button class="btn bad" id="three-delete">이 기록 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
+  $('#three-to-plan').onclick=()=>{
+    closeModal(); go('smart-change-plan');
+    setTimeout(()=>openSmartChangePlanEditor(null,{change:r.future||'',reasons:r.gap||r.feelingAfter||'',steps:r.different||''}),60);
+  };
+  $('#three-edit').onclick=()=>openSmartThreeEditor(r);
+  $('#three-delete').onclick=()=>{
+    if(!confirm('이 질문 기록을 삭제할까요?')) return;
+    S.smartWorks=(Array.isArray(S.smartWorks)?S.smartWorks:[]).filter(x=>!(x&&x.id===r.id));
+    save(); closeModal(); drawSmartThreeQuestions(); toast('기록을 삭제했습니다.');
+  };
+}
+
 function learningAction(type){
   closeModal();
   if(type === 'urge-diary'){ go('urge-diary'); return; }
   if(type === 'smart-hov'){ go('smart-hov'); return; }
   if(type === 'smart-cba'){ go('smart-cba'); return; }
   if(type === 'smart-change-plan'){ go('smart-change-plan'); return; }
+  if(type === 'smart-three-questions'){ go('smart-three-questions'); return; }
   if(type === 'halt'){
     go('home');
     setTimeout(()=>{ const n=$('#home-halt'); if(n) n.scrollIntoView({behavior:'smooth',block:'center'}); },80);
