@@ -1,0 +1,55 @@
+name: V8.2.7 SMART Change Plan
+
+on:
+  push:
+    branches: [v8.2.7-smart-change-plan]
+    paths:
+      - 'v827-smart-change-plan.py'
+      - '.github/workflows/v827-smart-change-plan.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.7-smart-change-plan
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply SMART Change Plan patch
+        run: python v827-smart-change-plan.py
+      - name: Verify product changes
+        run: |
+          grep -q "const BUILD = 'V8.2.7'" index.html
+          grep -q 'id="p-smart-change-plan"' index.html
+          grep -q 'function drawSmartChangePlan' index.html
+          grep -q "type === 'smart-change-plan'" index.html
+          grep -q '"type": "smart-change-plan"' learning-data.js
+          grep -q '"label": "변화 계획 워크시트 작성하기"' learning-data.js
+          grep -q "const APP_VERSION = 'V8.2.7'" sw.js
+          grep -q "ohg-v827-smart-change-plan" sw.js
+          node --check learning-data.js
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', s, flags=re.S)
+          Path('/tmp/oneul-main.js').write_text(blocks[-1], encoding='utf-8')
+          PY
+          node --check /tmp/oneul-main.js
+          git diff --check
+      - name: Verify scope
+        run: |
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "index.html learning-data.js sw.js "
+      - name: Commit product changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html learning-data.js sw.js
+          git commit -m 'V8.2.7 add SMART Change Plan worksheet' || true
+          git push
