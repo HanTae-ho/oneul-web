@@ -1,4 +1,4 @@
-/* 오늘 한 걸음 — 회복학습 데이터 V8.2.7
+/* 오늘 한 걸음 — 회복학습 데이터 V8.2.8
    Q&A와 분리된 독립 학습 영역입니다.
    12단계 해설은 사용자가 집필 중인 「상담사가 풀어쓰는 12단계」 초안을
    모바일 학습용으로 요약·재구성했습니다.
@@ -748,6 +748,10 @@ window.LEARNING_TOPICS = [
           {
             "type": "smart-hov",
             "label": "HOV 가치의 계층 작성하기"
+          },
+          {
+            "type": "smart-three-questions",
+            "label": "나의 3가지 질문 작성하기"
           },
           {
             "type": "smart-change-plan",
