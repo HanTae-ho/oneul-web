@@ -65,7 +65,7 @@ function drawSmartTools(){
   h+='<div class="card"><h3>Point 4 · 균형 잡힌 삶 살기</h3><p class="muted" style="margin:-4px 0 0">생활 균형 · 가치에 맞는 활동 · 목표와 주간계획 도구를 순차적으로 추가할 예정입니다.</p><div class="tiny" style="margin-top:8px">준비 중</div></div>';
   box.innerHTML=h;
   box.querySelectorAll('[data-smart-page]').forEach(b=>b.onclick=()=>go(b.dataset.smartPage));
-  hydrateIcons(box);
+  refreshIcons();
 }
 
 '''
