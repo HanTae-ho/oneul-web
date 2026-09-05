@@ -1746,7 +1746,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.3';
+const BUILD = 'V8.2.4';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -2428,8 +2428,14 @@ let homeDailyDate = '';
 function dailyHomeText(){
   const d = new Date();
   const serial = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
-  const a = DAILY_HOME_A[serial % DAILY_HOME_A.length];
-  const b = DAILY_HOME_B[Math.floor(serial / DAILY_HOME_A.length) % DAILY_HOME_B.length];
+  const aLen = DAILY_HOME_A.length;
+  const bLen = DAILY_HOME_B.length;
+  const aIdx = serial % aLen;
+  const cycle = Math.floor(serial / aLen);
+  /* 두 문장 모두 매일 바뀌되, (A,B) 24×24 조합은 576일 동안 중복 없이 순환합니다. */
+  const bIdx = (cycle + aIdx) % bLen;
+  const a = DAILY_HOME_A[aIdx];
+  const b = DAILY_HOME_B[bIdx];
   return a + ' ' + b;
 }
 function drawDailyHome(){
