@@ -1,0 +1,37 @@
+name: Publish V8.2.8 test release
+
+on:
+  push:
+    branches: [android-v8.2.8-smart-three-questions]
+    paths:
+      - '.github/workflows/publish-v828-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.8 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33946321986 -n oneul-v8.2.8-smart-three-questions-apk -D dist-apk
+          gh run download 33946321986 -n oneul-v8.2.8-smart-three-questions-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.8.apk
+          cp dist-aab/*.aab oneul-v8.2.8.aab
+          test -s oneul-v8.2.8.apk
+          test -s oneul-v8.2.8.aab
+      - name: Publish V8.2.8 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.8-test --yes --cleanup-tag || true
+          gh release create v8.2.8-test oneul-v8.2.8.apk oneul-v8.2.8.aab \
+            --target android-v8.2.8-smart-three-questions \
+            --title '오늘 한 걸음 V8.2.8 SMART Recovery 나의 3가지 질문 테스트' \
+            --notes 'SMART Recovery Point 1에 나의 3가지 질문(My Three Questions worksheet)을 추가했습니다. 원자료의 명칭은 3가지 질문이지만 실제 워크시트 구조대로 처음 세 질문 뒤 추가 두 질문을 이어서 답하도록 구성했습니다. 질문은 원하는 미래, 현재 행동, 현재 행동에 대한 느낌, 달리할 수 있는 행동, 변화 후 예상 느낌의 다섯 항목입니다. 3번과 5번의 느낌 차이를 변화 동기로 정리할 수 있고, 저장된 답변에서 기존 변화 계획 워크시트로 바로 연결해 목표·이유·단계를 이어 작성할 수 있습니다. 기록은 기존 smartWorks에 기기 내부 저장되며 저장·보기·수정·삭제와 당사자/가족 역할 분리를 유지합니다. Point 1 도구 순서는 원자료 부록에 맞춰 HOV → 나의 3가지 질문 → 변화 계획 → CBA로 정리했습니다. 기존 HOV/CBA/변화계획, 충동일기, 12단계 및 Android 습관·생활·치료·외래 예약알림 엔진은 변경하지 않았습니다.' \
+            --prerelease
