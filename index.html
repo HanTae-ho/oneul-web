@@ -4256,7 +4256,7 @@ function openSmartCbaEditor(record){
     +groups
     +'<div class="card"><h3>5. 다음 대처 계획</h3><p class="tiny" style="margin:-6px 0 8px">특히 ‘중단했을 때 어려운 점’을 다른 방법으로 어떻게 다룰지 적어보세요.</p><textarea id="cba-next" maxlength="400" placeholder="예: 스트레스 해소가 어려우면 산책하거나 회복 동료에게 연락한다">'+esc(edit?(record.nextStep||''):'')+'</textarea></div>'
     +'<button class="btn" id="cba-save">'+(edit?'수정 저장':'CBA 저장')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
-  const root=document.querySelector('#modal .modal-sheet')||document.querySelector('#modal')||document.body;
+  const root=document.querySelector('#modin')||document.body;
   bindSmartCbaRows(root);
   $('#cba-save').onclick=()=>{
     const subject=$('#cba-subject').value.trim();
