@@ -1,0 +1,62 @@
+name: V8.2.18 SMART Accordion UX
+
+on:
+  push:
+    branches: [v8.2.18-smart-accordion]
+    paths:
+      - 'v8218-smart-accordion.py'
+      - '.github/workflows/v8218-smart-accordion.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.18-smart-accordion
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply patch
+        run: python v8218-smart-accordion.py
+      - name: Verify
+        run: |
+          grep -q "const BUILD = 'V8.2.18'" index.html
+          grep -q "const DATA_SCHEMA = 6" index.html
+          grep -q 'id="smart-thinking-reference"' index.html
+          grep -q 'smartThinkingReferenceToggle' index.html
+          grep -q 'data-ps-step="definition"' index.html
+          grep -q 'data-ps-step="brainstorm"' index.html
+          grep -q 'data-ps-step="select"' index.html
+          grep -q 'data-ps-step="plan"' index.html
+          grep -q 'data-ps-strategy-toggle' index.html
+          grep -q '번역본의 3단계 ‘평가’는 각 전략을 펼쳐' index.html
+          grep -q '다음 · 브레인스토밍' index.html
+          grep -q '다음 · 전략 선택' index.html
+          grep -q '다음 · 서면 계획' index.html
+          grep -q "kind:'problem-solving'" index.html
+          grep -q "const APP_VERSION = 'V8.2.18'" sw.js
+          grep -q 'ohg-v8218-smart-accordion' sw.js
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,flags=re.S)
+          Path('/tmp/oneul-main.js').write_text(blocks[-1],encoding='utf-8')
+          PY
+          node --check /tmp/oneul-main.js
+          git diff --check
+      - name: Verify scope
+        run: |
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "index.html sw.js "
+      - name: Commit product changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js
+          git commit -m 'V8.2.18 compact SMART accordions' || true
+          git push
