@@ -1,0 +1,71 @@
+name: V8.2.25 SMART Goals and Habit Link
+
+on:
+  push:
+    branches: [v8.2.25-smart-goals-habit-link]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.25-smart-goals-habit-link
+      - name: Apply V8.2.25 patch
+        run: python v8225-smart-goals-habit-link.py
+      - name: Verify SMART Goals structure
+        run: |
+          grep -F "const BUILD = 'V8.2.25';" index.html
+          grep -F "const APP_VERSION = 'V8.2.25';" sw.js
+          grep -F "ohg-v8225-smart-goals-habit-link" sw.js
+          grep -F 'id="p-smart-goal"' index.html
+          grep -F "kind:'smart-goal'" index.html
+          grep -F "SMART_GOAL_CRITERIA" index.html
+          grep -F "구체적" index.html
+          grep -F "측정가능" index.html
+          grep -F "동의가능" index.html
+          grep -F "현실적" index.html
+          grep -F "시간제한" index.html
+          grep -F "smartGoalToHabit" index.html
+          grep -F "startHabitNew(data,origin)" index.html
+          grep -F "habitEditState={mode:'new',data:d,origin:origin||''}" index.html
+          grep -F "habitFromGoal=habitEditState.origin==='smart-goal'" index.html
+          grep -F '"type": "smart-goal"' learning-data.js
+          grep -F '"label": "SMART 목표 설정하기"' learning-data.js
+          grep -F "const DATA_SCHEMA = 6" index.html
+          ! grep -F "번역본" index.html
+      - name: Verify existing SMART and habit paths remain
+        run: |
+          grep -F "kind:'vaci'" index.html
+          grep -F "kind:'lifestyle-balance-pie'" index.html
+          grep -F "tool:'hov'" index.html
+          grep -F "function habitList()" index.html
+          grep -F "if(origin==='smart-goal')appBack('smart-goal');else go('habit');" index.html
+          grep -F "if(type === 'smart-goal'){ go('smart-goal'); return; }" index.html
+      - name: JavaScript syntax sanity
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          Path('/tmp/app.js').write_text('\n'.join(scripts),encoding='utf-8')
+          PY
+          node --check /tmp/app.js
+          node --check learning-data.js
+          node --check sw.js
+      - name: Diff scope sanity
+        run: |
+          git diff --check
+          files=$(git diff --name-only | sort)
+          test "$files" = $'index.html\nlearning-data.js\nsw.js'
+      - name: Commit product files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html learning-data.js sw.js
+          git commit -m 'V8.2.25 add SMART goals and habit handoff'
+          git push
