@@ -1192,7 +1192,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-urge-diary">
   <div class="sp" style="margin-bottom:11px">
     <h1 style="margin:0">충동일기</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('tools')">← 회복도구</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" data-smart-back data-back-default="tools" data-back-label="회복도구" onclick="appBack('tools')">← 회복도구</button>
   </div>
   <div class="note" style="margin-bottom:12px">
     충동은 특정 시간·상황·촉발요인에서 반복될 수 있습니다. 기록을 모아 내 패턴과 나에게 도움이 된 대처를 찾아봅니다. SMART Recovery의 충동일지 구조를 참고해 앱에 맞게 재구성했으며, <b>내용은 이 기기에만 저장</b>됩니다.
@@ -2762,7 +2762,7 @@ function go(p,opt){
   if(p === 'notify-schedule') drawNotifySchedule();
   if(p === 'qa')    drawQA();
   if(p === 'learn') drawLearn();
-  if(p === 'learn-topic') drawLearnTopic();
+  if(p === 'learn-topic') drawLearnTopic(!!opt.fromHistory);
   if(p === 'workbook-list') drawWorkbookList();
   if(p === 'workbook') drawWorkbook();
   if(p === 'screening') drawScreening();
@@ -4290,6 +4290,7 @@ function syncSmartBack(){
   const st=(history.state&&history.state.ohg)?history.state:{};
   const from=String(st.from||'');
   const labels={
+    'tools':'회복도구',
     'smart-tools':'SMART 실천도구',
     'learn-topic':'SMART Recovery',
     'capsule':'미래의 나에게',
@@ -4311,8 +4312,10 @@ function syncSmartBack(){
     'smart-change-plan':'smart-change-plan', 'smart-cba':'smart-cba',
     'smart-deads':'smart-deads', 'smart-disarm':'smart-disarm', 'smart-abc':'smart-abc', 'smart-dibs':'smart-dibs', 'smart-thinking-styles':'smart-thinking-styles', 'smart-problem-solving':'smart-problem-solving', 'smart-balance-pie':'smart-balance-pie'
   };
-  b.textContent='← '+(labels[from]||'SMART 실천도구');
-  b.onclick=()=>appBack(fallbacks[from]||'smart-tools');
+  const defaultLabel=b.dataset.backLabel||'SMART 실천도구';
+  const defaultBack=b.dataset.backDefault||'smart-tools';
+  b.textContent='← '+(labels[from]||defaultLabel);
+  b.onclick=()=>appBack(fallbacks[from]||defaultBack);
 }
 
 /* ══════════ SMART Recovery · 실천도구 허브 V8.2.11 ══════════ */
@@ -4651,7 +4654,7 @@ function drawQA(){
 
 const LEARNING = Array.isArray(window.LEARNING_TOPICS) ? window.LEARNING_TOPICS : [];
 const TWELVE_STEP_WORDINGS = (window.TWELVE_STEP_WORDINGS && window.TWELVE_STEP_WORDINGS.sets) ? window.TWELVE_STEP_WORDINGS : {sets:{}};
-let learnState = { topic:'' };
+let learnState = { topic:'', returnSection:'' };
 
 /* ── 12단계 단계문장 선택 V7.10 ──
    단계문장은 회복영역(domain)이 고르고, 당사자/가족(role)은 고르지 않습니다.
@@ -5394,7 +5397,8 @@ function openSmartBalanceView(id){
  $('#balance-edit').onclick=()=>openSmartBalanceEditor(r);$('#balance-delete').onclick=()=>{if(!confirm('이 밸런스 파이 기록을 삭제할까요?'))return;S.smartWorks=(Array.isArray(S.smartWorks)?S.smartWorks:[]).filter(x=>!(x&&x.id===r.id));save();closeModal();drawSmartBalancePie();toast('밸런스 파이 기록을 삭제했습니다.');};
 }
 
-function learningAction(type){
+function learningAction(type,sectionId){
+  if(sectionId && learnState.topic==='smart-recovery') learnState.returnSection=String(sectionId);
   closeModal();
   if(type === 'urge-diary'){ go('urge-diary'); return; }
   if(type === 'smart-hov'){ go('smart-hov'); return; }
@@ -5453,7 +5457,7 @@ function openLearnSection(topic,s){
   }
   if(v.practice) h+='<div class="learn-practice"><b>오늘 해보기</b>'+esc(v.practice)+'</div>';
   if(Array.isArray(v.actions) && v.actions.length){
-    h+='<div class="learn-actions">'+v.actions.map((a,i)=>'<button class="btn '+(i?'ghost':'sec')+'" data-learn-act="'+esc(a.type)+'">'+esc(a.label)+'</button>').join('')+'</div>';
+    h+='<div class="learn-actions">'+v.actions.map((a,i)=>'<button class="btn '+(i?'ghost':'sec')+'" data-learn-act="'+esc(a.type)+'" data-learn-section="'+esc(s.id||'')+'">'+esc(a.label)+'</button>').join('')+'</div>';
   }
   /* sourceNote는 내부 출처 관리용 데이터로만 남기고 사용자 화면에는 표시하지 않습니다. */
   h+='<div class="rdnav" style="margin-top:16px">'+
@@ -5462,13 +5466,13 @@ function openLearnSection(topic,s){
     '<button class="btn sec" id="learn-modal-next"'+(idx>=sections.length-1?' disabled':'')+'>다음 글 →</button></div>'+
     '<div style="height:10px"></div><button class="btn ghost" id="learn-modal-close">닫기</button>';
   modal(h);
-  $$('#modin [data-learn-act]').forEach(b=>{ b.onclick=()=>learningAction(b.dataset.learnAct); });
+  $$('#modin [data-learn-act]').forEach(b=>{ b.onclick=()=>learningAction(b.dataset.learnAct,b.dataset.learnSection); });
   const p=$('#learn-modal-prev'); if(p && idx>0) p.onclick=()=>openLearnSection(topic,sections[idx-1]);
   const n=$('#learn-modal-next'); if(n && idx<sections.length-1) n.onclick=()=>openLearnSection(topic,sections[idx+1]);
   const c=$('#learn-modal-close'); if(c) c.onclick=closeModal;
 }
 
-function drawLearnTopic(){
+function drawLearnTopic(fromHistory){
   const topic=LEARNING.find(x=>x.id===learnState.topic) || LEARNING[0];
   if(!topic){ go('learn'); return; }
   learnState.topic=topic.id;
@@ -5509,6 +5513,12 @@ function drawLearnTopic(){
   });
   if(!(topic.sections || []).length) box.innerHTML='<div class="note">학습 내용을 준비 중입니다.</div>';
   refreshIcons();
+  const returnId=fromHistory?String(learnState.returnSection||''):'';
+  if(returnId){
+    const target=(topic.sections||[]).find(x=>x&&x.id===returnId);
+    learnState.returnSection='';
+    if(target) setTimeout(()=>openLearnSection(topic,target),0);
+  }
 }
 
 /* ══════════ 12단계 검토·실천 V7.6 ══════════
