@@ -1,0 +1,37 @@
+name: Publish V8.2.15 test release
+
+on:
+  push:
+    branches: [android-v8.2.15-smart-dibs]
+    paths:
+      - '.github/workflows/publish-v8215-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.15 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34007355671 -n oneul-v8.2.15-smart-dibs-apk -D dist-apk
+          gh run download 34007355671 -n oneul-v8.2.15-smart-dibs-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.15.apk
+          cp dist-aab/*.aab oneul-v8.2.15.aab
+          test -s oneul-v8.2.15.apk
+          test -s oneul-v8.2.15.aab
+      - name: Publish V8.2.15 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.15-test --yes --cleanup-tag || true
+          gh release create v8.2.15-test oneul-v8.2.15.apk oneul-v8.2.15.aab \
+            --target android-v8.2.15-smart-dibs \
+            --title '오늘 한 걸음 V8.2.15 SMART DIBS 테스트' \
+            --notes 'SMART Recovery Point 3에 DIBS 생각 반박하기 도구를 추가했습니다. 도움이 되지 않는 신념을 적고, 그 생각의 영향, 질문으로 바꾸기, 사실·증거 점검, 논리·장기적 도움 여부 점검, 균형 잡힌 합리적 신념으로 이어서 작성할 수 있습니다. 기록은 기존 smartWorks에 기기 내부 저장되며 보기·수정·삭제가 가능합니다. 가족모드는 상대의 신념을 진단하거나 논박하지 않고 가족 자신의 해석과 반응을 점검하도록 안내합니다. 기존 ABC·HOV·CBA·DEADS·DISARM·충동일기·홈 오늘 일정 길게 눌러 수정·12단계 및 Android 습관·생활·치료·외래 정확알림 엔진은 변경하지 않았습니다.' \
+            --prerelease
