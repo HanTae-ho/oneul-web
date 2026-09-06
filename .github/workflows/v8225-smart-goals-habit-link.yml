@@ -16,6 +16,8 @@ jobs:
           ref: v8.2.25-smart-goals-habit-link
       - name: Apply V8.2.25 patch
         run: python v8225-smart-goals-habit-link.py
+      - name: Apply syntax correction
+        run: python v8225-smart-goals-postfix.py
       - name: Verify SMART Goals structure
         run: |
           grep -F "const BUILD = 'V8.2.25';" index.html
