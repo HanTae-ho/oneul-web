@@ -1,0 +1,71 @@
+name: V8.2.13 SMART Navigation and ABC
+
+on:
+  push:
+    branches: [v8.2.13-smart-nav-abc]
+    paths:
+      - 'v8213-smart-nav-abc.py'
+      - '.github/workflows/v8213-smart-nav-abc.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.13-smart-nav-abc
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply V8.2.13 patch
+        run: python v8213-smart-nav-abc.py
+      - name: Verify SMART navigation and ABC
+        run: |
+          grep -q "const BUILD = 'V8.2.13'" index.html
+          grep -q "const APP_VERSION = 'V8.2.13'" sw.js
+          grep -q "ohg-v8213-smart-nav-abc" sw.js
+          grep -q "from:prev" index.html
+          test "$(grep -o 'data-smart-back' index.html | wc -l)" -eq 7
+          grep -q "'smart-tools':'SMART 실천도구'" index.html
+          grep -q "'learn-topic':'SMART Recovery'" index.html
+          grep -q "'capsule':'미래의 나에게'" index.html
+          grep -q "p === 'smart-change-plan'" index.html
+          grep -q "p === 'smart-three-questions'" index.html
+          grep -q "p === 'smart-abc'" index.html
+          grep -q 'id="p-smart-abc"' index.html
+          grep -q 'function drawSmartAbc' index.html
+          grep -q "kind:'abc'" index.html
+          grep -q "role:famMode()?'family':'self'" index.html
+          grep -q "if(type === 'smart-abc')" index.html
+          grep -q '"type": "smart-abc"' learning-data.js
+          grep -q '"label": "ABC 문제 해결 작성하기"' learning-data.js
+          grep -q "const DATA_SCHEMA = 6;" index.html
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          assert s.count('← SMART Recovery</button>') == 0
+          assert s.count('data-smart-back') == 7
+          m=re.search(r'<section class="pg" id="p-smart-abc">(.*?)</section>',s,re.S)
+          assert m and 'A · 활성화 사건' not in m.group(1)  # editor is modal, not static page
+          assert '+ ABC 새로 작성하기' in m.group(1)
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', s, flags=re.S)
+          Path('/tmp/oneul-main.js').write_text(blocks[-1], encoding='utf-8')
+          PY
+          node --check /tmp/oneul-main.js
+          node --check learning-data.js
+          git diff --check
+      - name: Verify scope
+        run: |
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "index.html learning-data.js sw.js "
+      - name: Commit V8.2.13 product changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html learning-data.js sw.js
+          git commit -m 'V8.2.13 fix SMART back labels and add ABC worksheet'
+          git push
