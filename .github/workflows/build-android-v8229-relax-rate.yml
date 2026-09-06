@@ -1,0 +1,98 @@
+name: Build V8.2.29 Relaxation Rate Android
+
+on:
+  push:
+    branches: [android-v8.2.29-relax-rate]
+    paths:
+      - 'android-v8.2.29-relax-rate.sh'
+      - '.github/workflows/build-android-v8229-relax-rate.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: android-v8.2.29-relax-rate
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android 16 SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Extract Android source
+        run: |
+          rm -rf android-v8
+          mkdir android-v8
+          unzip -q android-v8-source.zip -d android-v8
+      - name: Apply V8.2.29 relaxation rate patch
+        run: bash android-v8.2.29-relax-rate.sh
+      - name: Verify rate selector and preserved native playback
+        run: |
+          PKG=android-v8/app/src/main/java/io/github/hantae_ho/twa
+          JAVA="$PKG/RelaxTtsActivity.java"
+          MAN=android-v8/app/src/main/AndroidManifest.xml
+          grep -q 'speech_rate_tenths' "$JAVA"
+          grep -q '느리게 · 0.7배' "$JAVA"
+          grep -q '차분하게 · 0.8배 · 기본' "$JAVA"
+          grep -q '조금 빠르게 · 0.9배' "$JAVA"
+          grep -q '보통 · 1.0배' "$JAVA"
+          grep -q 'tts.setSpeechRate(speechRateTenths / 10.0f)' "$JAVA"
+          grep -q 'PowerManager.PARTIAL_WAKE_LOCK' "$JAVA"
+          grep -q 'android.permission.WAKE_LOCK' "$MAN"
+          grep -q 'android:name=".RelaxTtsActivity"' "$MAN"
+          grep -q 'android:scheme="oneul" android:host="relax"' "$MAN"
+          grep -q 'HabitReminderStore.count' "$PKG/NotificationSettingsActivity.java"
+          grep -q '외래 알림 시간' "$PKG/NotificationSettingsActivity.java"
+      - name: Restore release keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_B64" | base64 --decode > "$GITHUB_WORKSPACE/android-v8/signing.keystore"
+      - name: Verify signing certificate
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: keytool -list -v -keystore "$GITHUB_WORKSPACE/android-v8/signing.keystore" -storepass "$STORE_PASSWORD" -alias "$KEY_ALIAS" | grep 'SHA256:'
+      - name: Create signing properties
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cat > android-v8/keystore.properties <<EOF
+          storeFile=$GITHUB_WORKSPACE/android-v8/signing.keystore
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+      - name: Build release APK and AAB
+        run: gradle -p android-v8 :app:assembleRelease :app:bundleRelease
+      - name: Verify APK version and unchanged exact-alarm engines
+        run: |
+          APK=$(find android-v8/app/build/outputs/apk/release -name '*.apk' -type f | head -1)
+          test -n "$APK"
+          AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          "$AAPT" dump badging "$APK" | grep -F "versionCode='849' versionName='8.2.29'"
+          "$AAPT" dump permissions "$APK" | grep -F 'android.permission.SCHEDULE_EXACT_ALARM'
+          "$AAPT" dump permissions "$APK" | grep -F 'android.permission.WAKE_LOCK'
+          PKG=android-v8/app/src/main/java/io/github/hantae_ho/twa
+          grep -q 'HabitReminderScheduler.scheduleAll' "$PKG/BootReceiver.java"
+          grep -q 'setExactAndAllowWhileIdle' "$PKG/HabitReminderScheduler.java"
+          grep -q 'setExactAndAllowWhileIdle' "$PKG/ReminderScheduler.java"
+          grep -q 'setExactAndAllowWhileIdle' "$PKG/TreatmentReminderScheduler.java"
+          grep -q 'scheduleNextForOffset' "$PKG/TreatmentAlarmReceiver.java"
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: oneul-v8.2.29-relax-rate-apk
+          path: android-v8/app/build/outputs/apk/release/*.apk
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: oneul-v8.2.29-relax-rate-aab
+          path: android-v8/app/build/outputs/bundle/release/*.aab
