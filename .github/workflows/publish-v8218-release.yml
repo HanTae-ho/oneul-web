@@ -1,0 +1,37 @@
+name: Publish V8.2.18 test release
+
+on:
+  push:
+    branches: [android-v8.2.18-smart-accordion]
+    paths:
+      - '.github/workflows/publish-v8218-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.18 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34010675464 -n oneul-v8.2.18-smart-accordion-apk -D dist-apk
+          gh run download 34010675464 -n oneul-v8.2.18-smart-accordion-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.18.apk
+          cp dist-aab/*.aab oneul-v8.2.18.aab
+          test -s oneul-v8.2.18.apk
+          test -s oneul-v8.2.18.aab
+      - name: Publish V8.2.18 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.18-test --yes --cleanup-tag || true
+          gh release create v8.2.18-test oneul-v8.2.18.apk oneul-v8.2.18.aab \
+            --target android-v8.2.18-smart-accordion \
+            --title '오늘 한 걸음 V8.2.18 SMART 아코디언 UI 테스트' \
+            --notes 'SMART 도구의 모바일 스크롤 압박을 줄이기 위해 표시 방식만 개선했습니다. 도움이 되지 않는 사고방식의 8가지 사고방식 빠르게 보기는 기본 접힘 상태로 바뀌며 필요할 때 펼쳐 확인할 수 있습니다. 문제 해결 5단계 편집 화면은 한 번에 한 구역만 열리도록 정리했습니다. 화면상 1 문제 정의, 2 브레인스토밍(번역본 3단계 평가 포함), 3 전략 선택, 4 서면 계획 순으로 진행하며 다음 버튼을 누르면 현재 구역이 닫히고 다음 구역이 열립니다. 브레인스토밍의 전략도 아코디언으로 바뀌어 새 전략을 추가하면 기존 전략은 닫히고 새 전략이 열립니다. 번역본 질문과 평가 항목, smartWorks 저장구조, DATA_SCHEMA 6, 기존 SMART 도구와 ABC/DIBS 연결, 홈 일정, Android 습관·생활·치료·외래 정확알림 엔진은 변경하지 않았습니다.' \
+            --prerelease
