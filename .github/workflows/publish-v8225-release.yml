@@ -1,0 +1,37 @@
+name: Publish V8.2.25 test release
+
+on:
+  push:
+    branches: [android-v8.2.25-smart-goals-habit-link]
+    paths:
+      - '.github/workflows/publish-v8225-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.25 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34016379963 -n oneul-v8.2.25-smart-goals-habit-link-apk -D dist-apk
+          gh run download 34016379963 -n oneul-v8.2.25-smart-goals-habit-link-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.25.apk
+          cp dist-aab/*.aab oneul-v8.2.25.aab
+          test -s oneul-v8.2.25.apk
+          test -s oneul-v8.2.25.aab
+      - name: Publish V8.2.25 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.25-test --yes --cleanup-tag || true
+          gh release create v8.2.25-test oneul-v8.2.25.apk oneul-v8.2.25.aab \
+            --target android-v8.2.25-smart-goals-habit-link \
+            --title '오늘 한 걸음 V8.2.25 SMART 목표·습관 연결 테스트' \
+            --notes 'SMART Recovery Point 4에 SMART 목표 설정을 추가했습니다. 삶의 카테고리와 중요한 가치를 참고해 목표를 작성하고, 구체적·측정가능·동의가능·현실적·시간제한의 5기준을 점검한 뒤 실제 실행 행동을 정합니다. 반복해서 이어갈 행동은 기존 습관 만들기로 넘겨 기간·요일·알림을 그대로 설정할 수 있으며, SMART 목표에서 습관으로 들어간 경우 돌아가기·취소·저장 후에도 원래 SMART 목표 화면으로 돌아갑니다. 기존 S.habits 저장구조, smartWorks, DATA_SCHEMA 6, Balance Pie, VACI, HOV, 가족모드와 Android 습관·생활·치료·외래 정확알림 엔진은 그대로 유지했습니다.' \
+            --prerelease
