@@ -1,0 +1,37 @@
+name: Publish V8.2.26 test release
+
+on:
+  push:
+    branches: [android-v8.2.26-relaxation]
+    paths:
+      - '.github/workflows/publish-v8226-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.26 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34017369654 -n oneul-v8.2.26-relaxation-apk -D dist-apk
+          gh run download 34017369654 -n oneul-v8.2.26-relaxation-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.26.apk
+          cp dist-aab/*.aab oneul-v8.2.26.aab
+          test -s oneul-v8.2.26.apk
+          test -s oneul-v8.2.26.aab
+      - name: Publish V8.2.26 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.26-test --yes --cleanup-tag || true
+          gh release create v8.2.26-test oneul-v8.2.26.apk oneul-v8.2.26.aab \
+            --target android-v8.2.26-relaxation \
+            --title '오늘 한 걸음 V8.2.26 이완 · 마음 가라앉히기 테스트' \
+            --notes 'SMART Recovery Point 4에 이완 · 마음 가라앉히기를 추가했습니다. 한 화면에서 먼저 감정·몸의 긴장·호흡을 알아차린 뒤 점진적 근육 이완(PMR), 심상화, 명상 가운데 필요한 방법을 펼쳐 사용할 수 있습니다. PMR은 각 근육군을 약 5초 긴장 후 이완하는 흐름, 심상화는 약 15분 동안 조용하고 안전한 장소를 감각적으로 떠올리는 흐름, 명상은 호흡과 1~10 세기 및 생각을 알아차리고 다시 호흡으로 돌아오는 흐름을 반영했습니다. 기존 충동 대응의 4초 들이쉬기·6초 내쉬기 호흡 가이드는 새로 복제하지 않고 기존 도구로 연결합니다. 가족모드에서는 상대를 바꾸는 기술이 아니라 가족 자신의 감정과 몸의 긴장을 돌보는 연습으로 안내합니다. 별도 이완 기록은 저장하지 않으며 DATA_SCHEMA 6, 기존 SMART 기록, 습관·치료·외래 저장구조와 Android 정확알림 엔진은 변경하지 않았습니다.' \
+            --prerelease
