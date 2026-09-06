@@ -1,0 +1,98 @@
+name: Validate V8.2.26 relaxation
+
+on:
+  push:
+    branches: [v8.2.26-relaxation]
+    paths:
+      - 'v8226-relaxation.py'
+      - '.github/workflows/v8226-relaxation.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.26-relaxation
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply V8.2.26 patch
+        run: python v8226-relaxation.py
+      - name: Validate structure and preserved behavior
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          i=Path('index.html').read_text(encoding='utf-8')
+          l=Path('learning-data.js').read_text(encoding='utf-8')
+          w=Path('sw.js').read_text(encoding='utf-8')
+          checks={
+            'build': "const BUILD = 'V8.2.26';" in i,
+            'schema unchanged': 'const DATA_SCHEMA = 6;' in i,
+            'page': 'id="p-smart-relax"' in i,
+            'awareness': '1 · 먼저 알아차리기' in i,
+            'pmr': '2 · 점진적 근육 이완(PMR)' in i and '5초' in i,
+            'visualization': '3 · 심상화' in i and '약 15분' in i,
+            'meditation': '4 · 명상' in i and '1부터 10까지' in i,
+            'draw': 'function drawSmartRelax()' in i,
+            'local accordion': "const setAcc=(node,on)=>" in i,
+            'family own care': '가족인 내가 내 감정과 몸의 긴장을 알아차리고 가라앉히기' in i,
+            'existing breath link': '기존 호흡 가이드로 이동' in i and "go('urge')" in i,
+            'existing 4-6 breath unchanged': 'setTimeout(step, 4000)' in i and 'setTimeout(step, 6000)' in i,
+            'hub': "smartToolButton('이완 · 마음 가라앉히기'" in i,
+            'learning route': "if(type === 'smart-relax'){ go('smart-relax'); return; }" in i,
+            'learning action': '"type": "smart-relax"' in l and '"label": "이완 · 마음 가라앉히기"' in l,
+            'sw version': "const APP_VERSION = 'V8.2.26';" in w,
+            'sw cache': "const V = 'ohg-v8226-relaxation';" in w,
+            'balance preserved': "smartToolButton('라이프스타일 밸런스 파이'" in i,
+            'vaci preserved': "smartToolButton('VACI · 활력 넘치는 창의적 관심사'" in i,
+            'goal preserved': "smartToolButton('SMART 목표 설정'" in i,
+            'HOV preserved': 'drawSmartHov' in i,
+            'habit handoff preserved': 'startHabitNew' in i,
+            'no translation wording index': '번역본' not in i,
+            'no translation wording learning': '번역본' not in l,
+          }
+          bad=[k for k,v in checks.items() if not v]
+          for k,v in checks.items(): print(('OK  ' if v else 'FAIL'),k)
+          if bad: raise SystemExit('failed: '+', '.join(bad))
+          PY
+      - name: JavaScript syntax checks
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          inline=[]
+          for x in scripts:
+            if x.strip(): inline.append(x)
+          Path('/tmp/index-inline.js').write_text('\n'.join(inline),encoding='utf-8')
+          print('inline scripts',len(inline))
+          PY
+          node --check /tmp/index-inline.js
+          node --check learning-data.js
+          node --check sw.js
+      - name: Validate diff scope
+        run: |
+          git diff --check
+          python - <<'PY'
+          import subprocess
+          changed=set(subprocess.check_output(['git','diff','--name-only'],text=True).split())
+          expected={'index.html','learning-data.js','sw.js'}
+          print('changed:',sorted(changed))
+          if changed != expected:
+            raise SystemExit(f'unexpected diff scope: {changed}')
+          PY
+      - name: Commit validated product files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html learning-data.js sw.js
+          git commit -m 'Add Point 4 relaxation and mindfulness tool V8.2.26'
+          git push origin HEAD:v8.2.26-relaxation
