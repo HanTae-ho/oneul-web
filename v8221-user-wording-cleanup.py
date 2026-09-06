@@ -16,6 +16,7 @@ once("const BUILD = 'V8.2.20';","const BUILD = 'V8.2.21';",'BUILD')
 once("SMART Recovery 번역본의 <b>문제 해결을 위한 5단계</b>와 문제 해결 워크시트를 앱에 맞게 옮겼으며", "SMART Recovery의 <b>문제 해결을 위한 5단계</b>와 문제 해결 워크시트를 바탕으로 앱에 맞게 구성했으며", 'problem solving user text')
 once("SMART Recovery 번역본의 <b>Lifestyle Balance Pie</b>를 모바일에 맞게 옮겼으며", "SMART Recovery의 <b>Lifestyle Balance Pie</b>를 바탕으로 모바일에 맞게 구성했으며", 'balance pie user text')
 once("번역본 돌아보기 질문 전체 보기", "삶을 돌아보는 질문 전체 보기", 'balance prompt toggle')
+once("번역본의 3단계 ‘평가’는 각 전략을 펼쳐 실행 가능성·시도할 준비·좋은 점·위험·종합점수를 작성하는 방식으로 함께 진행합니다.", "3단계 ‘평가’는 각 전략을 펼쳐 실행 가능성·시도할 준비·좋은 점·위험·종합점수를 작성하는 방식으로 함께 진행합니다.", 'problem evaluation helper')
 once("   번역본 Point 3의 '삶의 문제 해결 / 문제 해결을 위한 5단계'와", "   SMART Recovery Point 3의 '삶의 문제 해결 / 문제 해결을 위한 5단계'와", 'problem solving comment')
 once("   번역본 Point 4의 Lifestyle Balance Pie: 삶의 영역을 정하고 0~10 만족도를 표시한 뒤", "   SMART Recovery Point 4의 Lifestyle Balance Pie: 삶의 영역을 정하고 0~10 만족도를 표시한 뒤", 'balance pie comment')
 
