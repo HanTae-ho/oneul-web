@@ -80,14 +80,14 @@ old_menu = "smartToolButton('SMART 목표 설정','삶의 영역·가치 → 목
 new_menu = "smartToolButton('SMART 목표 설정','삶의 영역·가치 → 목표 → SMART 5기준 → 실행 행동','smart-goal','check')+smartToolButton('이완 · 마음 가라앉히기','알아차림 → PMR · 심상화 · 명상 중 하나 사용하기','smart-relax','sprout')+smartToolButton('건강 회복 · 생활 돌보기','식사 · 운동 · 수면 · 복약 · 미루기를 기존 기능으로 연결','smart-health','check')+'</div>';"
 s = replace_one(s, old_menu, new_menu, 'Point 4 menu')
 
-# Put behavior immediately before learningAction, keeping it small and route-only.
 health_js = r'''function drawSmartHealth(){
- const rn=$('#smart-health-role-note'),food=$('#smart-health-food'),ex=$('#smart-health-exercise'),sleep=$('#smart-health-sleep'),tr=$('#smart-health-treatment'),pro=$('#smart-health-procrastination'),body=$('#smart-health-bodylog');
+ const rn=$('#smart-health-role-note'),food=$('#smart-health-food'),ex=$('#smart-health-exercise'),sleep=$('#smart-health-sleep'),tc=$('#smart-health-treatment-card'),tr=$('#smart-health-treatment'),pro=$('#smart-health-procrastination'),body=$('#smart-health-bodylog');
  if(rn)rn.innerHTML=famMode()?'<div class="note" style="margin-bottom:12px"><b>가족도 자신의 생활과 건강을 돌봅니다.</b><br>상대의 식사·수면·복약을 확인하거나 관리하는 화면이 아니라, 가족인 내가 내 몸과 생활을 챙기는 데 사용합니다.</div>':'';
+ if(tc)tc.classList.toggle('hide',famMode());
  if(food)food.onclick=()=>go('life-schedule');
  if(ex)ex.onclick=()=>go('habit');
  if(sleep)sleep.onclick=()=>go('life-schedule');
- if(tr){tr.textContent=famMode()?'내 몸 기록 보기':'복약 · 치료 일정 관리';tr.onclick=()=>{if(famMode()){recTab='body';go('rec');}else go('treatment');};}
+ if(tr)tr.onclick=()=>go('treatment');
  if(pro)pro.onclick=()=>go('smart-goal');
  if(body)body.onclick=()=>{recTab='body';go('rec');};
 }
@@ -106,17 +106,17 @@ p = Path('learning-data.js')
 s = p.read_text(encoding='utf-8')
 s = replace_one(s, '/* 오늘 한 걸음 — 회복학습 데이터 V8.2.26', '/* 오늘 한 걸음 — 회복학습 데이터 V8.2.30', 'learning header')
 old_learning = '''          {
-            \"type\": \"smart-relax\",
-            \"label\": \"이완 · 마음 가라앉히기\"
+            "type": "smart-relax",
+            "label": "이완 · 마음 가라앉히기"
           }
         ]'''
 new_learning = '''          {
-            \"type\": \"smart-relax\",
-            \"label\": \"이완 · 마음 가라앉히기\"
+            "type": "smart-relax",
+            "label": "이완 · 마음 가라앉히기"
           },
           {
-            \"type\": \"smart-health\",
-            \"label\": \"건강 회복 · 생활 돌보기\"
+            "type": "smart-health",
+            "label": "건강 회복 · 생활 돌보기"
           }
         ]'''
 s = replace_one(s, old_learning, new_learning, 'learning Point 4 action')
