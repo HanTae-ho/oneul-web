@@ -853,6 +853,10 @@ window.LEARNING_TOPICS = [
           {
             "type": "smart-vaci",
             "label": "VACI 관심사 목록 작성하기"
+          },
+          {
+            "type": "smart-goal",
+            "label": "SMART 목표 설정하기"
           }
         ]
       }
