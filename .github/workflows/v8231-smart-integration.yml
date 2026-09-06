@@ -1,0 +1,87 @@
+name: V8.2.31 SMART integration
+
+on:
+  push:
+    branches: [v8.2.31-smart-integration]
+    paths:
+      - 'v8231-smart-integration.py'
+      - '.github/workflows/v8231-smart-integration.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.31-smart-integration
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply product patch
+        run: python v8231-smart-integration.py
+      - name: Validate V8.2.31 integration
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "const BUILD = 'V8.2.31';" index.html
+          grep -q "const DATA_SCHEMA = 6;" index.html
+          grep -q "id=\"p-smart-importance-confidence\"" index.html
+          grep -q "id=\"smart-ic-ready\" type=\"range\" min=\"1\" max=\"10\"" index.html
+          grep -q "id=\"smart-ic-important\" type=\"range\" min=\"0\" max=\"10\"" index.html
+          grep -q "id=\"smart-ic-confidence\" type=\"range\" min=\"0\" max=\"10\"" index.html
+          grep -q "이 빠른 점검은 저장하지 않습니다" index.html
+          grep -q "가족은 내 변화를 점검합니다" index.html
+          grep -q "'smart-importance-confidence','check'" index.html
+          grep -q "'지금 충동 대처하기','충동 강도 확인 → 버티기 타이머 → 호흡 → 전후 강도 확인','urge','wave'" index.html
+          grep -q "if(type === 'urge-coping'){ go('urge'); return; }" index.html
+          grep -q "if(type === 'smart-importance-confidence'){ go('smart-importance-confidence'); return; }" index.html
+          grep -q '"type": "smart-importance-confidence"' learning-data.js
+          grep -q '"type": "urge-coping"' learning-data.js
+          grep -q "APP_VERSION = 'V8.2.31'" sw.js
+          grep -q "ohg-v8231-smart-integration" sw.js
+          # Core SMART tools preserved
+          for x in smart-hov smart-three-questions smart-change-plan smart-cba smart-deads smart-disarm smart-abc smart-dibs smart-thinking-styles smart-problem-solving smart-balance-pie smart-vaci smart-goal smart-relax smart-health; do grep -q "$x" index.html; done
+          # Existing native TTS web handoff/fallback and schema markers preserved
+          grep -q "RELAX_TTS_RATE=.80" index.html || grep -q "RELAX_TTS_RATE = .80" index.html || grep -q "RELAX_TTS_RATE=.8" index.html || grep -q "RELAX_TTS_RATE = .8" index.html
+          grep -q "oneul://relax/" index.html
+          grep -q "V8.2.31 — SMART Recovery 전체 앱 통합" README.md
+          grep -q "역할극·거절기술·자기수용·동기유지" README.md
+          ! grep -q "번역본" <(python - <<'PY'
+          from pathlib import Path
+          # Product user-facing additions must not introduce this production wording.
+          # Existing historic comments/data elsewhere are outside this check.
+          s=Path('index.html').read_text(encoding='utf-8')
+          print(s)
+          PY
+          ) || { echo 'index.html contains prohibited user-facing wording'; exit 1; }
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          parts=[]
+          for m in re.finditer(r'<script([^>]*)>(.*?)</script>', s, re.S|re.I):
+              if 'src=' not in m.group(1).lower(): parts.append(m.group(2))
+          Path('/tmp/index-inline.js').write_text('\n'.join(parts),encoding='utf-8')
+          PY
+          node --check /tmp/index-inline.js
+          node --check learning-data.js
+          node --check sw.js
+          git diff --check
+          # Product scope before helper/workflow cleanup: only expected product files may be modified.
+          git diff --name-only | sort > /tmp/changed.txt
+          printf '%s\n' README.md index.html learning-data.js sw.js | sort > /tmp/expected.txt
+          diff -u /tmp/expected.txt /tmp/changed.txt
+      - name: Commit product files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html learning-data.js sw.js README.md
+          git commit -m 'V8.2.31 SMART 전체 앱 통합'
+          git push origin HEAD:v8.2.31-smart-integration
