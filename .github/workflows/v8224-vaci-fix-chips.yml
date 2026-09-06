@@ -1,0 +1,52 @@
+name: V8.2.24 VACI Fix and Chips
+
+on:
+  push:
+    branches: [v8.2.24-vaci-fix-chips]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.24-vaci-fix-chips
+      - name: Apply V8.2.24 patch
+        run: python v8224-vaci-fix-chips.py
+      - name: Verify VACI runtime fix and chips
+        run: |
+          grep -F "const BUILD = 'V8.2.24';" index.html
+          grep -F "const APP_VERSION = 'V8.2.24';" sw.js
+          grep -F "ohg-v8224-vaci-fix-chips" sw.js
+          grep -F "function openSmartVaciEditor(record)" index.html
+          grep -F "const setAcc=(node,on)=>" index.html
+          grep -F "선택한 관심사" index.html
+          grep -F "border-radius:999px" index.html
+          grep -F "kind:'vaci'" index.html
+          grep -F "const DATA_SCHEMA = 6" index.html
+          ! grep -F "번역본" index.html
+      - name: JavaScript syntax sanity
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          Path('/tmp/app.js').write_text('\n'.join(scripts),encoding='utf-8')
+          PY
+          node --check /tmp/app.js
+      - name: Diff scope sanity
+        run: |
+          git diff --check
+          files=$(git diff --name-only | sort)
+          test "$files" = $'index.html\nsw.js'
+      - name: Commit product files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js
+          git commit -m 'V8.2.24 fix VACI accordion and show interest chips'
+          git push
