@@ -1,0 +1,61 @@
+name: V8.2.17 SMART Problem Solving
+
+on:
+  push:
+    branches: [v8.2.17-smart-problem-solving]
+    paths:
+      - 'v8217-smart-problem-solving.py'
+      - '.github/workflows/v8217-smart-problem-solving.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.17-smart-problem-solving
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply patch
+        run: python v8217-smart-problem-solving.py
+      - name: Verify
+        run: |
+          grep -q "const BUILD = 'V8.2.17'" index.html
+          grep -q "const DATA_SCHEMA = 6" index.html
+          grep -q 'id="p-smart-problem-solving"' index.html
+          grep -q '문제 해결 · 5단계' index.html
+          grep -q '문제 정의 → 브레인스토밍 → 평가 → 선택 → 서면 계획' index.html
+          grep -q 'function drawSmartProblemSolving' index.html
+          grep -q "kind:'problem-solving'" index.html
+          grep -q '실행 가능성 0~10' index.html
+          grep -q '시도할 준비 0~10' index.html
+          grep -q '좋은 점' index.html
+          grep -q '가능한 위험' index.html
+          grep -q '종합 점수 0~10' index.html
+          grep -q '서면으로 계획 작성하기' index.html
+          grep -q "const APP_VERSION = 'V8.2.17'" sw.js
+          grep -q 'ohg-v8217-smart-problem-solving' sw.js
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,flags=re.S)
+          Path('/tmp/oneul-main.js').write_text(blocks[-1],encoding='utf-8')
+          PY
+          node --check /tmp/oneul-main.js
+          git diff --check
+      - name: Verify scope
+        run: |
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "index.html sw.js "
+      - name: Commit product changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js
+          git commit -m 'V8.2.17 add SMART problem solving' || true
+          git push
