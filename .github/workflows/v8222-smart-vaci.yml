@@ -1,0 +1,75 @@
+name: V8.2.22 SMART VACI
+
+on:
+  push:
+    branches: [v8.2.22-smart-vaci]
+    paths:
+      - 'v8222-smart-vaci.py'
+      - '.github/workflows/v8222-smart-vaci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.22-smart-vaci
+      - name: Apply VACI patch
+        run: python v8222-smart-vaci.py
+      - name: Verify V8.2.22 product markers
+        run: |
+          grep -q "const BUILD = 'V8.2.22';" index.html
+          grep -q "const DATA_SCHEMA = 6;" index.html
+          grep -q 'id="p-smart-vaci"' index.html
+          grep -q "kind:'vaci'" index.html
+          grep -q "function drawSmartVaci" index.html
+          grep -q "function openSmartVaciEditor" index.html
+          grep -q "function openSmartVaciView" index.html
+          grep -q "if(type === 'smart-vaci'){ go('smart-vaci'); return; }" index.html
+          grep -q 'VACI · 활력 넘치는 창의적 관심사' index.html
+          grep -q '시도 전 관심도' index.html
+          grep -q '시도 후 점수' index.html
+          grep -q '활동 후 평가 · 생각 정리' index.html
+          grep -q 'data-vaci-toggle' index.html
+          grep -q 'data-smart-back' index.html
+          grep -q '"type": "smart-vaci"' learning-data.js
+          grep -q '"id": "smart-point4"' learning-data.js
+          ! grep -q '번역본' index.html
+          ! grep -q '번역본' learning-data.js
+          grep -q "const APP_VERSION = 'V8.2.22';" sw.js
+          grep -q "const V = 'ohg-v8222-smart-vaci';" sw.js
+      - name: Verify existing SMART connections remain
+        run: |
+          for p in smart-hov smart-three-questions smart-change-plan smart-cba smart-deads smart-disarm smart-abc smart-dibs smart-thinking-styles smart-problem-solving smart-balance-pie smart-vaci; do
+            grep -q "$p" index.html
+          done
+          grep -q "learnState.returnSection" index.html
+          grep -q "drawLearnTopic(!!opt.fromHistory)" index.html
+      - name: JavaScript syntax sanity
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          Path('/tmp/index-inline.js').write_text('\n'.join(blocks),encoding='utf-8')
+          PY
+          node --check /tmp/index-inline.js
+          node --check learning-data.js
+      - name: Diff scope sanity
+        run: |
+          git diff --check
+          files=$(git diff --name-only | sort)
+          printf '%s\n' "$files"
+          test "$files" = $'index.html\nlearning-data.js\nsw.js'
+      - name: Commit product files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html learning-data.js sw.js
+          git commit -m 'V8.2.22 add SMART VACI'
+          git push origin HEAD:v8.2.22-smart-vaci
