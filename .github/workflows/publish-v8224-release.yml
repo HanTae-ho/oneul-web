@@ -1,0 +1,37 @@
+name: Publish V8.2.24 test release
+
+on:
+  push:
+    branches: [android-v8.2.24-vaci-fix-chips]
+    paths:
+      - '.github/workflows/publish-v8224-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.24 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34015294464 -n oneul-v8.2.24-vaci-fix-chips-apk -D dist-apk
+          gh run download 34015294464 -n oneul-v8.2.24-vaci-fix-chips-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.24.apk
+          cp dist-aab/*.aab oneul-v8.2.24.aab
+          test -s oneul-v8.2.24.apk
+          test -s oneul-v8.2.24.aab
+      - name: Publish V8.2.24 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.24-test --yes --cleanup-tag || true
+          gh release create v8.2.24-test oneul-v8.2.24.apk oneul-v8.2.24.aab \
+            --target android-v8.2.24-vaci-fix-chips \
+            --title '오늘 한 걸음 V8.2.24 VACI 오류 수정·관심사 칩 테스트' \
+            --notes 'VACI 관심사 아코디언에서 발생하던 setAcc is not defined 실행 오류를 수정했습니다. 저장한 VACI 목록에서는 첫 관심사를 대표 제목처럼 표시하지 않고, 저장한 모든 관심사를 같은 크기의 작은 칩으로 동등하게 보여줍니다. 기존 VACI 기록은 재입력 없이 새 표시 방식이 적용됩니다. 즐거운 활동 아이디어 선택기, smartWorks kind:vaci 저장형식, DATA_SCHEMA 6, Point 4 학습에서 VACI로 들어갔다가 원래 학습 상세로 돌아가는 경로, 가족모드는 그대로 유지합니다. Android 습관·생활·치료·외래 정확알림 엔진은 변경하지 않았고 빌드에서 재검증했습니다.' \
+            --prerelease
