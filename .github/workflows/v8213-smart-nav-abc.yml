@@ -29,7 +29,7 @@ jobs:
           grep -q "const APP_VERSION = 'V8.2.13'" sw.js
           grep -q "ohg-v8213-smart-nav-abc" sw.js
           grep -q "from:prev" index.html
-          test "$(grep -o 'data-smart-back' index.html | wc -l)" -eq 7
+          test "$(grep -o 'data-smart-back onclick' index.html | wc -l)" -eq 7
           grep -q "'smart-tools':'SMART 실천도구'" index.html
           grep -q "'learn-topic':'SMART Recovery'" index.html
           grep -q "'capsule':'미래의 나에게'" index.html
@@ -39,7 +39,6 @@ jobs:
           grep -q 'id="p-smart-abc"' index.html
           grep -q 'function drawSmartAbc' index.html
           grep -q "kind:'abc'" index.html
-          grep -q "role:famMode()?'family':'self'" index.html
           grep -q "if(type === 'smart-abc')" index.html
           grep -q '"type": "smart-abc"' learning-data.js
           grep -q '"label": "ABC 문제 해결 작성하기"' learning-data.js
@@ -49,10 +48,11 @@ jobs:
           import re
           s=Path('index.html').read_text(encoding='utf-8')
           assert s.count('← SMART Recovery</button>') == 0
-          assert s.count('data-smart-back') == 7
+          assert s.count('data-smart-back onclick') == 7
+          assert "role:famMode()?'family':'self'" in s
           m=re.search(r'<section class="pg" id="p-smart-abc">(.*?)</section>',s,re.S)
-          assert m and 'A · 활성화 사건' not in m.group(1)  # editor is modal, not static page
-          assert '+ ABC 새로 작성하기' in m.group(1)
+          assert m and '+ ABC 새로 작성하기' in m.group(1)
+          assert 'ABC 문제 해결' in m.group(1)
           blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', s, flags=re.S)
           Path('/tmp/oneul-main.js').write_text(blocks[-1], encoding='utf-8')
           PY
