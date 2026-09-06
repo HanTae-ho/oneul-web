@@ -1429,6 +1429,7 @@ addEventListener('appinstalled', function(){
     </div>
     <p class="tiny" style="margin:8px 0 0">가이드는 조금 느린 속도로 읽습니다. 기기·브라우저에 따라 화면이 꺼지면 음성이 중단될 수 있습니다.</p>
   </div>
+  <div class="note hide" id="smart-relax-native-note" style="margin-bottom:12px"><b>Android 앱에서는 화면이 꺼져도 이어집니다.</b><br>가이드 듣기를 누르면 전용 음성 가이드가 열립니다. 한국어 음성 선택과 미리듣기는 그 화면에서 설정하며, 화면은 자연스럽게 꺼져도 안내와 쉼 시간이 계속 진행됩니다.</div>
   <div class="note w hide" id="smart-relax-tts-unsupported" style="margin-bottom:12px">이 기기에서는 음성 안내 기능을 사용할 수 없습니다. 아래 글을 보며 연습할 수 있습니다.</div>
   <div class="card hide" id="smart-relax-player">
     <div class="sp" style="align-items:flex-start;gap:12px">
@@ -2056,7 +2057,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.27';
+const BUILD = 'V8.2.28';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -5659,7 +5660,7 @@ function smartGoalToHabit(r){
    문장 사이의 쉼 시간을 따로 두어 사용자가 눈을 감고 따라갈 수 있게 합니다.
    음성 선택은 회복기록 백업과 분리된 기기 설정으로만 저장합니다. */
 const RELAX_TTS_VOICE_KEY='ohg.relaxVoice.v1';
-const RELAX_TTS_RATE=.88;
+const RELAX_TTS_RATE=.80;
 const RELAX_TTS_GUIDES={
  pmr:{title:'점진적 근육 이완 · PMR',steps:[
   ['편안하게 앉거나 누워보세요. 발과 손을 편하게 두고, 통증이 있는 부위는 억지로 힘주지 않아도 됩니다.',5000],
@@ -5708,6 +5709,8 @@ const RELAX_TTS_GUIDES={
  ]}
 };
 let relaxTts={guide:'',index:0,token:0,timer:0,speaking:false,waiting:false,paused:false,voiceBound:false};
+function relaxNativeApp(){try{return sessionStorage.getItem('ohg.native.app')==='1';}catch(e){return false;}}
+function relaxNativeOpen(kind){if(!['pmr','visual','meditation'].includes(kind))return;relaxTtsStop(false);location.href='oneul://relax/'+kind;}
 function relaxTtsAvailable(){return !!(window.speechSynthesis&&window.SpeechSynthesisUtterance);}
 function relaxTtsVoiceId(v){return ((v.voiceURI||v.name||'')+'||'+(v.lang||''));}
 function relaxTtsSavedVoice(){try{return localStorage.getItem(RELAX_TTS_VOICE_KEY)||'';}catch(e){return '';}}
@@ -5773,10 +5776,10 @@ function drawSmartRelax(){
  if(rn)rn.innerHTML=famMode()?'<div class="note" style="margin-bottom:12px"><b>가족도 자신의 긴장을 돌봅니다.</b><br>상대를 진정시키거나 바꾸기 위한 기술이 아니라, 가족인 내가 내 감정과 몸의 긴장을 알아차리고 가라앉히기 위한 연습으로 사용합니다.</div>':'';
  const setAcc=(node,on)=>{if(!node)return;node.classList.toggle('on',!!on);const h=node.querySelector('[data-relax-toggle]');if(h)h.setAttribute('aria-expanded',on?'true':'false');};
  box.querySelectorAll('[data-relax-toggle]').forEach(b=>b.onclick=()=>{const target=b.closest('[data-relax-acc]'),was=target&&target.classList.contains('on');box.querySelectorAll('[data-relax-acc]').forEach(x=>setAcc(x,false));if(target&&!was)setAcc(target,true);});
- const supported=relaxTtsAvailable(),vc=$('#smart-relax-voice-card'),un=$('#smart-relax-tts-unsupported'),sel=$('#smart-relax-voice'),pv=$('#smart-relax-voice-preview'),pp=$('#smart-relax-player-pause'),ps=$('#smart-relax-player-stop');
- if(vc)vc.classList.toggle('hide',!supported);if(un)un.classList.toggle('hide',supported);box.querySelectorAll('[data-relax-guide]').forEach(b=>{b.disabled=!supported;b.onclick=()=>relaxTtsStart(b.dataset.relaxGuide);});
- if(supported){relaxTtsBindVoiceEvent();relaxTtsRenderVoices();if(sel)sel.onchange=()=>{relaxTtsStop(false);relaxTtsSaveVoice(sel.value);relaxTtsRenderVoices();toast('가이드 음성을 저장했습니다.');};if(pv)pv.onclick=relaxTtsPreview;if(pp)pp.onclick=relaxTtsTogglePause;if(ps)ps.onclick=()=>relaxTtsStop(true);}
- if(!relaxTts.guide)relaxTtsPlayer(false,'','');
+ const native=relaxNativeApp(),supported=relaxTtsAvailable(),vc=$('#smart-relax-voice-card'),nn=$('#smart-relax-native-note'),un=$('#smart-relax-tts-unsupported'),sel=$('#smart-relax-voice'),pv=$('#smart-relax-voice-preview'),pp=$('#smart-relax-player-pause'),ps=$('#smart-relax-player-stop');
+ if(vc)vc.classList.toggle('hide',native||!supported);if(nn)nn.classList.toggle('hide',!native);if(un)un.classList.toggle('hide',native||supported);box.querySelectorAll('[data-relax-guide]').forEach(b=>{b.disabled=!native&&!supported;b.onclick=()=>native?relaxNativeOpen(b.dataset.relaxGuide):relaxTtsStart(b.dataset.relaxGuide);});
+ if(!native&&supported){relaxTtsBindVoiceEvent();relaxTtsRenderVoices();if(sel)sel.onchange=()=>{relaxTtsStop(false);relaxTtsSaveVoice(sel.value);relaxTtsRenderVoices();toast('가이드 음성을 저장했습니다.');};if(pv)pv.onclick=relaxTtsPreview;if(pp)pp.onclick=relaxTtsTogglePause;if(ps)ps.onclick=()=>relaxTtsStop(true);}
+ if(native)relaxTtsStop(false);else if(!relaxTts.guide)relaxTtsPlayer(false,'','');
  if(bw)bw.classList.toggle('hide',famMode());
  if(bb)bb.onclick=()=>{go('urge');toast('충동 대응을 시작한 뒤 타이머에서 ‘호흡 같이 하기’를 사용할 수 있습니다.');};
 }
