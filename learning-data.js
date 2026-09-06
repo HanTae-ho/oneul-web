@@ -1,4 +1,4 @@
-/* 오늘 한 걸음 — 회복학습 데이터 V8.2.13
+/* 오늘 한 걸음 — 회복학습 데이터 V8.2.21
    Q&A와 분리된 독립 학습 영역입니다.
    12단계 해설은 사용자가 집필 중인 「상담사가 풀어쓰는 12단계」 초안을
    모바일 학습용으로 요약·재구성했습니다.
@@ -707,9 +707,9 @@ window.LEARNING_TOPICS = [
     "title": "SMART Recovery",
     "icon": "check",
     "description": "동기·충동·생각과 감정·삶의 균형을 실용적인 도구로 살펴봅니다.",
-    "longDescription": "사용자가 번역한 SMART Recovery 핸드북의 4-Point Program과 도구 체계를 바탕으로 모바일 학습용으로 요약·재구성했습니다. 네 가지 Point는 순서대로 끝내는 단계가 아니라, 지금 필요한 영역의 도구를 골라 반복해서 사용하는 회복의 틀입니다.",
+    "longDescription": "SMART Recovery 핸드북의 4-Point Program과 도구 체계를 바탕으로 모바일 학습용으로 요약·재구성했습니다. 네 가지 Point는 순서대로 끝내는 단계가 아니라, 지금 필요한 영역의 도구를 골라 반복해서 사용하는 회복의 틀입니다.",
     "status": "content-ready",
-    "sourceNote": "사용자 번역 SMART Recovery 핸드북 기반 — 앱용 요약·재구성",
+    "sourceNote": "SMART Recovery 핸드북 기반 — 앱용 요약·재구성",
     "sections": [
       {
         "id": "smart-intro",
@@ -814,6 +814,18 @@ window.LEARNING_TOPICS = [
           {
             "type": "smart-abc",
             "label": "ABC 문제 해결 작성하기"
+          },
+          {
+            "type": "smart-dibs",
+            "label": "DIBS 생각 반박하기"
+          },
+          {
+            "type": "smart-thinking-styles",
+            "label": "도움이 되지 않는 사고방식 점검하기"
+          },
+          {
+            "type": "smart-problem-solving",
+            "label": "문제 해결 · 5단계 작성하기"
           }
         ]
       },
@@ -832,7 +844,13 @@ window.LEARNING_TOPICS = [
           "지금 내 삶에서 가장 만족도가 낮고 더 돌보고 싶은 영역은 무엇인가요?",
           "예전에 즐겼지만 중단했거나 새로 시도해보고 싶은 활동은 무엇인가요?"
         ],
-        "practice": "이번 주에 삶의 균형을 위해 늘리고 싶은 활동 하나와 줄이고 싶은 활동 하나를 정해보세요."
+        "practice": "이번 주에 삶의 균형을 위해 늘리고 싶은 활동 하나와 줄이고 싶은 활동 하나를 정해보세요.",
+        "actions": [
+          {
+            "type": "smart-balance-pie",
+            "label": "라이프스타일 밸런스 파이 작성하기"
+          }
+        ]
       }
     ]
   }
