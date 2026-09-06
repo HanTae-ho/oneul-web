@@ -1,0 +1,37 @@
+name: Publish V8.2.14 test release
+
+on:
+  push:
+    branches: [android-v8.2.14-home-longpress-edit]
+    paths:
+      - '.github/workflows/publish-v8214-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.14 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34006716475 -n oneul-v8.2.14-home-longpress-edit-apk -D dist-apk
+          gh run download 34006716475 -n oneul-v8.2.14-home-longpress-edit-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.14.apk
+          cp dist-aab/*.aab oneul-v8.2.14.aab
+          test -s oneul-v8.2.14.apk
+          test -s oneul-v8.2.14.aab
+      - name: Publish V8.2.14 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.14-test --yes --cleanup-tag || true
+          gh release create v8.2.14-test oneul-v8.2.14.apk oneul-v8.2.14.aab \
+            --target android-v8.2.14-home-longpress-edit \
+            --title '오늘 한 걸음 V8.2.14 오늘 일정 수정 테스트' \
+            --notes '홈의 오늘 일정에서 잘못 완료 체크한 기록을 수정할 수 있도록 했습니다. 미완료 항목은 한 번 탭하면 완료되고, 완료된 항목은 길게 누르면 오늘 완료 기록을 취소합니다. 식사와 습관은 바로 취소되며, 복약은 안전을 위해 확인창을 거쳐 취소됩니다. 완료 항목이 있으면 길게 눌러 수정할 수 있다는 안내를 표시하고, 지원 기기에서는 수정 성공 시 짧은 진동 피드백을 제공합니다. 일정 설정, 수면/외래 표시, SMART Recovery 도구, DATA_SCHEMA 6, Android 습관·생활·치료·외래 정확알림 엔진은 변경하지 않았습니다.' \
+            --prerelease
