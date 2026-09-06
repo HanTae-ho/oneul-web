@@ -1,0 +1,56 @@
+name: V8.2.21 User Wording Cleanup
+
+on:
+  push:
+    branches: [v8.2.21-user-wording-cleanup]
+    paths:
+      - 'v8221-user-wording-cleanup.py'
+      - '.github/workflows/v8221-user-wording-cleanup.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.21-user-wording-cleanup
+      - name: Apply wording patch
+        run: python v8221-user-wording-cleanup.py
+      - name: Verify wording and invariants
+        run: |
+          grep -q "const BUILD = 'V8.2.21';" index.html
+          ! grep -q '번역본' index.html
+          grep -q '삶을 돌아보는 질문 전체 보기' index.html
+          grep -q 'SMART Recovery의 <b>문제 해결을 위한 5단계</b>' index.html
+          grep -q 'SMART Recovery의 <b>Lifestyle Balance Pie</b>' index.html
+          grep -q 'const DATA_SCHEMA = 6;' index.html
+          grep -q "const APP_VERSION = 'V8.2.21';" sw.js
+          grep -q "ohg-v8221-user-wording-cleanup" sw.js
+          git diff --check
+      - name: JavaScript syntax sanity
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>',s)
+          Path('/tmp/inline.js').write_text('\n'.join(blocks),encoding='utf-8')
+          PY
+          node --check /tmp/inline.js
+          node --check sw.js
+      - name: Verify unchanged critical features
+        run: |
+          grep -q "kind:'problem-solving'" index.html
+          grep -q "kind:'lifestyle-balance-pie'" index.html
+          grep -q 'notify-schedule' index.html
+          grep -q 'treatment' index.html
+      - name: Commit product files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js
+          git commit -m 'V8.2.21 clean user-facing SMART wording'
+          git push
