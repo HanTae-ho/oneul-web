@@ -1,4 +1,4 @@
-/* 오늘 한 걸음 — 회복학습 데이터 V8.2.30
+/* 오늘 한 걸음 — 회복학습 데이터 V8.2.31
    Q&A와 분리된 독립 학습 영역입니다.
    12단계 해설은 사용자가 집필 중인 「상담사가 풀어쓰는 12단계」 초안을
    모바일 학습용으로 요약·재구성했습니다.
@@ -746,6 +746,10 @@ window.LEARNING_TOPICS = [
         "practice": "오늘 내가 지키고 싶은 가치 한 가지와, 그 가치를 위해 할 수 있는 작은 행동 한 가지를 정해보세요.",
         "actions": [
           {
+            "type": "smart-importance-confidence",
+            "label": "중요성 · 자신감 빠른 점검"
+          },
+          {
             "type": "smart-hov",
             "label": "HOV 가치의 계층 작성하기"
           },
@@ -780,6 +784,10 @@ window.LEARNING_TOPICS = [
         ],
         "practice": "최근 충동 한 번을 떠올려 시간·장소·촉발요인·대처를 충동일기에 남겨보세요.",
         "actions": [
+          {
+            "type": "urge-coping",
+            "label": "지금 충동 대처 시작하기"
+          },
           {
             "type": "smart-deads",
             "label": "DEADS 대처계획·실행하기"
