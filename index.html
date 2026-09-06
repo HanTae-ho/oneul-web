@@ -1381,14 +1381,14 @@ addEventListener('appinstalled', function(){
   <div id="smart-balance-list" style="margin-top:12px"></div>
 </section>
 
-<!-- ══════════ SMART Recovery · VACI V8.2.22 ══════════ -->
+<!-- ══════════ SMART Recovery · VACI V8.2.23 ══════════ -->
 <section class="pg" id="p-smart-vaci">
   <div class="sp" style="margin-bottom:11px">
     <h1 style="margin:0">VACI · 활력 넘치는 창의적 관심사</h1>
     <button class="tiny" style="color:var(--acc);font-weight:600" data-smart-back onclick="appBack('smart-tools')">← SMART 실천도구</button>
   </div>
   <div class="note" style="margin-bottom:12px">
-    중독행동이 차지하던 시간과 즐거움의 자리에 <b>건강하게 몰입할 수 있는 관심사</b>를 다시 찾아봅니다. 해보고 싶은 활동을 적고 <b>시도 전 1~10점</b>으로 관심도를 표시한 뒤, 실제로 해본 후 <b>시도 후 점수와 생각</b>을 다시 기록합니다. 한 가지 활동이 또 다른 과도한 몰입이 되지 않도록 균형 있게 시도해보세요. 내용은 <b>이 기기에만 저장</b>됩니다.
+    중독행동이 차지하던 시간과 즐거움의 자리에 <b>건강하게 몰입할 수 있는 관심사</b>를 다시 찾아봅니다. 활동이 잘 떠오르지 않으면 <b>즐거운 활동 아이디어</b>에서 몇 가지를 골라 VACI에 바로 추가할 수 있습니다. 해보고 싶은 활동을 <b>시도 전 1~10점</b>으로 표시한 뒤 실제로 해본 후 <b>시도 후 점수와 생각</b>을 다시 기록합니다. 한 가지 활동이 또 다른 과도한 몰입이 되지 않도록 균형 있게 시도해보세요. 내용은 <b>이 기기에만 저장</b>됩니다.
   </div>
   <div id="smart-vaci-role-note"></div>
   <button class="btn sec" id="smart-vaci-new">+ VACI 목록 새로 작성하기</button>
@@ -1950,7 +1950,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.22';
+const BUILD = 'V8.2.23';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -5420,6 +5420,20 @@ function smartVaciRecords(){return (Array.isArray(S.smartWorks)?S.smartWorks:[])
 function smartVaciDate(ts){return smartProblemDate(ts);}
 function smartVaciScore(v){if(v===''||v==null)return null;v=parseInt(v,10);return Number.isFinite(v)?Math.max(1,Math.min(10,v)):null;}
 function smartVaciScoreSelect(kind,value,optional){let h='<select data-vaci-'+kind+'><option value="">'+(optional?'해본 뒤 선택':'점수 선택')+'</option>';for(let i=1;i<=10;i++)h+='<option value="'+i+'"'+(Number(value)===i?' selected':'')+'>'+i+'</option>';return h+'</select>';}
+const SMART_VACI_IDEA_GROUPS=[
+ {name:'사회적인',items:['친구에게 전화하기','커피를 마시러 나가기','외식하기','가족과 함께 시간 보내기','사교 모임·클럽 참여하기','친구를 식사에 초대하기']},
+ {name:'창의적인',items:['글쓰기','그림 그리기','만화 그리기','식사 준비·요리하기','방 꾸미기','악기 배우기','바느질·뜨개질','사진 찍기']},
+ {name:'교육적인',items:['박물관·미술관 방문하기','강좌에 등록하기','새로운 취미 시작하기','아쿠아리움 방문하기','외국어 배우기','십자말풀이·퍼즐 하기','도서관 방문하기']},
+ {name:'하고 싶은대로 하기',items:['따뜻한 물에서 휴식하기','햇빛을 받으며 쉬기','마사지 받기','사우나·스파에서 휴식하기','미용실 가기','좋아하는 식사 준비하기','낮잠 자기']},
+ {name:'레크리에이션',items:['책 읽기','산책하기','보드게임 하기','음악 듣기','영화 보기','조깅하기','정원 가꾸기','수영하기','운동하기','스포츠 경기 관람하기','댄스 배우기','관심 있는 장소 방문하기','해변·공원·시골 가기']}
+];
+function smartVaciIdeasHtml(){
+ return '<details class="card tight" id="vaci-ideas" style="margin-bottom:12px"><summary style="cursor:pointer;font-weight:700">즐거운 활동 아이디어 보기</summary>'
+  +'<p class="muted" style="margin:9px 0 12px">무엇을 해볼지 잘 떠오르지 않을 때 참고하세요. 마음이 가는 활동을 여러 개 고른 뒤 VACI에 추가할 수 있습니다.</p>'
+  +SMART_VACI_IDEA_GROUPS.map((g,gi)=>'<div style="margin-top:'+(gi?'13':'4')+'px"><b>'+esc(g.name)+'</b><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:7px">'+g.items.map(name=>'<label class="card tight" style="display:flex;gap:8px;align-items:flex-start;margin:0;padding:9px;cursor:pointer"><input type="checkbox" data-vaci-idea value="'+esc(name)+'" style="width:auto;margin:3px 0 0;flex:0 0 auto"><span style="min-width:0">'+esc(name)+'</span></label>').join('')+'</div></div>').join('')
+  +'<button class="btn sec" type="button" id="vaci-ideas-add" style="margin-top:14px">선택한 활동 VACI에 추가</button>'
+  +'<p class="tiny" style="margin:8px 0 0">목록에 없는 활동은 아래의 ‘+ 관심사 추가’에서 직접 적을 수 있습니다.</p></details>';
+}
 function smartVaciItemHtml(it,i,open,total){
  const title=String(it.name||'').trim()||('관심사 '+(i+1));
  const score=(it.after!=null?(' · '+(it.before||'-')+' → '+it.after):(it.before!=null?(' · 시도 전 '+it.before):''));
@@ -5441,10 +5455,12 @@ function drawSmartVaci(){
 }
 function openSmartVaciEditor(record){
  const r=record||{};let items=Array.isArray(r.items)&&r.items.length?r.items.map(x=>({id:x.id||('vi-'+Date.now()+'-'+Math.random().toString(36).slice(2,6)),name:x.name||'',before:x.before==null?null:smartVaciScore(x.before),after:x.after==null?null:smartVaciScore(x.after),note:x.note||''})):[{id:'vi-'+Date.now(),name:'',before:null,after:null,note:''}];
- modal('<h2>'+(record?'VACI 목록 수정':'VACI 관심사 찾기')+'</h2><p class="muted" style="margin:5px 0 10px">어렸을 때 좋아했던 것, 미뤄둔 꿈, 예전에 즐겼지만 멈춘 활동, 새로 배우고 싶은 것을 떠올려보세요. <b>시도 전 점수만 먼저 저장</b>해두고 실제로 해본 뒤 다시 수정해도 됩니다.</p><div class="note" style="margin-bottom:12px">한 가지 활동으로 삶 전체를 채우기보다 여러 관심사를 탐색하고 균형 있게 시도합니다.</div><div id="vaci-items"></div><button class="btn sec" type="button" id="vaci-add">+ 관심사 추가</button><div style="height:10px"></div><button class="btn" id="vaci-save">'+(record?'수정 저장':'VACI 목록 저장')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
+ modal('<h2>'+(record?'VACI 목록 수정':'VACI 관심사 찾기')+'</h2><p class="muted" style="margin:5px 0 10px">어렸을 때 좋아했던 것, 미뤄둔 꿈, 예전에 즐겼지만 멈춘 활동, 새로 배우고 싶은 것을 떠올려보세요. <b>시도 전 점수만 먼저 저장</b>해두고 실제로 해본 뒤 다시 수정해도 됩니다.</p><div class="note" style="margin-bottom:12px">한 가지 활동으로 삶 전체를 채우기보다 여러 관심사를 탐색하고 균형 있게 시도합니다.</div>'+smartVaciIdeasHtml()+'<div id="vaci-items"></div><button class="btn sec" type="button" id="vaci-add">+ 관심사 추가</button><div style="height:10px"></div><button class="btn" id="vaci-save">'+(record?'수정 저장':'VACI 목록 저장')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
  const collect=()=>{items=$$('#vaci-items [data-vaci-item]').map(row=>({id:row.dataset.vaciId||('vi-'+Date.now()+'-'+Math.random().toString(36).slice(2,6)),name:(row.querySelector('[data-vaci-name]')?.value||'').trim(),before:smartVaciScore(row.querySelector('[data-vaci-before]')?.value||''),after:smartVaciScore(row.querySelector('[data-vaci-after]')?.value||''),note:(row.querySelector('[data-vaci-note]')?.value||'').trim()}));};
  const render=(openIndex)=>{const box=$('#vaci-items');if(!box)return;box.innerHTML=items.map((x,i)=>smartVaciItemHtml(x,i,i===openIndex,items.length)).join('');box.querySelectorAll('[data-vaci-toggle]').forEach(b=>b.onclick=()=>{const target=b.closest('[data-vaci-item]'),was=target.classList.contains('on');box.querySelectorAll('[data-vaci-item]').forEach(a=>setAcc(a,false));if(!was)setAcc(target,true);});box.querySelectorAll('[data-vaci-remove]').forEach((b,i)=>b.onclick=()=>{collect();if(items.length<=1)return;items.splice(i,1);render(Math.max(0,Math.min(i,items.length-1)));});};
  render(0);
+ const ideasAdd=$('#vaci-ideas-add');
+ if(ideasAdd)ideasAdd.onclick=()=>{collect();const picked=$$('#vaci-ideas [data-vaci-idea]:checked').map(x=>String(x.value||'').trim()).filter(Boolean);if(!picked.length){toast('추가할 활동을 선택해주세요.');return;}items=items.filter(x=>x.name||x.before!=null||x.after!=null||x.note);const existing=new Set(items.map(x=>String(x.name||'').trim()).filter(Boolean));const fresh=picked.filter(n=>!existing.has(n));if(!fresh.length){toast('선택한 활동이 이미 VACI에 있습니다.');return;}const room=Math.max(0,12-items.length);if(!room){toast('관심사는 한 목록에 12개까지 추가할 수 있습니다.');return;}const added=fresh.slice(0,room);added.forEach(name=>items.push({id:'vi-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),name,before:null,after:null,note:''}));$$('#vaci-ideas [data-vaci-idea]:checked').forEach(x=>x.checked=false);render(items.length-1);toast(added.length+'개 활동을 VACI에 추가했습니다.'+(fresh.length>added.length?' 나머지는 다음 목록에서 추가해주세요.':''));setTimeout(()=>{const rows=$$('#vaci-items [data-vaci-item]');if(rows.length)rows[rows.length-1].scrollIntoView({behavior:'smooth',block:'center'});},30);};
  $('#vaci-add').onclick=()=>{collect();if(items.length>=12){toast('관심사는 한 목록에 12개까지 추가할 수 있습니다.');return;}items.push({id:'vi-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),name:'',before:null,after:null,note:''});render(items.length-1);setTimeout(()=>{const rows=$$('#vaci-items [data-vaci-item]');if(rows.length)rows[rows.length-1].scrollIntoView({behavior:'smooth',block:'center'});},30);};
  $('#vaci-save').onclick=()=>{collect();const used=items.filter(x=>x.name||x.before!=null||x.after!=null||x.note);if(!used.length){toast('관심사를 하나 이상 적어주세요.');return;}const bad=items.findIndex(x=>(x.name||x.before!=null||x.after!=null||x.note)&&(!x.name||x.before==null));if(bad>=0){render(bad);toast(!items[bad].name?'활동 이름을 적어주세요.':'시도 전 관심도 1~10점을 선택해주세요.');return;}const rec={id:record?record.id:('vaci-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'vaci',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),items:used};if(!Array.isArray(S.smartWorks))S.smartWorks=[];if(record){const i=S.smartWorks.findIndex(x=>x&&x.id===record.id);if(i>=0)S.smartWorks[i]=rec;else S.smartWorks.push(rec);}else S.smartWorks.push(rec);save();closeModal();drawSmartVaci();toast(record?'VACI 목록을 수정했습니다.':'VACI 목록을 저장했습니다.');};
 }
