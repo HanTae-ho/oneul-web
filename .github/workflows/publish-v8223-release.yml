@@ -1,0 +1,37 @@
+name: Publish V8.2.23 test release
+
+on:
+  push:
+    branches: [android-v8.2.23-vaci-enjoyable-activities]
+    paths:
+      - '.github/workflows/publish-v8223-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.23 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34014562714 -n oneul-v8.2.23-vaci-enjoyable-activities-apk -D dist-apk
+          gh run download 34014562714 -n oneul-v8.2.23-vaci-enjoyable-activities-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.23.apk
+          cp dist-aab/*.aab oneul-v8.2.23.aab
+          test -s oneul-v8.2.23.apk
+          test -s oneul-v8.2.23.aab
+      - name: Publish V8.2.23 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.23-test --yes --cleanup-tag || true
+          gh release create v8.2.23-test oneul-v8.2.23.apk oneul-v8.2.23.aab \
+            --target android-v8.2.23-vaci-enjoyable-activities \
+            --title '오늘 한 걸음 V8.2.23 VACI 즐거운 활동 아이디어 테스트' \
+            --notes 'SMART Recovery Point 4의 VACI에 즐거운 활동 아이디어 선택기를 통합했습니다. 활동이 잘 떠오르지 않을 때 사회적인·창의적인·교육적인·자기돌봄 성격의 활동·레크리에이션 범주를 펼쳐 여러 활동을 선택하고 VACI 관심사로 바로 추가할 수 있습니다. 선택한 활동은 기존 VACI의 시도 전 관심도 1~10 → 실제 활동 → 시도 후 1~10 → 활동 후 평가 흐름을 그대로 사용합니다. 직접 관심사 추가도 유지되며 중복 추가를 막고 한 목록 12개 제한도 그대로입니다. 사용자 화면에는 제작과정 표현을 노출하지 않으며, 기존 smartWorks/ kind:vaci 저장형식, DATA_SCHEMA 6, Point 4 학습에서 VACI로 들어갔다가 원래 학습 상세로 돌아가는 경로, 가족모드 원칙을 유지합니다. Android 습관·생활·치료·외래 정확알림 엔진은 변경하지 않았고 빌드에서 재검증했습니다.' \
+            --prerelease
