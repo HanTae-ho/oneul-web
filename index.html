@@ -1216,6 +1216,45 @@ addEventListener('appinstalled', function(){
   <div id="smart-tools-body" style="margin-top:14px"></div>
 </section>
 
+<!-- ══════════ SMART Recovery · 중요성 · 자신감 빠른 점검 V8.2.31 ══════════ -->
+<section class="pg" id="p-smart-importance-confidence">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0">중요성 · 자신감 빠른 점검</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" data-smart-back onclick="appBack('smart-tools')">← SMART 실천도구</button>
+  </div>
+  <div class="note" style="margin-bottom:12px">
+    변화를 얼마나 중요하게 느끼는지와 <b>해낼 수 있다는 자신감</b>을 따로 살펴봅니다. 점수는 평가나 진단이 아니며, <b>이 빠른 점검은 저장하지 않습니다.</b>
+  </div>
+  <div id="smart-ic-role-note"></div>
+  <div class="card">
+    <div class="field">
+      <label>변화를 시작하거나 이어갈 준비가 얼마나 되어 있나요? <b id="smart-ic-ready-n">5</b> / 10</label>
+      <input id="smart-ic-ready" type="range" min="1" max="10" value="5">
+    </div>
+    <div class="field">
+      <label>이 변화를 실행하는 것이 얼마나 중요한가요? <b id="smart-ic-important-n">5</b> / 10</label>
+      <input id="smart-ic-important" type="range" min="0" max="10" value="5">
+    </div>
+    <div class="field">
+      <label>이 변화를 해낼 수 있다고 얼마나 느끼나요? <b id="smart-ic-confidence-n">5</b> / 10</label>
+      <input id="smart-ic-confidence" type="range" min="0" max="10" value="5">
+    </div>
+  </div>
+  <div class="card">
+    <label>앞으로 나아가는 데 무엇이 도움이 될까요?</label>
+    <textarea id="smart-ic-help" maxlength="400" placeholder="예: 작은 행동부터 시작하기, 믿을 수 있는 사람에게 도움을 요청하기"></textarea>
+  </div>
+  <div class="card">
+    <h3>다음에 이어보기</h3>
+    <p class="muted" style="margin:-4px 0 11px">점수의 정답을 찾기보다, 지금 나에게 필요한 도구를 골라 이어가세요.</p>
+    <button class="btn sec sm" id="smart-ic-hov">HOV 가치의 계층</button>
+    <div style="height:8px"></div>
+    <button class="btn ghost sm" id="smart-ic-cba">CBA 비용-편익 분석</button>
+    <div style="height:8px"></div>
+    <button class="btn ghost sm" id="smart-ic-plan">변화 계획 워크시트</button>
+  </div>
+</section>
+
 <!-- ══════════ SMART Recovery · HOV V8.2.5 ══════════ -->
 <section class="pg" id="p-smart-hov">
   <div class="sp" style="margin-bottom:11px">
@@ -2100,7 +2139,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.30';
+const BUILD = 'V8.2.31';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -2899,7 +2938,7 @@ function go(p,opt){
   cur = p;
   syncSmartBack();
   $('#tabs').style.display = (p === 'intro') ? 'none' : 'flex';
-  let tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'workbook-list' || p === 'workbook' || p === 'screening' || p === 'screen-test' || p === 'habit' || p === 'habit-edit' || p === 'schedule' || p === 'life-schedule' || p === 'notify-schedule' || p === 'treatment' || p === 'capsule' || p === 'urge-diary' || p === 'smart-hov' || p === 'smart-cba' || p === 'smart-change-plan' || p === 'smart-three-questions' || p === 'smart-deads' || p === 'smart-disarm' || p === 'smart-abc' || p === 'smart-dibs' || p === 'smart-thinking-styles' || p === 'smart-problem-solving' || p === 'smart-balance-pie' || p === 'smart-vaci' || p === 'smart-goal' || p === 'smart-relax' || p === 'smart-health' || p === 'smart-tools') ? 'tools' : p;
+  let tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'workbook-list' || p === 'workbook' || p === 'screening' || p === 'screen-test' || p === 'habit' || p === 'habit-edit' || p === 'schedule' || p === 'life-schedule' || p === 'notify-schedule' || p === 'treatment' || p === 'capsule' || p === 'urge-diary' || p === 'smart-importance-confidence' || p === 'smart-hov' || p === 'smart-cba' || p === 'smart-change-plan' || p === 'smart-three-questions' || p === 'smart-deads' || p === 'smart-disarm' || p === 'smart-abc' || p === 'smart-dibs' || p === 'smart-thinking-styles' || p === 'smart-problem-solving' || p === 'smart-balance-pie' || p === 'smart-vaci' || p === 'smart-goal' || p === 'smart-relax' || p === 'smart-health' || p === 'smart-tools') ? 'tools' : p;
   if(p === 'listen' && ls.back === 'tools') tabP = 'tools';
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tabP));
   $('#view').classList.toggle('ai-mode', p === 'ai');
@@ -2910,6 +2949,7 @@ function go(p,opt){
   if(p === 'habit-edit') drawHabitEdit();
   if(p === 'capsule') drawCapsule();
   if(p === 'urge-diary') drawUrgeDiary();
+  if(p === 'smart-importance-confidence') drawSmartImportanceConfidence();
   if(p === 'smart-hov') drawSmartHov();
   if(p === 'smart-cba') drawSmartCba();
   if(p === 'smart-change-plan') drawSmartChangePlan();
@@ -4466,6 +4506,7 @@ function syncSmartBack(){
     'smart-tools':'SMART 실천도구',
     'learn-topic':'SMART Recovery',
     'capsule':'미래의 나에게',
+    'smart-importance-confidence':'중요성 · 자신감 빠른 점검',
     'smart-hov':'가치의 계층 HOV',
     'smart-three-questions':'나의 3가지 질문',
     'smart-change-plan':'변화 계획',
@@ -4484,7 +4525,7 @@ function syncSmartBack(){
   };
   const fallbacks={
     'learn-topic':'learn-topic', 'capsule':'capsule', 'smart-tools':'smart-tools',
-    'smart-hov':'smart-hov', 'smart-three-questions':'smart-three-questions',
+    'smart-importance-confidence':'smart-importance-confidence', 'smart-hov':'smart-hov', 'smart-three-questions':'smart-three-questions',
     'smart-change-plan':'smart-change-plan', 'smart-cba':'smart-cba',
     'smart-deads':'smart-deads', 'smart-disarm':'smart-disarm', 'smart-abc':'smart-abc', 'smart-dibs':'smart-dibs', 'smart-thinking-styles':'smart-thinking-styles', 'smart-problem-solving':'smart-problem-solving', 'smart-balance-pie':'smart-balance-pie', 'smart-vaci':'smart-vaci', 'smart-goal':'smart-goal', 'smart-relax':'smart-relax', 'smart-health':'smart-health'
   };
@@ -4504,12 +4545,14 @@ function drawSmartTools(){
   const box=$('#smart-tools-body'), learn=$('#smart-tools-learn'); if(!box) return;
   if(learn) learn.onclick=()=>{ learnState.topic='smart-recovery'; go('learn-topic'); };
   const p1=[
+    ['중요성 · 자신감 빠른 점검','변화 준비도·중요성·자신감을 따로 확인하고 다음 행동 찾기','smart-importance-confidence','check'],
     ['가치의 계층 HOV','내 삶에서 중요한 가치와 현재 행동의 방향을 확인','smart-hov','sprout'],
     ['나의 3가지 질문','원하는 미래와 현재 행동의 차이를 변화 동기로 연결','smart-three-questions','speak'],
     ['변화 계획 워크시트','변화 이유·단계·도움·진전의 신호·방해요인을 계획','smart-change-plan','cal'],
     ['비용-편익 분석 CBA','사용·중단의 좋은 점과 대가를 함께 비교','smart-cba','check']
   ];
   const p2=[
+    ['지금 충동 대처하기','충동 강도 확인 → 버티기 타이머 → 호흡 → 전후 강도 확인','urge','wave'],
     ['DEADS · 충동 대처','충동 순간에 사용할 행동 전략을 미리 정하고 실행','smart-deads','wave'],
     ['DISARM · 충동의 목소리','충동을 부추기는 자기대화를 알아차리고 거부·대체','smart-disarm','speak'],
     ['내 충동일기','시간·상황·촉발요인·대처를 기록하고 패턴 확인','urge-diary','wave']
@@ -4539,6 +4582,28 @@ function smartHovRows(){
   return (S.smartWorks||[]).filter(r=>r && r.tool==='hov' && (r.role||'self')===smartRole())
     .slice().sort((a,b)=>Number(b.t||0)-Number(a.t||0));
 }
+/* ══════════ SMART Recovery · 중요성 · 자신감 빠른 점검 V8.2.31 ══════════ */
+function drawSmartImportanceConfidence(){
+  const rn=$('#smart-ic-role-note');
+  if(rn) rn.innerHTML=famMode()
+    ? '<div class="note" style="margin-bottom:12px"><b>가족은 내 변화를 점검합니다.</b><br>상대가 얼마나 변하고 싶어 하는지 평가하는 척도가 아니라, 가족인 내가 바꾸고 싶은 내 행동·생활·경계를 대상으로 사용합니다.</div>'
+    : '';
+  [
+    ['#smart-ic-ready','#smart-ic-ready-n'],
+    ['#smart-ic-important','#smart-ic-important-n'],
+    ['#smart-ic-confidence','#smart-ic-confidence-n']
+  ].forEach(pair=>{
+    const x=$(pair[0]), n=$(pair[1]);
+    if(!x||!n) return;
+    const sync=()=>{ n.textContent=x.value; };
+    sync(); x.oninput=sync;
+  });
+  const hov=$('#smart-ic-hov'), cba=$('#smart-ic-cba'), plan=$('#smart-ic-plan');
+  if(hov) hov.onclick=()=>go('smart-hov');
+  if(cba) cba.onclick=()=>go('smart-cba');
+  if(plan) plan.onclick=()=>go('smart-change-plan');
+}
+
 function smartHovValues(r){ return (r&&Array.isArray(r.values)?r.values:[]).map(x=>String(x||'').trim()).filter(Boolean).slice(0,5); }
 function smartHovDate(ts){
   if(!ts) return '';
@@ -5844,7 +5909,9 @@ function drawSmartHealth(){
 function learningAction(type,sectionId){
   if(sectionId && learnState.topic==='smart-recovery') learnState.returnSection=String(sectionId);
   closeModal();
+  if(type === 'urge-coping'){ go('urge'); return; }
   if(type === 'urge-diary'){ go('urge-diary'); return; }
+  if(type === 'smart-importance-confidence'){ go('smart-importance-confidence'); return; }
   if(type === 'smart-hov'){ go('smart-hov'); return; }
   if(type === 'smart-cba'){ go('smart-cba'); return; }
   if(type === 'smart-change-plan'){ go('smart-change-plan'); return; }
