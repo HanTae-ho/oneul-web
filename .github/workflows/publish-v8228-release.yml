@@ -1,0 +1,37 @@
+name: Publish V8.2.28 test release
+
+on:
+  push:
+    branches: [android-v8.2.28-native-relax-tts]
+    paths:
+      - '.github/workflows/publish-v8228-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.28 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34033946573 -n oneul-v8.2.28-native-relax-tts-apk -D dist-apk
+          gh run download 34033946573 -n oneul-v8.2.28-native-relax-tts-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.28.apk
+          cp dist-aab/*.aab oneul-v8.2.28.aab
+          test -s oneul-v8.2.28.apk
+          test -s oneul-v8.2.28.aab
+      - name: Publish V8.2.28 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.28-test --yes --cleanup-tag || true
+          gh release create v8.2.28-test oneul-v8.2.28.apk oneul-v8.2.28.aab \
+            --target android-v8.2.28-native-relax-tts \
+            --title '오늘 한 걸음 V8.2.28 화면 OFF 이완 음성 가이드 테스트' \
+            --notes '이완 음성 가이드의 기본 말하기 속도를 0.80으로 조정했습니다. 브라우저/PWA는 기존 Web Speech TTS를 0.80으로 사용합니다. Android 앱에서는 TWA 구조를 유지하면서 PMR·심상화·명상 가이드 듣기를 전용 네이티브 TTS 화면으로 연결했습니다. Android 전용 화면에서 한국어 음성을 선택하고 미리들을 수 있으며, 재생 중 PARTIAL_WAKE_LOCK을 사용해 화면을 켜두지 않고도 문장과 문장 사이의 쉼 타이머가 계속 진행되도록 했습니다. 일시정지하면 WakeLock을 해제하고 계속 재생할 때 다시 획득합니다. DATA_SCHEMA 6, 기존 SMART 기록, 습관·치료·외래 저장구조, 기존 4초 들이쉬기·6초 내쉬기 호흡 가이드, Android 정확알림 엔진과 부팅 후 재예약 로직은 변경하지 않았습니다.' \
+            --prerelease
