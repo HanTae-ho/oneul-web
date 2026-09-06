@@ -1,0 +1,62 @@
+name: V8.2.16 SMART Thinking Styles
+
+on:
+  push:
+    branches: [v8.2.16-smart-thinking-styles]
+    paths:
+      - 'v8216-smart-thinking-styles.py'
+      - '.github/workflows/v8216-smart-thinking-styles.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.16-smart-thinking-styles
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply patch
+        run: python v8216-smart-thinking-styles.py
+      - name: Verify
+        run: |
+          grep -q "const BUILD = 'V8.2.16'" index.html
+          grep -q 'id="p-smart-thinking-styles"' index.html
+          grep -q 'function drawSmartThinkingStyles' index.html
+          grep -q "kind:'thinking-styles'" index.html
+          grep -q '정신적 여과' index.html
+          grep -q '성급한 결론 / 독심술' index.html
+          grep -q '개인화(귀인)' index.html
+          grep -q '파국' index.html
+          grep -q '흑백사고' index.html
+          grep -q 'Shoulds' index.html
+          grep -q '과잉 일반화' index.html
+          grep -q '낙인 찍기' index.html
+          grep -q '이 생각으로 ABC 작성하기' index.html
+          grep -q '이 생각으로 DIBS 작성하기' index.html
+          grep -q "const APP_VERSION = 'V8.2.16'" sw.js
+          grep -q 'ohg-v8216-smart-thinking-styles' sw.js
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,flags=re.S)
+          Path('/tmp/oneul-main.js').write_text(blocks[-1],encoding='utf-8')
+          PY
+          node --check /tmp/oneul-main.js
+          git diff --check
+      - name: Verify scope
+        run: |
+          test "$(git diff --name-only | sort | tr '\n' ' ')" = "index.html sw.js "
+      - name: Commit product changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js
+          git commit -m 'V8.2.16 add SMART unhelpful thinking styles' || true
+          git push
