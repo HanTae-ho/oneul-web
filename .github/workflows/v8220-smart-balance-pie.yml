@@ -1,0 +1,56 @@
+name: V8.2.20 SMART Lifestyle Balance Pie
+
+on:
+  push:
+    branches: [v8.2.20-smart-balance-pie]
+    paths:
+      - 'v8220-smart-balance-pie.py'
+      - '.github/workflows/v8220-smart-balance-pie.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.20-smart-balance-pie
+      - name: Apply balance pie patch
+        run: python v8220-smart-balance-pie.py
+      - name: Verify product invariants
+        run: |
+          grep -q "const BUILD = 'V8.2.20';" index.html
+          grep -q "const DATA_SCHEMA = 6;" index.html
+          grep -q 'id="p-smart-balance-pie"' index.html
+          grep -q "kind:'lifestyle-balance-pie'" index.html
+          grep -q "if(p === 'smart-balance-pie') drawSmartBalancePie();" index.html
+          grep -q "'smart-balance-pie':'라이프스타일 밸런스 파이'" index.html
+          grep -q "삶의 영역별 만족도 0~10" index.html
+          grep -q "const APP_VERSION = 'V8.2.20';" sw.js
+          grep -q "ohg-v8220-smart-balance-pie" sw.js
+          git diff --check
+      - name: JavaScript syntax sanity
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>',s)
+          Path('/tmp/inline.js').write_text('\n'.join(blocks),encoding='utf-8')
+          PY
+          node --check /tmp/inline.js
+          node --check sw.js
+      - name: Verify unchanged critical reminder references
+        run: |
+          grep -q "treatment" index.html
+          grep -q "notify-schedule" index.html
+          grep -q "smart-problem-solving" index.html
+      - name: Commit product files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js
+          git commit -m 'V8.2.20 add SMART Lifestyle Balance Pie'
+          git push
