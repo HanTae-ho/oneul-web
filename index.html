@@ -503,6 +503,7 @@ addEventListener('appinstalled', function(){
   .today-sleepq{margin-top:8px;padding-top:11px;border-top:1px solid var(--line)}.today-sleepq p{margin:0 0 8px;font-size:12px;color:var(--dim)}
   /* V8.1.7 — 오늘 일정이 많으면 홈은 5개까지만 보여주고 필요할 때 펼칩니다. */
   .today-more{width:100%;margin-top:5px;padding:9px 4px;border-top:1px dashed var(--line);text-align:center;font-size:12px;font-weight:700;color:var(--acc);background:transparent}
+  .today-edit-hint{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:11.5px;line-height:1.45;color:var(--dim)}
   /* ── 자가점검 V7.1 ── */
   .screen-group{margin:18px 0 8px}
   .screen-group h2{margin:0 0 4px;font-size:15px;color:var(--tx)}
@@ -1881,7 +1882,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.13';
+const BUILD = 'V8.2.14';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -3873,13 +3874,14 @@ function drawTodayScheduleHome(){
     '</div><button class="tiny link" id="home-today-manage">일정 관리</button></div>';
   shown.forEach((x,i)=>{
     const icon=x.kind==='sleep'?'sleep':(x.kind==='visit'?'cal':(x.done?'check':'box'));
-    const btn=x.action?'<button class="tcheck'+(x.done?' on':'')+'" data-today-kind="'+x.kind+'" data-today-id="'+esc(x.id)+'">'+ico(icon)+'</button>':'<span class="tcheck static">'+ico(icon)+'</span>';
+    const btn=x.action?'<button class="tcheck'+(x.done?' on':'')+'" data-today-kind="'+x.kind+'" data-today-id="'+esc(x.id)+'" data-today-done="'+(x.done?'1':'0')+'" aria-label="'+esc(x.label+(x.done?' 완료. 길게 눌러 수정':' 완료로 표시'))+'">'+ico(icon)+'</button>':'<span class="tcheck static">'+ico(icon)+'</span>';
     html+='<div class="today-row'+(i===0?' first':'')+'">'+btn+'<div class="txt"><b>'+esc(x.label)+'</b><span>'+esc(x.sub)+'</span></div><span class="time">'+esc(x.time||'')+'</span></div>';
   });
   if(canFold){
     const hidden=Math.max(0,items.length-homeLimit);
     html+='<button class="today-more" id="home-today-more">'+(homeTodayExpanded?'간단히 보기':'전체 보기 · '+hidden+'개 더')+'</button>';
   }
+  if(items.some(x=>x.action&&x.done)) html+='<div class="today-edit-hint">잘못 체크했다면 완료 표시를 길게 눌러 수정할 수 있어요.</div>';
   html+=visitHtml;
   if(askSleep){
     html+='<div class="today-sleepq"><p>어젯밤 잠은 어떠셨나요?</p><div class="opts">'+SLEEPQ.map(q=>'<button class="opt" data-today-sleep="'+q.k+'">'+q.l+'</button>').join('')+'</div></div>';
@@ -3890,15 +3892,50 @@ function drawTodayScheduleHome(){
   const manage=$('#home-today-manage'); if(manage) manage.onclick=()=>go('schedule');
   const more=$('#home-today-more'); if(more) more.onclick=()=>{homeTodayExpanded=!homeTodayExpanded;drawTodayScheduleHome();};
   const visit=$('#home-today-visit'); if(visit) visit.onclick=()=>go('treatment');
-  box.querySelectorAll('[data-today-kind]').forEach(b=>b.onclick=()=>{
-    if(b.dataset.todayKind==='habit'){
-      const h=habitList().find(x=>x.id===b.dataset.todayId); if(h) habitToggle(h,d);
-    }else if(b.dataset.todayKind==='med'){
-      S.medLog=S.medLog||[]; if(todayRec(S.medLog).map(x=>x.n).indexOf(b.dataset.todayId)<0) S.medLog.push({t:Date.now(),n:b.dataset.todayId});
-    }else if(b.dataset.todayKind==='eat'){
-      S.eatLog=S.eatLog||[]; if(todayRec(S.eatLog).map(x=>x.n).indexOf(b.dataset.todayId)<0) S.eatLog.push({t:Date.now(),n:b.dataset.todayId});
+  function removeTodayNamed(list,id){
+    return (Array.isArray(list)?list:[]).filter(r=>!(ymd(r.t)===d && r.n===id));
+  }
+  function completeToday(kind,id){
+    if(kind==='habit'){
+      const h=habitList().find(x=>x.id===id); if(h && !habitDoneOn(h,d)) habitToggle(h,d);
+    }else if(kind==='med'){
+      S.medLog=S.medLog||[]; if(todayRec(S.medLog).map(x=>x.n).indexOf(id)<0) S.medLog.push({t:Date.now(),n:id});
+    }else if(kind==='eat'){
+      S.eatLog=S.eatLog||[]; if(todayRec(S.eatLog).map(x=>x.n).indexOf(id)<0) S.eatLog.push({t:Date.now(),n:id});
     }
     save(); drawTodayScheduleHome(); drawTools();
+  }
+  function undoToday(kind,id){
+    if(kind==='med'){
+      if(!confirm('복약 완료 기록을 취소할까요?\n실제로 복용하지 않았거나 잘못 체크한 경우에만 취소하세요.')) return false;
+      S.medLog=removeTodayNamed(S.medLog,id);
+    }else if(kind==='eat'){
+      S.eatLog=removeTodayNamed(S.eatLog,id);
+    }else if(kind==='habit'){
+      const h=habitList().find(x=>x.id===id); if(h && habitDoneOn(h,d)) habitToggle(h,d);
+    }else return false;
+    save();
+    if(navigator.vibrate) try{navigator.vibrate(25);}catch(e){}
+    drawTodayScheduleHome(); drawTools(); toast('오늘 완료 기록을 수정했습니다.');
+    return true;
+  }
+  box.querySelectorAll('[data-today-kind]').forEach(b=>{
+    let hold=0, held=false;
+    const clearHold=()=>{ if(hold){ clearTimeout(hold); hold=0; } };
+    b.oncontextmenu=e=>e.preventDefault();
+    b.addEventListener('pointerdown',()=>{
+      held=false;
+      if(b.dataset.todayDone!=='1') return;
+      clearHold();
+      hold=setTimeout(()=>{ hold=0; held=undoToday(b.dataset.todayKind,b.dataset.todayId); },650);
+    });
+    b.addEventListener('pointerup',clearHold);
+    b.addEventListener('pointercancel',clearHold);
+    b.onclick=e=>{
+      if(held){ held=false; e.preventDefault(); return; }
+      if(b.dataset.todayDone==='1'){ toast('완료 기록은 길게 눌러 수정할 수 있어요.'); return; }
+      completeToday(b.dataset.todayKind,b.dataset.todayId);
+    };
   });
   box.querySelectorAll('[data-today-sleep]').forEach(b=>b.onclick=()=>{
     S.sleepLog=S.sleepLog||[]; S.sleepLog.push({t:Date.now(),q:b.dataset.todaySleep}); save(); drawTodayScheduleHome();
