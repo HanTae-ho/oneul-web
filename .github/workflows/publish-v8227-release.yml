@@ -1,0 +1,37 @@
+name: Publish V8.2.27 test release
+
+on:
+  push:
+    branches: [android-v8.2.27-relax-tts]
+    paths:
+      - '.github/workflows/publish-v8227-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.27 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34031619130 -n oneul-v8.2.27-relax-tts-apk -D dist-apk
+          gh run download 34031619130 -n oneul-v8.2.27-relax-tts-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.27.apk
+          cp dist-aab/*.aab oneul-v8.2.27.aab
+          test -s oneul-v8.2.27.apk
+          test -s oneul-v8.2.27.aab
+      - name: Publish V8.2.27 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.27-test --yes --cleanup-tag || true
+          gh release create v8.2.27-test oneul-v8.2.27.apk oneul-v8.2.27.aab \
+            --target android-v8.2.27-relax-tts \
+            --title '오늘 한 걸음 V8.2.27 이완 음성 가이드 TTS 테스트' \
+            --notes 'SMART Recovery Point 4의 이완 · 마음 가라앉히기에 기기 TTS 음성 가이드를 추가했습니다. PMR, 심상화, 명상 각각에서 가이드 듣기를 사용할 수 있으며 기기에서 제공하는 한국어 음성을 한 번 선택하면 세 가이드에 공통 적용됩니다. 음성 이름만으로 여성·남성을 정확히 판별할 수 없어 미리듣기로 원하는 부드러운 음성을 직접 선택하도록 했습니다. 말하기 속도는 조금 느린 0.88로 설정했고, 화면 설명문 전체를 읽는 대신 실제 연습용 안내 문장과 의도된 쉼 시간을 별도로 구성했습니다. 재생 중 일시정지·계속·종료를 지원하며 다른 가이드를 시작하거나 음성을 변경하거나 이완 화면을 벗어나면 이전 재생을 안전하게 종료합니다. 음성 선택은 회복기록과 분리된 기기 설정으로 저장되어 백업에 포함되지 않습니다. DATA_SCHEMA 6, 기존 SMART 기록, 습관·치료·외래 저장구조, 기존 4초 들이쉬기·6초 내쉬기 호흡 가이드와 Android 정확알림 엔진은 변경하지 않았습니다.' \
+            --prerelease
