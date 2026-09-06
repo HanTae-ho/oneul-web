@@ -1,0 +1,37 @@
+name: Publish V8.2.19 test release
+
+on:
+  push:
+    branches: [android-v8.2.19-smart-problem-numbering]
+    paths:
+      - '.github/workflows/publish-v8219-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.19 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34011344791 -n oneul-v8.2.19-smart-problem-numbering-apk -D dist-apk
+          gh run download 34011344791 -n oneul-v8.2.19-smart-problem-numbering-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.19.apk
+          cp dist-aab/*.aab oneul-v8.2.19.aab
+          test -s oneul-v8.2.19.apk
+          test -s oneul-v8.2.19.aab
+      - name: Publish V8.2.19 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.19-test --yes --cleanup-tag || true
+          gh release create v8.2.19-test oneul-v8.2.19.apk oneul-v8.2.19.aab \
+            --target android-v8.2.19-smart-problem-numbering \
+            --title '오늘 한 걸음 V8.2.19 SMART 문제 정의 번호 테스트' \
+            --notes '문제 해결 5단계의 1단계 문제 정의 하위 질문을 1-1 언제, 1-2 누가, 1-3 무슨 일, 1-4 생각과 감정으로 명확하게 표시했습니다. 입력 화면과 저장 기록 보기의 번호 체계를 일치시켰습니다. 번역본 질문 내용과 순서, smartWorks 저장구조, 기존 기록 호환, DATA_SCHEMA 6, 다른 SMART 도구, 홈 일정, Android 습관·생활·치료·외래 정확알림 엔진은 변경하지 않았습니다.' \
+            --prerelease
