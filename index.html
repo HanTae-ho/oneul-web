@@ -2266,7 +2266,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.49';
+const BUILD = 'V8.2.50';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -7939,7 +7939,7 @@ function aiGuideEnter(){
   if(ai.guideTimer){ clearTimeout(ai.guideTimer); ai.guideTimer=0; }
   if(!ai.guideShown){
     ai.guideShown=true; ai.guideOpen=true;
-    ai.guideTimer=setTimeout(()=>{ ai.guideTimer=0; ai.guideOpen=false; if(cur==='ai') drawAIGuide(); },4500);
+    ai.guideTimer=setTimeout(()=>{ ai.guideTimer=0; ai.guideOpen=false; if(cur==='ai') drawAIGuide(); },1500);
   }else ai.guideOpen=false;
 }
 function aiVoiceStatusText(){
@@ -7962,12 +7962,24 @@ function drawAIGuide(){
     if(android) v.textContent=aiVoiceStatusText();
   }
 }
+function aiNativeVoice(action,text){
+  if(!nativeAndroidApp()) return false;
+  try{
+    const q=new URLSearchParams();
+    q.set('action',action);
+    if(text) q.set('text',text);
+    const u='intent://mindpro-voice?'+q.toString()+
+      '#Intent;scheme=oneul;package=io.github.hantae_ho.twa;end';
+    location.href=u;
+    return true;
+  }catch(e){ return false; }
+}
 function aiVoiceStop(){
   if(!nativeAndroidApp()) return;
-  try{ if('speechSynthesis' in window) window.speechSynthesis.cancel(); }catch(e){}
+  aiNativeVoice('stop','');
 }
 function aiVoiceShouldRead(){
-  if(!nativeAndroidApp() || !('speechSynthesis' in window) || typeof SpeechSynthesisUtterance==='undefined') return false;
+  if(!nativeAndroidApp()) return false;
   if(ai.voiceMode===1) return true;
   if(ai.voiceMode===-1) return false;
   return !!S.aiAutoRead;
@@ -7976,20 +7988,15 @@ function aiVoiceSpeak(text){
   if(!aiVoiceShouldRead()) return;
   const msg=String(text||'').replace(/[*#_>`]/g,' ').replace(/\s+/g,' ').trim();
   if(!msg) return;
-  try{
-    window.speechSynthesis.cancel();
-    const u=new SpeechSynthesisUtterance(msg);
-    u.lang='ko-KR'; u.rate=0.82; u.pitch=1;
-    const voices=window.speechSynthesis.getVoices?window.speechSynthesis.getVoices():[];
-    const ko=voices.find(v=>/^ko(?:-|$)/i.test(v.lang||'')); if(ko) u.voice=ko;
-    window.speechSynthesis.speak(u);
-  }catch(e){}
+  aiNativeVoice('speak',msg);
 }
 function aiVoiceCommand(text){
   const x=String(text||'').replace(/\s+/g,'').replace(/[.!?~]/g,'');
-  if(!x || x.length>45) return '';
-  if(/그만읽|읽지마|읽지말|읽는거멈|음성멈|음성꺼|소리꺼|말하지마/.test(x)) return 'off';
-  if(/계속읽|자동.*읽|이제부터.*읽|답변.*읽|음성으로.*(답|말|읽)|소리내.*읽/.test(x) || /^(읽어줘|읽어주세요)$/.test(x)) return 'on';
+  if(!x || x.length>60) return '';
+  if(/그만읽|읽지마|읽지말|읽는거멈|음성멈|음성꺼|소리꺼|말하지마|그만말/.test(x)) return 'off';
+  if(/계속읽|자동.*읽|이제부터.*읽|답변.*읽|소리내.*읽/.test(x) || /^(읽어줘|읽어주세요)$/.test(x)) return 'on';
+  if(/(음성으로|음성|소리로|소리내서|말로).*(안내|설명|답|읽|말|해줘|해주세요)/.test(x)) return 'on';
+  if(/말로(해줘|해주세요|설명해줘|안내해줘|답해줘|말해줘)/.test(x)) return 'on';
   return '';
 }
 
@@ -9961,8 +9968,22 @@ function notifyWanted(){ return !!S.notify; }
 function nativeAndroidApp(){
   try{
     if(sessionStorage.getItem('ohg.native.app') === '1') return true;
-    if(new URLSearchParams(location.search || '').get('native') === '1') return true;
-    return new URLSearchParams((location.hash || '').replace(/^#/, '')).get('native') === '1';
+    const q=new URLSearchParams(location.search || '');
+    const h=new URLSearchParams((location.hash || '').replace(/^#/, ''));
+    const direct=q.get('native') === '1' || h.get('native') === '1';
+    const twaRef=/^android-app:\/\/io\.github\.hantae_ho\.twa(?:\/|$)/i.test(String(document.referrer||''));
+    if(direct || twaRef){
+      try{ sessionStorage.setItem('ohg.native.app','1'); }catch(e){}
+      if(q.get('native') === '1'){
+        try{
+          const u=new URL(location.href);
+          u.searchParams.delete('native');
+          history.replaceState(history.state,'',u.pathname+(u.search||'')+(u.hash||''));
+        }catch(e){}
+      }
+      return true;
+    }
+    return false;
   }catch(e){ return false; }
 }
 function nativeSlotCode(k){
