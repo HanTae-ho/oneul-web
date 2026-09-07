@@ -927,6 +927,9 @@ addEventListener('appinstalled', function(){
     </div>
   </div>
 
+  <button class="btn sec" id="ur-capsule-toggle" aria-expanded="false">미래의 나에게 바로보기</button>
+  <div id="ur-capsule-inline" class="hide" style="margin-top:9px"></div>
+  <div style="height:9px"></div>
   <button class="btn sec" id="ur-read">도움이 되는 글 읽기</button>
   <div style="height:9px"></div>
   <button class="btn sec" id="ur-help">지금 사람에게 도움 받기</button>
@@ -2239,7 +2242,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.45';
+const BUILD = 'V8.2.46';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -3663,7 +3666,7 @@ function drawPanic(){
   if(cp) cp.classList.toggle('hide', famMode() || !capsuleHas());
 }
 
-$('#pk-urge').onclick = () => go('urge');
+$('#pk-urge').onclick = () => { drawUrgeCapsuleInline(false); go('urge'); };
 $('#go-capsule-panic').onclick = () => openCapsule('panic',false);
 
 $('#pk-with').onclick = () => modal(
@@ -9057,29 +9060,39 @@ function drawListen(){
   $('#ls-one').classList.toggle('hide', !one);
 
   if(!one){
-    /* V8.2.45 · 범주 칩은 단일 아코디언처럼 동작합니다.
-       다른 범주를 누르면 이전 목록은 사라지고 새 범주의 글만 보입니다. */
+    /* V8.2.46 · 모바일에서는 범주를 세로형 단일 아코디언으로 보여줍니다.
+       한 범주를 열면 이전 범주는 닫히며, 한 화면에 필요한 글만 남깁니다. */
     let h = '<p class="muted" style="margin:-4px 0 12px">' +
-      '지금 상태에 가까운 범주를 고르세요. 한 번에 한 범주의 글만 보여드립니다.</p>';
-    h += '<div class="opts" id="ls-tags" style="margin-bottom:12px">' +
-      LTAG.map(t=>'<button class="opt'+(ls.tag===t.k?' on':'')+'" data-ls-tag="'+esc(t.k)+'" aria-pressed="'+(ls.tag===t.k?'true':'false')+'">'+esc(t.l)+'</button>').join('') + '</div>';
-    if(ls.tag){
-      const tag=LTAG.find(t=>t.k===ls.tag);
-      const list=LISTEN.filter(x=>x.g===ls.tag);
-      h += '<div class="sp" style="margin:2px 1px 9px"><b>' + esc(tag?tag.l:'듣는 글') + '</b><span class="tiny">' + list.length + '편</span></div>';
-      list.forEach(x=>{
-        h += '<button class="help" style="width:100%;text-align:left" data-ls="' + x.n + '">' +
-          '<span class="b"><b>' + esc(x.t) + '</b></span>' +
-          '<span class="acts"><span class="go">읽기</span></span></button>';
-      });
-    }else{
-      h += '<div class="empty">범주를 누르면 해당 듣는 글만 보입니다.</div>';
-    }
+      '지금 상태에 가까운 범주를 누르세요. 한 번에 한 범주의 글만 보여드립니다.</p>';
+    h += '<div id="ls-tags">';
+    LTAG.forEach(t=>{
+      const list=LISTEN.filter(x=>x.g===t.k), on=ls.tag===t.k;
+      h += '<div class="acc'+(on?' on':'')+'" data-ls-acc="'+esc(t.k)+'">' +
+        '<button class="acc-h" type="button" data-ls-tag="'+esc(t.k)+'" aria-expanded="'+(on?'true':'false')+'">' +
+        '<span class="acc-n"><b>'+esc(t.l)+'</b><span>'+list.length+'편</span></span>' +
+        '<span aria-hidden="true" style="font-size:22px;line-height:1;color:var(--faint)">'+(on?'−':'+')+'</span></button>' +
+        '<div class="acc-b">';
+      if(on){
+        list.forEach(x=>{
+          h += '<button class="help" style="width:100%;text-align:left" data-ls="'+x.n+'">' +
+            '<span class="b"><b>'+esc(x.t)+'</b></span>' +
+            '<span class="acts"><span class="go">읽기</span></span></button>';
+        });
+      }
+      h += '</div></div>';
+    });
+    h += '</div>';
     $('#ls-list').innerHTML=h;
     $('#ls-list').querySelectorAll('[data-ls-tag]').forEach(b=>b.onclick=()=>{
       const k=b.dataset.lsTag||'';
       ls.tag=ls.tag===k?'':k;
       drawListen();
+      if(ls.tag){
+        setTimeout(()=>{
+          const row=$('#ls-list').querySelector('[data-ls-acc="'+ls.tag+'"]'), v=$('#view');
+          if(row&&v) v.scrollTo({top:Math.max(0,v.scrollTop+row.getBoundingClientRect().top-66),behavior:'smooth'});
+        },30);
+      }
     });
     $('#ls-list').querySelectorAll('[data-ls]').forEach(b=>b.onclick=()=>{
       ls.i=LISTEN.findIndex(x=>x.n===+b.dataset.ls);
@@ -9128,6 +9141,24 @@ $('#ls-prev').onclick    = () => listenMove(-1);
 $('#ls-tolist').onclick  = () => { ls.i = -1; drawListen(); rdTop(); };
 $('#ls-back').onclick    = () => { if(ls.i >= 0){ ls.i = -1; drawListen(); rdTop(); } else appBack(ls.back); };
 $('#tm-read').onclick = () => { urgeUseCope('도움되는 글 읽기'); openRead('timer'); };   /* 타이머는 계속 돕습니다 */
+
+/* V8.2.46 · 충동 대응 화면 안에서 저장해 둔 초심글을 이동 없이 바로 봅니다.
+   여기서는 읽기만 하며 timeCapsule 저장형식은 변경하지 않습니다. */
+function drawUrgeCapsuleInline(open){
+  const btn=$('#ur-capsule-toggle'), box=$('#ur-capsule-inline');
+  if(!btn||!box) return;
+  const show=!!open;
+  btn.setAttribute('aria-expanded',show?'true':'false');
+  btn.textContent=show?'미래의 나에게 접기':'미래의 나에게 바로보기';
+  if(!show){ box.classList.add('hide'); box.innerHTML=''; return; }
+  const c=capsuleData(), text=String(c.text||'').trim();
+  box.classList.remove('hide');
+  box.innerHTML=text
+    ? '<div class="card" style="margin:0"><h3>미래의 나에게</h3><div style="white-space:pre-wrap;font-size:16px;line-height:1.8">'+esc(text)+'</div></div>'
+    : '<div class="note" style="margin:0">아직 남겨둔 글이 없습니다.</div>';
+}
+const urCapsuleToggle=$('#ur-capsule-toggle');
+if(urCapsuleToggle) urCapsuleToggle.onclick=()=>drawUrgeCapsuleInline(urCapsuleToggle.getAttribute('aria-expanded')!=='true');
 $('#ur-read').onclick = () => { urgeUseCope('도움되는 글 읽기'); openRead('urge'); };
 
 /* ══════════ 센터·병원 찾기 ══════════
