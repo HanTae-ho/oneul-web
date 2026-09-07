@@ -1,0 +1,38 @@
+name: Publish V8.2.42 test release
+
+on:
+  push:
+    branches: [android-v8.2.42-practice-card-polish]
+    paths:
+      - '.github/workflows/publish-v8242-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.42 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34115160794 -n oneul-v8.2.42-practice-card-apk -D dist-apk
+          gh run download 34115160794 -n oneul-v8.2.42-practice-card-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.42.apk
+          cp dist-aab/*.aab oneul-v8.2.42.aab
+          test -s oneul-v8.2.42.apk
+          test -s oneul-v8.2.42.aab
+          sha256sum oneul-v8.2.42.apk oneul-v8.2.42.aab
+      - name: Publish V8.2.42 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.42-test --yes --cleanup-tag || true
+          gh release create v8.2.42-test oneul-v8.2.42.apk oneul-v8.2.42.aab \
+            --target android-v8.2.42-practice-card-polish \
+            --title '오늘 한 걸음 V8.2.42 실천기록 카드 표시 개선 테스트' \
+            --notes '내 발자취 > 실천기록의 SMART/가족 기록 미리보기를 도구별 의미가 드러나는 문구로 개선했습니다. HOV는 우선 가치, ABC는 떠오른 생각, 변화 계획은 변화 목표, DIBS는 균형 잡힌 생각, 가족 경계는 내가 지킬 경계처럼 표시합니다. 전체·12단계·SMART·가족도구 필터는 선택된 항목을 강조색 채움으로 더 분명하게 표시합니다. 기록 저장형식, DATA_SCHEMA=6, ohg.v1은 유지합니다. Android 네이티브 코드는 변경하지 않고 versionCode 862 / versionName 8.2.42만 적용했으며 정확알림·화면 OFF 알림·부팅 재예약·이완 TTS를 보존했습니다.' \
+            --prerelease
