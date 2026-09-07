@@ -2242,7 +2242,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.47';
+const BUILD = 'V8.2.48';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -6909,8 +6909,46 @@ function beginScreen(id){
   startScreenNow(tool,'');
 }
 function startScreenNow(tool,sex){
-  screenRun={id:tool.id,i:0,a:new Array((tool.questions||[]).length).fill(null),sex:sex,result:null};
+  screenRun={id:tool.id,i:0,a:new Array((tool.questions||[]).length).fill(null),sex:sex,result:null,auditSkip:''};
   go('screen-test');
+}
+function screenAuditPrepareAnswer(tool,i,nextValue){
+  if(!screenRun || tool.id!=='audit-k') return;
+  if(screenRun.auditSkip==='q1' && i===0 && Number(nextValue)!==0){
+    for(let k=1;k<=7;k++) screenRun.a[k]=null;
+    screenRun.auditSkip='';
+    return;
+  }
+  if(screenRun.auditSkip==='q23' && (i===1 || i===2)){
+    const q2=i===1?Number(nextValue):screenRun.a[1];
+    const q3=i===2?Number(nextValue):screenRun.a[2];
+    if(q2!==0 || q3!==0){
+      for(let k=3;k<=7;k++) screenRun.a[k]=null;
+      screenRun.auditSkip='';
+    }
+  }
+}
+function screenNextQuestion(tool,i){
+  if(tool.id==='audit-k'){
+    if(i===0 && screenRun.a[0]===0){
+      for(let k=1;k<=7;k++) screenRun.a[k]=0;
+      screenRun.auditSkip='q1';
+      return 8;
+    }
+    if(i===2 && screenRun.a[1]===0 && screenRun.a[2]===0){
+      for(let k=3;k<=7;k++) screenRun.a[k]=0;
+      screenRun.auditSkip='q23';
+      return 8;
+    }
+  }
+  return i+1;
+}
+function screenPrevQuestion(tool,i){
+  if(tool.id==='audit-k' && i===8){
+    if(screenRun.auditSkip==='q1') return 0;
+    if(screenRun.auditSkip==='q23') return 2;
+  }
+  return Math.max(0,i-1);
 }
 function drawScreenTest(){
   const body=$('#screen-test-body'); if(!body) return;
@@ -6937,9 +6975,14 @@ function drawScreenTest(){
      '<button class="btn sec" id="screen-next"'+(selected==null?' disabled':'')+'>'+(i===total-1?'결과 보기':'다음')+'</button></div>'+
      '<p class="screen-source">출처: '+esc(tool.source||'')+'</p>';
   body.innerHTML=h;
-  $$('[data-screen-v]').forEach(b=>b.onclick=()=>{ screenRun.a[i]=Number(b.dataset.screenV); drawScreenTest(); });
-  $('#screen-prev').onclick=()=>{ if(screenRun.i>0){screenRun.i--;drawScreenTest();} };
-  $('#screen-next').onclick=()=>{ if(screenRun.a[i]==null)return; if(i>=total-1) finishScreen(tool); else {screenRun.i++;drawScreenTest();} };
+  $$('[data-screen-v]').forEach(b=>b.onclick=()=>{
+    const v=Number(b.dataset.screenV);
+    screenAuditPrepareAnswer(tool,i,v);
+    screenRun.a[i]=v;
+    drawScreenTest();
+  });
+  $('#screen-prev').onclick=()=>{ if(screenRun.i>0){screenRun.i=screenPrevQuestion(tool,screenRun.i);drawScreenTest();} };
+  $('#screen-next').onclick=()=>{ if(screenRun.a[i]==null)return; if(i>=total-1) finishScreen(tool); else {screenRun.i=screenNextQuestion(tool,i);drawScreenTest();} };
 }
 function finishScreen(tool){
   if(!screenRun || screenRun.a.some(v=>v==null)){ toast('답하지 않은 문항이 있습니다.'); return; }
