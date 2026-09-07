@@ -1,0 +1,290 @@
+name: Apply V8.2.39 usability patch
+
+on:
+  push:
+    branches:
+      - v8.2.39-usability-consolidation
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: "!contains(github.event.head_commit.message, '[v8239-applied]')"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.39-usability-consolidation
+      - name: Patch index.html
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          def rep(old, new, count=1):
+              global s
+              n = s.count(old)
+              if n < count:
+                  raise SystemExit(f'expected pattern not found: {old[:120]!r} / found={n}')
+              s = s.replace(old, new, count)
+
+          rep("const BUILD = 'V8.2.38';", "const BUILD = 'V8.2.39';")
+
+          rep(
+              '<button class="tiny" style="color:var(--acc);font-weight:600" onclick="go(\'home\')">닫기</button>',
+              '<button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack(\'home\')">← 돌아가기</button>'
+          )
+
+          rep(
+              '  <button class="btn sec" id="go-ai-home">마음프로와 이야기하기</button>\n  <div style="height:10px"></div>\n',
+              '  <button class="btn sec hide" id="go-ai-home">마음프로와 이야기하기</button>\n'
+          )
+
+          rep('class="practicecard habit" id="tool-habit"', 'class="practicecard habit hide" id="tool-habit"')
+          rep('class="practicecard schedule" id="tool-schedule"', 'class="practicecard schedule" id="tool-schedule" style="grid-column:1/-1"')
+
+          q_old = '''      <button class="minitool wide" id="tool-qa">
+        <span class="ic" data-ico="speak"></span><b>중독 Q&A</b><span id="tool-qa-s">궁금한 내용을 질문하고 답변 보기</span>
+      </button>
+'''
+          rep(q_old, '')
+          fam_marker = '''    </div>
+    <button class="toolcard hide" id="tool-family-tools" style="margin-top:9px">'''
+          fam_insert = '''    </div>
+    <button class="toolcard" id="tool-qa" style="margin-top:9px">
+      <span class="ic" data-ico="speak"></span>
+      <span class="b"><b>중독 Q&A</b><span id="tool-qa-s">궁금한 내용을 질문하고 답변 보기</span></span>
+      <span class="go">열기</span>
+    </button>
+    <button class="toolcard hide" id="tool-family-tools" style="margin-top:9px">'''
+          rep(fam_marker, fam_insert)
+
+          marker = '''</section>
+
+<!-- ══════════ 충동일기 V8.2.2 ══════════ -->'''
+          trail = '''  <div class="toolsec">
+    <h2>내 기록 돌아보기</h2>
+    <button class="toolcard" id="tool-trail" onclick="go('rec')">
+      <span class="ic" data-ico="check"></span>
+      <span class="b"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 다시 시작 · 실천기록 · 통계</span></span>
+      <span class="go">열기</span>
+    </button>
+  </div>
+</section>
+
+<!-- ══════════ 충동일기 V8.2.2 ══════════ -->'''
+          rep(marker, trail)
+
+          rep(
+              '<p class="muted" style="margin:0 0 14px">생활과 치료 일정을 나누어 정하고, 알림은 한곳에서 관리합니다.</p>',
+              '<p class="muted" style="margin:0 0 14px">습관과 생활·치료 일정을 한곳에서 정하고, 알림까지 같은 흐름에서 관리합니다.</p>'
+          )
+          sched_marker = '''  <div class="schedulecards">
+    <button class="schedulecard" id="schedule-life">'''
+          sched_insert = '''  <div class="schedulecards">
+    <button class="schedulecard" id="schedule-habit" onclick="go('habit')">
+      <span class="ic" data-ico="sprout"></span>
+      <span class="b"><b>습관</b><span>추천 습관 · 내 습관 · 오늘 실천</span></span><span class="go">›</span>
+    </button>
+    <button class="schedulecard" id="schedule-life">'''
+          rep(sched_marker, sched_insert)
+
+          habit_header = '''<section class="pg" id="p-habit">
+  <div class="sp" style="margin-bottom:8px">
+    <h1 style="margin:0">습관</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('tools')">← 회복도구</button>'''
+          habit_header_new = '''<section class="pg" id="p-habit">
+  <div class="sp" style="margin-bottom:8px">
+    <h1 style="margin:0">습관</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('schedule')">← 일정·알림</button>'''
+          rep(habit_header, habit_header_new)
+
+          rec_header = '''<section class="pg" id="p-rec">
+  <div class="sp" style="margin-bottom:8px">
+    <h1 style="margin:0">내 발자취</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('me')">← 내정보</button>
+  </div>
+  <p class="muted" style="margin:0 0 14px">감정 · 충동 · 하루 · 몸 · 다시 시작 · 12단계 검토 · 통계를 돌아봅니다.</p>'''
+          rec_header_new = '''<section class="pg" id="p-rec">
+  <div class="sp" style="margin-bottom:8px">
+    <h1 style="margin:0">내 발자취</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('tools')">← 돌아가기</button>
+  </div>
+  <p class="muted" style="margin:0 0 14px">감정 · 충동 · 하루 · 몸 · 다시 시작 · 실천기록 · 통계를 한곳에서 돌아봅니다.</p>'''
+          rep(rec_header, rec_header_new)
+
+          me_header = '''<section class="pg" id="p-me">
+  <h1>내 정보</h1>
+  <p class="muted" style="margin:-10px 0 16px">
+    누르면 펼쳐집니다. 한 번에 하나씩 열립니다.
+  </p>'''
+          me_header_new = '''<section class="pg" id="p-me">
+  <h1>나 · 설정</h1>
+  <button class="toolcard" id="me-trail-open" style="margin-bottom:12px">
+    <span class="ic" data-ico="check"></span>
+    <span class="b"><b>내 발자취</b><span>기록과 변화를 바로 돌아보기</span></span><span class="go">열기</span>
+  </button>
+  <p class="muted" style="margin:-2px 0 16px">
+    아래 설정은 누르면 펼쳐집니다. 한 번에 하나씩 열립니다.
+  </p>'''
+          rep(me_header, me_header_new)
+
+          old_trail_acc = '''  <div class="acc">
+    <button class="acc-h">
+      <span class="acc-n"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 다시 시작 · 통계 · 기록 관리</span></span>
+      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
+    </button>
+    <div class="acc-b">
+      <p class="muted" style="margin:0 0 11px">지금까지의 회복 과정을 한곳에서 돌아봅니다.</p>
+      <button class="btn sec sm" id="me-trail-open">발자취 보기</button>
+      <div class="sep"></div>
+      <h3>기록 관리</h3>
+      <p class="muted" style="margin:-4px 0 11px">
+        기록은 이 기기의 브라우저 안에만 있습니다. 브라우저 데이터를 지우면
+        함께 사라지니, 가끔 파일로 내보내 두세요.
+      </p>
+      <button class="btn sec sm" id="me-export">파일로 내보내기</button>
+      <div style="height:9px"></div>
+      <button class="btn ghost sm" id="me-import">파일에서 불러오기</button>
+      <input type="file" id="me-file" accept="application/json" class="hide">
+      <div style="height:9px"></div>
+      <button class="btn ghost sm" id="me-wipe" style="color:var(--bad);border-color:var(--bad)">전체 지우기</button>
+    </div>
+  </div>'''
+          new_trail_acc = '''  <div class="acc">
+    <button class="acc-h">
+      <span class="acc-n"><b>기록 관리</b><span>내보내기 · 불러오기 · 전체 지우기</span></span>
+      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
+    </button>
+    <div class="acc-b">
+      <p class="muted" style="margin:0 0 11px">
+        기록은 이 기기의 브라우저 안에만 있습니다. 브라우저 데이터를 지우면
+        함께 사라지니, 가끔 파일로 내보내 두세요.
+      </p>
+      <button class="btn sec sm" id="me-export">파일로 내보내기</button>
+      <div style="height:9px"></div>
+      <button class="btn ghost sm" id="me-import">파일에서 불러오기</button>
+      <input type="file" id="me-file" accept="application/json" class="hide">
+      <div style="height:9px"></div>
+      <button class="btn ghost sm" id="me-wipe" style="color:var(--bad);border-color:var(--bad)">전체 지우기</button>
+    </div>
+  </div>'''
+          rep(old_trail_acc, new_trail_acc)
+
+          rep(
+              "function drawTools(){\n  const ft=$('#tool-family-tools'); if(ft) ft.classList.toggle('hide', !famMode());",
+              "function drawTools(){\n  const ft=$('#tool-family-tools'); if(ft) ft.classList.toggle('hide', !famMode());\n  const st=$('#tool-smart-tools'); if(st) st.classList.toggle('hide', famMode());"
+          )
+
+          fam_note = '''  <div class="note" style="margin-top:14px">가족 12단계 점검, 가족 모임, 긴급 도움은 각각 기존 <b>내 발자취 · 모임 · 헬프</b> 위치에서 그대로 사용합니다.</div>'''
+          fam_note_new = '''  <div class="note" style="margin-top:14px">가족 12단계 점검, 가족 모임, 긴급 도움은 각각 기존 <b>내 발자취 · 모임 · 헬프</b> 위치에서 그대로 사용합니다.</div>
+  <button class="btn ghost" style="margin-top:9px" onclick="go('smart-tools')">SMART 전체 도구 더 보기</button>'''
+          rep(fam_note, fam_note_new)
+
+          old_tabs = '''  const tabs = famMode()
+    ? [{v:'mood',l:'감정'},{v:'day',l:'하루'},{v:'body',l:'몸'},{v:'work',l:'12단계 점검'},{v:'stat',l:'통계'}]
+    : [{v:'mood',l:'감정'},{v:'urge',l:'충동'},{v:'day',l:'하루'},{v:'body',l:'몸'},
+       {v:'relapse',l:'다시 시작'},{v:'work',l:'12단계 검토'},{v:'stat',l:'통계'}];'''
+          new_tabs = '''  const tabs = famMode()
+    ? [{v:'mood',l:'감정'},{v:'day',l:'하루'},{v:'body',l:'몸'},{v:'practice',l:'실천기록'},{v:'stat',l:'통계'}]
+    : [{v:'mood',l:'감정'},{v:'urge',l:'충동'},{v:'day',l:'하루'},{v:'body',l:'몸'},
+       {v:'relapse',l:'다시 시작'},{v:'practice',l:'실천기록'},{v:'stat',l:'통계'}];'''
+          rep(old_tabs, new_tabs)
+          rep("  if(recTab === 'work')    body.appendChild(recWorkbook());", "  if(recTab === 'practice') body.appendChild(recPractice());")
+          s = s.replace("recTab='work'", "recTab='practice'")
+
+          rec_insert_marker = 'function recWorkbook(){'
+          rec_insert = r'''function smartRecordMeta(tool){
+  const map={
+    'hov':['가치의 계층 HOV','smart-hov'],
+    'cba':['비용-편익 분석 CBA','smart-cba'],
+    'change-plan':['변화 계획','smart-change-plan'],
+    'three-questions':['나의 3가지 질문','smart-three-questions'],
+    'deads':['DEADS · 충동 대처','smart-deads'],
+    'disarm':['DISARM · 충동의 목소리 분리','smart-disarm'],
+    'abc':['ABC 문제 해결','smart-abc'],
+    'dibs':['DIBS · 생각 반박','smart-dibs'],
+    'thinking':['사고방식 점검','smart-thinking'],
+    'problem-solving':['문제 해결 · 5단계','smart-problem-solving'],
+    'balance-pie':['삶의 균형','smart-balance-pie'],
+    'vaci':['VACI · 나를 살리는 활동','smart-vaci'],
+    'goal':['SMART 목표','smart-goal'],
+    'health':['건강 회복 · 생활 돌보기','smart-health'],
+    'family-boundary':['내 경계 정리','family-boundary'],
+    'family-conversation':['대화 준비','family-conversation'],
+    'family-return-plan':['다시 사용했을 때 내 대응계획','family-return-plan']
+  };
+  return map[tool] || ['SMART 실천기록','smart-tools'];
+}
+function recPractice(){
+  const w=el('div');
+  w.appendChild(el('div','card tight','<h3 style="margin:0 0 4px">실천기록</h3><p class="tiny" style="margin:0">12단계 점검과 SMART·가족 실천도구 기록을 한곳에서 확인합니다. 저장 위치는 기존 그대로이며 기록을 옮기거나 복제하지 않습니다.</p>'));
+  const role=famMode()?'family':'self';
+  const rows=(Array.isArray(S.smartWorks)?S.smartWorks:[])
+    .filter(r=>r && (r.role||'self')===role)
+    .slice().sort((a,b)=>Number(b.updatedAt||b.t||0)-Number(a.updatedAt||a.t||0));
+  const c=el('div','card');
+  c.innerHTML='<h3>SMART · 가족 실천도구</h3>';
+  if(!rows.length){
+    c.innerHTML += '<p class="muted" style="margin:0">아직 저장된 실천도구 기록이 없습니다.</p>';
+  } else {
+    rows.slice(0,40).forEach(r=>{
+      const m=smartRecordMeta(r.tool), t=Number(r.updatedAt||r.t||0);
+      const d=t?new Date(t).toLocaleDateString('ko-KR'):'';
+      const b=el('button','toolcard');
+      b.style.marginTop='8px';
+      b.innerHTML='<span class="ic" data-ico="check"></span><span class="b"><b>'+esc(m[0])+'</b><span>'+esc(d)+'</span></span><span class="go">열기</span>';
+      b.onclick=()=>go(m[1]);
+      c.appendChild(b);
+    });
+  }
+  w.appendChild(c);
+  w.appendChild(recWorkbook());
+  return w;
+}
+'''
+          rep(rec_insert_marker, rec_insert + rec_insert_marker)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Validate patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          checks=[
+            "const BUILD = 'V8.2.39';",
+            "id=\"schedule-habit\"",
+            "id=\"tool-trail\"",
+            "{v:'practice',l:'실천기록'}",
+            "function recPractice()",
+            "onclick=\"appBack('home')\">← 돌아가기",
+            "class=\"btn sec hide\" id=\"go-ai-home\""
+          ]
+          miss=[x for x in checks if x not in s]
+          if miss: raise SystemExit('missing checks: '+repr(miss))
+          if "const DATA_SCHEMA = 6;" not in s: raise SystemExit('DATA_SCHEMA changed')
+          print('patch validation ok')
+          PY
+          node --check <(python - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          a=s.rfind('<script>')+len('<script>')
+          b=s.rfind('</script>')
+          print(s[a:b])
+          PY
+          )
+      - name: Commit patched index and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/v8239-usability-patch.yml
+          git add index.html
+          git commit -m "V8.2.39 사용성 2차 정리 [v8239-applied]"
+          git push origin HEAD:v8.2.39-usability-consolidation
