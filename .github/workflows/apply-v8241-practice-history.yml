@@ -1,0 +1,59 @@
+name: Apply V8.2.41 practice history
+
+on:
+  push:
+    branches: [v8.2.41-practice-history]
+    paths:
+      - 'v8241-practice-history.patch.py'
+      - '.github/workflows/apply-v8241-practice-history.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.41-practice-history
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply patch
+        run: python v8241-practice-history.patch.py
+      - name: Verify diff and versions
+        run: |
+          git diff --check
+          grep -Fq "const BUILD = 'V8.2.41';" index.html
+          grep -Fq "const APP_VERSION = 'V8.2.41';" sw.js
+          grep -Fq "const V = 'ohg-v8241-practice-history';" sw.js
+          grep -Fq "const DATA_SCHEMA = 6;" index.html
+          grep -Fq "const KEY = 'ohg.v1';" index.html
+          grep -Fq "const key=String(r.tool||r.kind||'');" index.html
+          grep -Fq "저장된 12단계 기록이 없습니다." index.html
+          grep -Fq "저장한 실천 기록" index.html
+          ! grep -Fq "w.appendChild(recWorkbook());" index.html
+      - name: Verify inline JavaScript syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=[]
+          for m in re.finditer(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>',s,re.I):
+              blocks.append(m.group(1))
+          Path('/tmp/inline.js').write_text('\n;\n'.join(blocks),encoding='utf-8')
+          PY
+          node --check /tmp/inline.js
+          node --check sw.js
+      - name: Commit verified app changes and remove temporary files
+        run: |
+          git config user.name 'HanTae-ho'
+          git config user.email '64190685+HanTae-ho@users.noreply.github.com'
+          git rm v8241-practice-history.patch.py .github/workflows/apply-v8241-practice-history.yml
+          git add README.md index.html sw.js
+          git diff --cached --check
+          git commit -m 'V8.2.41 내 발자취 실천기록 정리'
+          git push origin v8.2.41-practice-history
