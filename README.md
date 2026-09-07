@@ -781,3 +781,10 @@ Samsung Internet에서는 앱 안의 설치 버튼보다 **브라우저 주소�
 ### Android APK / Google Play
 `android-package/` 폴더는 현재 PWA를 Trusted Web Activity(TWA)로 패키징하기 위한 준비자료입니다. 실제 APK/AAB 생성에는 **공개 배포 URL**과 **서명 인증서 SHA-256 fingerprint**가 필요합니다.
 GitHub Pages가 `https://<아이디>.github.io/oneul-web/` 프로젝트 사이트라면 TWA 주소창 제거용 Digital Asset Links 파일은 origin 루트 `https://<아이디>.github.io/.well-known/assetlinks.json`에 있어야 합니다. 프로젝트 저장소 경로 안의 `.well-known`만으로는 검증되지 않습니다.
+
+
+### V8.2.48 — AUDIT-K 표준 건너뛰기 흐름
+- AUDIT-K 1번에서 `전혀 안 마심` 선택 시 2~8번을 0점 처리하고 9번으로 이동합니다.
+- AUDIT-K 2번과 3번이 모두 0점이면 4~8번을 0점 처리하고 9번으로 이동합니다.
+- 건너뛴 뒤 `이전`을 누르면 각각 1번 또는 3번으로 돌아가며, 답을 바꿔 건너뛰기 조건이 사라지면 해당 문항들을 다시 응답하도록 초기화합니다.
+- 다른 자가점검 도구의 문항·채점·저장형식은 변경하지 않았습니다. DATA_SCHEMA=6 / ohg.v1 유지.
