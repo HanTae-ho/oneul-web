@@ -1,0 +1,54 @@
+name: Apply V8.2.43 notification review flow
+
+on:
+  push:
+    branches: [v8.2.43-notify-review-flow]
+    paths:
+      - 'v8243-notify-review-patch.py'
+      - '.github/workflows/apply-v8243-notify-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.43-notify-review-flow
+          fetch-depth: 0
+      - name: Apply patch
+        run: python3 v8243-notify-review-patch.py
+      - name: Verify requested scope
+        run: |
+          grep -q "const BUILD = 'V8.2.43'" index.html
+          grep -q "const DATA_SCHEMA = 6" index.html
+          grep -q "const KEY = 'ohg.v1'" index.html
+          grep -q "const NOTIFY_REVIEW_KEY = 'ohg.notify.review.v1'" index.html
+          grep -q 'schedule-notify-flag' index.html
+          test "$(grep -c '알림 설정 확인 →' index.html)" -eq 3
+          grep -q "markNotifyReviewed();" index.html
+          grep -q "const APP_VERSION = 'V8.2.43'" sw.js
+          grep -q "ohg-v8243-notify-review-flow" sw.js
+          git diff --check
+      - name: Verify inline JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          Path('/tmp/oneul-inline.js').write_text('\n'.join(blocks),encoding='utf-8')
+          PY
+          node --check /tmp/oneul-inline.js
+          node --check sw.js
+      - name: Remove temporary patch files and commit
+        run: |
+          rm -f v8243-notify-review-patch.py .github/workflows/apply-v8243-notify-review.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md index.html sw.js v8243-notify-review-patch.py .github/workflows/apply-v8243-notify-review.yml
+          git commit -m 'V8.2.43 일정 변경 후 알림 확인 동선 보강'
+          git push origin HEAD:v8.2.43-notify-review-flow
