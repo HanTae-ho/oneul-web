@@ -1203,6 +1203,22 @@ addEventListener('appinstalled', function(){
   <div id="urge-diary-list" style="margin-top:12px"></div>
 </section>
 
+<!-- ══════════ 가족 · 다시 사용했을 때 내 대응계획 V8.2.36 ══════════ -->
+<section class="pg" id="p-family-return-plan">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0">다시 사용했을 때 내 대응계획</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('fam')">← 가족 안내</button>
+  </div>
+  <div class="note" style="margin-bottom:12px">상대의 재발일·사용량을 기록하거나 평가하는 화면이 아닙니다. 다시 사용하는 상황이 생겼을 때 <b>가족인 내가 안전하게 무엇을 하고, 무엇을 하지 않을지</b> 미리 정리하는 계획입니다.</div>
+  <div class="card" style="border-color:var(--warn)">
+    <h3>위험 신호가 있으면 계획보다 안전이 먼저입니다</h3>
+    <p class="muted" style="margin:0 0 11px">의식·호흡·심한 금단, 자해·자살·타해, 폭력·위협 또는 아이의 안전이 걱정되면 대화를 이어가기보다 기존 가족 위기 안내를 먼저 확인하세요.</p>
+    <button class="btn ghost sm" id="family-return-plan-sos">가족 위기 안내 보기</button>
+  </div>
+  <button class="btn pri" id="family-return-plan-new">내 대응계획 정리하기</button>
+  <div id="family-return-plan-list" style="margin-top:12px"></div>
+</section>
+
 <!-- ══════════ 가족 · 대화 준비 V8.2.35 ══════════ -->
 <section class="pg" id="p-family-conversation">
   <div class="sp" style="margin-bottom:11px">
@@ -2173,7 +2189,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.35';
+const BUILD = 'V8.2.36';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -2365,7 +2381,7 @@ const FAMGUIDE = {
     {h:'회복은 완치가 아니라 관리입니다',
      b:'끊었다고 끝나는 것이 아니라, 계속 돌보며 사는 일입니다. 당뇨나 고혈압과 비슷합니다.\n' +
        '"이제 다 나았지?" 라는 물음이 당사자에게는 가장 무거운 질문이 되기도 합니다.'},
-    {h:'재발은 흔한 일입니다',
+    {h:'재발은 흔한 일입니다', a:'family-return-plan', al:'내 대응계획 정리하기',
      b:'재발은 회복이 실패한 증거가 아니라, 회복 과정에서 자주 일어나는 일입니다.\n' +
        '그때 필요한 것은 추궁이 아니라 다시 시작할 자리입니다.\n' +
        '다만 아무 일 없던 것처럼 넘기지도 마세요. 있었던 일은 있었던 일로 두고, 다음을 이야기하면 됩니다.'},
@@ -2999,6 +3015,7 @@ function go(p,opt){
   if(p === 'smart-goal') drawSmartGoal();
   if(p === 'smart-relax') drawSmartRelax();
   if(p === 'smart-health') drawSmartHealth();
+  if(p === 'family-return-plan') drawFamilyReturnPlan();
   if(p === 'family-conversation') drawFamilyConversation();
   if(p === 'family-boundary') drawFamilyBoundary();
   if(p === 'smart-tools') drawSmartTools();
@@ -3463,6 +3480,7 @@ function familyGuideRun(action){
     mt.target='fam'; mt.mode='today'; mt.q=''; mt.kind=''; mt.todayArea=''; go('meet'); return;
   }
   if(action==='help'){ go('help'); return; }
+  if(action==='family-return-plan'){ go('family-return-plan'); return; }
   if(action==='family-conversation'){ go('family-conversation'); return; }
   if(action==='family-boundary'){ go('family-boundary'); return; }
   if(['smart-cba','smart-abc','smart-balance-pie','smart-health'].includes(action)){ go(action); return; }
@@ -4608,6 +4626,91 @@ function familyBoundaryDate(v){
   const d=new Date(Number(v)||Date.now());
   try{return d.toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'});}catch(_){return d.toLocaleDateString();}
 }
+function familyReturnPlanRows(){
+  return (S.smartWorks||[]).filter(r=>r && r.tool==='family-return-plan' && (r.role||'family')==='family')
+    .slice().sort((a,b)=>Number(b.updatedAt||b.t||0)-Number(a.updatedAt||a.t||0));
+}
+function familyReturnPlanRiskLabel(v){
+  if(v==='medical') return '몸 상태·금단이 걱정됨';
+  if(v==='selfharm') return '자해·자살·타해가 걱정됨';
+  if(v==='violence') return '폭력·위협·아이 안전이 걱정됨';
+  if(v==='unknown') return '안전 여부를 잘 모르겠음';
+  return '뚜렷한 위험 신호는 없음';
+}
+function familyReturnPlanNeedsSafety(v){ return v && v!=='safe'; }
+function openFamilyReturnPlanSafety(){
+  closeModal(); famTab='sos'; famI=0; go('fam');
+}
+function drawFamilyReturnPlan(){
+  if(!famMode()){ toast('가족모드에서 사용하는 도구입니다.'); go('tools'); return; }
+  const rows=familyReturnPlanRows(), box=$('#family-return-plan-list');
+  if(box){
+    box.innerHTML=rows.length
+      ? '<h2 style="margin-top:0">저장한 대응계획</h2>'+rows.map(r=>'<button class="card" style="width:100%;text-align:left" data-frp-view="'+esc(r.rid||String(r.t))+'"><b>'+esc(r.situation||'내 대응계획')+'</b><div class="muted" style="margin-top:4px">'+esc(familyBoundaryDate(r.updatedAt||r.t))+' · '+esc(familyReturnPlanRiskLabel(r.risk))+(r.action?' · '+esc(r.action):'')+'</div></button>').join('')
+      : '<div class="note">아직 저장한 대응계획이 없습니다. 일이 생긴 뒤 판단하기 어려울 수 있으니, 평온할 때 내가 할 행동 한두 가지부터 정리해두세요.</div>';
+    $$('[data-frp-view]').forEach(b=>b.onclick=()=>openFamilyReturnPlanView(b.dataset.frpView));
+  }
+  const add=$('#family-return-plan-new'), sos=$('#family-return-plan-sos');
+  if(add) add.onclick=()=>openFamilyReturnPlanEditor();
+  if(sos) sos.onclick=openFamilyReturnPlanSafety;
+}
+function familyReturnPlanRecord(key){
+  return familyReturnPlanRows().find(r=>(r.rid||String(r.t))===key)||null;
+}
+function openFamilyReturnPlanView(key){
+  const r=familyReturnPlanRecord(key); if(!r) return;
+  const part=(label,value)=>value?'<div class="field"><label>'+label+'</label><div class="note">'+esc(value)+'</div></div>':'';
+  modal('<h2>다시 사용했을 때 내 대응계획</h2>'
+    +part('예상하는 상황',r.situation)
+    +part('먼저 확인할 안전',familyReturnPlanRiskLabel(r.risk))
+    +part('그 순간 하지 않으려는 행동',r.avoid)
+    +part('대신 내가 할 행동',r.action)
+    +part('연락하거나 도움받을 사람·곳',r.support)
+    +part('상황이 가라앉은 뒤 다음 행동',r.next)
+    +(familyReturnPlanNeedsSafety(r.risk)?'<div class="note" style="margin-bottom:10px"><b>안전 우려가 있는 계획입니다.</b><br>실제 상황에서 위험 신호가 있으면 이 계획을 끝까지 수행하려 하지 말고 위기 도움을 먼저 사용하세요.</div><button class="btn ghost" id="frp-view-sos">가족 위기 안내 보기</button><div style="height:8px"></div>':'')
+    +'<button class="btn sec" id="frp-edit">수정</button><div style="height:8px"></div><button class="btn ghost" id="frp-delete">삭제</button>');
+  const vs=$('#frp-view-sos'); if(vs) vs.onclick=openFamilyReturnPlanSafety;
+  $('#frp-edit').onclick=()=>{ closeModal(); openFamilyReturnPlanEditor(r); };
+  $('#frp-delete').onclick=()=>{
+    modal('<h2>이 대응계획을 삭제할까요?</h2><p class="muted" style="margin:6px 0 14px">이 계획 한 건만 기기에서 삭제하며 되돌릴 수 없습니다.</p><button class="btn danger" id="frp-delete-ok">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
+    $('#frp-delete-ok').onclick=()=>{ const k=r.rid||String(r.t); S.smartWorks=(S.smartWorks||[]).filter(x=>(x.rid||String(x.t))!==k); save(); closeModal(); drawFamilyReturnPlan(); toast('삭제했습니다.'); };
+  };
+}
+function openFamilyReturnPlanEditor(record){
+  const edit=!!record, v=record||{};
+  modal('<h2>'+(edit?'대응계획 수정':'다시 사용했을 때 내 대응계획')+'</h2>'
+    +'<div class="field"><label>1. 어떤 상황을 미리 준비해둘까요?</label><textarea id="frp-situation" maxlength="600" placeholder="예: 다시 술을 마신 상태로 집에 들어왔을 때">'+esc(v.situation||'')+'</textarea><div class="tiny muted" style="margin-top:5px">날짜·횟수·사용량을 기록하지 않고, 내가 준비할 상황만 적습니다.</div></div>'
+    +'<div class="field"><label>2. 그때 가장 먼저 확인할 안전은?</label><select id="frp-risk"><option value="safe">뚜렷한 위험 신호는 없음</option><option value="medical">몸 상태·의식·호흡·금단이 걱정됨</option><option value="selfharm">자해·자살·타해가 걱정됨</option><option value="violence">폭력·위협 또는 아이 안전이 걱정됨</option><option value="unknown">안전 여부를 잘 모르겠음</option></select><div id="frp-risk-note" style="margin-top:7px"></div></div>'
+    +'<div class="field"><label>3. 그 순간 하지 않으려는 행동 한 가지</label><textarea id="frp-avoid" maxlength="700" placeholder="예: 취한 상태에서 길게 따지거나 약속을 받아내지 않기">'+esc(v.avoid||'')+'</textarea></div>'
+    +'<div class="field"><label>4. 대신 내가 할 행동은?</label><textarea id="frp-action" maxlength="700" placeholder="예: 아이와 안전한 공간으로 이동하고, 대화는 다음 날로 미루기">'+esc(v.action||'')+'</textarea><div class="tiny muted" style="margin-top:5px">상대를 통제하는 행동보다 내가 실제로 할 수 있는 행동을 적습니다.</div></div>'
+    +'<div class="field"><label>5. 연락하거나 도움받을 사람·곳</label><textarea id="frp-support" maxlength="700" placeholder="예: 형제에게 연락, 가족모임, 상담기관">'+esc(v.support||'')+'</textarea></div>'
+    +'<div class="field"><label>6. 상황이 가라앉은 뒤 내가 할 다음 행동</label><textarea id="frp-next" maxlength="700" placeholder="예: 다음 날 내 경계를 다시 확인하고, 필요하면 상담을 요청하기">'+esc(v.next||'')+'</textarea></div>'
+    +'<button class="btn pri" id="frp-save">'+(edit?'수정 저장':'저장')+'</button>');
+  const risk=$('#frp-risk'); risk.value=v.risk||'safe';
+  const updateRisk=()=>{
+    const n=$('#frp-risk-note'), val=risk.value;
+    if(!n) return;
+    if(familyReturnPlanNeedsSafety(val)) n.innerHTML='<div class="note"><b>안전이 먼저입니다.</b><br>실제 상황에서 위험 신호가 있으면 설득·추궁·경계 설명을 이어가기보다 안전한 곳으로 이동하고 즉시 도움을 요청하세요.<div style="height:8px"></div><button class="btn ghost sm" id="frp-risk-sos">가족 위기 안내 보기</button></div>';
+    else n.innerHTML='<div class="tiny muted">위험 신호가 새로 생기면 계획보다 위기 도움을 먼저 사용합니다.</div>';
+    const sb=$('#frp-risk-sos'); if(sb) sb.onclick=openFamilyReturnPlanSafety;
+  };
+  risk.onchange=updateRisk; updateRisk();
+  $('#frp-save').onclick=()=>{
+    const situation=$('#frp-situation').value.trim(), riskVal=risk.value, avoid=$('#frp-avoid').value.trim(), action=$('#frp-action').value.trim(), support=$('#frp-support').value.trim(), next=$('#frp-next').value.trim();
+    if(!situation){ toast('미리 준비할 상황을 적어주세요.'); return; }
+    if(!avoid){ toast('그 순간 하지 않으려는 행동 한 가지를 적어주세요.'); return; }
+    if(!action){ toast('대신 내가 할 행동을 적어주세요.'); return; }
+    if(!support){ toast('연락하거나 도움받을 사람·곳을 적어주세요.'); return; }
+    const now=Date.now();
+    const rec={rid:edit?(record.rid||smartWorkId()):smartWorkId(),tool:'family-return-plan',role:'family',t:edit?Number(record.t||now):now,updatedAt:now,situation,risk:riskVal,avoid,action,support,next};
+    if(!Array.isArray(S.smartWorks)) S.smartWorks=[];
+    const key=edit?(record.rid||String(record.t)):'';
+    const i=edit?S.smartWorks.findIndex(x=>(x.rid||String(x.t))===key):-1;
+    if(i>=0) S.smartWorks[i]=rec; else S.smartWorks.push(rec);
+    save(); closeModal(); drawFamilyReturnPlan(); toast(edit?'대응계획을 수정했습니다.':'내 대응계획을 저장했습니다.');
+  };
+}
+
 function familyConversationRows(){
   return (S.smartWorks||[]).filter(r=>r && r.tool==='family-conversation' && (r.role||'family')==='family')
     .slice().sort((a,b)=>Number(b.updatedAt||b.t||0)-Number(a.updatedAt||a.t||0));
