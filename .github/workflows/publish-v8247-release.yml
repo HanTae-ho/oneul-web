@@ -1,0 +1,38 @@
+name: Publish V8.2.47 test release
+
+on:
+  push:
+    branches: [android-v8.2.47-smart-record-direct-view]
+    paths:
+      - '.github/workflows/publish-v8247-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.47 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34137152161 -n oneul-v8.2.47-smart-record-direct-view-apk -D dist-apk
+          gh run download 34137152161 -n oneul-v8.2.47-smart-record-direct-view-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.47.apk
+          cp dist-aab/*.aab oneul-v8.2.47.aab
+          test -s oneul-v8.2.47.apk
+          test -s oneul-v8.2.47.aab
+          sha256sum oneul-v8.2.47.apk oneul-v8.2.47.aab
+      - name: Publish V8.2.47 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.47-test --yes --cleanup-tag || true
+          gh release create v8.2.47-test oneul-v8.2.47.apk oneul-v8.2.47.aab \
+            --target android-v8.2.47-smart-record-direct-view \
+            --title '오늘 한 걸음 V8.2.47 SMART 기록 바로보기 테스트' \
+            --notes 'V8.2.46 정상본을 기준으로 내 발자취 → 실천기록의 SMART 보기 동선만 수정했습니다. SMART 저장기록은 실천도구 화면을 거치지 않고 해당 기록 상세를 바로 엽니다. 12단계 보기, SMART 작성·수정·삭제, smartWorks 저장형식, DATA_SCHEMA=6, ohg.v1은 유지합니다. Android 네이티브 코드는 V8.2.46 검증 스택을 그대로 사용하고 versionCode 867 / versionName 8.2.47만 적용했으며 정확알림·화면 OFF 알림·부팅 재예약·외래 반복예약·이완 TTS를 보존했습니다.' \
+            --prerelease
