@@ -1,0 +1,56 @@
+name: Patch V8.2.50 MindPro native voice
+
+on:
+  push:
+    branches: [v8.2.50-mindpro-native-voice]
+    paths:
+      - 'patch-v8250-mindpro-native-voice.py'
+      - '.github/workflows/patch-v8250-mindpro-native-voice.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.50-mindpro-native-voice
+      - name: Apply focused patch
+        run: python3 patch-v8250-mindpro-native-voice.py
+      - name: Focused web validation
+        run: |
+          git diff --check
+          node --check sw.js
+          python3 - <<'PY'
+          import pathlib,re,subprocess
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          for i,b in enumerate(re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',s,re.S|re.I)):
+            p=pathlib.Path(f'/tmp/v8250-{i}.js')
+            p.write_text(b,encoding='utf-8')
+            subprocess.run(['node','--check',str(p)],check=True)
+          assert "const BUILD = 'V8.2.50';" in s
+          assert "const KEY = 'ohg.v1';" in s
+          assert 'const DATA_SCHEMA = 6;' in s
+          assert '},1500);' in s
+          assert "intent://mindpro-voice?" in s
+          assert "function aiNativeVoice" in s
+          assert "speechSynthesis" not in s[s.index('function aiNativeVoice('):s.index('function aiTimerMinutes(',s.index('function aiNativeVoice('))]
+          assert '음성으로|음성|소리로|소리내서|말로' in s
+          assert 'function aiKnowledgeReply' in s
+          assert 'function aiLocalIntent' in s
+          assert 'function aiTimerMinutes' in s
+          n=pathlib.Path('native.html').read_text(encoding='utf-8')
+          assert "index.html?native=1" in n
+          w=pathlib.Path('sw.js').read_text(encoding='utf-8')
+          assert "APP_VERSION = 'V8.2.50'" in w
+          assert "ohg-v8250-mindpro-native-voice" in w
+          PY
+      - name: Commit focused changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html native.html sw.js README.md
+          git commit -m 'V8.2.50 connect MindPro to Android native TTS' || exit 0
+          git push origin HEAD:v8.2.50-mindpro-native-voice
