@@ -802,7 +802,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-home">
   <div class="sp" style="margin-bottom:12px">
     <h1 style="margin:0">오늘 한 걸음</h1>
-    <button id="top-me" aria-label="내 정보" title="내 정보"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg></button>
+    <button id="top-me" aria-label="나" title="나"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg></button>
   </div>
 
   <div class="dailyword" id="home-daily" aria-label="매일의 명상">
@@ -818,8 +818,6 @@ addEventListener('appinstalled', function(){
     <span id="panic-s">한 번 누르면 바로 도와드립니다</span>
   </button>
 
-  <button class="btn sec" id="go-ai-home">마음프로와 이야기하기</button>
-  <div style="height:10px"></div>
 
   <div id="home-today"></div>
   <div id="home-alert"></div>
@@ -1114,7 +1112,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-fam">
   <div class="sp" style="margin-bottom:12px">
     <h1 style="margin:0">가족을 위한 안내</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="go('home')">닫기</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('home')">← 돌아가기</button>
   </div>
   <div class="opts" id="fam-tab" style="margin-bottom:14px"></div>
   <div id="fam-top"></div>
@@ -1127,69 +1125,51 @@ addEventListener('appinstalled', function(){
   <div id="fam-foot"></div>
 </section>
 
-<!-- ══════════ 회복도구 V8.1.4 ══════════ -->
+<!-- ══════════ 회복도구 V8.2.39 · 계획/배움/실천/점검 ══════════ -->
 <section class="pg" id="p-tools">
   <h1>회복도구</h1>
 
   <div class="toolsec">
-    <h2>오늘의 실천</h2>
-    <div class="practicegrid">
-      <button class="practicecard habit" id="tool-habit">
-        <span class="ic" data-ico="sprout"></span>
-        <span class="b"><b>습관</b><span id="tool-habit-s">추천 습관과 내 습관 관리</span><small>열기</small></span>
-      </button>
-      <button class="practicecard schedule" id="tool-schedule">
-        <span class="ic" data-ico="cal"></span>
-        <span class="b"><b>일정 · 알림</b><span id="tool-schedule-s">생활 · 치료 일정을 한곳에서 관리</span><small>열기</small></span>
-      </button>
+    <h2>내 계획</h2>
+    <button class="toolcard" id="tool-schedule">
+      <span class="ic" data-ico="cal"></span>
+      <span class="b"><b>일정 · 알림</b><span>습관 · 생활 · 치료 일정을 한곳에서 관리</span></span><span class="go">열기</span>
+    </button>
+  </div>
+
+  <div class="toolsec">
+    <h2>배우기</h2>
+    <div class="learnmini">
+      <button class="minitool" id="tool-learn"><span class="ic" data-ico="sprout"></span><b>회복학습</b><span>회복을 더 잘 이해하기</span></button>
+      <button class="minitool" id="tool-qa"><span class="ic" data-ico="speak"></span><b>중독 Q&A</b><span id="tool-qa-s">궁금한 내용을 질문하고 답변 보기</span></button>
+      <button class="minitool" id="tool-listen"><span class="ic" data-ico="wave"></span><b>듣는 글</b><span>마음에 도움이 되는 이야기</span></button>
     </div>
   </div>
 
   <div class="toolsec">
-    <h2>배우고 연습하기</h2>
-    <div class="learnmini">
-      <button class="minitool" id="tool-learn">
-        <span class="ic" data-ico="sprout"></span><b>회복학습</b><span>회복을 더 잘 이해하기</span>
-      </button>
-      <button class="minitool" id="tool-workbook">
-        <span class="ic" data-ico="check"></span><b>12단계 점검</b><span>1·4·8·9·10·11·12단계 기록</span>
-      </button>
-      <button class="minitool" id="tool-listen">
-        <span class="ic" data-ico="wave"></span><b>듣는 글</b><span>마음에 도움이 되는 이야기</span>
-      </button>
-    </div>
-    <button class="toolcard hide" id="tool-family-tools" style="margin-top:9px">
-      <span class="ic" data-ico="family"></span>
-      <span class="b"><b>가족을 위한 도구</b><span>경계 · 대화 · 대응계획과 내 삶을 돌보는 연습</span></span>
-      <span class="go">열기</span>
+    <h2>실천하기</h2>
+    <button class="toolcard hide" id="tool-family-tools">
+      <span class="ic" data-ico="family"></span><span class="b"><b>가족을 위한 도구</b><span>경계 · 대화 · 대응계획과 내 삶을 돌보는 연습</span></span><span class="go">열기</span>
+    </button>
+    <button class="toolcard" id="tool-workbook" style="margin-top:9px">
+      <span class="ic" data-ico="check"></span><span class="b"><b>12단계 점검</b><span>1·4·8·9·10·11·12단계 기록</span></span><span class="go">열기</span>
     </button>
     <button class="toolcard" id="tool-smart-tools" style="margin-top:9px">
-      <span class="ic" data-ico="check"></span>
-      <span class="b"><b>SMART 실천도구</b><span id="tool-smart-tools-s">4개 영역에서 지금 필요한 도구만 펼쳐보기</span></span>
-      <span class="go">열기</span>
+      <span class="ic" data-ico="check"></span><span class="b"><b>SMART 실천도구</b><span id="tool-smart-tools-s">4개 영역에서 지금 필요한 도구만 펼쳐보기</span></span><span class="go">열기</span>
+    </button>
+    <button class="toolcard" id="tool-urge-diary" style="margin-top:9px">
+      <span class="ic" data-ico="wave"></span><span class="b"><b>충동일기</b><span id="tool-urge-diary-s">언제·무엇 때문에 힘들었는지 돌아보기</span></span><span class="go">열기</span>
     </button>
     <button class="toolcard" id="tool-capsule" style="margin-top:9px">
-      <span class="ic" data-ico="speak"></span>
-      <span class="b"><b>미래의 나에게</b><span id="tool-capsule-s">회복을 시작한 마음을 남겨두기</span></span>
-      <span class="go">열기</span>
+      <span class="ic" data-ico="speak"></span><span class="b"><b>미래의 나에게</b><span id="tool-capsule-s">회복을 시작한 마음을 남겨두기</span></span><span class="go">열기</span>
     </button>
   </div>
 
   <div class="toolsec">
-    <h2>나를 점검하기</h2>
+    <h2>자가점검</h2>
     <div class="checkmini">
-      <button class="minitool wide" id="tool-check">
-        <span class="ic" data-ico="check"></span><b>자가점검</b><span>내 상태를 스스로 확인하기</span>
-      </button>
-      <button class="minitool wide" id="tool-qa">
-        <span class="ic" data-ico="speak"></span><b>중독 Q&A</b><span id="tool-qa-s">궁금한 내용을 질문하고 답변 보기</span>
-      </button>
+      <button class="minitool wide" id="tool-check"><span class="ic" data-ico="check"></span><b>자가점검</b><span>내 상태를 스스로 확인하기</span></button>
     </div>
-    <button class="toolcard" id="tool-urge-diary" style="margin-top:9px">
-      <span class="ic" data-ico="wave"></span>
-      <span class="b"><b>충동일기</b><span id="tool-urge-diary-s">언제·무엇 때문에 힘들었는지 돌아보기</span></span>
-      <span class="go">열기</span>
-    </button>
   </div>
 </section>
 
@@ -1247,6 +1227,7 @@ addEventListener('appinstalled', function(){
   </div>
 
   <div class="note" style="margin-top:14px">가족 12단계 점검, 가족 모임, 긴급 도움은 각각 기존 <b>내 발자취 · 모임 · 헬프</b> 위치에서 그대로 사용합니다.</div>
+  <button class="btn ghost" id="family-smart-all" style="margin-top:9px">SMART 전체 도구 더 보기</button>
 </section>
 
 <!-- ══════════ 가족 · 다시 사용했을 때 내 대응계획 V8.2.36 ══════════ -->
@@ -1303,7 +1284,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-smart-tools">
   <div class="sp" style="margin-bottom:11px">
     <h1 style="margin:0">SMART 실천도구</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('tools')">← 회복도구</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" data-smart-back data-back-default="tools" data-back-label="회복도구" onclick="appBack('tools')">← 회복도구</button>
   </div>
   <div class="note" style="margin-bottom:12px">
     SMART Recovery의 4-Point는 순서대로 통과하는 단계가 아닙니다. 아래 <b>4개 영역 중 지금 필요한 한 곳</b>을 눌러 도구를 펼쳐보세요. 한 번에 한 영역만 열리며, 작성 내용은 기존 원칙대로 <b>이 기기에만 저장</b>됩니다.
@@ -1816,7 +1797,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-habit">
   <div class="sp" style="margin-bottom:8px">
     <h1 style="margin:0">습관</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('tools')">← 회복도구</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('schedule')">← 일정·알림</button>
   </div>
   <p class="muted" style="margin:0 0 14px">작은 실천을 정하고 오늘 했는지만 체크합니다. 추천 예시는 그대로 쓰거나 내 방식으로 바꿀 수 있습니다.</p>
   <div class="habit-head"><h2>내 습관</h2><button class="btn sec sm" style="width:auto;margin:0" id="habit-new">+ 새 습관</button></div>
@@ -1842,8 +1823,12 @@ addEventListener('appinstalled', function(){
     <h1 style="margin:0">일정 · 알림</h1>
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('tools')">← 회복도구</button>
   </div>
-  <p class="muted" style="margin:0 0 14px">생활과 치료 일정을 나누어 정하고, 알림은 한곳에서 관리합니다.</p>
+  <p class="muted" style="margin:0 0 14px">습관과 생활·치료 일정을 한곳에서 정하고, 알림까지 같은 흐름에서 관리합니다.</p>
   <div class="schedulecards">
+    <button class="schedulecard" id="schedule-habit">
+      <span class="ic" data-ico="sprout"></span>
+      <span class="b"><b>습관</b><span>추천 습관 · 내 습관 · 오늘 실천</span></span><span class="go">›</span>
+    </button>
     <button class="schedulecard" id="schedule-life">
       <span class="ic" data-ico="cal"></span>
       <span class="b"><b>생활 일정</b><span id="schedule-life-s">위험시간 · 식사 · 잠</span></span><span class="go">›</span>
@@ -1915,9 +1900,9 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-rec">
   <div class="sp" style="margin-bottom:8px">
     <h1 style="margin:0">내 발자취</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('me')">← 내정보</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('my')">← 나</button>
   </div>
-  <p class="muted" style="margin:0 0 14px">감정 · 충동 · 하루 · 몸 · 다시 시작 · 12단계 검토 · 통계를 돌아봅니다.</p>
+  <p class="muted" style="margin:0 0 14px">감정 · 하루 · 몸 · 실천기록과 회복 흐름을 한곳에서 돌아봅니다.</p>
   <div class="opts" id="rec-tab" style="margin-bottom:14px"></div>
   <div id="rec-body"></div>
 </section>
@@ -2051,9 +2036,20 @@ addEventListener('appinstalled', function(){
   </p>
 </section>
 
+<!-- ══════════ 나 · 개인 허브 V8.2.39 ══════════ -->
+<section class="pg" id="p-my">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0">나</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('home')">← 홈</button>
+  </div>
+  <p class="muted" style="margin:0 0 14px">내 기록을 돌아보거나, 내 정보와 앱 설정을 관리합니다.</p>
+  <button class="toolcard" id="my-trail"><span class="ic" data-ico="check"></span><span class="b"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 실천기록 · 통계</span></span><span class="go">열기</span></button>
+  <button class="toolcard" id="my-settings" style="margin-top:9px"><span class="ic" data-ico="sprout"></span><span class="b"><b>내 정보 · 설정</b><span>역할 · 회복영역 · 화면 · 앱 · 기록 관리</span></span><span class="go">열기</span></button>
+</section>
+
 <!-- ══════════ 내 정보 ══════════ -->
 <section class="pg" id="p-me">
-  <h1>내 정보</h1>
+  <div class="sp" style="margin-bottom:11px"><h1 style="margin:0">내 정보 · 설정</h1><button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('my')">← 나</button></div>
   <p class="muted" style="margin:-10px 0 16px">
     누르면 펼쳐집니다. 한 번에 하나씩 열립니다.
   </p>
@@ -2150,14 +2146,11 @@ addEventListener('appinstalled', function(){
 
   <div class="acc">
     <button class="acc-h">
-      <span class="acc-n"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 다시 시작 · 통계 · 기록 관리</span></span>
+      <span class="acc-n"><b>기록 관리</b><span>내보내기 · 불러오기 · 전체 지우기</span></span>
       <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
     </button>
     <div class="acc-b">
-      <p class="muted" style="margin:0 0 11px">지금까지의 회복 과정을 한곳에서 돌아봅니다.</p>
-      <button class="btn sec sm" id="me-trail-open">발자취 보기</button>
-      <div class="sep"></div>
-      <h3>기록 관리</h3>
+      <h3>백업 · 복원</h3>
       <p class="muted" style="margin:-4px 0 11px">
         기록은 이 기기의 브라우저 안에만 있습니다. 브라우저 데이터를 지우면
         함께 사라지니, 가끔 파일로 내보내 두세요.
@@ -2235,7 +2228,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.38';
+const BUILD = 'V8.2.39';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -3612,7 +3605,7 @@ $('#panic').onclick = () => {
 $('#go-night').onclick = () => go('night');
 $('#go-relapse').onclick = () => go('relapse');
 
-$('#top-me').onclick = () => go('me');
+$('#top-me').onclick = () => go('my');
 
 function applyTheme(){
   document.body.classList.toggle('dark', S.theme === 'dark');
@@ -4479,8 +4472,7 @@ let qaState = { cat:'전체', q:'', limit:30, selected:0 };
 
 function drawTools(){
   const ft=$('#tool-family-tools'); if(ft) ft.classList.toggle('hide', !famMode());
-  const habits=habitList(), ht=habitToday(), hd=ht.filter(h=>habitDoneOn(h,today())).length;
-  const hs=$('#tool-habit-s'); if(hs) hs.textContent=habits.length ? ('진행 '+habits.filter(h=>!habitEnded(h,today())).length+'개 · 오늘 '+hd+'/'+ht.length+'개') : '추천 습관과 내 습관 관리';
+  const st=$('#tool-smart-tools'); if(st) st.classList.toggle('hide', famMode());
   const n = QA.length;
   const m = $('#tool-qa-s');
   if(m) m.textContent = '회복 Q&A · 총 ' + n + '문답';
@@ -6644,6 +6636,41 @@ function openWorkbookRecord(rid){
     $('#wb-delete-yes').onclick=()=>{ setWorkbookRecordStore(scope,workbookRecordStore(scope).filter(x=>x.rid!==rid)); save(); closeModal(); drawRec(); toast('점검 기록을 삭제했습니다.'); };
   };
 }
+function recPractice(){
+  const w=el('div');
+  w.appendChild(recWorkbook());
+  const role=famMode()?'family':'self';
+  const rows=(S.smartWorks||[]).filter(r=>r && (r.role||'self')===role)
+    .slice().sort((a,b)=>Number(b.updatedAt||b.t||0)-Number(a.updatedAt||a.t||0));
+  const labels={
+    'family-boundary':'내 경계 정리','family-conversation':'대화 준비','family-return-plan':'다시 사용했을 때 내 대응계획',
+    'importance-confidence':'중요성 · 자신감','hov':'가치의 계층 HOV','change-plan':'변화 계획','three-questions':'나의 3가지 질문',
+    'cba':'비용-편익 분석 CBA','deads':'DEADS · 충동 대처','disarm':'DISARM','abc':'ABC 문제 해결','dibs':'DIBS · 생각 반박',
+    'thinking-styles':'사고방식 점검','problem-solving':'문제 해결 · 5단계','balance-pie':'삶의 균형','vaci':'VACI','goal':'SMART 목표'
+  };
+  const pages={
+    'family-boundary':'family-boundary','family-conversation':'family-conversation','family-return-plan':'family-return-plan',
+    'importance-confidence':'smart-importance-confidence','hov':'smart-hov','change-plan':'smart-change-plan','three-questions':'smart-three-questions',
+    'cba':'smart-cba','deads':'smart-deads','disarm':'smart-disarm','abc':'smart-abc','dibs':'smart-dibs','thinking-styles':'smart-thinking-styles',
+    'problem-solving':'smart-problem-solving','balance-pie':'smart-balance-pie','vaci':'smart-vaci','goal':'smart-goal'
+  };
+  const c=el('div','card');
+  c.appendChild(el('h3','',famMode()?'가족 실천 기록':'SMART 실천 기록'));
+  if(!rows.length){ c.appendChild(el('p','muted','아직 저장된 실천 기록이 없습니다. 도구에서 작성하면 여기에 함께 모입니다.')); }
+  else{
+    c.appendChild(el('p','muted','기존 저장방식은 그대로 두고 최근 기록부터 한곳에서 보여줍니다. 기록을 누르면 해당 도구의 저장목록으로 이동합니다.'));
+    rows.slice(0,30).forEach(r=>{
+      const tool=String(r.tool||''), meta=labels[tool]||tool||'실천 기록';
+      const d=new Date(Number(r.updatedAt||r.t||Date.now()));
+      let ds=''; try{ds=d.toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'});}catch(_){ds=d.toLocaleDateString();}
+      const b=el('button','toolcard','<span class="ic" data-ico="check"></span><span class="b"><b>'+esc(meta)+'</b><span>'+esc(ds)+'</span></span><span class="go">보기</span>');
+      b.type='button'; b.onclick=()=>go(pages[tool]||'smart-tools'); c.appendChild(b);
+    });
+    if(rows.length>30) c.appendChild(el('p','tiny','최근 30건을 표시합니다. 각 도구 안의 기존 기록은 그대로 유지됩니다.'));
+  }
+  w.appendChild(c); return w;
+}
+
 function recWorkbook(){
   const scope=famMode()?'family':'self', defs=workbookDefs(scope);
   const w=el('div');
@@ -6872,9 +6899,9 @@ let recTab = 'mood';
 function drawRec(){
   /* 가족은 충동·재발을 기록하지 않습니다. 그건 그 사람의 기록입니다. */
   const tabs = famMode()
-    ? [{v:'mood',l:'감정'},{v:'day',l:'하루'},{v:'body',l:'몸'},{v:'work',l:'12단계 점검'},{v:'stat',l:'통계'}]
+    ? [{v:'mood',l:'감정'},{v:'day',l:'하루'},{v:'body',l:'몸'},{v:'work',l:'실천기록'},{v:'stat',l:'통계'}]
     : [{v:'mood',l:'감정'},{v:'urge',l:'충동'},{v:'day',l:'하루'},{v:'body',l:'몸'},
-       {v:'relapse',l:'다시 시작'},{v:'work',l:'12단계 검토'},{v:'stat',l:'통계'}];
+       {v:'relapse',l:'다시 시작'},{v:'work',l:'실천기록'},{v:'stat',l:'통계'}];
   if(!tabs.some(t => t.v === recTab)) recTab = 'mood';
 
   const tb = $('#rec-tab'); tb.innerHTML = '';
@@ -6890,7 +6917,7 @@ function drawRec(){
   if(recTab === 'day')     body.appendChild(recDay());
   if(recTab === 'body')    body.appendChild(recBody());
   if(recTab === 'relapse') body.appendChild(recRelapse());
-  if(recTab === 'work')    body.appendChild(recWorkbook());
+  if(recTab === 'work')    body.appendChild(recPractice());
   if(recTab === 'stat')    body.appendChild(recStat());
 }
 
@@ -7612,7 +7639,6 @@ function renderMeet(){
 
 $('#go-read').onclick   = () => openRead('panic');
 $('#go-listen').onclick = () => openListen('panic');
-$('#go-ai-home').onclick = () => openAI('home');
 $('#go-meet-me').onclick  = () => { mt.target = 'me';  mt.mode = 'today'; mt.todayArea=''; mt.q = ''; mt.kind = ''; go('meet'); };
 $('#go-meet-fam').onclick = () => { mt.target = 'fam'; mt.mode = 'today'; mt.todayArea=''; mt.q = ''; mt.kind = '전체'; go('meet'); };
 
@@ -9951,14 +9977,15 @@ $('#me-sheet-save').onclick = () => {
 };
 
 $('#tool-qa').onclick = () => { qaState.selected=0; qaState.cat='전체'; qaState.q=''; qaState.limit=30; go('qa'); };
-$('#tool-habit').onclick = () => go('habit');
 $('#tool-capsule').onclick = () => openCapsule('tools',false);
 $('#tool-schedule').onclick = () => go('schedule');
 $('#tool-learn').onclick = () => go('learn');
 $('#tool-family-tools').onclick = () => go('family-tools');
+$('#family-smart-all').onclick = () => go('smart-tools');
 $('#tool-smart-tools').onclick = () => go('smart-tools');
 $('#tool-workbook').onclick = () => go('workbook-list');
 $('#tool-listen').onclick = () => openListen('tools');
+$('#schedule-habit').onclick = () => go('habit');
 $('#schedule-life').onclick = () => go('life-schedule');
 $('#schedule-treatment').onclick = () => go('treatment');
 $('#schedule-notify').onclick = () => { if(nativeAndroidApp()) openNativeReminderSettings(); else go('notify-schedule'); };
@@ -9970,7 +9997,8 @@ $('#me-share').onclick = shareApp;
 $('#qa-back').onclick = () => { qaState.selected=0; appBack('tools'); };
 $('#qa-search').addEventListener('input', e => { qaState.q=e.target.value || ''; qaState.limit=30; drawQA(); });
 $('#qa-more').onclick = () => { qaState.limit += 30; drawQA(); };
-$('#me-trail-open').onclick = () => go('rec');
+$('#my-trail').onclick = () => go('rec');
+$('#my-settings').onclick = () => go('me');
 
 $('#me-export').onclick = () => {
   const blob = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' });
