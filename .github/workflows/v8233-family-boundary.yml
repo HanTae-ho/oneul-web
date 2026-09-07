@@ -1,0 +1,68 @@
+name: Validate V8.2.33 family boundary
+
+on:
+  push:
+    branches: [v8.2.33-family-boundary]
+    paths:
+      - 'v8233-family-boundary.py'
+      - '.github/workflows/v8233-family-boundary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.33-family-boundary
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply V8.2.33 patch
+        run: python v8233-family-boundary.py
+      - name: Validate syntax and invariants
+        run: |
+          python - <<'PY'
+          import re, pathlib
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          blocks=[]
+          for m in re.finditer(r'<script([^>]*)>(.*?)</script>',s,re.S|re.I):
+              if 'src=' not in m.group(1).lower(): blocks.append(m.group(2))
+          pathlib.Path('/tmp/index-inline.js').write_text('\n'.join(blocks),encoding='utf-8')
+          PY
+          node --check /tmp/index-inline.js
+          node --check sw.js
+          grep -F "const BUILD = 'V8.2.33';" index.html
+          grep -F "const APP_VERSION = 'V8.2.33';" sw.js
+          grep -F "ohg-v8233-family-boundary" sw.js
+          grep -F 'id="p-family-boundary"' index.html
+          grep -F "a:'family-boundary', al:'내 경계 정리하기'" index.html
+          grep -F "tool:'family-boundary',role:'family'" index.html
+          grep -F "경계는 상대를 바꾸거나 벌주는 규칙이 아니라" index.html
+          grep -F "폭력·위협이 있거나 안전이 불확실하면" index.html
+          grep -F "familyBoundaryRows" index.html
+          grep -F "openFamilyBoundaryView" index.html
+          grep -F "openFamilyBoundaryEditor" index.html
+          grep -F "DATA_SCHEMA = 6" index.html
+          grep -F "가족은 충동·재발을 기록하지 않습니다" index.html
+          grep -F "relaxNativeOpen" index.html
+          git diff --check
+      - name: Verify scope
+        run: |
+          CHANGED=$(git diff --name-only | sort)
+          echo "$CHANGED"
+          test "$CHANGED" = $'README.md\nindex.html\nsw.js'
+      - name: Commit product files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md index.html sw.js
+          git commit -m 'V8.2.33 가족 내 경계 정리 최소 실천도구'
+          git push
