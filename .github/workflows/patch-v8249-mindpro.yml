@@ -1,0 +1,65 @@
+name: Patch V8.2.49 MindPro
+
+on:
+  push:
+    branches: [v8.2.49-mindpro-guide-tts]
+    paths:
+      - 'patch-v8249-mindpro.py'
+      - '.github/workflows/patch-v8249-mindpro.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.49-mindpro-guide-tts
+          fetch-depth: 0
+      - name: Apply focused patch
+        run: python3 patch-v8249-mindpro.py
+      - name: Focused checks
+        run: |
+          git diff --check
+          node --check sw.js
+          python3 - <<'PY'
+          import re, pathlib, subprocess, tempfile
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',s,re.S|re.I)
+          assert blocks, 'inline scripts not found'
+          for i,b in enumerate(blocks):
+              p=pathlib.Path(f'/tmp/oneul-inline-{i}.js')
+              p.write_text(b,encoding='utf-8')
+              subprocess.run(['node','--check',str(p)],check=True)
+          required=[
+            "const BUILD = 'V8.2.49';",
+            "const KEY = 'ohg.v1';",
+            'const DATA_SCHEMA = 6;',
+            'id="ai-guide"',
+            'aiAutoRead: 0',
+            'function aiVoiceCommand',
+            'function aiKnowledgeReply',
+            "return 'treatment';",
+            "return 'notify';",
+            "follow:'nav-smart-deads'",
+            "follow:'nav-learn-twelve'"
+          ]
+          for x in required: assert x in s, x
+          assert 'id="ai-consent"' not in s
+          assert 'ai-consent-go' not in s
+          assert "const APP_VERSION = 'V8.2.49';" in pathlib.Path('sw.js').read_text(encoding='utf-8')
+          print('focused checks passed')
+          PY
+      - name: Commit patched files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js README.md
+          if git diff --cached --quiet; then
+            echo 'No patch changes to commit'
+          else
+            git commit -m 'V8.2.49 MindPro guide app knowledge and Android voice'
+            git push origin HEAD:v8.2.49-mindpro-guide-tts
+          fi
