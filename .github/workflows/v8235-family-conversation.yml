@@ -1,0 +1,72 @@
+name: Validate V8.2.35 family conversation
+
+on:
+  push:
+    branches: [v8.2.35-family-conversation]
+    paths:
+      - 'v8235-family-conversation.py'
+      - '.github/workflows/v8235-family-conversation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.35-family-conversation
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply V8.2.35 patch
+        run: python v8235-family-conversation.py
+      - name: Validate syntax and invariants
+        run: |
+          python - <<'PY'
+          import re, pathlib
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          blocks=[]
+          for m in re.finditer(r'<script([^>]*)>(.*?)</script>',s,re.S|re.I):
+              if 'src=' not in m.group(1).lower(): blocks.append(m.group(2))
+          pathlib.Path('/tmp/index-inline.js').write_text('\n'.join(blocks),encoding='utf-8')
+          PY
+          node --check /tmp/index-inline.js
+          node --check sw.js
+          grep -F "const BUILD = 'V8.2.35';" index.html
+          grep -F "const APP_VERSION = 'V8.2.35';" sw.js
+          grep -F "ohg-v8235-family-conversation" sw.js
+          grep -F 'id="p-family-conversation"' index.html
+          grep -F 'id="family-conversation-new"' index.html
+          grep -F 'id="fam-conversation-shortcut"' index.html
+          grep -F "a:'family-conversation', al:'대화 준비하기'" index.html
+          grep -F "if(action==='family-conversation')" index.html
+          grep -F "if(p === 'family-conversation') drawFamilyConversation();" index.html
+          grep -F "tool:'family-conversation',role:'family'" index.html
+          grep -F "취해 있거나 감정이 격함 — 지금은 미루기" index.html
+          grep -F "폭력·위협 또는 안전이 걱정됨 — 안전 먼저" index.html
+          grep -F "대화가 닫히거나 방어가 커질 수 있습니다" index.html
+          ! grep -F "공격받으면 숨습니다. 숨으면 다시 마십니다." index.html
+          grep -F "DATA_SCHEMA = 6" index.html
+          grep -F "tool:'family-boundary',role:'family'" index.html
+          grep -F "가족은 충동·재발을 기록하지 않습니다" index.html
+          grep -F "relaxNativeOpen" index.html
+          git diff --check
+      - name: Verify scope
+        run: |
+          CHANGED=$(git diff --name-only | sort)
+          echo "$CHANGED"
+          test "$CHANGED" = $'README.md\nindex.html\nsw.js'
+      - name: Commit product files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md index.html sw.js
+          git commit -m 'V8.2.35 가족 대화 준비 최소 실천도구'
+          git push
