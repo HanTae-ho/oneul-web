@@ -1,0 +1,68 @@
+name: Validate V8.2.34 family navigation
+
+on:
+  push:
+    branches: [v8.2.34-family-boundary-shortcut]
+    paths:
+      - 'v8234-family-boundary-shortcut.py'
+      - '.github/workflows/v8234-family-navigation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.34-family-boundary-shortcut
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply V8.2.34 patch
+        run: python v8234-family-boundary-shortcut.py
+      - name: Validate syntax and invariants
+        run: |
+          python - <<'PY'
+          import re, pathlib
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          blocks=[]
+          for m in re.finditer(r'<script([^>]*)>(.*?)</script>',s,re.S|re.I):
+              if 'src=' not in m.group(1).lower(): blocks.append(m.group(2))
+          pathlib.Path('/tmp/index-inline.js').write_text('\n'.join(blocks),encoding='utf-8')
+          PY
+          node --check /tmp/index-inline.js
+          node --check sw.js
+          grep -F "const BUILD = 'V8.2.34';" index.html
+          grep -F "const APP_VERSION = 'V8.2.34';" sw.js
+          grep -F "ohg-v8234-family-navigation" sw.js
+          grep -F 'id="fam-boundary-shortcut"' index.html
+          grep -F "'fam':'가족 안내'" index.html
+          grep -F "'fam':'fam'" index.html
+          grep -F "a:'smart-cba'" index.html
+          grep -F "a:'smart-abc'" index.html
+          grep -F "a:'smart-balance-pie'" index.html
+          grep -F "a:'smart-health'" index.html
+          grep -F "a:'family-boundary'" index.html
+          grep -F "DATA_SCHEMA = 6" index.html
+          grep -F "가족은 충동·재발을 기록하지 않습니다" index.html
+          grep -F "relaxNativeOpen" index.html
+          git diff --check
+      - name: Verify scope
+        run: |
+          CHANGED=$(git diff --name-only | sort)
+          echo "$CHANGED"
+          test "$CHANGED" = $'README.md\nindex.html\nsw.js'
+      - name: Commit product files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md index.html sw.js
+          git commit -m 'V8.2.34 가족 안내 접근성과 되돌아가기 정합성'
+          git push
