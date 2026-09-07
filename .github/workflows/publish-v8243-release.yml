@@ -1,0 +1,38 @@
+name: Publish V8.2.43 test release
+
+on:
+  push:
+    branches: [android-v8.2.43-notify-review-flow]
+    paths:
+      - '.github/workflows/publish-v8243-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.43 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34119032011 -n oneul-v8.2.43-notify-review-apk -D dist-apk
+          gh run download 34119032011 -n oneul-v8.2.43-notify-review-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.43.apk
+          cp dist-aab/*.aab oneul-v8.2.43.aab
+          test -s oneul-v8.2.43.apk
+          test -s oneul-v8.2.43.aab
+          sha256sum oneul-v8.2.43.apk oneul-v8.2.43.aab
+      - name: Publish V8.2.43 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.43-test --yes --cleanup-tag || true
+          gh release create v8.2.43-test oneul-v8.2.43.apk oneul-v8.2.43.aab \
+            --target android-v8.2.43-notify-review-flow \
+            --title '오늘 한 걸음 V8.2.43 일정·알림 확인 동선 테스트' \
+            --notes '습관·생활·치료 일정을 바꾼 뒤 Android 예약알림 확인 단계를 놓치지 않도록 동선을 보강했습니다. 일정·알림 허브의 알림 설정 카드에 확인 필요 상태를 표시하고, 습관·생활 일정·치료 일정 화면 하단에서 알림 설정으로 바로 연결합니다. Android 예약알림 설정을 열면 현재 일정 기준으로 확인 상태를 갱신합니다. 회복기록 저장형식, DATA_SCHEMA=6, ohg.v1은 유지합니다. Android 네이티브 코드는 변경하지 않고 versionCode 863 / versionName 8.2.43만 적용했으며 정확알림·화면 OFF 알림·부팅 재예약·이완 TTS를 보존했습니다.' \
+            --prerelease
