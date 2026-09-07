@@ -1,0 +1,49 @@
+name: Apply V8.2.48 AUDIT skip patch
+
+on:
+  push:
+    branches: [v8.2.48-audit-skip]
+    paths:
+      - 'tmp-v8248-audit-skip.py'
+      - '.github/workflows/tmp-v8248-audit-skip.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.48-audit-skip
+      - name: Apply focused patch
+        run: python tmp-v8248-audit-skip.py
+      - name: Verify focused web changes
+        run: |
+          git diff --check
+          node --check sw.js
+          python - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',s,re.S|re.I)
+          for i,b in enumerate(blocks):
+              p=Path(tempfile.gettempdir())/f'inline-{i}.js'
+              p.write_text(b,encoding='utf-8')
+              subprocess.run(['node','--check',str(p)],check=True)
+          assert "const BUILD = 'V8.2.48';" in s
+          assert "const KEY = 'ohg.v1';" in s
+          assert 'const DATA_SCHEMA = 6;' in s
+          assert "screenRun.auditSkip='q1'" in s
+          assert "screenRun.auditSkip='q23'" in s
+          assert 'return 8;' in s
+          PY
+      - name: Commit patch result
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js README.md
+          git commit -m 'V8.2.48 AUDIT-K skip logic' || exit 0
+          git push origin HEAD:v8.2.48-audit-skip
