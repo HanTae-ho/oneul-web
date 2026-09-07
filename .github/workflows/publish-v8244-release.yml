@@ -1,0 +1,38 @@
+name: Publish V8.2.44 test release
+
+on:
+  push:
+    branches: [android-v8.2.44-native-notify-direct]
+    paths:
+      - '.github/workflows/publish-v8244-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.44 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34122698667 -n oneul-v8.2.44-native-notify-direct-apk -D dist-apk
+          gh run download 34122698667 -n oneul-v8.2.44-native-notify-direct-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.44.apk
+          cp dist-aab/*.aab oneul-v8.2.44.aab
+          test -s oneul-v8.2.44.apk
+          test -s oneul-v8.2.44.aab
+          sha256sum oneul-v8.2.44.apk oneul-v8.2.44.aab
+      - name: Publish V8.2.44 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.44-test --yes --cleanup-tag || true
+          gh release create v8.2.44-test oneul-v8.2.44.apk oneul-v8.2.44.aab \
+            --target android-v8.2.44-native-notify-direct \
+            --title '오늘 한 걸음 V8.2.44 Android 알림설정 네이티브 직행 테스트' \
+            --notes 'V8.2.42 정상본을 기준으로 V8.2.43의 웹 알림설정 중간화면/확인상태 추적을 폐기했습니다. 일정·알림 허브와 습관·생활 일정·치료 일정의 알림 설정 진입은 Android 앱에서 네이티브 예약알림 화면으로 바로 이동합니다. DATA_SCHEMA=6, ohg.v1은 유지합니다. Android 네이티브 코드는 V8.2.42 검증 스택을 그대로 사용하고 versionCode 864 / versionName 8.2.44만 적용했으며 정확알림·화면 OFF 알림·부팅 재예약·외래 반복예약·이완 TTS를 보존했습니다.' \
+            --prerelease
