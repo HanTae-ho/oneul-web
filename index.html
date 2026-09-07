@@ -1158,6 +1158,11 @@ addEventListener('appinstalled', function(){
         <span class="ic" data-ico="wave"></span><b>듣는 글</b><span>마음에 도움이 되는 이야기</span>
       </button>
     </div>
+    <button class="toolcard hide" id="tool-family-tools" style="margin-top:9px">
+      <span class="ic" data-ico="family"></span>
+      <span class="b"><b>가족을 위한 도구</b><span>경계 · 대화 · 대응계획과 내 삶을 돌보는 연습</span></span>
+      <span class="go">열기</span>
+    </button>
     <button class="toolcard" id="tool-smart-tools" style="margin-top:9px">
       <span class="ic" data-ico="check"></span>
       <span class="b"><b>SMART 실천도구</b><span id="tool-smart-tools-s">HOV · 변화계획 · CBA · DEADS · DISARM</span></span>
@@ -1203,11 +1208,38 @@ addEventListener('appinstalled', function(){
   <div id="urge-diary-list" style="margin-top:12px"></div>
 </section>
 
+<!-- ══════════ 가족을 위한 도구 V8.2.37 ══════════ -->
+<section class="pg" id="p-family-tools">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0">가족을 위한 도구</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('tools')">← 회복도구</button>
+  </div>
+  <div class="note" style="margin-bottom:14px">상대를 감시하거나 바꾸기 위한 도구가 아닙니다. 가족인 <b>내가 내 생각·행동·경계·생활을 돌보기 위해</b> 필요한 도구를 골라 사용합니다.</div>
+
+  <h2 style="margin-top:0">관계와 안전</h2>
+  <button class="toolcard" data-family-tool="family-boundary"><span class="ic" data-ico="check"></span><span class="b"><b>내 경계 정리</b><span>내가 지킬 기준과 보호 행동을 정리합니다.</span></span><span class="go">열기</span></button>
+  <button class="toolcard" data-family-tool="family-conversation" style="margin-top:9px"><span class="ic" data-ico="speak"></span><span class="b"><b>대화 준비</b><span>사실 · 내 느낌과 필요 · 구체적인 부탁을 정리합니다.</span></span><span class="go">열기</span></button>
+  <button class="toolcard" data-family-tool="family-return-plan" style="margin-top:9px"><span class="ic" data-ico="check"></span><span class="b"><b>다시 사용했을 때 내 대응계획</b><span>안전 · 하지 않을 행동 · 내가 할 행동 · 도움 연결을 미리 정합니다.</span></span><span class="go">열기</span></button>
+
+  <h2>내 생각과 행동 살펴보기</h2>
+  <button class="toolcard" data-family-tool="smart-abc"><span class="ic" data-ico="speak"></span><span class="b"><b>내 생각과 반응 살펴보기</b><span>사건과 생각을 구분하고 감정·행동을 돌아봅니다.</span></span><span class="go">열기</span></button>
+  <button class="toolcard" data-family-tool="smart-cba" style="margin-top:9px"><span class="ic" data-ico="check"></span><span class="b"><b>내 행동 CBA</b><span>내 행동의 단기·장기 이점과 비용을 살펴봅니다.</span></span><span class="go">열기</span></button>
+  <button class="toolcard" data-family-tool="smart-problem-solving" style="margin-top:9px"><span class="ic" data-ico="check"></span><span class="b"><b>문제 해결 · 5단계</b><span>문제를 정의하고 선택 가능한 행동과 실행계획을 정리합니다.</span></span><span class="go">열기</span></button>
+
+  <h2>내 생활 돌보기</h2>
+  <button class="toolcard" data-family-tool="smart-balance-pie"><span class="ic" data-ico="sprout"></span><span class="b"><b>내 삶의 균형</b><span>한 사람의 문제에 삶 전체가 붙들리지 않도록 내 영역을 살펴봅니다.</span></span><span class="go">열기</span></button>
+  <button class="toolcard" data-family-tool="smart-vaci" style="margin-top:9px"><span class="ic" data-ico="sprout"></span><span class="b"><b>VACI · 나를 살리는 활동</b><span>내 삶에 활력과 관심을 되돌리는 활동을 찾습니다.</span></span><span class="go">열기</span></button>
+  <button class="toolcard" data-family-tool="smart-relax" style="margin-top:9px"><span class="ic" data-ico="wave"></span><span class="b"><b>이완 · 마음 가라앉히기</b><span>호흡·이완·명상으로 내 긴장을 낮춥니다.</span></span><span class="go">열기</span></button>
+  <button class="toolcard" data-family-tool="smart-health" style="margin-top:9px"><span class="ic" data-ico="sprout"></span><span class="b"><b>건강 회복 · 생활 돌보기</b><span>식사·수면·운동 등 내 생활과 몸을 돌봅니다.</span></span><span class="go">열기</span></button>
+
+  <div class="note" style="margin-top:14px">가족 12단계 점검, 가족 모임, 긴급 도움은 각각 기존 <b>내 발자취 · 모임 · 헬프</b> 위치에서 그대로 사용합니다.</div>
+</section>
+
 <!-- ══════════ 가족 · 다시 사용했을 때 내 대응계획 V8.2.36 ══════════ -->
 <section class="pg" id="p-family-return-plan">
   <div class="sp" style="margin-bottom:11px">
     <h1 style="margin:0">다시 사용했을 때 내 대응계획</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('fam')">← 가족 안내</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" data-smart-back data-back-label="가족 안내" data-back-default="fam" onclick="appBack('fam')">← 가족 안내</button>
   </div>
   <div class="note" style="margin-bottom:12px">상대의 재발일·사용량을 기록하거나 평가하는 화면이 아닙니다. 다시 사용하는 상황이 생겼을 때 <b>가족인 내가 안전하게 무엇을 하고, 무엇을 하지 않을지</b> 미리 정리하는 계획입니다.</div>
   <div class="card" style="border-color:var(--warn)">
@@ -1223,7 +1255,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-family-conversation">
   <div class="sp" style="margin-bottom:11px">
     <h1 style="margin:0">대화 준비</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('fam')">← 가족 안내</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" data-smart-back data-back-label="가족 안내" data-back-default="fam" onclick="appBack('fam')">← 가족 안내</button>
   </div>
   <div class="note" style="margin-bottom:12px">상대를 설득하거나 바꾸는 대화법이 아닙니다. 내가 말하려는 <b>사실 · 느낌과 필요 · 구체적인 부탁</b>을 미리 정리해, 불필요한 비난과 긴 논쟁을 줄이는 데 사용합니다.</div>
   <div class="card" style="border-color:var(--warn)">
@@ -1239,7 +1271,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-family-boundary">
   <div class="sp" style="margin-bottom:11px">
     <h1 style="margin:0">내 경계 정리</h1>
-    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('fam')">← 가족 안내</button>
+    <button class="tiny" style="color:var(--acc);font-weight:600" data-smart-back data-back-label="가족 안내" data-back-default="fam" onclick="appBack('fam')">← 가족 안내</button>
   </div>
   <div class="note" style="margin-bottom:12px">
     경계는 상대를 바꾸거나 벌주는 규칙이 아니라 <b>내가 지키고 싶은 기준과 내가 할 행동</b>을 정하는 것입니다. 지금 지킬 수 있는 것 하나부터 시작해도 됩니다.
@@ -2189,7 +2221,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.36';
+const BUILD = 'V8.2.37';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -2368,8 +2400,9 @@ const FAMTAB = [
 const FAMGUIDE = {
   know: [
     {h:'의지의 문제가 아닙니다',
-     b:'중독은 뇌의 보상 회로가 바뀌는 병입니다. "정신 차려" 로 낫는 것이었다면 진작 나았을 것입니다.\n' +
-       '의지가 없어서가 아니라, 의지만으로는 안 되는 자리까지 온 것입니다.'},
+     b:'중독은 단순한 의지의 문제가 아닙니다. 반복된 사용이나 행동은 뇌의 보상·학습 체계와 습관, 감정, 생활환경에 영향을 주어 의지만으로 바꾸기 어려울 수 있습니다.\
+' +
+       '"정신 차려"라는 말만으로 해결되지 않는 데에는 이런 여러 요인이 함께 작용합니다.'},
     {h:'당신 탓이 아닙니다',
      b:'가족 모임에서 오래 쓰는 말이 셋 있습니다.\n' +
        '내가 만든 것이 아니고, 내가 조절할 수 있는 것도 아니고, 내가 고칠 수 있는 것도 아닙니다.\n' +
@@ -2378,13 +2411,14 @@ const FAMGUIDE = {
      b:'빚을 갚아주고, 회사에 대신 전화하고, 뒷일을 치워주는 것 — 전부 사랑에서 나온 행동입니다.\n' +
        '다만 그렇게 하면 본인이 자기 행동의 결과를 만나지 못합니다.\n' +
        '지금까지 그렇게 해오셨다면 그것은 잘못이 아니라, 그때 할 수 있는 최선이었습니다.'},
-    {h:'회복은 완치가 아니라 관리입니다',
-     b:'끊었다고 끝나는 것이 아니라, 계속 돌보며 사는 일입니다. 당뇨나 고혈압과 비슷합니다.\n' +
-       '"이제 다 나았지?" 라는 물음이 당사자에게는 가장 무거운 질문이 되기도 합니다.'},
-    {h:'재발은 흔한 일입니다', a:'family-return-plan', al:'내 대응계획 정리하기',
-     b:'재발은 회복이 실패한 증거가 아니라, 회복 과정에서 자주 일어나는 일입니다.\n' +
-       '그때 필요한 것은 추궁이 아니라 다시 시작할 자리입니다.\n' +
-       '다만 아무 일 없던 것처럼 넘기지도 마세요. 있었던 일은 있었던 일로 두고, 다음을 이야기하면 됩니다.'},
+    {h:'회복은 삶을 다시 돌보는 과정입니다',
+     b:'회복은 사용이나 행동을 멈추는 데서 끝나지 않습니다. 몸·마음·생활·관계를 계속 돌보며 안정된 삶을 만들어가는 과정입니다.\
+' +
+       '"이제 다 나았지?"처럼 회복을 한 번에 끝나는 일로 보는 질문은 당사자에게 부담이 될 수 있습니다.'},
+    {h:'다시 사용하는 일이 생겼을 때', a:'family-return-plan', al:'내 대응계획 정리하기',
+     b:'다시 사용했다고 지금까지의 회복이 모두 사라지는 것은 아닙니다. 먼저 안전을 확인하고, 있었던 일을 없던 일처럼 넘기지 않으면서 다음 행동을 정리할 수 있습니다.\
+' +
+       '가족은 추궁이나 감시에 매달리기보다 그 상황에서 내가 할 행동과 도움받을 곳을 미리 준비할 수 있습니다.'},
     {h:'끊은 뒤에도 한참은 오르내립니다',
      b:'술이나 약을 끊고 나서 몇 달 동안 불면 · 불안 · 짜증 · 무기력이 이어질 수 있습니다.\n' +
        '"끊었는데 왜 더 예민해졌지" 싶은 시기가 오는데, 회복이 안 되는 것이 아니라 몸과 뇌가 제자리를 찾는 중입니다.\n' +
@@ -2988,7 +3022,7 @@ function go(p,opt){
   cur = p;
   syncSmartBack();
   $('#tabs').style.display = (p === 'intro') ? 'none' : 'flex';
-  let tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'workbook-list' || p === 'workbook' || p === 'screening' || p === 'screen-test' || p === 'habit' || p === 'habit-edit' || p === 'schedule' || p === 'life-schedule' || p === 'notify-schedule' || p === 'treatment' || p === 'capsule' || p === 'urge-diary' || p === 'smart-importance-confidence' || p === 'smart-hov' || p === 'smart-cba' || p === 'smart-change-plan' || p === 'smart-three-questions' || p === 'smart-deads' || p === 'smart-disarm' || p === 'smart-abc' || p === 'smart-dibs' || p === 'smart-thinking-styles' || p === 'smart-problem-solving' || p === 'smart-balance-pie' || p === 'smart-vaci' || p === 'smart-goal' || p === 'smart-relax' || p === 'smart-health' || p === 'family-boundary' || p === 'smart-tools') ? 'tools' : p;
+  let tabP = (p === 'qa' || p === 'learn' || p === 'learn-topic' || p === 'workbook-list' || p === 'workbook' || p === 'screening' || p === 'screen-test' || p === 'habit' || p === 'habit-edit' || p === 'schedule' || p === 'life-schedule' || p === 'notify-schedule' || p === 'treatment' || p === 'capsule' || p === 'urge-diary' || p === 'smart-importance-confidence' || p === 'smart-hov' || p === 'smart-cba' || p === 'smart-change-plan' || p === 'smart-three-questions' || p === 'smart-deads' || p === 'smart-disarm' || p === 'smart-abc' || p === 'smart-dibs' || p === 'smart-thinking-styles' || p === 'smart-problem-solving' || p === 'smart-balance-pie' || p === 'smart-vaci' || p === 'smart-goal' || p === 'smart-relax' || p === 'smart-health' || p === 'family-tools' || p === 'family-return-plan' || p === 'family-conversation' || p === 'family-boundary' || p === 'smart-tools') ? 'tools' : p;
   if(p === 'listen' && ls.back === 'tools') tabP = 'tools';
   $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tabP));
   $('#view').classList.toggle('ai-mode', p === 'ai');
@@ -3015,6 +3049,7 @@ function go(p,opt){
   if(p === 'smart-goal') drawSmartGoal();
   if(p === 'smart-relax') drawSmartRelax();
   if(p === 'smart-health') drawSmartHealth();
+  if(p === 'family-tools') drawFamilyTools();
   if(p === 'family-return-plan') drawFamilyReturnPlan();
   if(p === 'family-conversation') drawFamilyConversation();
   if(p === 'family-boundary') drawFamilyBoundary();
@@ -4429,6 +4464,7 @@ const QA = Array.isArray(window.QA_ITEMS) ? window.QA_ITEMS : [];
 let qaState = { cat:'전체', q:'', limit:30, selected:0 };
 
 function drawTools(){
+  const ft=$('#tool-family-tools'); if(ft) ft.classList.toggle('hide', !famMode());
   const habits=habitList(), ht=habitToday(), hd=ht.filter(h=>habitDoneOn(h,today())).length;
   const hs=$('#tool-habit-s'); if(hs) hs.textContent=habits.length ? ('진행 '+habits.filter(h=>!habitEnded(h,today())).length+'개 · 오늘 '+hd+'/'+ht.length+'개') : '추천 습관과 내 습관 관리';
   const n = QA.length;
@@ -4582,6 +4618,7 @@ function syncSmartBack(){
   const labels={
     'tools':'회복도구',
     'fam':'가족 안내',
+    'family-tools':'가족을 위한 도구',
     'smart-tools':'SMART 실천도구',
     'learn-topic':'SMART Recovery',
     'capsule':'미래의 나에게',
@@ -4603,7 +4640,7 @@ function syncSmartBack(){
     'smart-health':'건강 회복 · 생활 돌보기'
   };
   const fallbacks={
-    'fam':'fam', 'learn-topic':'learn-topic', 'capsule':'capsule', 'smart-tools':'smart-tools',
+    'fam':'fam', 'family-tools':'family-tools', 'learn-topic':'learn-topic', 'capsule':'capsule', 'smart-tools':'smart-tools',
     'smart-importance-confidence':'smart-importance-confidence', 'smart-hov':'smart-hov', 'smart-three-questions':'smart-three-questions',
     'smart-change-plan':'smart-change-plan', 'smart-cba':'smart-cba',
     'smart-deads':'smart-deads', 'smart-disarm':'smart-disarm', 'smart-abc':'smart-abc', 'smart-dibs':'smart-dibs', 'smart-thinking-styles':'smart-thinking-styles', 'smart-problem-solving':'smart-problem-solving', 'smart-balance-pie':'smart-balance-pie', 'smart-vaci':'smart-vaci', 'smart-goal':'smart-goal', 'smart-relax':'smart-relax', 'smart-health':'smart-health'
@@ -4612,6 +4649,11 @@ function syncSmartBack(){
   const defaultBack=b.dataset.backDefault||'smart-tools';
   b.textContent='← '+(labels[from]||defaultLabel);
   b.onclick=()=>appBack(fallbacks[from]||defaultBack);
+}
+
+function drawFamilyTools(){
+  if(!famMode()){ toast('가족모드에서 사용하는 도구입니다.'); go('tools'); return; }
+  $$('[data-family-tool]').forEach(b=>{ b.onclick=()=>go(b.dataset.familyTool); });
 }
 
 /* ══════════ 가족 · 내 경계 정리 V8.2.33 ══════════
@@ -4893,7 +4935,7 @@ function drawSmartTools(){
   ];
   let h='<div class="card"><h3>Point 1 · 동기 부여 및 유지</h3><p class="muted" style="margin:-4px 0 11px">왜 바꾸려는지, 무엇을 지키려는지, 어떻게 바꿀지를 정리합니다.</p>';
   h+=p1.map(x=>smartToolButton(x[0],x[1],x[2],x[3])).join('')+'</div>';
-  h+='<div class="card"><h3>Point 2 · 충동에 대처하기</h3><p class="muted" style="margin:-4px 0 11px">충동을 기록하고, 지금 사용할 수 있는 대처를 준비합니다.</p>';
+  h+='<div class="card"><h3>Point 2 · 충동에 대처하기</h3><p class="muted" style="margin:-4px 0 11px">'+(famMode()?'당사자가 충동을 알아차리고 대처하는 영역입니다. 가족은 상대의 충동을 기록하거나 관리하지 않고, 회복 과정을 이해하는 참고로 봅니다.':'충동을 기록하고, 지금 사용할 수 있는 대처를 준비합니다.')+'</p>';
   if(famMode()){
     h+='<div class="note">DEADS·DISARM·충동일기는 충동을 직접 경험하는 당사자를 위한 도구입니다. 가족모드에서는 상대의 충동을 감시하거나 통제하는 기능으로 사용하지 않습니다.</div>';
   }else{
@@ -9872,6 +9914,7 @@ $('#tool-habit').onclick = () => go('habit');
 $('#tool-capsule').onclick = () => openCapsule('tools',false);
 $('#tool-schedule').onclick = () => go('schedule');
 $('#tool-learn').onclick = () => go('learn');
+$('#tool-family-tools').onclick = () => go('family-tools');
 $('#tool-smart-tools').onclick = () => go('smart-tools');
 $('#tool-workbook').onclick = () => go('workbook-list');
 $('#tool-listen').onclick = () => openListen('tools');
