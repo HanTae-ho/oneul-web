@@ -1,0 +1,76 @@
+name: Validate V8.2.38 usability consolidation
+
+on:
+  push:
+    branches: [v8.2.38-usability-consolidation]
+    paths:
+      - 'v8238-usability-consolidation.py'
+      - '.github/workflows/v8238-usability-consolidation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.38-usability-consolidation
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply V8.2.38 patch
+        run: python v8238-usability-consolidation.py
+      - name: Validate syntax and usability invariants
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          assert "const BUILD = 'V8.2.38';" in s
+          assert 'const DATA_SCHEMA = 6;' in s
+          assert '<b>12단계 점검</b>' in s
+          assert '<h1 style="margin:0">12단계 점검</h1>' in s
+          assert 'data-smart-point' in s and 'smartPointToggle' in s and 'smartPointAccordion' in s
+          assert s.count("smartPointAccordion('Point ")==4
+          assert "['지금 충동 대처하기'" in s
+          assert "['DEADS · 충동 대처'" in s
+          assert "['DISARM · 충동의 목소리'" in s
+          assert "['ABC 문제 해결'" in s and "['DIBS · 생각 반박하기'" in s
+          assert "['SMART 목표 설정'" in s and "['건강 회복 · 생활 돌보기'" in s
+          assert '가족 전용 도구 3개는 바로 보이고' in s
+          assert s.count('data-family-tool-group')>=2
+          for p in ['family-boundary','family-conversation','family-return-plan','smart-abc','smart-cba','smart-problem-solving','smart-balance-pie','smart-vaci','smart-relax','smart-health']:
+              assert f'data-family-tool="{p}"' in s
+          assert "가족은 충동·재발을 기록하지 않습니다" in s
+          assert 'PowerManager.PARTIAL_WAKE_LOCK' not in s  # native stack must remain outside web patch
+          scripts=[]
+          for m in re.finditer(r'<script([^>]*)>(.*?)</script>',s,re.S):
+              if 'src=' not in m.group(1): scripts.append(m.group(2))
+          Path('/tmp/index-inline.js').write_text('\n'.join(scripts),encoding='utf-8')
+          PY
+          node --check /tmp/index-inline.js
+          node --check sw.js
+          grep -q "const APP_VERSION = 'V8.2.38';" sw.js
+          grep -q "ohg-v8238-usability-consolidation" sw.js
+          git diff --check
+      - name: Verify product scope
+        run: |
+          files=$(git diff --name-only | sort)
+          printf '%s\n' "$files"
+          test "$files" = $'README.md\nindex.html\nsw.js'
+          ! grep -q "DATA_SCHEMA = 7" index.html
+          ! git diff -- index.html | grep -E '^[-+].*(SCHEDULE_EXACT_ALARM|setExactAndAllowWhileIdle|speech_rate_tenths|relaxNativeOpen)' || true
+      - name: Commit product files
+        run: |
+          git config user.name 'HanTae-ho'
+          git config user.email '64190685+HanTae-ho@users.noreply.github.com'
+          git add README.md index.html sw.js
+          git diff --cached --quiet && exit 0
+          git commit -m 'V8.2.38 정리 통합 사용성 1차'
+          git push
