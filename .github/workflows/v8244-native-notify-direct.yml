@@ -1,0 +1,44 @@
+name: V8.2.44 native notification direct patch
+
+on:
+  push:
+    branches:
+      - v8.2.44-native-notify-direct
+    paths:
+      - v8244-native-notify-direct.py
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.44-native-notify-direct
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply V8.2.44 patch
+        run: python3 v8244-native-notify-direct.py
+      - name: Verify web files
+        run: |
+          node --check sw.js
+          node test.js
+          node verify.js
+          grep -q "const BUILD = 'V8.2.44'" index.html
+          grep -q "const DATA_SCHEMA = 6" index.html
+          grep -q "openScheduleReminderSettings()" index.html
+          grep -q "onclick=\"openScheduleReminderSettings()\"" index.html
+          ! grep -q "NOTIFY_REVIEW_KEY" index.html
+          ! grep -q "schedule-notify-flag" index.html
+      - name: Commit clean result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm v8244-native-notify-direct.py .github/workflows/v8244-native-notify-direct.yml
+          git add README.md index.html sw.js
+          git commit -m "V8.2.44 Android 알림설정 네이티브 직행"
+          git push origin HEAD:v8.2.44-native-notify-direct
