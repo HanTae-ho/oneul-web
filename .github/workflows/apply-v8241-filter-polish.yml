@@ -1,0 +1,47 @@
+name: Apply V8.2.41 filter polish
+
+on:
+  push:
+    branches: [v8.2.41-practice-history]
+    paths:
+      - 'v8241-filter-polish.patch.py'
+      - '.github/workflows/apply-v8241-filter-polish.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.41-practice-history
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply filter polish
+        run: python v8241-filter-polish.patch.py
+      - name: Verify
+        run: |
+          git diff --check
+          grep -Fq "b.style.width='auto'; b.style.padding='9px 13px'; b.style.flex='0 0 auto';" index.html
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=[m.group(1) for m in re.finditer(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>',s,re.I)]
+          Path('/tmp/inline.js').write_text('\n;\n'.join(blocks),encoding='utf-8')
+          PY
+          node --check /tmp/inline.js
+          node --check sw.js
+      - name: Commit and clean temporary files
+        run: |
+          git config user.name 'HanTae-ho'
+          git config user.email '64190685+HanTae-ho@users.noreply.github.com'
+          git rm v8241-filter-polish.patch.py .github/workflows/apply-v8241-filter-polish.yml
+          git add index.html
+          git diff --cached --check
+          git commit -m 'V8.2.41 실천기록 필터 UI 보정'
+          git push origin v8.2.41-practice-history
