@@ -1,0 +1,38 @@
+name: Publish V8.2.39 test release
+
+on:
+  push:
+    branches: [android-v8.2.39-usability-consolidation-2]
+    paths:
+      - '.github/workflows/publish-v8239-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.39 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34102611849 -n oneul-v8.2.39-usability-consolidation-2-apk -D dist-apk
+          gh run download 34102611849 -n oneul-v8.2.39-usability-consolidation-2-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.39.apk
+          cp dist-aab/*.aab oneul-v8.2.39.aab
+          test -s oneul-v8.2.39.apk
+          test -s oneul-v8.2.39.aab
+          sha256sum oneul-v8.2.39.apk oneul-v8.2.39.aab
+      - name: Publish V8.2.39 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.39-test --yes --cleanup-tag || true
+          gh release create v8.2.39-test oneul-v8.2.39.apk oneul-v8.2.39.aab \
+            --target android-v8.2.39-usability-consolidation-2 \
+            --title '오늘 한 걸음 V8.2.39 정리 · 통합 · 사용성 2차 테스트' \
+            --notes 'V8.2.38의 사용성 정리 위에서 정보구조와 진입동선을 한 번 더 단순화했습니다. 회복도구를 내 계획·배우기·실천하기·자가점검으로 정리하고, 습관 관리는 일정·알림 안으로 통합했습니다. 중독 Q&A는 배우기 영역으로 이동했으며, 홈 우측 나 허브에서 내 발자취와 내 정보·설정을 분리했습니다. 내 발자취의 실천기록에서는 기존 12단계 기록과 기존 SMART·가족 실천기록을 함께 조회합니다. 가족모드는 가족을 위한 도구를 주 진입으로 유지하고 SMART 전체도구를 보조 진입으로 제공하며, 홈의 중복 마음프로 버튼을 제거하고 가족 안내 뒤로가기를 History 기반으로 보정했습니다. DATA_SCHEMA=6과 기존 저장구조는 유지하며 Android 정확알림·화면 OFF 알림·부팅 후 재예약·이완 TTS와 화면 OFF 재생은 변경하지 않았습니다.' \
+            --prerelease
