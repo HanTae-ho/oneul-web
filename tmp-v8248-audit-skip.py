@@ -79,8 +79,8 @@ p=Path('sw.js')
 s=p.read_text(encoding='utf-8')
 assert "const APP_VERSION = 'V8.2.47';" in s
 s=s.replace("const APP_VERSION = 'V8.2.47';","const APP_VERSION = 'V8.2.48';",1)
-assert 'ohg-v8247-smart-direct-view' in s
-s=s.replace('ohg-v8247-smart-direct-view','ohg-v8248-audit-skip',1)
+assert 'ohg-v8247-smart-record-direct-view' in s
+s=s.replace('ohg-v8247-smart-record-direct-view','ohg-v8248-audit-skip',1)
 p.write_text(s,encoding='utf-8')
 
 p=Path('README.md')
