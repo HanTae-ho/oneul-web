@@ -1806,6 +1806,11 @@ addEventListener('appinstalled', function(){
     <span class="chev" aria-hidden="true">⌄</span>
   </button>
   <div id="habit-templates" class="hide"></div>
+  <div class="note" style="margin-top:14px">
+    습관 시간을 정했다면 실제 알림 예약을 확인해 주세요.
+    <div style="height:8px"></div>
+    <button class="btn sec sm" type="button" onclick="openScheduleReminderSettings()">알림 설정 확인 →</button>
+  </div>
 </section>
 
 <section class="pg" id="p-habit-edit">
@@ -1866,6 +1871,11 @@ addEventListener('appinstalled', function(){
     <div class="opts" id="me-sleep-on"></div>
     <div id="me-sleep" style="margin-top:11px"></div>
   </div>
+  <div class="note" style="margin-top:14px">
+    생활 일정을 정했다면 실제 알림 예약을 확인해 주세요.
+    <div style="height:8px"></div>
+    <button class="btn sec sm" type="button" onclick="openScheduleReminderSettings()">알림 설정 확인 →</button>
+  </div>
 </section>
 
 <section class="pg" id="p-notify-schedule">
@@ -1893,6 +1903,11 @@ addEventListener('appinstalled', function(){
   </p>
   <div id="treat-master"></div>
   <div id="treat-body"></div>
+  <div class="note" style="margin-top:14px">
+    복약·외래 일정을 정했다면 실제 알림 예약을 확인해 주세요.
+    <div style="height:8px"></div>
+    <button class="btn sec sm" type="button" onclick="openScheduleReminderSettings()">알림 설정 확인 →</button>
+  </div>
 </section>
 
 <!-- ══════════ 내 발자취 ══════════ -->
@@ -2224,7 +2239,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.42';
+const BUILD = 'V8.2.44';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -9591,6 +9606,11 @@ function openNativeReminderSettings(){
     '#Intent;scheme=oneul;package=io.github.hantae_ho.twa;end';
   location.href = u;
 }
+function openScheduleReminderSettings(){
+  /* Android 앱은 웹 알림설정 화면을 거치지 않고 네이티브 예약알림 화면으로 직행합니다. */
+  if(nativeAndroidApp()){ openNativeReminderSettings(); return; }
+  go('notify-schedule');
+}
 
 function drawNotify(){
   const b = $('#me-notify'); b.innerHTML = '';
@@ -10061,7 +10081,7 @@ $('#tool-listen').onclick = () => openListen('tools');
 $('#schedule-habit').onclick = () => go('habit');
 $('#schedule-life').onclick = () => go('life-schedule');
 $('#schedule-treatment').onclick = () => go('treatment');
-$('#schedule-notify').onclick = () => { if(nativeAndroidApp()) openNativeReminderSettings(); else go('notify-schedule'); };
+$('#schedule-notify').onclick = openScheduleReminderSettings;
 $('#learn-topic-back').onclick = () => appBack('learn');
 $('#workbook-list-back').onclick = () => appBack('learn');
 $('#wb-back').onclick = () => workbookBack();
