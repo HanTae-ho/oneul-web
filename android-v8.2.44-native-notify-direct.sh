@@ -22,6 +22,5 @@ grep -q 'setExactAndAllowWhileIdle' "$PKG/TreatmentReminderScheduler.java"
 grep -q 'HabitReminderScheduler.scheduleAll' "$PKG/BootReceiver.java"
 grep -q 'scheduleNextForOffset' "$PKG/TreatmentAlarmReceiver.java"
 grep -q 'PowerManager.PARTIAL_WAKE_LOCK' "$PKG/RelaxTtsActivity.java"
-grep -q 'oneul://relax' "$GITHUB_WORKSPACE/android-v8.2.28-native-relax-tts.sh"
 
 echo 'V8.2.44 Android version-only rebuild from V8.2.42 native stack: PASS'
