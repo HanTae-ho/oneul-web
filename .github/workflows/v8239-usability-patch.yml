@@ -17,7 +17,7 @@ jobs:
         with:
           ref: v8.2.39-usability-consolidation
       - name: Apply patch
-        run: python .github/scripts/v8239_patch2.py
+        run: python .github/scripts/v8239_patch3.py
       - name: Static validation
         shell: bash
         run: |
@@ -33,6 +33,8 @@ jobs:
           assert 'id="schedule-habit"' in s
           assert 'id="go-ai-home"' not in s
           assert 'id="tool-habit"' not in s
+          assert 'function recPractice()' in s
+          assert 'SMART 전체 도구 더 보기' in s
           blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
           Path('/tmp/oneul-inline.js').write_text('\n'.join(blocks),encoding='utf-8')
           PY
@@ -41,7 +43,7 @@ jobs:
       - name: Commit patched files
         shell: bash
         run: |
-          rm -f .github/scripts/v8239_patch.py .github/scripts/v8239_patch2.py .github/workflows/v8239-usability-patch.yml
+          rm -f .github/scripts/v8239_patch.py .github/scripts/v8239_patch2.py .github/scripts/v8239_patch3.py .github/workflows/v8239-usability-patch.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html sw.js README.md .github
