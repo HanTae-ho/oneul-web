@@ -2242,7 +2242,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.46';
+const BUILD = 'V8.2.47';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -6683,6 +6683,27 @@ function recPractice(){
     'cba':'smart-cba','deads':'smart-deads','disarm':'smart-disarm','abc':'smart-abc','dibs':'smart-dibs','thinking-styles':'smart-thinking-styles',
     'problem-solving':'smart-problem-solving','balance-pie':'smart-balance-pie','vaci':'smart-vaci','goal':'smart-goal'
   };
+  /* V8.2.47 · 내 발자취의 SMART 기록은 도구 목록을 거치지 않고 저장기록을 바로 엽니다. */
+  const smartRecordKey=r=>{
+    const raw=String((r&&(r.tool||r.kind))||'');
+    if(raw==='lifestyle-balance-pie') return 'balance-pie';
+    if(raw==='smart-goal') return 'goal';
+    return raw;
+  };
+  const openSmartRecord=(key,r)=>{
+    if(key==='hov' && typeof openSmartHovRecord==='function'){ openSmartHovRecord(r); return; }
+    if(key==='cba' && typeof openSmartCbaRecord==='function'){ openSmartCbaRecord(r); return; }
+    const id=String((r&&(r.id||r.rid))||'');
+    const views={
+      'change-plan':'openSmartChangePlanView','three-questions':'openSmartThreeView',
+      'deads':'openSmartDeadsView','disarm':'openSmartDisarmView','abc':'openSmartAbcView','dibs':'openSmartDibsView',
+      'thinking-styles':'openSmartThinkingView','problem-solving':'openSmartProblemView',
+      'balance-pie':'openSmartBalanceView','vaci':'openSmartVaciView','goal':'openSmartGoalView'
+    };
+    const fn=views[key]&&window[views[key]];
+    if(id&&typeof fn==='function'){ fn(id); return; }
+    go(pages[key]||'smart-tools');
+  };
   const cleanText=v=>String(v==null?'':v).replace(/\s+/g,' ').trim();
   const previewText=v=>{
     let text='';
@@ -6693,7 +6714,7 @@ function recPractice(){
     return text.length>72?text.slice(0,72)+'…':text;
   };
   const smartPreview=r=>{
-    const key=String((r&&(r.tool||r.kind))||'');
+    const key=smartRecordKey(r);
     const labeled=(label,...vals)=>{
       for(const v of vals){ const text=previewText(v); if(text) return label+' · '+text; }
       return '';
@@ -6734,13 +6755,13 @@ function recPractice(){
     });
   });
   (S.smartWorks||[]).filter(r=>r&&(r.role||'self')===role).forEach(r=>{
-    const key=String(r.tool||r.kind||'');
+    const key=smartRecordKey(r);
     if(!key) return;
     const family=key.startsWith('family-');
     rows.push({
       group:family?'family':'smart', ts:Number(r.updatedAt||r.t||r.ts||0),
       title:labels[key]||key, summary:smartPreview(r), record:r,
-      open:()=>go(pages[key]||'smart-tools')
+      open:()=>family?go(pages[key]||'smart-tools'):openSmartRecord(key,r)
     });
   });
   rows.sort((a,b)=>b.ts-a.ts);
