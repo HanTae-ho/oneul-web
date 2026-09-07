@@ -2224,7 +2224,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.41';
+const BUILD = 'V8.2.42';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -6649,20 +6649,38 @@ function recPractice(){
     'problem-solving':'smart-problem-solving','balance-pie':'smart-balance-pie','vaci':'smart-vaci','goal':'smart-goal'
   };
   const cleanText=v=>String(v==null?'':v).replace(/\s+/g,' ').trim();
+  const previewText=v=>{
+    let text='';
+    if(Array.isArray(v)) text=v.map(x=>typeof x==='string'?x:(x&&typeof x==='object'?(x.text||x.value||x.label||''):'')).filter(Boolean).join(' · ');
+    else if(v&&typeof v==='object') text=String(v.text||v.value||v.label||'');
+    else if(typeof v==='string'||typeof v==='number') text=String(v);
+    text=cleanText(text);
+    return text.length>72?text.slice(0,72)+'…':text;
+  };
   const smartPreview=r=>{
+    const key=String((r&&(r.tool||r.kind))||'');
+    const labeled=(label,...vals)=>{
+      for(const v of vals){ const text=previewText(v); if(text) return label+' · '+text; }
+      return '';
+    };
+    let fixed='';
+    if(key==='hov') fixed=labeled('우선 가치',r.protect,Array.isArray(r.values)?r.values[0]:'');
+    else if(key==='abc') fixed=labeled('떠오른 생각',r.b,r.a);
+    else if(key==='change-plan') fixed=labeled('변화 목표',r.change);
+    else if(key==='dibs') fixed=labeled('균형 잡힌 생각',r.rb,r.ib);
+    else if(key==='thinking-styles') fixed=labeled('떠오른 생각',r.thought);
+    else if(key==='three-questions') fixed=labeled('원하는 미래',r.future);
+    else if(key==='cba') fixed=labeled('살펴본 행동',r.subject);
+    else if(key==='disarm') fixed=labeled('대체 생각',r.replacement,r.reality);
+    else if(key==='problem-solving') fixed=labeled('해결할 문제',r.problem);
+    else if(key==='goal') fixed=labeled('목표',r.goal);
+    else if(key==='family-boundary') fixed=labeled('내가 지킬 경계',r.protect,r.action);
+    else if(key==='family-conversation') fixed=labeled('말할 한 문장',r.sentence,r.request);
+    else if(key==='family-return-plan') fixed=labeled('내가 할 행동',r.action,r.next);
+    if(fixed) return fixed;
     const keys=['sentence','change','future','subject','destructive','thought','ib','problem','goal','topic','situation','protect','request','action','nextStep','reasons','current','replacement','rb','support','next','avoid','reality','feeling','impact'];
-    for(const k of keys){
-      const v=r&&r[k];
-      let text='';
-      if(Array.isArray(v)) text=v.map(x=>typeof x==='string'?x:(x&&typeof x==='object'?(x.text||x.value||x.label||''):'')).filter(Boolean).join(' · ');
-      else if(typeof v==='string'||typeof v==='number') text=String(v);
-      text=cleanText(text);
-      if(text) return text.length>72?text.slice(0,72)+'…':text;
-    }
-    if(r&&Array.isArray(r.values)){
-      const text=cleanText(r.values.join(' · '));
-      if(text) return text.length>72?text.slice(0,72)+'…':text;
-    }
+    for(const k of keys){ const text=previewText(r&&r[k]); if(text) return text; }
+    if(r&&Array.isArray(r.values)) return previewText(r.values);
     return '';
   };
   const whenText=t=>{
@@ -6698,8 +6716,10 @@ function recPractice(){
   if(!filters.some(x=>x.v===recPracticeFilter)) recPracticeFilter='all';
   const bar=el('div','row wrap'); bar.style.marginBottom='12px';
   filters.forEach(f=>{
-    const b=el('button','btn sec sm',f.l); b.type='button'; b.style.width='auto'; b.style.padding='9px 13px'; b.style.flex='0 0 auto';
-    if(f.v===recPracticeFilter){ b.style.borderColor='var(--acc)'; b.style.background='var(--accbg)'; b.style.color='var(--acc)'; }
+    const selected=f.v===recPracticeFilter;
+    const b=el('button','btn ghost sm',f.l); b.type='button'; b.style.width='auto'; b.style.padding='9px 13px'; b.style.flex='0 0 auto';
+    b.style.background=selected?'var(--acc)':'var(--panel)'; b.style.color=selected?'var(--panel)':'var(--dim)'; b.style.borderColor=selected?'var(--acc)':'var(--line)'; b.style.fontWeight=selected?'700':'600';
+    b.setAttribute('aria-pressed',selected?'true':'false');
     b.onclick=()=>{ recPracticeFilter=f.v; drawRec(); };
     bar.appendChild(b);
   });
