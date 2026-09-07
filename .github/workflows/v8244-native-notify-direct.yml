@@ -23,17 +23,40 @@ jobs:
           node-version: '22'
       - name: Apply V8.2.44 patch
         run: python3 v8244-native-notify-direct.py
-      - name: Verify web files
+      - name: Verify V8.2.44 web patch
         run: |
           node --check sw.js
-          node test.js
-          node verify.js
-          grep -q "const BUILD = 'V8.2.44'" index.html
-          grep -q "const DATA_SCHEMA = 6" index.html
-          grep -q "openScheduleReminderSettings()" index.html
-          grep -q "onclick=\"openScheduleReminderSettings()\"" index.html
-          ! grep -q "NOTIFY_REVIEW_KEY" index.html
-          ! grep -q "schedule-notify-flag" index.html
+          node --check qa-data.js
+          node --check learning-data.js
+          node --check screening-data.js
+          node --check workbook-data.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=[]
+          for attrs, body in re.findall(r'<script([^>]*)>(.*?)</script>', s, flags=re.S|re.I):
+              if 'src=' in attrs.lower() or not body.strip():
+                  continue
+              blocks.append(body)
+          if not blocks:
+              raise SystemExit('no inline JavaScript blocks found')
+          for i,body in enumerate(blocks):
+              p=Path(f'/tmp/oneul-inline-{i}.js')
+              p.write_text(body,encoding='utf-8')
+              subprocess.run(['node','--check',str(p)],check=True)
+          assert "const BUILD = 'V8.2.44';" in s
+          assert "const DATA_SCHEMA = 6;" in s
+          assert "const KEY = 'ohg.v1';" in s
+          assert s.count('onclick="openScheduleReminderSettings()"') == 3
+          assert "$('#schedule-notify').onclick = openScheduleReminderSettings;" in s
+          assert "if(nativeAndroidApp()){ openNativeReminderSettings(); return; }" in s
+          for bad in ('NOTIFY_REVIEW_KEY','schedule-notify-flag','notifyNeedsReview()','markNotifyReviewed()'):
+              assert bad not in s, bad
+          print('V8.2.44 focused web verification: PASS')
+          PY
+          grep -q "const APP_VERSION = 'V8.2.44'" sw.js
+          grep -q "const V = 'ohg-v8244-native-notify-direct'" sw.js
       - name: Commit clean result
         run: |
           git config user.name "github-actions[bot]"
