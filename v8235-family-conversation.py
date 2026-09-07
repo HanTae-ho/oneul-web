@@ -11,7 +11,7 @@ def once(text, old, new, label):
 s=idx.read_text(encoding='utf-8')
 s=once(s,"const BUILD = 'V8.2.34';","const BUILD = 'V8.2.35';",'BUILD')
 
-# 1) Add a compact family-only conversation preparation page before the existing boundary tool.
+# 1) Compact family-only conversation preparation page.
 marker='<!-- ══════════ 가족 · 내 경계 정리 V8.2.33 ══════════ -->'
 page='''<!-- ══════════ 가족 · 대화 준비 V8.2.35 ══════════ -->
 <section class="pg" id="p-family-conversation">
@@ -32,7 +32,7 @@ page='''<!-- ══════════ 가족 · 대화 준비 V8.2.35 ═�
 '''
 s=once(s,marker,page+marker,'conversation page')
 
-# 2) Add family conversation storage/view/editor using the existing S.smartWorks pattern.
+# 2) Storage/view/editor: reuse S.smartWorks, family role only.
 func_marker='function openFamilyBoundarySafety(){'
 funcs=r'''function familyConversationRows(){
   return (S.smartWorks||[]).filter(r=>r && r.tool==='family-conversation' && (r.role||'family')==='family')
@@ -125,24 +125,20 @@ function openFamilyConversationEditor(record){
 '''
 s=once(s,func_marker,funcs+func_marker,'conversation functions')
 
-# 3) Family guide article: use the new tool and soften a deterministic causal sentence.
-old_head="{h:'말할 때는 그 사람이 아니라 일에 대해', a:'smart-abc', al:'내 반응을 ABC로 살펴보기',"
-new_head="{h:'말할 때는 그 사람이 아니라 일에 대해', a:'family-conversation', al:'대화 준비하기',"
-s=once(s,old_head,new_head,'conversation article action')
-old_body='''     b:'"너는 왜 그 모양이냐" 는 사람을 공격하고, 공격받으면 숨습니다. 숨으면 다시 마십니다.\\\n' +'''
-new_body='''     b:'"너는 왜 그 모양이냐" 같은 말은 사람 전체를 평가하는 말로 들려 대화가 닫히거나 방어가 커질 수 있습니다.\\\n' +'''
-s=once(s,old_body,new_body,'conversation article wording')
+# 3) Family guide article: new action and safer, non-deterministic wording.
+s=once(s,"{h:'말할 때는 그 사람이 아니라 일에 대해', a:'smart-abc', al:'내 반응을 ABC로 살펴보기',","{h:'말할 때는 그 사람이 아니라 일에 대해', a:'family-conversation', al:'대화 준비하기',",'conversation article action')
+s=once(s,'"너는 왜 그 모양이냐" 는 사람을 공격하고, 공격받으면 숨습니다. 숨으면 다시 마십니다.','"너는 왜 그 모양이냐" 같은 말은 사람 전체를 평가하는 말로 들려 대화가 닫히거나 방어가 커질 수 있습니다.','conversation article wording')
 
-# 4) Family guide action route.
-s=once(s,"""  if(action==='help'){ go('help'); return; }\n  if(action==='family-boundary'){ go('family-boundary'); return; }""","""  if(action==='help'){ go('help'); return; }\n  if(action==='family-conversation'){ go('family-conversation'); return; }\n  if(action==='family-boundary'){ go('family-boundary'); return; }""",'family guide route')
+# 4) Family guide routing.
+s=once(s,"  if(action==='family-boundary'){ go('family-boundary'); return; }","  if(action==='family-conversation'){ go('family-conversation'); return; }\n  if(action==='family-boundary'){ go('family-boundary'); return; }",'family guide route')
 
-# 5) Add a discoverable shortcut at the top of the '중독 이해하기' family guide tab.
-old_top='''      : '';\n  const fbs=$('#fam-boundary-shortcut'); if(fbs) fbs.onclick=()=>go('family-boundary');'''
-new_top='''      : (famTab === 'know')\n        ? '<div class="card tight">' +\n          '<h3 style="margin:0 0 5px">바로 해보기</h3>' +\n          '<p class="muted" style="margin:0 0 10px">말하기 전에 사실·내 마음·구체적인 부탁 한 가지를 짧게 정리합니다.</p>' +\n          '<button class="btn sec sm" id="fam-conversation-shortcut">대화 준비</button></div>'\n        : '';\n  const fbs=$('#fam-boundary-shortcut'); if(fbs) fbs.onclick=()=>go('family-boundary');\n  const fcs=$('#fam-conversation-shortcut'); if(fcs) fcs.onclick=()=>go('family-conversation');'''
-s=once(s,old_top,new_top,'conversation shortcut')
+# 5) Discoverable shortcut at the top of '중독 이해하기'.
+shortcut_marker="  const fbs=$('#fam-boundary-shortcut'); if(fbs) fbs.onclick=()=>go('family-boundary');"
+shortcut_new=shortcut_marker+"\n  if(famTab==='know'){ $('#fam-top').innerHTML='<div class=\"card tight\"><h3 style=\"margin:0 0 5px\">바로 해보기</h3><p class=\"muted\" style=\"margin:0 0 10px\">말하기 전에 사실·내 마음·구체적인 부탁 한 가지를 짧게 정리합니다.</p><button class=\"btn sec sm\" id=\"fam-conversation-shortcut\">대화 준비</button></div>'; }\n  const fcs=$('#fam-conversation-shortcut'); if(fcs) fcs.onclick=()=>go('family-conversation');"
+s=once(s,shortcut_marker,shortcut_new,'conversation shortcut')
 
 # 6) Page draw dispatch.
-s=once(s,"""  if(p === 'smart-health') drawSmartHealth();\n  if(p === 'family-boundary') drawFamilyBoundary();""","""  if(p === 'smart-health') drawSmartHealth();\n  if(p === 'family-conversation') drawFamilyConversation();\n  if(p === 'family-boundary') drawFamilyBoundary();""",'draw dispatch')
+s=once(s,"  if(p === 'family-boundary') drawFamilyBoundary();","  if(p === 'family-conversation') drawFamilyConversation();\n  if(p === 'family-boundary') drawFamilyBoundary();",'draw dispatch')
 
 idx.write_text(s,encoding='utf-8')
 
