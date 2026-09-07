@@ -1,0 +1,38 @@
+name: Publish V8.2.50 test release
+
+on:
+  push:
+    branches: [android-v8.2.50-mindpro-native-voice]
+    paths:
+      - '.github/workflows/publish-v8250-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.50 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34170763564 -n oneul-v8.2.50-mindpro-native-voice-apk -D dist-apk
+          gh run download 34170763564 -n oneul-v8.2.50-mindpro-native-voice-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.50.apk
+          cp dist-aab/*.aab oneul-v8.2.50.aab
+          test -s oneul-v8.2.50.apk
+          test -s oneul-v8.2.50.aab
+          sha256sum oneul-v8.2.50.apk oneul-v8.2.50.aab
+      - name: Publish V8.2.50 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.50-test --yes --cleanup-tag || true
+          gh release create v8.2.50-test oneul-v8.2.50.apk oneul-v8.2.50.aab \
+            --target android-v8.2.50-mindpro-native-voice \
+            --title '오늘 한 걸음 V8.2.50 마음프로 네이티브 음성 테스트' \
+            --notes 'V8.2.49 정상본을 기준으로 마음프로 음성 연결을 바로잡았습니다. 마음프로 안내는 1.5초 후 자동으로 접힙니다. Android 앱 진입 표식을 보강해 내 정보·설정의 마음프로 음성 설정이 설치 앱에서 표시되도록 했고, 마음프로 답변 읽기는 브라우저 speechSynthesis가 아니라 Android 네이티브 TTS 서비스로 연결했습니다. 음성으로 안내해줘·말로 설명해줘·계속 읽어줘·자동으로 읽어줘·그만 읽어 등의 표현은 AI 서버 전송 전에 로컬 음성명령으로 처리합니다. 기본 자동 읽기 OFF/ON 설정과 현재 대화 강제 ON/OFF를 분리합니다. 기존 이완 TTS의 저장된 한국어 음성과 말하기 속도를 재사용합니다. 개인 회복기록 자동전송 금지, DATA_SCHEMA=6, ohg.v1을 유지하며 정확알림·화면 OFF 알림·부팅 재예약·외래 반복예약·기존 이완 TTS를 보존했습니다. Android versionCode 870 / versionName 8.2.50.' \
+            --prerelease
