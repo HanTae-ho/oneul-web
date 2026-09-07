@@ -1,5 +1,6 @@
 from pathlib import Path
 
+# V8.2.44 focused patch, rerun after validation workflow correction.
 ROOT = Path(__file__).resolve().parent
 idx_p = ROOT / 'index.html'
 readme_p = ROOT / 'README.md'
