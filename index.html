@@ -10408,10 +10408,11 @@ async function appReload(){
 function markAppAcc(){
   const s = $('#acc-app-s');
   if(!s) return;
+  const voice = nativeAndroidApp() ? ' · 마음프로 음성' : '';
   s.innerHTML = updReady
-    ? '자원 목록 · 화면 설정 · 마음프로 음성 · 앱 새로고침 · 앱 설치<br><span class="flag">새 판 ' +
+    ? '자원 목록 · 화면 설정' + voice + ' · 앱 새로고침 · 앱 설치<br><span class="flag">새 판 ' +
       esc(updReady) + ' 이 나와 있습니다</span>'
-    : '자원 목록 · 화면 설정 · 마음프로 음성 · 앱 새로고침 · 앱 설치';
+    : '자원 목록 · 화면 설정' + voice + ' · 앱 새로고침 · 앱 설치';
 }
 
 function drawReload(){
