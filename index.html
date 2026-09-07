@@ -1203,6 +1203,22 @@ addEventListener('appinstalled', function(){
   <div id="urge-diary-list" style="margin-top:12px"></div>
 </section>
 
+<!-- ══════════ 가족 · 대화 준비 V8.2.35 ══════════ -->
+<section class="pg" id="p-family-conversation">
+  <div class="sp" style="margin-bottom:11px">
+    <h1 style="margin:0">대화 준비</h1>
+    <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('fam')">← 가족 안내</button>
+  </div>
+  <div class="note" style="margin-bottom:12px">상대를 설득하거나 바꾸는 대화법이 아닙니다. 내가 말하려는 <b>사실 · 느낌과 필요 · 구체적인 부탁</b>을 미리 정리해, 불필요한 비난과 긴 논쟁을 줄이는 데 사용합니다.</div>
+  <div class="card" style="border-color:var(--warn)">
+    <h3>대화보다 때와 안전이 먼저입니다</h3>
+    <p class="muted" style="margin:0 0 11px">취해 있거나 감정이 크게 격한 때는 지금 해결하려 하지 않아도 됩니다. 폭력·위협이 있거나 안전이 걱정되면 대화를 준비하기보다 먼저 안전한 곳으로 이동하고 위기 안내를 확인하세요.</p>
+    <button class="btn ghost sm" id="family-conversation-sos">가족 위기 안내 보기</button>
+  </div>
+  <button class="btn pri" id="family-conversation-new">대화 준비하기</button>
+  <div id="family-conversation-list" style="margin-top:12px"></div>
+</section>
+
 <!-- ══════════ 가족 · 내 경계 정리 V8.2.33 ══════════ -->
 <section class="pg" id="p-family-boundary">
   <div class="sp" style="margin-bottom:11px">
@@ -2157,7 +2173,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.34';
+const BUILD = 'V8.2.35';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -2357,8 +2373,8 @@ const FAMGUIDE = {
      b:'술이나 약을 끊고 나서 몇 달 동안 불면 · 불안 · 짜증 · 무기력이 이어질 수 있습니다.\n' +
        '"끊었는데 왜 더 예민해졌지" 싶은 시기가 오는데, 회복이 안 되는 것이 아니라 몸과 뇌가 제자리를 찾는 중입니다.\n' +
        '이 시기를 아는 것만으로도 견디기가 달라집니다.'},
-    {h:'말할 때는 그 사람이 아니라 일에 대해', a:'smart-abc', al:'내 반응을 ABC로 살펴보기',
-     b:'"너는 왜 그 모양이냐" 는 사람을 공격하고, 공격받으면 숨습니다. 숨으면 다시 마십니다.\n' +
+    {h:'말할 때는 그 사람이 아니라 일에 대해', a:'family-conversation', al:'대화 준비하기',
+     b:'"너는 왜 그 모양이냐" 같은 말은 사람 전체를 평가하는 말로 들려 대화가 닫히거나 방어가 커질 수 있습니다.\n' +
        '"어제 늦게 들어와서 나는 무서웠다" 처럼 일어난 일과 내 마음으로 말하는 편이 낫습니다.\n' +
        '이것은 기술이라기보다, 싸움을 줄여 대화를 남기는 방법입니다.'}
   ],
@@ -2983,6 +2999,7 @@ function go(p,opt){
   if(p === 'smart-goal') drawSmartGoal();
   if(p === 'smart-relax') drawSmartRelax();
   if(p === 'smart-health') drawSmartHealth();
+  if(p === 'family-conversation') drawFamilyConversation();
   if(p === 'family-boundary') drawFamilyBoundary();
   if(p === 'smart-tools') drawSmartTools();
   if(p === 'schedule') drawScheduleHub();
@@ -3446,6 +3463,7 @@ function familyGuideRun(action){
     mt.target='fam'; mt.mode='today'; mt.q=''; mt.kind=''; mt.todayArea=''; go('meet'); return;
   }
   if(action==='help'){ go('help'); return; }
+  if(action==='family-conversation'){ go('family-conversation'); return; }
   if(action==='family-boundary'){ go('family-boundary'); return; }
   if(['smart-cba','smart-abc','smart-balance-pie','smart-health'].includes(action)){ go(action); return; }
 }
@@ -3478,6 +3496,8 @@ function drawFam(){
         '<button class="btn sec sm" id="fam-boundary-shortcut">내 경계 정리</button></div>'
       : '';
   const fbs=$('#fam-boundary-shortcut'); if(fbs) fbs.onclick=()=>go('family-boundary');
+  if(famTab==='know'){ $('#fam-top').innerHTML='<div class="card tight"><h3 style="margin:0 0 5px">바로 해보기</h3><p class="muted" style="margin:0 0 10px">말하기 전에 사실·내 마음·구체적인 부탁 한 가지를 짧게 정리합니다.</p><button class="btn sec sm" id="fam-conversation-shortcut">대화 준비</button></div>'; }
+  const fcs=$('#fam-conversation-shortcut'); if(fcs) fcs.onclick=()=>go('family-conversation');
 
   const list = FAMGUIDE[famTab] || [];
   if(famI < 0) famI = 0;
@@ -4588,6 +4608,94 @@ function familyBoundaryDate(v){
   const d=new Date(Number(v)||Date.now());
   try{return d.toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'});}catch(_){return d.toLocaleDateString();}
 }
+function familyConversationRows(){
+  return (S.smartWorks||[]).filter(r=>r && r.tool==='family-conversation' && (r.role||'family')==='family')
+    .slice().sort((a,b)=>Number(b.updatedAt||b.t||0)-Number(a.updatedAt||a.t||0));
+}
+function familyConversationDate(v){
+  const d=new Date(Number(v||Date.now()));
+  try{return d.toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'});}catch(_){return d.toLocaleDateString();}
+}
+function familyConversationTimingLabel(v){
+  if(v==='wait') return '지금은 미루기';
+  if(v==='unsafe') return '안전 먼저';
+  return '대화할 수 있음';
+}
+function openFamilyConversationSafety(){
+  closeModal(); famTab='sos'; famI=0; go('fam');
+}
+function drawFamilyConversation(){
+  if(!famMode()){ toast('가족모드에서 사용하는 도구입니다.'); go('tools'); return; }
+  const rows=familyConversationRows(), box=$('#family-conversation-list');
+  if(box){
+    box.innerHTML=rows.length
+      ? '<h2 style="margin-top:0">저장한 대화 준비</h2>'+rows.map(r=>'<button class="card" style="width:100%;text-align:left" data-fc-view="'+esc(r.rid||String(r.t))+'"><b>'+esc(r.topic||'대화 준비')+'</b><div class="muted" style="margin-top:4px">'+esc(familyConversationDate(r.updatedAt||r.t))+' · '+esc(familyConversationTimingLabel(r.timing))+(r.sentence?' · '+esc(r.sentence):'')+'</div></button>').join('')
+      : '<div class="note">아직 저장한 대화 준비가 없습니다. 지금 말할 때인지부터 확인하고, 실제로 전하고 싶은 한 가지를 짧게 정리해보세요.</div>';
+    $$('[data-fc-view]').forEach(b=>b.onclick=()=>openFamilyConversationView(b.dataset.fcView));
+  }
+  const add=$('#family-conversation-new'), sos=$('#family-conversation-sos');
+  if(add) add.onclick=()=>openFamilyConversationEditor();
+  if(sos) sos.onclick=openFamilyConversationSafety;
+}
+function familyConversationRecord(key){
+  return familyConversationRows().find(r=>(r.rid||String(r.t))===key)||null;
+}
+function openFamilyConversationView(key){
+  const r=familyConversationRecord(key); if(!r) return;
+  const part=(label,value)=>value?'<div class="field"><label>'+label+'</label><div class="note">'+esc(value)+'</div></div>':'';
+  modal('<h2>대화 준비</h2>'
+    +part('이야기하려는 상황',r.topic)
+    +part('지금 이야기할 때인가요?',familyConversationTimingLabel(r.timing))
+    +part('사실만 적어보기',r.fact)
+    +part('내 느낌 · 필요한 것',r.feeling)
+    +part('구체적으로 부탁할 한 가지',r.request)
+    +part('내가 실제로 말할 한 문장',r.sentence)
+    +(r.timing==='unsafe'?'<div class="note" style="margin-bottom:10px"><b>안전이 먼저입니다.</b><br>폭력·위협 또는 안전 우려가 있다면 대화를 이어가기보다 안전한 곳으로 이동하고 도움을 요청하세요.</div><button class="btn ghost" id="fc-view-sos">가족 위기 안내 보기</button><div style="height:8px"></div>':'')
+    +'<button class="btn sec" id="fc-edit">수정</button><div style="height:8px"></div><button class="btn ghost" id="fc-delete">삭제</button>');
+  const vs=$('#fc-view-sos'); if(vs) vs.onclick=openFamilyConversationSafety;
+  $('#fc-edit').onclick=()=>{ closeModal(); openFamilyConversationEditor(r); };
+  $('#fc-delete').onclick=()=>{
+    modal('<h2>이 대화 준비 기록을 삭제할까요?</h2><p class="muted" style="margin:6px 0 14px">이 기록 한 건만 기기에서 삭제하며 되돌릴 수 없습니다.</p><button class="btn danger" id="fc-delete-ok">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
+    $('#fc-delete-ok').onclick=()=>{ const k=r.rid||String(r.t); S.smartWorks=(S.smartWorks||[]).filter(x=>(x.rid||String(x.t))!==k); save(); closeModal(); drawFamilyConversation(); toast('삭제했습니다.'); };
+  };
+}
+function openFamilyConversationEditor(record){
+  const edit=!!record, v=record||{};
+  modal('<h2>'+(edit?'대화 준비 수정':'대화 준비')+'</h2>'
+    +'<div class="field"><label>1. 무슨 이야기를 하려 하나요?</label><textarea id="fc-topic" maxlength="500" placeholder="예: 어제 연락 없이 늦게 귀가한 일">'+esc(v.topic||'')+'</textarea></div>'
+    +'<div class="field"><label>2. 지금 이야기해도 되는 때인가요?</label><select id="fc-timing"><option value="ready">비교적 안정되어 있고 대화할 수 있음</option><option value="wait">취해 있거나 감정이 격함 — 지금은 미루기</option><option value="unsafe">폭력·위협 또는 안전이 걱정됨 — 안전 먼저</option></select><div id="fc-timing-note" style="margin-top:7px"></div></div>'
+    +'<div class="field"><label>3. 판단하지 않고 사실만 적어보면?</label><textarea id="fc-fact" maxlength="700" placeholder="예: 어제 연락 없이 밤 11시를 넘겨 귀가했다.">'+esc(v.fact||'')+'</textarea><div class="tiny muted" style="margin-top:5px">“항상”, “절대”, “왜 그 모양이야” 같은 평가보다 실제 있었던 일을 적습니다.</div></div>'
+    +'<div class="field"><label>4. 그 일에서 내가 느낀 것 · 필요한 것은?</label><textarea id="fc-feeling" maxlength="700" placeholder="예: 많이 불안했다. 늦어질 때는 연락이 필요하다.">'+esc(v.feeling||'')+'</textarea></div>'
+    +'<div class="field"><label>5. 구체적으로 부탁할 한 가지는?</label><textarea id="fc-request" maxlength="700" placeholder="예: 늦어질 것 같으면 문자 한 통을 부탁하고 싶다.">'+esc(v.request||'')+'</textarea><div class="tiny muted" style="margin-top:5px">상대를 통제하는 명령보다, 지금 필요한 행동 한 가지를 구체적으로 적습니다.</div></div>'
+    +'<div class="field"><label>6. 내가 실제로 말할 한 문장</label><textarea id="fc-sentence" maxlength="900" placeholder="사실 → 내 느낌·필요 → 구체적인 부탁 순서로 짧게 정리해보세요.">'+esc(v.sentence||'')+'</textarea></div>'
+    +'<button class="btn pri" id="fc-save">'+(edit?'수정 저장':'저장')+'</button>');
+  const timing=$('#fc-timing'); timing.value=v.timing||'ready';
+  const updateTiming=()=>{
+    const n=$('#fc-timing-note'), val=timing.value;
+    if(!n) return;
+    if(val==='wait') n.innerHTML='<div class="note">지금 해결하려 하지 않아도 됩니다. 취기가 가시고 감정이 조금 가라앉은 뒤 다시 이야기해도 됩니다.</div>';
+    else if(val==='unsafe') n.innerHTML='<div class="note"><b>대화보다 안전이 먼저입니다.</b><br>폭력·위협이 있거나 안전이 불확실하면 자리를 벗어나고 도움을 요청하세요.<div style="height:8px"></div><button class="btn ghost sm" id="fc-timing-sos">가족 위기 안내 보기</button></div>';
+    else n.innerHTML='<div class="tiny muted">서로 비교적 안정되어 있을 때, 짧고 구체적으로 이야기하는 편이 좋습니다.</div>';
+    const sb=$('#fc-timing-sos'); if(sb) sb.onclick=openFamilyConversationSafety;
+  };
+  timing.onchange=updateTiming; updateTiming();
+  $('#fc-save').onclick=()=>{
+    const topic=$('#fc-topic').value.trim(), timingVal=timing.value, fact=$('#fc-fact').value.trim(), feeling=$('#fc-feeling').value.trim(), request=$('#fc-request').value.trim(), sentence=$('#fc-sentence').value.trim();
+    if(!topic){ toast('이야기하려는 상황을 적어주세요.'); return; }
+    if(!fact){ toast('평가하지 않은 사실을 한 가지 적어주세요.'); return; }
+    if(timingVal==='ready' && !feeling){ toast('내가 느낀 것 또는 필요한 것을 적어주세요.'); return; }
+    if(timingVal==='ready' && !request){ toast('구체적으로 부탁할 한 가지를 적어주세요.'); return; }
+    if(timingVal==='ready' && !sentence){ toast('실제로 말할 한 문장을 적어주세요.'); return; }
+    const now=Date.now();
+    const rec={rid:edit?(record.rid||smartWorkId()):smartWorkId(),tool:'family-conversation',role:'family',t:edit?Number(record.t||now):now,updatedAt:now,topic,timing:timingVal,fact,feeling,request,sentence};
+    if(!Array.isArray(S.smartWorks)) S.smartWorks=[];
+    const key=edit?(record.rid||String(record.t)):'';
+    const i=edit?S.smartWorks.findIndex(x=>(x.rid||String(x.t))===key):-1;
+    if(i>=0) S.smartWorks[i]=rec; else S.smartWorks.push(rec);
+    save(); closeModal(); drawFamilyConversation(); toast(edit?'대화 준비를 수정했습니다.':'대화 준비를 저장했습니다.');
+  };
+}
+
 function openFamilyBoundarySafety(){
   closeModal(); famTab='sos'; famI=0; go('fam');
 }
