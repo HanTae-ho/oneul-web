@@ -2139,7 +2139,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.31';
+const BUILD = 'V8.2.32';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -2324,7 +2324,7 @@ const FAMGUIDE = {
      b:'가족 모임에서 오래 쓰는 말이 셋 있습니다.\n' +
        '내가 만든 것이 아니고, 내가 조절할 수 있는 것도 아니고, 내가 고칠 수 있는 것도 아닙니다.\n' +
        '이것은 손을 놓으라는 말이 아니라, 지지 않아도 될 짐을 내려놓으라는 말입니다.'},
-    {h:'돕는 것과 대신 치워주는 것은 다릅니다',
+    {h:'돕는 것과 대신 치워주는 것은 다릅니다', a:'smart-cba', al:'내 행동 CBA로 살펴보기',
      b:'빚을 갚아주고, 회사에 대신 전화하고, 뒷일을 치워주는 것 — 전부 사랑에서 나온 행동입니다.\n' +
        '다만 그렇게 하면 본인이 자기 행동의 결과를 만나지 못합니다.\n' +
        '지금까지 그렇게 해오셨다면 그것은 잘못이 아니라, 그때 할 수 있는 최선이었습니다.'},
@@ -2339,7 +2339,7 @@ const FAMGUIDE = {
      b:'술이나 약을 끊고 나서 몇 달 동안 불면 · 불안 · 짜증 · 무기력이 이어질 수 있습니다.\n' +
        '"끊었는데 왜 더 예민해졌지" 싶은 시기가 오는데, 회복이 안 되는 것이 아니라 몸과 뇌가 제자리를 찾는 중입니다.\n' +
        '이 시기를 아는 것만으로도 견디기가 달라집니다.'},
-    {h:'말할 때는 그 사람이 아니라 일에 대해',
+    {h:'말할 때는 그 사람이 아니라 일에 대해', a:'smart-abc', al:'내 반응을 ABC로 살펴보기',
      b:'"너는 왜 그 모양이냐" 는 사람을 공격하고, 공격받으면 숨습니다. 숨으면 다시 마십니다.\n' +
        '"어제 늦게 들어와서 나는 무서웠다" 처럼 일어난 일과 내 마음으로 말하는 편이 낫습니다.\n' +
        '이것은 기술이라기보다, 싸움을 줄여 대화를 남기는 방법입니다.'}
@@ -2368,14 +2368,14 @@ const FAMGUIDE = {
        '일이 벌어진 다음에는 아무 생각도 나지 않습니다.'}
   ],
   self: [
-    {h:'가족도 아픕니다',
+    {h:'가족도 아픕니다', a:'smart-health', al:'내 생활과 건강 돌보기',
      b:'잠이 안 오고, 늘 불안하고, 사람 만나기가 싫어지는 것 — 흔한 일이고 당신이 약해서가 아닙니다.\n' +
        '중독은 곁에 있는 사람의 몸과 마음도 같이 갉습니다. 그러니 당신 몫의 돌봄도 필요합니다.'},
-    {h:'가족 모임에는 혼자 가도 됩니다',
+    {h:'가족 모임에는 혼자 가도 됩니다', a:'family-meet', al:'가족 모임 찾아보기',
      b:'당사자가 안 가도, 안 끊어도, 가족은 갈 수 있습니다.\n' +
        '알아넌(알코올) · 겜아넌(도박) · 나란아논(약물) 이 가족 모임입니다.\n' +
        '[헬프]에서 우리 지역 모임을 찾아보실 수 있습니다.'},
-    {h:'감시가 삶의 전부가 되지 않게',
+    {h:'감시가 삶의 전부가 되지 않게', a:'smart-balance-pie', al:'내 삶의 균형 살펴보기',
      b:'냄새를 맡고, 통장을 뒤지고, 하루 종일 마음을 붙들고 있으면 두 사람 다 지칩니다.\n' +
        '일주일에 한 번이라도 그 사람과 상관없는 시간을 남겨두세요. 그것이 오래 버티는 힘이 됩니다.'},
     /* 팀장님 검토 반영 — 제목에 '나를 지키는 것' 을 넣었습니다.
@@ -2386,11 +2386,11 @@ const FAMGUIDE = {
        '지금 지킬 수 있는 것 하나부터 정하세요.\n' +
        '못 지킨 날이 있어도 그은 선이 없어지지는 않습니다.'},
     /* 팀장님 검토 반영 — '기대 조절' 에서 '그 사람의 자리에서 보기' 로 방향이 바뀌었습니다. */
-    {h:'나의 기대를 내려놓고, 그의 눈으로 봐주세요',
+    {h:'나의 기대를 내려놓고, 그의 눈으로 봐주세요', a:'smart-abc', al:'내 생각과 반응 살펴보기',
      b:'며칠 끊은 것을 크게 기뻐하면 다시 마셨을 때 그만큼 크게 무너집니다.\n' +
        '좋아지는 것도 나빠지는 것도 내가 바라는 속도로는 오지 않습니다.\n' +
        '기대를 내려놓는 것은 포기가 아니라, 그 사람이 지금 서 있는 자리를 보는 일입니다.'},
-    {h:'혼자 지고 계시면 상담을 받으세요',
+    {h:'혼자 지고 계시면 상담을 받으세요', a:'help', al:'헬프에서 도움 찾기',
      b:'중독은 가족 한 사람이 감당할 수 있는 크기의 일이 아닙니다.\n' +
        '중독관리통합지원센터는 가족 상담도 합니다. 무료이고, 당사자가 안 와도 받을 수 있습니다.\n' +
        '[헬프] → [센터 찾기] 에서 가까운 곳을 보실 수 있습니다.'}
@@ -3417,6 +3417,19 @@ let famTab = 'know';
      꼭 읽어야 할 것도 스크롤에 묻혔습니다. */
 let famI = 0;
 
+/* V8.2.32: 가족 안내는 새 워크시트를 늘리지 않고 이미 있는 도구로 이어집니다. */
+function familyGuideActionHTML(x){
+  if(!x || !x.a) return '';
+  return '<div style="height:14px"></div><button class="btn sec sm" id="fam-guide-action">'+esc(x.al||'이어보기')+'</button>';
+}
+function familyGuideRun(action){
+  if(action==='family-meet'){
+    mt.target='fam'; mt.mode='today'; mt.q=''; mt.kind=''; mt.todayArea=''; go('meet'); return;
+  }
+  if(action==='help'){ go('help'); return; }
+  if(['smart-cba','smart-abc','smart-balance-pie','smart-health'].includes(action)){ go(action); return; }
+}
+
 function drawFam(){
   const tb = $('#fam-tab'); tb.innerHTML = '';
   FAMTAB.forEach(t => {
@@ -3446,8 +3459,9 @@ function drawFam(){
   const x = list[famI];
 
   $('#fam-body').innerHTML = x
-    ? '<div class="rdcard"><h3>' + esc(x.h) + '</h3>' + para(x.b) + '</div>'
+    ? '<div class="rdcard"><h3>' + esc(x.h) + '</h3>' + para(x.b) + familyGuideActionHTML(x) + '</div>'
     : '';
+  const ga=$('#fam-guide-action'); if(ga && x) ga.onclick=()=>familyGuideRun(x.a);
 
   $('#fam-pos').textContent = list.length ? (famI + 1) + ' / ' + list.length : '';
   $('#fam-prev').disabled = famI === 0;
@@ -5995,7 +6009,11 @@ function drawLearnTopic(fromHistory){
   $('#learn-topic-desc').textContent=topic.longDescription || topic.description || '';
   const practice=$('#learn-topic-practice');
   if(practice){
-    practice.innerHTML = topic.id==='smart-recovery' ? '<button class="btn sec" id="learn-smart-tools" style="margin-bottom:12px">SMART 실천도구 열기</button>' : '';
+    const famSmart=topic.id==='smart-recovery' && famMode();
+    practice.innerHTML = topic.id==='smart-recovery'
+      ? (famSmart ? '<div class="note" style="margin-bottom:12px"><b>가족모드에서는 내 삶과 내 반응을 중심으로 사용합니다.</b><br>SMART 4-Point를 참고하되, Point 2의 충동대응·충동일지는 충동을 직접 경험하는 당사자의 도구입니다. 가족이 상대의 충동을 기록하거나 감시하는 데 사용하지 않습니다.</div>' : '')
+        + '<button class="btn sec" id="learn-smart-tools" style="margin-bottom:12px">SMART 실천도구 열기</button>'
+      : '';
     const sb=$('#learn-smart-tools'); if(sb) sb.onclick=()=>go('smart-tools');
   }
   const box=$('#learn-topic-sections'); box.innerHTML='';
