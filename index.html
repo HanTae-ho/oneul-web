@@ -2224,7 +2224,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.40';
+const BUILD = 'V8.2.41';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -6634,14 +6634,12 @@ function openWorkbookRecord(rid){
 }
 function recPractice(){
   const w=el('div');
-  w.appendChild(recWorkbook());
-  const role=famMode()?'family':'self';
-  const rows=(S.smartWorks||[]).filter(r=>r && (r.role||'self')===role)
-    .slice().sort((a,b)=>Number(b.updatedAt||b.t||0)-Number(a.updatedAt||a.t||0));
+  const scope=famMode()?'family':'self';
+  const role=scope;
   const labels={
     'family-boundary':'내 경계 정리','family-conversation':'대화 준비','family-return-plan':'다시 사용했을 때 내 대응계획',
     'importance-confidence':'중요성 · 자신감','hov':'가치의 계층 HOV','change-plan':'변화 계획','three-questions':'나의 3가지 질문',
-    'cba':'비용-편익 분석 CBA','deads':'DEADS · 충동 대처','disarm':'DISARM','abc':'ABC 문제 해결','dibs':'DIBS · 생각 반박',
+    'cba':'비용-편익 분석 CBA','deads':'DEADS · 충동 대처','disarm':'DISARM','abc':'ABC · 생각과 행동 살펴보기','dibs':'DIBS · 생각 반박',
     'thinking-styles':'사고방식 점검','problem-solving':'문제 해결 · 5단계','balance-pie':'삶의 균형','vaci':'VACI','goal':'SMART 목표'
   };
   const pages={
@@ -6650,19 +6648,80 @@ function recPractice(){
     'cba':'smart-cba','deads':'smart-deads','disarm':'smart-disarm','abc':'smart-abc','dibs':'smart-dibs','thinking-styles':'smart-thinking-styles',
     'problem-solving':'smart-problem-solving','balance-pie':'smart-balance-pie','vaci':'smart-vaci','goal':'smart-goal'
   };
-  const c=el('div','card');
-  c.appendChild(el('h3','',famMode()?'가족 실천 기록':'SMART 실천 기록'));
-  if(!rows.length){ c.appendChild(el('p','muted','아직 저장된 실천 기록이 없습니다. 도구에서 작성하면 여기에 함께 모입니다.')); }
-  else{
-    rows.slice(0,30).forEach(r=>{
-      const tool=String(r.tool||''), meta=labels[tool]||tool||'실천 기록';
-      const d=new Date(Number(r.updatedAt||r.t||Date.now()));
-      let ds=''; try{ds=d.toLocaleDateString('ko-KR',{year:'numeric',month:'short',day:'numeric'});}catch(_){ds=d.toLocaleDateString();}
-      const b=el('button','toolcard','<span class="ic" data-ico="check"></span><span class="b"><b>'+esc(meta)+'</b><span>'+esc(ds)+'</span></span><span class="go">보기</span>');
-      b.type='button'; b.onclick=()=>go(pages[tool]||'smart-tools'); c.appendChild(b);
+  const cleanText=v=>String(v==null?'':v).replace(/\s+/g,' ').trim();
+  const smartPreview=r=>{
+    const keys=['sentence','change','future','subject','destructive','thought','ib','problem','goal','topic','situation','protect','request','action','nextStep','reasons','current','replacement','rb','support','next','avoid','reality','feeling','impact'];
+    for(const k of keys){
+      const v=r&&r[k];
+      let text='';
+      if(Array.isArray(v)) text=v.map(x=>typeof x==='string'?x:(x&&typeof x==='object'?(x.text||x.value||x.label||''):'')).filter(Boolean).join(' · ');
+      else if(typeof v==='string'||typeof v==='number') text=String(v);
+      text=cleanText(text);
+      if(text) return text.length>72?text.slice(0,72)+'…':text;
+    }
+    if(r&&Array.isArray(r.values)){
+      const text=cleanText(r.values.join(' · '));
+      if(text) return text.length>72?text.slice(0,72)+'…':text;
+    }
+    return '';
+  };
+  const whenText=t=>{
+    const d=new Date(Number(t||Date.now()));
+    try{return d.toLocaleString('ko-KR',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+    catch(_){return d.toLocaleString();}
+  };
+
+  const rows=[];
+  workbookRecordStore(scope).forEach(r=>{
+    const def=workbookDef(r.kind,scope); if(!def) return;
+    rows.push({
+      group:'step', ts:Number(r.updatedAt||r.t||0), title:def.title,
+      summary:cleanText(workbookRecordSummary(r)), record:r,
+      open:()=>openWorkbookRecord(r.rid)
     });
-    if(rows.length>30) c.appendChild(el('p','tiny','최근 30건을 표시합니다.'));
+  });
+  (S.smartWorks||[]).filter(r=>r&&(r.role||'self')===role).forEach(r=>{
+    const key=String(r.tool||r.kind||'');
+    if(!key) return;
+    const family=key.startsWith('family-');
+    rows.push({
+      group:family?'family':'smart', ts:Number(r.updatedAt||r.t||r.ts||0),
+      title:labels[key]||key, summary:smartPreview(r), record:r,
+      open:()=>go(pages[key]||'smart-tools')
+    });
+  });
+  rows.sort((a,b)=>b.ts-a.ts);
+
+  const filters=scope==='family'
+    ? [{v:'all',l:'전체'},{v:'step',l:'12단계'},{v:'smart',l:'SMART'},{v:'family',l:'가족도구'}]
+    : [{v:'all',l:'전체'},{v:'step',l:'12단계'},{v:'smart',l:'SMART'}];
+  if(!filters.some(x=>x.v===recPracticeFilter)) recPracticeFilter='all';
+  const bar=el('div','row wrap'); bar.style.marginBottom='12px';
+  filters.forEach(f=>{
+    const b=el('button','btn sec sm',f.l); b.type='button'; b.style.width='auto'; b.style.padding='9px 13px'; b.style.flex='0 0 auto';
+    if(f.v===recPracticeFilter){ b.style.borderColor='var(--acc)'; b.style.background='var(--accbg)'; b.style.color='var(--acc)'; }
+    b.onclick=()=>{ recPracticeFilter=f.v; drawRec(); };
+    bar.appendChild(b);
+  });
+  w.appendChild(bar);
+
+  const shown=(recPracticeFilter==='all'?rows:rows.filter(x=>x.group===recPracticeFilter));
+  if(!shown.length){
+    const empty={all:'저장된 실천 기록이 없습니다.',step:'저장된 12단계 기록이 없습니다.',smart:'저장된 SMART 기록이 없습니다.',family:'저장된 가족도구 기록이 없습니다.'};
+    w.appendChild(emptyBox(empty[recPracticeFilter]||empty.all));
+    return w;
   }
+
+  const c=el('div','card');
+  c.appendChild(el('h3','', '저장한 실천 기록 '+shown.length+'건'));
+  shown.slice(0,30).forEach(row=>{
+    const badge=row.group==='step'?'12':row.group==='family'?'가':'S';
+    const date=whenText(row.ts);
+    const summary=row.summary?'<span>'+esc(row.summary)+'</span>':'';
+    const b=el('button','toolcard','<span class="ic"><b style="font-size:13px">'+badge+'</b></span><span class="b"><b>'+esc(row.title)+'</b><span>'+esc(date)+'</span>'+summary+'</span><span class="go">보기</span>');
+    b.type='button'; b.onclick=row.open; c.appendChild(b);
+  });
+  if(shown.length>30) c.appendChild(el('p','tiny','최근 30건을 표시합니다.'));
   w.appendChild(c); return w;
 }
 
@@ -6888,6 +6947,7 @@ function shareApp(){
 
 /* ══════════ 내 발자취 ══════════ */
 let recTab = 'mood';
+let recPracticeFilter = 'all';
 
 function drawRec(){
   /* 가족은 충동·재발을 기록하지 않습니다. 그건 그 사람의 기록입니다. */
