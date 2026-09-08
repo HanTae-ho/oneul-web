@@ -1,0 +1,47 @@
+name: Patch V8.2.51 trail screening mindpro
+on:
+  push:
+    branches: [v8.2.51-trail-screening-mindpro]
+    paths:
+      - 'patch-v8251.py'
+      - '.github/workflows/patch-v8251.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.51-trail-screening-mindpro
+      - name: Apply patch
+        run: python3 patch-v8251.py
+      - name: Verify web files
+        run: |
+          git diff --check
+          node --check sw.js
+          python3 - <<'PY'
+          import re,pathlib,subprocess
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',s,re.S|re.I)
+          for i,b in enumerate(blocks):
+            p=pathlib.Path(f'/tmp/inline-{i}.js');p.write_text(b,encoding='utf-8')
+            subprocess.run(['node','--check',str(p)],check=True)
+          assert "const BUILD = 'V8.2.51';" in s
+          assert "const KEY = 'ohg.v1';" in s
+          assert 'const DATA_SCHEMA = 6;' in s
+          assert "{v:'screen',l:'자가점검'}" in s
+          assert '내 점검 결과 보기' in s
+          assert '내 12단계 기록 보기' in s
+          assert '내 SMART 기록 보기' in s
+          assert "recTab='screen'; screenRun=null; go('rec')" in s
+          assert "/^(음성으로|말로|소리로)$/" in s
+          assert '1500' in s
+          PY
+      - name: Commit patched files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js README.md
+          git commit -m 'V8.2.51 add screening history access and MindPro polish'
+          git push origin HEAD:v8.2.51-trail-screening-mindpro
