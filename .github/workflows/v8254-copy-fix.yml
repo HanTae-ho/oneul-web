@@ -49,3 +49,5 @@ jobs:
           git add README.md index.html learning-data.js sw.js
           git commit -m "V8.2.54 SMART 회복학습 문구 통합 마무리"
           git push origin HEAD:${GITHUB_REF_NAME}
+
+# trigger: run after workflow exists on branch
