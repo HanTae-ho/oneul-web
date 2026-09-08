@@ -2444,12 +2444,28 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.58';
+const BUILD = 'V8.2.59';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
 const KEY = 'ohg.v1';
 const DATA_SCHEMA = 6;
+
+/* V8.2.59 — 도움말·사용설명서 단일 아코디언. 새 항목을 열면 이전 항목은 자동으로 접습니다. */
+function enableSingleAccordion(rootSelector){
+  const root = document.querySelector(rootSelector);
+  if(!root) return;
+  root.querySelectorAll('details.faq').forEach(item => {
+    item.addEventListener('toggle', () => {
+      if(!item.open) return;
+      root.querySelectorAll('details.faq[open]').forEach(other => {
+        if(other !== item) other.open = false;
+      });
+    });
+  });
+}
+enableSingleAccordion('#p-guide');
+enableSingleAccordion('#p-manual');
 
 /* ★ 자원 목록 서버 (구글 Apps Script 웹앱 주소)
    여기에 주소를 적어두면 앱을 처음 여는 사람도 따로 연결하지 않고
