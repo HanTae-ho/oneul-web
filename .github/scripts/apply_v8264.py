@@ -1,0 +1,176 @@
+from pathlib import Path
+
+p=Path('index.html')
+s=p.read_text()
+
+assert "const BUILD = 'V8.2.63';" in s
+s=s.replace("const BUILD = 'V8.2.63';","const BUILD = 'V8.2.64';",1)
+
+css_anchor="  .kpi{display:grid;grid-template-columns:1fr 1fr;gap:9px}\n"
+css="""  /* V8.2.64 — 내 발자취 · 내가 되찾은 것. 아이콘은 ICO의 직접 SVG만 사용합니다. */
+  .reclaim-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:15px;margin-bottom:14px}
+  .reclaim-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .reclaim-head>div{min-width:0;flex:1}.reclaim-head b{display:block;font-size:16px;line-height:1.35}
+  .reclaim-head span{display:block;margin-top:3px;font-size:12px;line-height:1.5;color:var(--dim)}
+  .reclaim-set{flex:none;font-size:12px;font-weight:700;color:var(--acc);padding:4px 2px}
+  .reclaim-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  .reclaim-card{min-height:116px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:12px;overflow:hidden}
+  .reclaim-title{display:flex;align-items:center;gap:8px;min-width:0;font-size:12.5px;font-weight:700;color:var(--dim)}
+  .reclaim-ico{width:34px;height:34px;flex:none;border-radius:11px;background:var(--panel);color:var(--acc);display:flex;align-items:center;justify-content:center}
+  .reclaim-ico .ic-s{width:20px;height:20px}.reclaim-card.habit .reclaim-ico{color:var(--leaf)}
+  .reclaim-value{display:block;margin-top:10px;font-size:22px;line-height:1.15;font-weight:750;letter-spacing:-.5px;color:var(--tx);font-variant-numeric:tabular-nums;word-break:break-all}
+  .reclaim-value.off{font-size:14px;font-weight:650;color:var(--faint);letter-spacing:0;margin-top:14px}
+  .reclaim-desc{display:block;margin-top:5px;font-size:10.8px;line-height:1.4;color:var(--dim);word-break:keep-all}
+  .reclaim-field{margin-top:12px}.reclaim-field>label{display:flex;align-items:flex-start;gap:9px;font-weight:700;font-size:14px}
+  .reclaim-field>label input{width:18px;height:18px;flex:none;margin:3px 0 0;padding:0}
+  .reclaim-num{display:flex;align-items:center;gap:8px;margin-top:8px}.reclaim-num input{flex:1;min-width:0}.reclaim-num span{font-size:12px;color:var(--dim);white-space:nowrap}
+"""
+assert css_anchor in s and '.reclaim-wrap{' not in s
+s=s.replace(css_anchor,css+css_anchor,1)
+
+old='''  <p class="muted" style="margin:0 0 14px">감정 · 하루 · 몸 · 실천기록 · 자가점검과 회복 흐름을 한곳에서 돌아봅니다.</p>
+  <div class="opts" id="rec-tab" style="margin-bottom:14px"></div>'''
+new='''  <p class="muted" style="margin:0 0 14px">회복하면서 되찾은 것과 감정 · 하루 · 몸 · 실천기록 · 자가점검의 흐름을 한곳에서 돌아봅니다.</p>
+  <div id="rec-reclaim"></div>
+  <div class="opts" id="rec-tab" style="margin-bottom:14px"></div>'''
+assert old in s and 'id="rec-reclaim"' not in s
+s=s.replace(old,new,1)
+
+old="  timeCapsule: { text:'', createdAt:0, updatedAt:0 }, /* 미래의 나에게 — 개인 회복기록, 기기 안에만 저장 */\n  aiChat:"
+new="  timeCapsule: { text:'', createdAt:0, updatedAt:0 }, /* 미래의 나에게 — 개인 회복기록, 기기 안에만 저장 */\n  reclaim: { kind:'', timeOn:0, timePerDay:0, costOn:0, costPerDay:0 }, /* 내가 되찾은 것 — 선택 기준값, 기기 안에만 저장 */\n  aiChat:"
+assert old in s
+s=s.replace(old,new,1)
+
+old="  s.timeCapsule = Object.assign({ text:'', createdAt:0, updatedAt:0 }, s.timeCapsule);\n  s.timeCapsule.text = String(s.timeCapsule.text || '');\n  const old ="
+new="  s.timeCapsule = Object.assign({ text:'', createdAt:0, updatedAt:0 }, s.timeCapsule);\n  s.timeCapsule.text = String(s.timeCapsule.text || '');\n  if(!s.reclaim || typeof s.reclaim !== 'object' || Array.isArray(s.reclaim)) s.reclaim = {};\n  s.reclaim = Object.assign({ kind:'', timeOn:0, timePerDay:0, costOn:0, costPerDay:0 }, s.reclaim);\n  const old ="
+assert old in s
+s=s.replace(old,new,1)
+
+old='''  sprout:  '<path d="M12 20.5v-7.2"/><path d="M12 13.3c0-3.4-2.8-6.2-6.2-6.2 0 3.4 2.8 6.2 6.2 6.2z"/>' +
+           '<path d="M12 13.3c0-4 3.2-7.2 7.2-7.2 0 4-3.2 7.2-7.2 7.2z"/>',
+
+  /* 위기 */'''
+new='''  sprout:  '<path d="M12 20.5v-7.2"/><path d="M12 13.3c0-3.4-2.8-6.2-6.2-6.2 0 3.4 2.8 6.2 6.2 6.2z"/>' +
+           '<path d="M12 13.3c0-4 3.2-7.2 7.2-7.2 0 4-3.2 7.2-7.2 7.2z"/>',
+
+  /* 내가 되찾은 것 — 24x24 직접 SVG */
+  clock:  '<circle cx="12" cy="12" r="8.7"/><path d="M12 7.2v5.3l3.5 2.1"/><path d="M8.3 2.8h7.4"/>',
+  wallet: '<path d="M4 7.1h13.8a2.2 2.2 0 0 1 2.2 2.2v8.1a2.6 2.6 0 0 1-2.6 2.6H5.6A2.6 2.6 0 0 1 3 17.4V6.6A2.6 2.6 0 0 1 5.6 4h10.2"/>' +
+          '<path d="M15.1 11h5.4v4h-5.4a2 2 0 0 1 0-4z"/><circle class="f" cx="16.6" cy="13" r=".75"/>',
+
+  /* 위기 */'''
+assert old in s and 'wallet:' not in s and 'clock:' not in s
+s=s.replace(old,new,1)
+
+anchor="let recPracticeFilter = 'all';\n\nfunction drawRec(){"
+helpers=r'''let recPracticeFilter = 'all';
+
+function reclaimCfg(){
+  if(!S.reclaim || typeof S.reclaim !== 'object' || Array.isArray(S.reclaim)) S.reclaim={};
+  S.reclaim=Object.assign({kind:'',timeOn:0,timePerDay:0,costOn:0,costPerDay:0},S.reclaim);
+  const kinds=(S.types||[]).filter(k=>TYPES.some(t=>t.k===k));
+  if(kinds.indexOf(S.reclaim.kind)<0) S.reclaim.kind=kinds[0]||'';
+  S.reclaim.timeOn=S.reclaim.timeOn?1:0;
+  S.reclaim.costOn=S.reclaim.costOn?1:0;
+  S.reclaim.timePerDay=Math.max(0,Math.min(24,Number(S.reclaim.timePerDay)||0));
+  S.reclaim.costPerDay=Math.max(0,Number(S.reclaim.costPerDay)||0);
+  return S.reclaim;
+}
+function reclaimHabitCount(){
+  return (Array.isArray(S.habits)?S.habits:[]).reduce((n,h)=>n+(Array.isArray(h&&h.done)?h.done.length:0),0);
+}
+function reclaimHoursText(v){
+  const n=Math.round(Number(v||0)*10)/10;
+  return (Number.isInteger(n)?String(n):n.toFixed(1))+'시간';
+}
+function reclaimMoneyText(v){ return Math.round(Number(v||0)).toLocaleString('ko-KR')+'원'; }
+function drawReclaim(){
+  const box=$('#rec-reclaim'); if(!box) return;
+  if(famMode()){ box.innerHTML=''; return; }
+  const cfg=reclaimCfg(), k=cfg.kind, type=k?typeOf(k):null;
+  const days=(k&&S.dates&&S.dates[k])?recoveryDay(S.dates[k]):0;
+  const habits=reclaimHabitCount(), gambling=k==='gambling';
+  const timeReady=!!(cfg.timeOn&&cfg.timePerDay>0&&days>0);
+  const costReady=!!(!gambling&&cfg.costOn&&cfg.costPerDay>0&&days>0);
+  const card=(icon,title,value,desc,cls,off)=>'<div class="reclaim-card '+(cls||'')+'"><div class="reclaim-title"><span class="reclaim-ico">'+ico(icon)+'</span><span>'+esc(title)+'</span></div><b class="reclaim-value'+(off?' off':'')+'">'+esc(value)+'</b><span class="reclaim-desc">'+esc(desc)+'</span></div>';
+  const dayValue=type&&days?days+'일':'—';
+  const dayDesc=type?(type.n+' · 현재 회복 흐름'):'회복영역과 시작일을 설정해 주세요.';
+  const timeValue=timeReady?reclaimHoursText(days*cfg.timePerDay):'설정 안 함';
+  const timeDesc=timeReady?'회복 전 하루 평균 시간 기준':'원할 때만 기준을 정해 표시합니다.';
+  const costValue=gambling?'계산하지 않음':(costReady?reclaimMoneyText(days*cfg.costPerDay):'설정 안 함');
+  const costDesc=gambling?'도박 금액·손실액은 누적 계산하지 않습니다.':(costReady?'회복 전 하루 평균 사용비용 기준':'원할 때만 기준을 정해 표시합니다.');
+  box.innerHTML='<div class="reclaim-wrap"><div class="reclaim-head"><div><b>내가 되찾은 것</b><span>손실이 아니라 회복하면서 내 삶에 다시 남은 것을 봅니다.</span></div><button type="button" class="reclaim-set" id="rec-reclaim-settings">기준 설정</button></div><div class="reclaim-grid">'+
+    card('cal','회복일',dayValue,dayDesc,'',!type)+
+    card('clock','되찾은 시간',timeValue,timeDesc,'',!timeReady)+
+    card('wallet','지킨 비용',costValue,costDesc,'',gambling||!costReady)+
+    card('sprout','실천한 습관',habits+'회','내 습관에서 직접 체크한 횟수','habit',false)+
+    '</div></div>';
+  const b=$('#rec-reclaim-settings'); if(b) b.onclick=openReclaimSettings;
+}
+function openReclaimSettings(){
+  if(famMode()) return;
+  const cfg=reclaimCfg(), kinds=(S.types||[]).filter(k=>TYPES.some(t=>t.k===k));
+  if(!kinds.length){
+    modal('<h2>내가 되찾은 것</h2><p class="muted" style="margin:6px 0 14px">회복일과 계산 기준을 연결하려면 먼저 내 정보 · 설정에서 회복영역과 시작일을 정해주세요.</p><button class="btn" id="reclaim-go-me">회복영역 설정</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
+    $('#reclaim-go-me').onclick=()=>{closeModal();go('me');};
+    return;
+  }
+  const opts=kinds.map(k=>'<option value="'+esc(k)+'"'+(cfg.kind===k?' selected':'')+'>'+esc(typeOf(k).n)+'</option>').join('');
+  const kindHtml=kinds.length>1?'<div class="reclaim-field"><b>계산 기준 회복영역</b><select id="reclaim-kind" style="margin-top:7px">'+opts+'</select><p class="tiny" style="margin:6px 0 0">여러 영역을 함께 회복 중이면 돈·시간을 계산할 기준 하나를 고릅니다.</p></div>':'<div class="note" style="margin-bottom:12px">'+esc(typeOf(kinds[0]).n)+' 회복 시작일을 기준으로 계산합니다.</div>';
+  modal('<h2>내가 되찾은 것 기준</h2><p class="muted" style="margin:6px 0 12px">시간과 비용은 선택입니다. 입력값과 계산 결과는 이 기기에만 저장되며 외부로 전송하지 않습니다.</p>'+kindHtml+
+    '<div class="reclaim-field"><label><input type="checkbox" id="reclaim-time-on"'+(cfg.timeOn?' checked':'')+'><span>되찾은 시간 표시</span></label><div class="reclaim-num"><input type="number" inputmode="decimal" id="reclaim-time-day" min="0" max="24" step="0.5" value="'+esc(cfg.timePerDay||'')+'"><span>시간 / 하루</span></div><p class="tiny" style="margin:6px 0 0">회복 전 하루 평균 중독행동에 사용하던 시간을 기준으로 한 추정치입니다.</p></div>'+
+    '<div class="reclaim-field" id="reclaim-cost-block"><label><input type="checkbox" id="reclaim-cost-on"'+(cfg.costOn?' checked':'')+'><span>지킨 비용 표시</span></label><div class="reclaim-num"><input type="number" inputmode="numeric" id="reclaim-cost-day" min="0" step="1000" value="'+esc(cfg.costPerDay||'')+'"><span>원 / 하루</span></div><p class="tiny" style="margin:6px 0 0">과거 손실액이 아니라 회복 전 하루 평균 실제 사용비용을 기준으로 한 추정치입니다.</p></div>'+
+    '<div class="note w hide" id="reclaim-gamble-note" style="margin-top:12px">도박 회복영역에서는 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다. 회복일·시간·실천한 습관은 그대로 볼 수 있습니다.</div>'+
+    '<div style="height:14px"></div><button class="btn" id="reclaim-save">저장</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
+  const sel=$('#reclaim-kind');
+  const selectedKind=()=>sel?sel.value:kinds[0];
+  const sync=()=>{
+    const g=selectedKind()==='gambling', cb=$('#reclaim-cost-block'), gn=$('#reclaim-gamble-note');
+    if(cb) cb.classList.toggle('hide',g); if(gn) gn.classList.toggle('hide',!g);
+  };
+  if(sel) sel.onchange=sync; sync();
+  $('#reclaim-save').onclick=()=>{
+    const k=selectedKind(), time=Math.max(0,Math.min(24,Number($('#reclaim-time-day').value)||0));
+    const cost=Math.max(0,Number($('#reclaim-cost-day').value)||0);
+    cfg.kind=k; cfg.timeOn=$('#reclaim-time-on').checked?1:0; cfg.timePerDay=time;
+    cfg.costOn=(k==='gambling')?0:($('#reclaim-cost-on').checked?1:0); cfg.costPerDay=cost;
+    if(cfg.timeOn&&!time){toast('되찾은 시간을 표시하려면 하루 평균 시간을 입력해주세요.');return;}
+    if(cfg.costOn&&!cost){toast('지킨 비용을 표시하려면 하루 평균 비용을 입력해주세요.');return;}
+    save(); closeModal(); drawRec(); toast('기준을 저장했습니다.');
+  };
+}
+
+function drawRec(){'''
+assert anchor in s and 'function drawReclaim()' not in s
+s=s.replace(anchor,helpers,1)
+
+old="function drawRec(){\n  /* 가족은 충동·재발을 기록하지 않습니다. 그건 그 사람의 기록입니다. */"
+new="function drawRec(){\n  drawReclaim();\n  /* 가족은 충동·재발을 기록하지 않습니다. 그건 그 사람의 기록입니다. */"
+assert old in s
+s=s.replace(old,new,1)
+
+assert "const DATA_SCHEMA = 6;" in s
+assert "const KEY = 'ohg.v1';" in s
+p.write_text(s)
+
+p=Path('sw.js')
+s=p.read_text()
+assert "const APP_VERSION = 'V8.2.63';" in s
+assert "const V = 'ohg-v8263-admin-render-fix';" in s
+s=s.replace("const APP_VERSION = 'V8.2.63';","const APP_VERSION = 'V8.2.64';",1)
+s=s.replace("const V = 'ohg-v8263-admin-render-fix';","const V = 'ohg-v8264-reclaimed-summary';",1)
+p.write_text(s)
+
+p=Path('README.md')
+s=p.read_text()
+note="""## V8.2.64 — 내 발자취 · 내가 되찾은 것
+- `내 발자취` 상단에 `내가 되찾은 것` 요약을 추가했습니다: 회복일 · 되찾은 시간 · 지킨 비용 · 실천한 습관.
+- 회복일은 선택한 회복영역의 현재 회복 시작일에서 자동 계산하고, 실천한 습관은 기존 습관 체크 기록을 합산합니다.
+- 되찾은 시간과 지킨 비용은 사용자가 원할 때만 기준값을 입력하는 선택 기능이며, 기준값과 계산 결과는 기기 안에만 저장됩니다.
+- 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액·손실액 누적 계산을 제공하지 않습니다.
+- 이모지나 외부 아이콘을 쓰지 않고 기존 규칙대로 24×24 직접 SVG 아이콘만 사용합니다.
+- `DATA_SCHEMA=6`, `ohg.v1`, 기존 회복기록·마음프로·자원시트·관리자·Android 알림/TTS 엔진은 변경하지 않았습니다.
+
+"""
+assert not s.startswith('## V8.2.64')
+p.write_text(note+s)
