@@ -2462,7 +2462,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.62';
+const BUILD = 'V8.2.63';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -3330,6 +3330,7 @@ function go(p,opt){
   if(p === 'help') drawHelp();
   if(p === 'ai')   drawAI();
   if(p === 'me')   drawMe();
+  if(p === 'my'){ drawFeedbackStatus(); drawAdmin(); }
   if(p === 'relapse') drawRelapse();
   if(p === 'night')   drawNight();
   if(p === 'urge')    drawUrge();
@@ -10527,7 +10528,7 @@ function adminLogout(){
   feedbackAdminKey = ''; fbAdmin.items = [];
   S.admin = 0; save();
   $('#tab-admin').classList.add('hide');
-  go('me');
+  go('my');
   toast('로그아웃했습니다.');
 }
 
