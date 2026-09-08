@@ -1219,23 +1219,23 @@ addEventListener('appinstalled', function(){
   <h2>필요할 때 더 살펴보기</h2>
   <div class="acc" data-family-tool-group>
     <button class="acc-h" type="button" aria-expanded="false" onclick="familyToolGroupToggle(this)">
-      <div class="acc-n"><b>내 생각과 행동 살펴보기</b><span>상황·생각·감정 · 의사결정 저울 · 문제 해결</span></div>
+      <div class="acc-n"><b>내 생각과 행동 살펴보기</b><span>상황·생각·감정 돌아보기 · 의사결정 저울 · 문제 해결하기</span></div>
       <svg class="acc-v" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
     </button>
     <div class="acc-b">
-      <button class="toolcard" data-family-tool="smart-abc"><span class="ic" data-ico="speak"></span><span class="b"><b>내 생각과 반응 살펴보기</b><span>사건과 생각을 구분하고 감정·행동을 돌아봅니다.</span></span><span class="go">열기</span></button>
-      <button class="toolcard" data-family-tool="smart-cba" style="margin-top:9px"><span class="ic" data-ico="check"></span><span class="b"><b>내 행동의 득실 살펴보기</b><span>내 행동의 단기·장기 이점과 비용을 살펴봅니다.</span></span><span class="go">열기</span></button>
+      <button class="toolcard" data-family-tool="smart-abc"><span class="ic" data-ico="speak"></span><span class="b"><b>상황·생각·감정 돌아보기</b><span>사건과 생각을 구분하고 감정·행동을 돌아봅니다.</span></span><span class="go">열기</span></button>
+      <button class="toolcard" data-family-tool="smart-cba" style="margin-top:9px"><span class="ic" data-ico="check"></span><span class="b"><b>의사결정 저울</b><span>내 행동의 단기·장기 이점과 비용을 살펴봅니다.</span></span><span class="go">열기</span></button>
       <button class="toolcard" data-family-tool="smart-problem-solving" style="margin-top:9px"><span class="ic" data-ico="check"></span><span class="b"><b>문제 해결하기</b><span>문제를 정의하고 선택 가능한 행동과 실행계획을 정리합니다.</span></span><span class="go">열기</span></button>
     </div>
   </div>
   <div class="acc" data-family-tool-group>
     <button class="acc-h" type="button" aria-expanded="false" onclick="familyToolGroupToggle(this)">
-      <div class="acc-n"><b>내 생활 돌보기</b><span>삶의 균형 · 건강한 관심사 · 이완 · 건강 회복</span></div>
+      <div class="acc-n"><b>내 생활 돌보기</b><span>삶의 균형 살펴보기 · 건강한 관심사 찾기 · 이완 · 건강 회복</span></div>
       <svg class="acc-v" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
     </button>
     <div class="acc-b">
-      <button class="toolcard" data-family-tool="smart-balance-pie"><span class="ic" data-ico="sprout"></span><span class="b"><b>내 삶의 균형</b><span>한 사람의 문제에 삶 전체가 붙들리지 않도록 내 영역을 살펴봅니다.</span></span><span class="go">열기</span></button>
-      <button class="toolcard" data-family-tool="smart-vaci" style="margin-top:9px"><span class="ic" data-ico="sprout"></span><span class="b"><b>나를 살리는 건강한 관심사</b><span>내 삶에 활력과 관심을 되돌리는 활동을 찾습니다.</span></span><span class="go">열기</span></button>
+      <button class="toolcard" data-family-tool="smart-balance-pie"><span class="ic" data-ico="sprout"></span><span class="b"><b>삶의 균형 살펴보기</b><span>한 사람의 문제에 삶 전체가 붙들리지 않도록 내 영역을 살펴봅니다.</span></span><span class="go">열기</span></button>
+      <button class="toolcard" data-family-tool="smart-vaci" style="margin-top:9px"><span class="ic" data-ico="sprout"></span><span class="b"><b>건강한 관심사 찾기</b><span>내 삶에 활력과 관심을 되돌리는 활동을 찾습니다.</span></span><span class="go">열기</span></button>
       <button class="toolcard" data-family-tool="smart-relax" style="margin-top:9px"><span class="ic" data-ico="wave"></span><span class="b"><b>이완 · 마음 가라앉히기</b><span>호흡·이완·명상으로 내 긴장을 낮춥니다.</span></span><span class="go">열기</span></button>
       <button class="toolcard" data-family-tool="smart-health" style="margin-top:9px"><span class="ic" data-ico="sprout"></span><span class="b"><b>건강 회복 · 생활 돌보기</b><span>식사·수면·운동 등 내 생활과 몸을 돌봅니다.</span></span><span class="go">열기</span></button>
     </div>
@@ -2265,7 +2265,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.53';
+const BUILD = 'V8.2.54';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -2451,7 +2451,7 @@ const FAMGUIDE = {
      b:'가족 모임에서 오래 쓰는 말이 셋 있습니다.\n' +
        '내가 만든 것이 아니고, 내가 조절할 수 있는 것도 아니고, 내가 고칠 수 있는 것도 아닙니다.\n' +
        '이것은 손을 놓으라는 말이 아니라, 지지 않아도 될 짐을 내려놓으라는 말입니다.'},
-    {h:'돕는 것과 대신 치워주는 것은 다릅니다', a:'smart-cba', al:'내 행동의 득실 살펴보기로 살펴보기',
+    {h:'돕는 것과 대신 치워주는 것은 다릅니다', a:'smart-cba', al:'의사결정 저울로 살펴보기',
      b:'빚을 갚아주고, 회사에 대신 전화하고, 뒷일을 치워주는 것 — 전부 사랑에서 나온 행동입니다.\n' +
        '다만 그렇게 하면 본인이 자기 행동의 결과를 만나지 못합니다.\n' +
        '지금까지 그렇게 해오셨다면 그것은 잘못이 아니라, 그때 할 수 있는 최선이었습니다.'},
@@ -2503,7 +2503,7 @@ const FAMGUIDE = {
      b:'당사자가 안 가도, 안 끊어도, 가족은 갈 수 있습니다.\n' +
        '알아넌(알코올) · 겜아넌(도박) · 나란아논(약물) 이 가족 모임입니다.\n' +
        '[헬프]에서 우리 지역 모임을 찾아보실 수 있습니다.'},
-    {h:'감시가 삶의 전부가 되지 않게', a:'smart-balance-pie', al:'내 삶의 균형 살펴보기',
+    {h:'감시가 삶의 전부가 되지 않게', a:'smart-balance-pie', al:'삶의 균형 살펴보기',
      b:'냄새를 맡고, 통장을 뒤지고, 하루 종일 마음을 붙들고 있으면 두 사람 다 지칩니다.\n' +
        '일주일에 한 번이라도 그 사람과 상관없는 시간을 남겨두세요. 그것이 오래 버티는 힘이 됩니다.'},
     /* 팀장님 검토 반영 — 제목에 '나를 지키는 것' 을 넣었습니다.
@@ -2514,7 +2514,7 @@ const FAMGUIDE = {
        '지금 지킬 수 있는 것 하나부터 정하세요.\n' +
        '못 지킨 날이 있어도 그은 선이 없어지지는 않습니다.'},
     /* 팀장님 검토 반영 — '기대 조절' 에서 '그 사람의 자리에서 보기' 로 방향이 바뀌었습니다. */
-    {h:'나의 기대를 내려놓고, 그의 눈으로 봐주세요', a:'smart-abc', al:'내 생각과 반응 살펴보기',
+    {h:'나의 기대를 내려놓고, 그의 눈으로 봐주세요', a:'smart-abc', al:'상황·생각·감정 돌아보기',
      b:'며칠 끊은 것을 크게 기뻐하면 다시 마셨을 때 그만큼 크게 무너집니다.\n' +
        '좋아지는 것도 나빠지는 것도 내가 바라는 속도로는 오지 않습니다.\n' +
        '기대를 내려놓는 것은 포기가 아니라, 그 사람이 지금 서 있는 자리를 보는 일입니다.'},
@@ -4689,7 +4689,7 @@ function syncSmartBack(){
     'smart-importance-confidence':'변화 준비도 점검',
     'smart-hov':'가치 우선순위 정하기',
     'smart-three-questions':'내 선택 돌아보기',
-    'smart-change-plan':'변화 계획',
+    'smart-change-plan':'변화 계획 세우기',
     'smart-cba':'의사결정 저울',
     'smart-deads':'충동 다루기',
     'smart-disarm':'중독 생각과 거리두기',
@@ -5032,9 +5032,9 @@ function drawSmartTools(){
   let h='';
   h+=smartPointAccordion('Point 1 · 동기 부여 및 유지','가치 · 동기 · 변화계획 · 5개 도구','왜 바꾸려는지, 무엇을 지키려는지, 어떻게 바꿀지를 정리합니다.',buttons(p1));
   const p2body=famMode()?'<div class="note">충동 다루기·중독 생각과 거리두기·충동일기는 충동을 직접 경험하는 당사자를 위한 도구입니다. 가족모드에서는 상대의 충동을 기록하거나 통제하는 기능으로 사용하지 않습니다.</div>':buttons(p2);
-  h+=smartPointAccordion('Point 2 · 충동에 대처하기',famMode()?'당사자의 충동 대처를 이해하는 참고 영역':'즉시 대처 · 충동 다루기 · 생각과 거리두기 · 충동일기',''+(famMode()?'당사자가 충동을 알아차리고 대처하는 영역입니다. 가족은 상대의 충동을 기록하거나 관리하지 않고, 회복 과정을 이해하는 참고로 봅니다.':'충동을 알아차리고 지금 사용할 수 있는 대처를 준비합니다.'),p2body);
-  h+=smartPointAccordion('Point 3 · 생각·감정·행동 관리하기','상황·생각·감정 · 생각 점검 · 생각의 함정 · 문제해결','사건과 생각을 구분하고, 감정·행동에 도움이 되는 더 균형 잡힌 관점을 연습합니다.',buttons(p3));
-  h+=smartPointAccordion('Point 4 · 균형 잡힌 삶 살기','삶의 균형 · 건강한 관심사 · 목표 · 이완 · 건강','삶의 여러 영역을 살펴보고, 가치에 맞는 활동과 목표로 균형을 만들어갑니다.',buttons(p4));
+  h+=smartPointAccordion('Point 2 · 충동에 대처하기',famMode()?'당사자의 충동 대처를 이해하는 참고 영역':'즉시 대처 · 충동 다루기 · 중독 생각과 거리두기 · 충동일기',''+(famMode()?'당사자가 충동을 알아차리고 대처하는 영역입니다. 가족은 상대의 충동을 기록하거나 관리하지 않고, 회복 과정을 이해하는 참고로 봅니다.':'충동을 알아차리고 지금 사용할 수 있는 대처를 준비합니다.'),p2body);
+  h+=smartPointAccordion('Point 3 · 생각·감정·행동 관리하기','상황·생각·감정 돌아보기 · 생각 점검하기 · 생각의 함정 알아차리기 · 문제 해결하기','사건과 생각을 구분하고, 감정·행동에 도움이 되는 더 균형 잡힌 관점을 연습합니다.',buttons(p3));
+  h+=smartPointAccordion('Point 4 · 균형 잡힌 삶 살기','삶의 균형 살펴보기 · 건강한 관심사 찾기 · 실천 목표 세우기 · 이완 · 건강','삶의 여러 영역을 살펴보고, 가치에 맞는 활동과 목표로 균형을 만들어갑니다.',buttons(p4));
   box.innerHTML=h;
   box.querySelectorAll('[data-smart-page]').forEach(b=>b.onclick=()=>go(b.dataset.smartPage));
   refreshIcons();
@@ -6075,8 +6075,8 @@ function drawSmartBalancePie(){
  if(rn)rn.innerHTML=famMode()?'<div class="note" style="margin-bottom:12px"><b>가족도 내 삶의 균형을 봅니다.</b><br>상대의 음주·도박·약물사용이나 회복 상태를 점수 매기는 도구가 아닙니다. 가족인 나 자신의 관계·건강·일·여가·재정 등 삶의 영역을 살펴봅니다.</div>':'';
  add.onclick=()=>openSmartBalanceEditor(null);
  const rows=smartBalanceRecords();
- if(!rows.length){list.innerHTML='<div class="card"><b>아직 저장한 밸런스 파이가 없습니다.</b><p class="muted" style="margin:5px 0 0">삶의 영역을 나누고 지금의 만족도를 0~10으로 표시해보세요.</p></div>';return;}
- list.innerHTML='<div class="card"><h3>저장한 밸런스 파이 '+rows.length+'건</h3>'+rows.map(r=>'<div class="sp" style="gap:10px;padding:11px 0;border-top:1px solid var(--line)"><div style="min-width:0;flex:1"><div class="tiny">'+esc(smartBalanceDate(r.updatedAt||r.ts))+'</div><b style="display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.focus||'삶의 균형 살펴보기')+'</b><div class="muted" style="margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.action||'삶의 균형을 돌아본 기록')+'</div></div><button class="tiny" style="color:var(--acc);font-weight:600" onclick="openSmartBalanceView(\''+esc(r.id)+'\')">보기</button></div>').join('')+'</div>';
+ if(!rows.length){list.innerHTML='<div class="card"><b>아직 저장한 삶의 균형 기록이 없습니다.</b><p class="muted" style="margin:5px 0 0">삶의 영역을 나누고 지금의 만족도를 0~10으로 표시해보세요.</p></div>';return;}
+ list.innerHTML='<div class="card"><h3>저장한 삶의 균형 기록 '+rows.length+'건</h3>'+rows.map(r=>'<div class="sp" style="gap:10px;padding:11px 0;border-top:1px solid var(--line)"><div style="min-width:0;flex:1"><div class="tiny">'+esc(smartBalanceDate(r.updatedAt||r.ts))+'</div><b style="display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.focus||'삶의 균형 살펴보기')+'</b><div class="muted" style="margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(r.action||'삶의 균형을 돌아본 기록')+'</div></div><button class="tiny" style="color:var(--acc);font-weight:600" onclick="openSmartBalanceView(\''+esc(r.id)+'\')">보기</button></div>').join('')+'</div>';
 }
 function smartBalanceAreaRow(a,i){return '<div class="card tight" data-balance-row="'+i+'"><div class="sp" style="margin-bottom:8px"><b>'+esc(a.name)+'</b><button type="button" class="tiny" style="color:var(--bad);font-weight:600" data-balance-remove="'+i+'">빼기</button></div><div class="sp"><span class="tiny">현재 만족도</span><b data-balance-score-label="'+i+'">'+smartBalanceClamp(a.score)+' / 10</b></div><input type="range" min="0" max="10" value="'+smartBalanceClamp(a.score)+'" data-balance-score="'+i+'"><div class="axis"><span>0 · 매우 불만족</span><span>10 · 매우 만족</span></div></div>';}
 function openSmartBalanceEditor(record){
@@ -6087,21 +6087,21 @@ function openSmartBalanceEditor(record){
  const renderFocus=()=>{collectAreas();const sel=$('#balance-focus');if(!sel)return;sel.innerHTML='<option value="">먼저 돌볼 영역 선택</option>'+areas.map(a=>'<option value="'+esc(a.name)+'"'+(a.name===focus?' selected':'')+'>'+esc(a.name)+'</option>').join('');};
  const renderAreas=()=>{const box=$('#balance-areas');if(!box)return;box.innerHTML=areas.map(smartBalanceAreaRow).join('');box.querySelectorAll('[data-balance-score]').forEach(inp=>inp.oninput=()=>{const l=box.querySelector('[data-balance-score-label="'+inp.dataset.balanceScore+'"]');if(l)l.textContent=inp.value+' / 10';});box.querySelectorAll('[data-balance-remove]').forEach(b=>b.onclick=()=>{if(areas.length<=3){toast('삶의 영역을 3개 이상 남겨주세요.');return;}collectAreas();const gone=areas.splice(+b.dataset.balanceRemove,1)[0];if(gone&&focus===gone.name)focus='';renderAreas();});};
  const openStep=(name,scroll)=>{if(name==='review')renderPreview();if(name==='focus')renderFocus();const root=$('#balance-editor');if(!root)return;root.querySelectorAll('[data-balance-step]').forEach(a=>setAcc(a,false));const target=root.querySelector('[data-balance-step="'+name+'"]');setAcc(target,true);if(scroll&&target)setTimeout(()=>target.scrollIntoView({behavior:'smooth',block:'start'}),30);};
- modal('<h2>'+(record?'밸런스 파이 수정':'삶의 균형 살펴보기')+'</h2><p class="muted" style="margin:5px 0 14px">전체 삶의 모습을 한꺼번에 완벽하게 바꾸려 하지 않습니다. 영역별 현재 상태를 보고, 가장 먼저 손이 가는 한 영역부터 시작합니다.</p><div id="balance-editor">'
- +'<div class="acc on" data-balance-step="areas"><button class="acc-h" type="button" data-balance-step-toggle="areas" aria-expanded="true"><div class="acc-n"><b>1 · 삶의 영역과 만족도</b><span>중요한 영역을 정하고 현재 만족도를 0~10으로 표시합니다.</span></div><svg class="acc-v" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><div class="acc-b"><div id="balance-areas"></div><div class="card tight"><label>다른 삶의 영역 추가 <span class="tiny">(선택)</span></label><div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px"><input id="balance-add-name" maxlength="30" placeholder="예: 공부, 지역사회, 취미"><button class="btn sec sm" type="button" id="balance-add" style="width:auto;margin:0">추가</button></div></div><button class="btn sec" type="button" id="balance-next-review">다음 · 파이 돌아보기</button></div></div>'
- +'<div class="acc" data-balance-step="review"><button class="acc-h" type="button" data-balance-step-toggle="review" aria-expanded="false"><div class="acc-n"><b>2 · 완성된 파이 돌아보기</b><span>전체 모양과 가치·우선순위, 더 필요한 영역을 살펴봅니다.</span></div><svg class="acc-v" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><div class="acc-b"><div id="balance-preview"></div><details class="card tight" style="margin-bottom:10px"><summary style="cursor:pointer;font-weight:700">삶을 돌아보는 질문 전체 보기</summary><div class="muted" style="margin-top:10px;line-height:1.75">1. 저는 균형 잡힌 삶을 살고 있나요?<br>2. 여기에 나의 참된 가치와 우선순위가 반영되어 있나요?<br>3. 내가 살 날이 한 달 남았다면, 이것이 내가 시간을 보낼 방식인가요?<br>4. 너무 많은 활동에 참여하고 있나요? 해야 할 일이 너무 많은가요?<br>5. 내 시간의 얼마나 많은 부분이 다른 사람들을 돌보느라 사용되나요? 나를 위해서는?<br>6. 내 삶에서 더 많은 관심이 필요한 영역이 있습니까?<br>7. 계속 미뤄진 꿈이나 욕망이 있습니까? 그것에 집중하고 싶습니까?<br>8. 어떤 영역이 더 많은 관심을 필요로 합니까? 덜 집중해야 할 분야는 무엇인가요?<br>9. 내가 어떤 변화를 원하고 있습니까? 내 삶을 균형 잡힌 모양으로 살기 위해 무엇을 할 수 있나요?</div></details><label>파이를 보며 든 생각과 감정 <span class="tiny">(선택)</span></label><textarea id="balance-reflection" maxlength="900" placeholder="전체 모양을 보며 알아차린 점을 적어보세요.">'+esc(r.reflection||'')+'</textarea><button class="btn sec" type="button" id="balance-next-focus" style="margin-top:10px">다음 · 먼저 돌볼 영역</button></div></div>'
- +'<div class="acc" data-balance-step="focus"><button class="acc-h" type="button" data-balance-step-toggle="focus" aria-expanded="false"><div class="acc-n"><b>3 · 먼저 돌볼 영역과 작은 변화</b><span>가장 먼저 끌리는 한 영역을 고르고 시작 행동을 정합니다.</span></div><svg class="acc-v" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><div class="acc-b"><div class="field"><label>가장 먼저 더 관심을 주고 싶은 영역</label><select id="balance-focus"></select></div><div class="field"><label>두려움이나 불편함 때문에 막히는 것이 있나요? <span class="tiny">(선택)</span></label><textarea id="balance-barrier" maxlength="600" placeholder="있다면 적어보세요.">'+esc(r.barrier||'')+'</textarea></div><div class="field"><label>균형을 위해 시작할 작은 행동</label><textarea id="balance-action" maxlength="700" placeholder="예: 이번 주 토요일 오전에 친구에게 연락해 함께 30분 걷기">'+esc(r.action||'')+'</textarea></div><div class="field"><label>언제부터 시작할까요? <span class="tiny">(선택)</span></label><input id="balance-start" type="date" value="'+esc(r.start||'')+'"></div></div></div></div><button class="btn" id="balance-save">'+(record?'수정 저장':'밸런스 파이 저장')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
+ modal('<h2>'+(record?'삶의 균형 수정':'삶의 균형 살펴보기')+'</h2><p class="muted" style="margin:5px 0 14px">전체 삶의 모습을 한꺼번에 완벽하게 바꾸려 하지 않습니다. 영역별 현재 상태를 보고, 가장 먼저 손이 가는 한 영역부터 시작합니다.</p><div id="balance-editor">'
+ +'<div class="acc on" data-balance-step="areas"><button class="acc-h" type="button" data-balance-step-toggle="areas" aria-expanded="true"><div class="acc-n"><b>1 · 삶의 영역과 만족도</b><span>중요한 영역을 정하고 현재 만족도를 0~10으로 표시합니다.</span></div><svg class="acc-v" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><div class="acc-b"><div id="balance-areas"></div><div class="card tight"><label>다른 삶의 영역 추가 <span class="tiny">(선택)</span></label><div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px"><input id="balance-add-name" maxlength="30" placeholder="예: 공부, 지역사회, 취미"><button class="btn sec sm" type="button" id="balance-add" style="width:auto;margin:0">추가</button></div></div><button class="btn sec" type="button" id="balance-next-review">다음 · 전체 균형 돌아보기</button></div></div>'
+ +'<div class="acc" data-balance-step="review"><button class="acc-h" type="button" data-balance-step-toggle="review" aria-expanded="false"><div class="acc-n"><b>2 · 전체 균형 돌아보기</b><span>전체 모양과 가치·우선순위, 더 필요한 영역을 살펴봅니다.</span></div><svg class="acc-v" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><div class="acc-b"><div id="balance-preview"></div><details class="card tight" style="margin-bottom:10px"><summary style="cursor:pointer;font-weight:700">삶을 돌아보는 질문 전체 보기</summary><div class="muted" style="margin-top:10px;line-height:1.75">1. 저는 균형 잡힌 삶을 살고 있나요?<br>2. 여기에 나의 참된 가치와 우선순위가 반영되어 있나요?<br>3. 내가 살 날이 한 달 남았다면, 이것이 내가 시간을 보낼 방식인가요?<br>4. 너무 많은 활동에 참여하고 있나요? 해야 할 일이 너무 많은가요?<br>5. 내 시간의 얼마나 많은 부분이 다른 사람들을 돌보느라 사용되나요? 나를 위해서는?<br>6. 내 삶에서 더 많은 관심이 필요한 영역이 있습니까?<br>7. 계속 미뤄진 꿈이나 욕망이 있습니까? 그것에 집중하고 싶습니까?<br>8. 어떤 영역이 더 많은 관심을 필요로 합니까? 덜 집중해야 할 분야는 무엇인가요?<br>9. 내가 어떤 변화를 원하고 있습니까? 내 삶을 균형 잡힌 모양으로 살기 위해 무엇을 할 수 있나요?</div></details><label>전체 균형을 보며 든 생각과 감정 <span class="tiny">(선택)</span></label><textarea id="balance-reflection" maxlength="900" placeholder="전체 모양을 보며 알아차린 점을 적어보세요.">'+esc(r.reflection||'')+'</textarea><button class="btn sec" type="button" id="balance-next-focus" style="margin-top:10px">다음 · 먼저 돌볼 영역</button></div></div>'
+ +'<div class="acc" data-balance-step="focus"><button class="acc-h" type="button" data-balance-step-toggle="focus" aria-expanded="false"><div class="acc-n"><b>3 · 먼저 돌볼 영역과 작은 변화</b><span>가장 먼저 끌리는 한 영역을 고르고 시작 행동을 정합니다.</span></div><svg class="acc-v" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><div class="acc-b"><div class="field"><label>가장 먼저 더 관심을 주고 싶은 영역</label><select id="balance-focus"></select></div><div class="field"><label>두려움이나 불편함 때문에 막히는 것이 있나요? <span class="tiny">(선택)</span></label><textarea id="balance-barrier" maxlength="600" placeholder="있다면 적어보세요.">'+esc(r.barrier||'')+'</textarea></div><div class="field"><label>균형을 위해 시작할 작은 행동</label><textarea id="balance-action" maxlength="700" placeholder="예: 이번 주 토요일 오전에 친구에게 연락해 함께 30분 걷기">'+esc(r.action||'')+'</textarea></div><div class="field"><label>언제부터 시작할까요? <span class="tiny">(선택)</span></label><input id="balance-start" type="date" value="'+esc(r.start||'')+'"></div></div></div></div><button class="btn" id="balance-save">'+(record?'수정 저장':'삶의 균형 저장')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
  renderAreas();
  $$('[data-balance-step-toggle]').forEach(b=>b.onclick=()=>{const target=b.closest('[data-balance-step]'),was=target.classList.contains('on');$('#balance-editor').querySelectorAll('[data-balance-step]').forEach(a=>setAcc(a,false));if(!was){setAcc(target,true);if(target.dataset.balanceStep==='review')renderPreview();if(target.dataset.balanceStep==='focus')renderFocus();}});
  $('#balance-add').onclick=()=>{collectAreas();const inp=$('#balance-add-name'),name=inp.value.trim();if(!name){toast('추가할 삶의 영역 이름을 적어주세요.');return;}if(areas.some(a=>a.name===name)){toast('이미 있는 영역입니다.');return;}if(areas.length>=10){toast('삶의 영역은 10개까지 사용할 수 있습니다.');return;}areas.push({name,score:5});inp.value='';renderAreas();setTimeout(()=>{const rs=$$('[data-balance-row]');if(rs.length)rs[rs.length-1].scrollIntoView({behavior:'smooth',block:'center'});},30);};
  $('#balance-next-review').onclick=()=>{collectAreas();if(areas.length<3){toast('삶의 영역을 3개 이상 남겨주세요.');return;}openStep('review',true);};
  $('#balance-next-focus').onclick=()=>openStep('focus',true);
- $('#balance-save').onclick=()=>{collectAreas();focus=$('#balance-focus').value;if(!focus){openStep('focus',true);toast('가장 먼저 돌볼 영역 하나를 선택해주세요.');return;}const action=$('#balance-action').value.trim();if(!action){openStep('focus',true);toast('그 영역에서 시작할 작은 행동을 적어주세요.');return;}const rec={id:record?record.id:('balance-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'lifestyle-balance-pie',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),areas:areas.map(a=>({name:a.name,score:smartBalanceClamp(a.score)})),reflection:$('#balance-reflection').value.trim(),focus,barrier:$('#balance-barrier').value.trim(),action,start:$('#balance-start').value};if(!Array.isArray(S.smartWorks))S.smartWorks=[];if(record){const i=S.smartWorks.findIndex(x=>x&&x.id===record.id);if(i>=0)S.smartWorks[i]=rec;else S.smartWorks.push(rec);}else S.smartWorks.push(rec);save();closeModal();drawSmartBalancePie();toast(record?'밸런스 파이를 수정했습니다.':'밸런스 파이를 저장했습니다.');};
+ $('#balance-save').onclick=()=>{collectAreas();focus=$('#balance-focus').value;if(!focus){openStep('focus',true);toast('가장 먼저 돌볼 영역 하나를 선택해주세요.');return;}const action=$('#balance-action').value.trim();if(!action){openStep('focus',true);toast('그 영역에서 시작할 작은 행동을 적어주세요.');return;}const rec={id:record?record.id:('balance-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'lifestyle-balance-pie',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),areas:areas.map(a=>({name:a.name,score:smartBalanceClamp(a.score)})),reflection:$('#balance-reflection').value.trim(),focus,barrier:$('#balance-barrier').value.trim(),action,start:$('#balance-start').value};if(!Array.isArray(S.smartWorks))S.smartWorks=[];if(record){const i=S.smartWorks.findIndex(x=>x&&x.id===record.id);if(i>=0)S.smartWorks[i]=rec;else S.smartWorks.push(rec);}else S.smartWorks.push(rec);save();closeModal();drawSmartBalancePie();toast(record?'삶의 균형 기록을 수정했습니다.':'삶의 균형 기록을 저장했습니다.');};
 }
 function openSmartBalanceView(id){
  const r=smartBalanceRecords().find(x=>x.id===id);if(!r)return;const areas=Array.isArray(r.areas)?r.areas:[];
  const sec=(t,v)=>'<div class="card"><h3>'+esc(t)+'</h3><div style="white-space:pre-wrap">'+(String(v||'').trim()?esc(v):'<span class="muted">작성하지 않음</span>')+'</div></div>';
- modal('<h2>삶의 균형 살펴보기</h2><div class="muted" style="margin:-4px 0 12px">'+esc(smartBalanceDate(r.updatedAt||r.ts))+'</div>'+smartBalanceWheel(areas)+sec('파이를 보며 알아차린 점',r.reflection)+sec('먼저 돌볼 영역',r.focus)+sec('막히는 점',r.barrier)+sec('시작할 작은 행동',r.action)+sec('시작 날짜',r.start)+'<button class="btn sec" id="balance-edit">수정</button><div style="height:8px"></div><button class="btn bad" id="balance-delete">이 기록 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
+ modal('<h2>삶의 균형 살펴보기</h2><div class="muted" style="margin:-4px 0 12px">'+esc(smartBalanceDate(r.updatedAt||r.ts))+'</div>'+smartBalanceWheel(areas)+sec('전체 균형에서 알아차린 점',r.reflection)+sec('먼저 돌볼 영역',r.focus)+sec('막히는 점',r.barrier)+sec('시작할 작은 행동',r.action)+sec('시작 날짜',r.start)+'<button class="btn sec" id="balance-edit">수정</button><div style="height:8px"></div><button class="btn bad" id="balance-delete">이 기록 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
  $('#balance-edit').onclick=()=>openSmartBalanceEditor(r);$('#balance-delete').onclick=()=>{if(!confirm('이 삶의 균형 기록을 삭제할까요?'))return;S.smartWorks=(Array.isArray(S.smartWorks)?S.smartWorks:[]).filter(x=>!(x&&x.id===r.id));save();closeModal();drawSmartBalancePie();toast('삶의 균형 기록을 삭제했습니다.');};
 }
 
@@ -6199,7 +6199,7 @@ function drawSmartGoal(){
  add.onclick=()=>openSmartGoalEditor(null);
  const rows=smartGoalRecords();
  if(!rows.length){list.innerHTML='<div class="card"><b>아직 저장한 실천 목표가 없습니다.</b><p class="muted" style="margin:5px 0 0">삶의 한 영역에서 지금 바꾸고 싶은 작은 목표부터 적어보세요.</p></div>';return;}
- list.innerHTML='<div class="card"><h3>저장한 실천 목표 '+rows.length+'건</h3>'+rows.map(r=>{const tags=[r.category,r.value].filter(Boolean).map(v=>'<span style="display:inline-flex;padding:3px 8px;border-radius:999px;background:var(--accbg);color:var(--acc);font-size:11.5px">'+esc(v)+'</span>').join('');return '<div class="sp" style="gap:10px;padding:11px 0;border-top:1px solid var(--line);align-items:flex-start"><div style="min-width:0;flex:1"><div class="tiny">'+esc(smartGoalDate(r.updatedAt||r.ts))+' · SMART '+smartGoalCriteriaCount(r)+'/5'+(r.repeat?' · 습관 연결 가능':'')+'</div><b style="display:block;margin-top:3px">'+esc(r.revised||r.goal||'실천 목표')+'</b>'+(tags?'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px">'+tags+'</div>':'')+'<div class="muted" style="margin-top:5px">'+esc(r.action||'실행 행동 미작성')+'</div></div><button class="tiny" style="color:var(--acc);font-weight:600;flex:0 0 auto" onclick="openSmartGoalView(\''+esc(r.id)+'\')">보기</button></div>';}).join('')+'</div>';
+ list.innerHTML='<div class="card"><h3>저장한 실천 목표 '+rows.length+'건</h3>'+rows.map(r=>{const tags=[r.category,r.value].filter(Boolean).map(v=>'<span style="display:inline-flex;padding:3px 8px;border-radius:999px;background:var(--accbg);color:var(--acc);font-size:11.5px">'+esc(v)+'</span>').join('');return '<div class="sp" style="gap:10px;padding:11px 0;border-top:1px solid var(--line);align-items:flex-start"><div style="min-width:0;flex:1"><div class="tiny">'+esc(smartGoalDate(r.updatedAt||r.ts))+' · 기준 '+smartGoalCriteriaCount(r)+'/5'+(r.repeat?' · 습관 연결 가능':'')+'</div><b style="display:block;margin-top:3px">'+esc(r.revised||r.goal||'실천 목표')+'</b>'+(tags?'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px">'+tags+'</div>':'')+'<div class="muted" style="margin-top:5px">'+esc(r.action||'실행 행동 미작성')+'</div></div><button class="tiny" style="color:var(--acc);font-weight:600;flex:0 0 auto" onclick="openSmartGoalView(\''+esc(r.id)+'\')">보기</button></div>';}).join('')+'</div>';
 }
 function openSmartGoalEditor(record){
  const r=record||{},sug=smartGoalSuggestions();
@@ -6208,7 +6208,7 @@ function openSmartGoalEditor(record){
  const options=a=>a.map(v=>'<option value="'+esc(v)+'"></option>').join('');
  const crit=()=>SMART_GOAL_CRITERIA.map(x=>'<button type="button" class="opt wide'+(checks[x.k]?' on':'')+'" data-goal-crit="'+x.k+'" aria-pressed="'+(checks[x.k]?'true':'false')+'"><span><b>'+esc(x.l)+'</b><small style="display:block;font-weight:400;margin-top:2px">'+esc(x.d)+'</small></span></button>').join('');
  modal('<h2>'+(record?'실천 목표 수정':'실천 목표 세우기')+'</h2><p class="muted" style="margin:5px 0 14px">삶의 방향을 정한 뒤 목표를 다섯 기준으로 점검하고, 실제로 할 행동까지 연결합니다.</p><div id="smart-goal-editor">'
-  +'<div class="acc on" data-goal-step="direction"><button class="acc-h" type="button" data-goal-step-toggle="direction" aria-expanded="true"><div class="acc-n"><b>1 · 삶의 방향과 목표</b><span>삶의 균형에서 살펴본 영역과 가치 우선순위를 연결합니다.</span></div><svg class="acc-v" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><div class="acc-b"><div class="field"><label>삶의 카테고리 <span class="tiny">(선택)</span></label><input id="goal-category" list="goal-category-list" maxlength="60" value="'+esc(r.category||'')+'" placeholder="예: 건강, 가족, 일, 여가"><datalist id="goal-category-list">'+options(sug.cats)+'</datalist><p class="tiny" style="margin:5px 0 0">밸런스 파이를 작성했다면 그 영역이 제안됩니다.</p></div><div class="field"><label>관련 가치 <span class="tiny">(선택)</span></label><input id="goal-value" list="goal-value-list" maxlength="80" value="'+esc(r.value||'')+'" placeholder="예: 건강, 가족, 성실, 성장"><datalist id="goal-value-list">'+options(sug.vals)+'</datalist><p class="tiny" style="margin:5px 0 0">가치 우선순위를 작성했다면 나의 가치가 제안됩니다.</p></div><div class="field"><label>목표</label><textarea id="goal-text" maxlength="800" placeholder="예: 좀 더 적극적으로 해본다.">'+esc(r.goal||'')+'</textarea></div><button class="btn sec" type="button" id="goal-next-check">다음 · 목표 기준 점검</button></div></div>'
+  +'<div class="acc on" data-goal-step="direction"><button class="acc-h" type="button" data-goal-step-toggle="direction" aria-expanded="true"><div class="acc-n"><b>1 · 삶의 방향과 목표</b><span>삶의 균형에서 살펴본 영역과 가치 우선순위를 연결합니다.</span></div><svg class="acc-v" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><div class="acc-b"><div class="field"><label>삶의 카테고리 <span class="tiny">(선택)</span></label><input id="goal-category" list="goal-category-list" maxlength="60" value="'+esc(r.category||'')+'" placeholder="예: 건강, 가족, 일, 여가"><datalist id="goal-category-list">'+options(sug.cats)+'</datalist><p class="tiny" style="margin:5px 0 0">삶의 균형 기록이 있다면 그 영역이 제안됩니다.</p></div><div class="field"><label>관련 가치 <span class="tiny">(선택)</span></label><input id="goal-value" list="goal-value-list" maxlength="80" value="'+esc(r.value||'')+'" placeholder="예: 건강, 가족, 성실, 성장"><datalist id="goal-value-list">'+options(sug.vals)+'</datalist><p class="tiny" style="margin:5px 0 0">가치 우선순위를 작성했다면 나의 가치가 제안됩니다.</p></div><div class="field"><label>목표</label><textarea id="goal-text" maxlength="800" placeholder="예: 좀 더 적극적으로 해본다.">'+esc(r.goal||'')+'</textarea></div><button class="btn sec" type="button" id="goal-next-check">다음 · 목표 기준 점검</button></div></div>'
   +'<div class="acc" data-goal-step="check"><button class="acc-h" type="button" data-goal-step-toggle="check" aria-expanded="false"><div class="acc-n"><b>2 · 목표 기준 점검</b><span>구체적 · 측정가능 · 동의가능 · 현실적 · 시간제한을 확인합니다.</span></div><svg class="acc-v" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><div class="acc-b"><div class="opts" id="goal-criteria">'+crit()+'</div><div class="field" style="margin-top:12px"><label>수정된 목표 <span class="tiny">(필요한 경우)</span></label><textarea id="goal-revised" maxlength="800" placeholder="점검 후 목표를 더 구체적으로 고쳐 적어보세요.">'+esc(r.revised||'')+'</textarea></div><button class="btn sec" type="button" id="goal-next-action">다음 · 실행 행동</button></div></div>'
   +'<div class="acc" data-goal-step="action"><button class="acc-h" type="button" data-goal-step-toggle="action" aria-expanded="false"><div class="acc-n"><b>3 · 실행 행동</b><span>목표 달성을 위해 실제로 할 한 가지 행동을 정합니다.</span></div><svg class="acc-v" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></button><div class="acc-b"><div class="field"><label>실행할 행동</label><input id="goal-action" maxlength="80" value="'+esc(r.action||'')+'" placeholder="예: 공원 3Km 걷기"></div><div class="field"><label>언제 · 어디서 · 얼마나 <span class="tiny">(선택)</span></label><textarea id="goal-task" maxlength="900" placeholder="예: 이번 주 수·목·일 아침에 주변 공원을 약 3Km 걷습니다.">'+esc(r.task||'')+'</textarea></div><div class="field"><label>시작 날짜 <span class="tiny">(선택)</span></label><input id="goal-start" type="date" value="'+esc(r.start||'')+'"></div><div class="field"><label>이 행동을 어떻게 이어갈까요?</label><div class="opts"><button type="button" class="opt'+(!repeat?' on':'')+'" id="goal-repeat-no">이번 목표에서 실행</button><button type="button" class="opt'+(repeat?' on':'')+'" id="goal-repeat-yes">반복해서 습관화</button></div><p class="tiny" id="goal-repeat-note" style="margin:7px 0 0">'+(repeat?'저장 후 기록 보기에서 습관으로 연결할 수 있습니다.':'반복이 필요한 행동이면 습관으로 연결할 수 있습니다.')+'</p></div></div></div></div><button class="btn" id="goal-save">'+(record?'수정 저장':'실천 목표 저장')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
  const root=$('#smart-goal-editor');
@@ -6224,7 +6224,7 @@ function openSmartGoalEditor(record){
 function openSmartGoalView(id){
  const r=smartGoalRecords().find(x=>x.id===id);if(!r)return;const c=r.checks||{};
  const sec=(t,v)=>'<div class="card"><h3>'+esc(t)+'</h3><div style="white-space:pre-wrap">'+(String(v||'').trim()?esc(v):'<span class="muted">작성하지 않음</span>')+'</div></div>';
- const criteria='<div class="card"><h3>SMART 기준</h3><div style="display:flex;flex-wrap:wrap;gap:6px">'+SMART_GOAL_CRITERIA.map(x=>'<span style="display:inline-flex;padding:4px 9px;border-radius:999px;background:'+(c[x.k]?'var(--accbg)':'var(--bg2)')+';color:'+(c[x.k]?'var(--acc)':'var(--dim)')+';font-size:12px">'+(c[x.k]?'✓ ':'○ ')+esc(x.l)+'</span>').join('')+'</div></div>';
+ const criteria='<div class="card"><h3>목표 기준</h3><div style="display:flex;flex-wrap:wrap;gap:6px">'+SMART_GOAL_CRITERIA.map(x=>'<span style="display:inline-flex;padding:4px 9px;border-radius:999px;background:'+(c[x.k]?'var(--accbg)':'var(--bg2)')+';color:'+(c[x.k]?'var(--acc)':'var(--dim)')+';font-size:12px">'+(c[x.k]?'✓ ':'○ ')+esc(x.l)+'</span>').join('')+'</div></div>';
  modal('<h2>실천 목표 세우기</h2><div class="muted" style="margin:-4px 0 12px">'+esc(smartGoalDate(r.updatedAt||r.ts))+'</div>'+sec('삶의 카테고리',r.category)+sec('관련 가치',r.value)+sec('목표',r.goal)+criteria+sec('수정된 목표',r.revised)+sec('실행할 행동',r.action)+sec('언제 · 어디서 · 얼마나',r.task)+sec('시작 날짜',r.start)+(r.repeat?'<button class="btn" id="smart-goal-habit">이 실행을 습관으로 추가</button><div style="height:8px"></div>':'')+'<button class="btn sec" id="smart-goal-edit">수정</button><div style="height:8px"></div><button class="btn bad" id="smart-goal-delete">이 목표 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
  const hb=$('#smart-goal-habit');if(hb)hb.onclick=()=>smartGoalToHabit(r);
  $('#smart-goal-edit').onclick=()=>openSmartGoalEditor(r);
@@ -6719,7 +6719,7 @@ function recPractice(){
     'family-boundary':'내 경계 정리','family-conversation':'대화 준비','family-return-plan':'다시 사용했을 때 내 대응계획',
     'importance-confidence':'변화 준비도 점검','hov':'가치 우선순위 정하기','change-plan':'변화 계획 세우기','three-questions':'내 선택 돌아보기',
     'cba':'의사결정 저울','deads':'충동 다루기','disarm':'중독 생각과 거리두기','abc':'상황·생각·감정 돌아보기','dibs':'생각 점검하기',
-    'thinking-styles':'생각의 함정 알아차리기','problem-solving':'문제 해결하기','balance-pie':'삶의 균형 살펴보기','vaci':'건강한 관심사 찾기','goal':'실천 목표'
+    'thinking-styles':'생각의 함정 알아차리기','problem-solving':'문제 해결하기','balance-pie':'삶의 균형 살펴보기','vaci':'건강한 관심사 찾기','goal':'실천 목표 세우기'
   };
   const pages={
     'family-boundary':'family-boundary','family-conversation':'family-conversation','family-return-plan':'family-return-plan',
@@ -8475,12 +8475,12 @@ function aiFollowHTML(){
     'nav-workbook':['12단계 점검 열기','workbook-list'], 'nav-smart-tools':['회복 실천도구 열기','smart-tools'],
     'nav-capsule':['미래의 나에게 열기','capsule'], 'nav-learn-twelve':['12단계 학습 열기','learn-topic'],
     'nav-learn-smart':['SMART Recovery 학습 열기','learn-topic'],
-    'nav-smart-hov':['가치 우선순위 열기','smart-hov'], 'nav-smart-cba':['의사결정 저울 열기','smart-cba'],
-    'nav-smart-deads':['충동 다루기 열기','smart-deads'], 'nav-smart-disarm':['생각과 거리두기 열기','smart-disarm'],
-    'nav-smart-abc':['상황·생각·감정 돌아보기 열기','smart-abc'], 'nav-smart-dibs':['생각 점검 열기','smart-dibs'],
-    'nav-smart-thinking':['생각의 함정 알아차리기 열기','smart-thinking-styles'], 'nav-smart-problem':['문제 해결 열기','smart-problem-solving'],
-    'nav-smart-balance':['삶의 균형 열기','smart-balance-pie'], 'nav-smart-vaci':['건강한 관심사 찾기 열기','smart-vaci'],
-    'nav-smart-goal':['실천 목표 열기','smart-goal'], 'nav-smart-health':['건강 회복 열기','smart-health'],
+    'nav-smart-hov':['가치 우선순위 정하기 열기','smart-hov'], 'nav-smart-cba':['의사결정 저울 열기','smart-cba'],
+    'nav-smart-deads':['충동 다루기 열기','smart-deads'], 'nav-smart-disarm':['중독 생각과 거리두기 열기','smart-disarm'],
+    'nav-smart-abc':['상황·생각·감정 돌아보기 열기','smart-abc'], 'nav-smart-dibs':['생각 점검하기 열기','smart-dibs'],
+    'nav-smart-thinking':['생각의 함정 알아차리기 열기','smart-thinking-styles'], 'nav-smart-problem':['문제 해결하기 열기','smart-problem-solving'],
+    'nav-smart-balance':['삶의 균형 살펴보기 열기','smart-balance-pie'], 'nav-smart-vaci':['건강한 관심사 찾기 열기','smart-vaci'],
+    'nav-smart-goal':['실천 목표 세우기 열기','smart-goal'], 'nav-smart-health':['건강 회복 열기','smart-health'],
     'nav-rec-mood':['기분 기록 열기','rec'], 'nav-rec-urge':['충동 기록 열기','rec'],
     'nav-rec-day':['하루 기록 열기','rec'], 'nav-rec-body':['몸 기록 열기','rec'],
     'nav-rec-relapse':['다시 시작 기록 열기','rec'], 'nav-rec-stat':['통계 열기','rec']
@@ -8834,7 +8834,7 @@ function aiLocalNav(intent){
     ai.follow='nav-workbook'; drawAI(); return true;
   }
   if(intent === 'smart-tools'){
-    aiAdd('assistant','회복 실천도구는 4-Point를 순서대로 통과하는 방식이 아니라 지금 필요한 영역에서 가치 우선순위, 의사결정 저울, 충동 다루기, 생각과 거리두기, 생각 점검, 건강한 관심사 찾기 같은 도구를 반복해서 사용합니다.', true);
+    aiAdd('assistant','회복 실천도구는 4-Point를 순서대로 통과하는 방식이 아니라 지금 필요한 영역에서 가치 우선순위 정하기, 의사결정 저울, 충동 다루기, 중독 생각과 거리두기, 생각 점검하기, 건강한 관심사 찾기 같은 도구를 반복해서 사용합니다.', true);
     ai.follow='nav-smart-tools'; drawAI(); return true;
   }
   if(intent === 'capsule'){
