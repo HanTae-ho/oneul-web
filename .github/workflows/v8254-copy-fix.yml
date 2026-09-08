@@ -18,7 +18,11 @@ jobs:
           fetch-depth: 0
 
       - name: Apply exact copy replacements
-        run: python3 .tmp_v8254_copy_fix.py
+        run: |
+          # ` · SMART ` also exists in an internal source comment (SMART Recovery · SMART Goals).
+          # Audit the actual visible goal label through its exact replacement instead of blocking comments.
+          sed -i "s/'SMART 기준', ' · SMART '/'SMART 기준'/" .tmp_v8254_copy_fix.py
+          python3 .tmp_v8254_copy_fix.py
 
       - name: Check JavaScript syntax
         run: |
@@ -50,4 +54,4 @@ jobs:
           git commit -m "V8.2.54 SMART 회복학습 문구 통합 마무리"
           git push origin HEAD:${GITHUB_REF_NAME}
 
-# trigger: run after workflow exists on branch
+# trigger: ignore internal-comment false positive
