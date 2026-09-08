@@ -1,0 +1,38 @@
+name: Publish V8.2.52 test release
+
+on:
+  push:
+    branches: [android-v8.2.52-selfcheck-card-guide]
+    paths:
+      - '.github/workflows/publish-v8252-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.52 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34174568873 -n oneul-v8.2.52-selfcheck-card-guide-apk -D dist-apk
+          gh run download 34174568873 -n oneul-v8.2.52-selfcheck-card-guide-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.52.apk
+          cp dist-aab/*.aab oneul-v8.2.52.aab
+          test -s oneul-v8.2.52.apk
+          test -s oneul-v8.2.52.aab
+          sha256sum oneul-v8.2.52.apk oneul-v8.2.52.aab
+      - name: Publish V8.2.52 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.52-test --yes --cleanup-tag || true
+          gh release create v8.2.52-test oneul-v8.2.52.apk oneul-v8.2.52.aab \
+            --target android-v8.2.52-selfcheck-card-guide \
+            --title '오늘 한 걸음 V8.2.52 자가점검 결과 바로보기·마음프로 안내 축약 테스트' \
+            --notes 'V8.2.51 정상본을 기준으로 회복도구 자가점검 영역을 자가점검/점검 보기 두 카드로 배치했습니다. 점검 보기는 내 발자취 → 자가점검으로 바로 이동하며, 자가점검 화면 안의 중복 내 점검 결과 보기 큰 버튼은 제거했습니다. 마음프로는 응급·안전 경고를 유지하고 그 아래 안내를 일반 대화 전송과 개인 회복기록 비전송을 설명하는 1~2줄로 축약했습니다. DATA_SCHEMA=6, ohg.v1, 검사·통계 저장형식은 유지합니다. Android는 V8.2.51에서 검증된 네이티브 TTS·정확알림·화면 OFF 알림·부팅 재예약·외래 반복예약·이완 TTS 스택을 그대로 사용하고 versionCode 872 / versionName 8.2.52만 적용했습니다.' \
+            --prerelease
