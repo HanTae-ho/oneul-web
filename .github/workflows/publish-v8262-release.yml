@@ -1,0 +1,38 @@
+name: Publish V8.2.62 test release
+
+on:
+  push:
+    branches: [android-v8.2.62-me-menu-back]
+    paths:
+      - '.github/workflows/publish-v8262-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.62 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34220480556 -n oneul-v8.2.62-menu-apk -D dist-apk
+          gh run download 34220480556 -n oneul-v8.2.62-menu-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.62.apk
+          cp dist-aab/*.aab oneul-v8.2.62.aab
+          test -s oneul-v8.2.62.apk
+          test -s oneul-v8.2.62.aab
+          sha256sum oneul-v8.2.62.apk oneul-v8.2.62.aab
+      - name: Publish V8.2.62 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.62-test --yes --cleanup-tag || true
+          gh release create v8.2.62-test oneul-v8.2.62.apk oneul-v8.2.62.aab \
+            --target android-v8.2.62-me-menu-back \
+            --title '오늘 한 걸음 V8.2.62 나 메뉴 정리 테스트' \
+            --notes '나 화면으로 앱에 바라는 점·지원 및 안내·관리자를 이동하고, 내 정보 · 설정에는 실제 정보·설정 항목만 남겼습니다. 도움말·사용설명서의 뒤로가기는 나로 연결했고, 개인정보처리방침 상단은 ← 이전 화면으로 변경해 실제 이전 화면으로 복귀하도록 정리했습니다. DATA_SCHEMA=6, ohg.v1, 마음프로 Local-first 및 AI 전송 구조, 자원시트, 회복기록 구조는 변경하지 않았습니다. Android는 검증된 V8.2.61 네이티브 스택을 그대로 사용하고 versionCode 882 / versionName 8.2.62만 적용했습니다. 정확알림·화면 OFF 알림·부팅 재예약·복약/외래/생활/습관 알림·마음프로 네이티브 음성·이완 TTS는 유지됩니다. 웹 main SHA는 af95cb34b5b0cae3c7699435e641d5092d84038a 입니다.' \
+            --prerelease
