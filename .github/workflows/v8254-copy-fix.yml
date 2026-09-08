@@ -1,0 +1,51 @@
+name: V8.2.54 temporary copy completion
+
+on:
+  push:
+    branches:
+      - v8.2.54-smart-copy-completion
+
+permissions:
+  contents: write
+
+jobs:
+  apply-copy-fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply exact copy replacements
+        run: python3 .tmp_v8254_copy_fix.py
+
+      - name: Check JavaScript syntax
+        run: |
+          node --check learning-data.js
+          node --check sw.js
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          src = Path('index.html').read_text(encoding='utf-8')
+          blocks = [b for b in re.findall(r'<script(?:\s[^>]*)?>([\s\S]*?)</script>', src) if b.strip()]
+          if not blocks:
+              raise SystemExit('no inline scripts found')
+          for i, block in enumerate(blocks):
+              Path(f'/tmp/index-inline-{i}.js').write_text(block, encoding='utf-8')
+          print('inline script blocks:', len(blocks))
+          PY
+          for f in /tmp/index-inline-*.js; do node --check "$f"; done
+
+      - name: Diff guard
+        run: |
+          git diff --check
+          git diff -- README.md index.html learning-data.js sw.js
+
+      - name: Commit generated copy fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md index.html learning-data.js sw.js
+          git commit -m "V8.2.54 SMART 회복학습 문구 통합 마무리"
+          git push origin HEAD:${GITHUB_REF_NAME}
