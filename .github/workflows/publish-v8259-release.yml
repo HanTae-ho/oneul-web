@@ -1,0 +1,38 @@
+name: Publish V8.2.59 test release
+
+on:
+  push:
+    branches: [android-v8.2.59-single-accordion]
+    paths:
+      - '.github/workflows/publish-v8259-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.59 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34203720695 -n oneul-v8.2.59-single-accordion-apk -D dist-apk
+          gh run download 34203720695 -n oneul-v8.2.59-single-accordion-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.59.apk
+          cp dist-aab/*.aab oneul-v8.2.59.aab
+          test -s oneul-v8.2.59.apk
+          test -s oneul-v8.2.59.aab
+          sha256sum oneul-v8.2.59.apk oneul-v8.2.59.aab
+      - name: Publish V8.2.59 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.59-test --yes --cleanup-tag || true
+          gh release create v8.2.59-test oneul-v8.2.59.apk oneul-v8.2.59.aab \
+            --target android-v8.2.59-single-accordion \
+            --title '오늘 한 걸음 V8.2.59 안내문 단일 아코디언 테스트' \
+            --notes '도움말 · 자주 묻는 질문, 사용설명서, 개인정보처리방침을 단일 아코디언과 자동 폴딩 방식으로 통일했습니다. 같은 안내 화면에서 새 항목을 열면 이전 항목이 자동으로 닫히고, 열린 항목을 다시 누르면 접힙니다. 기존 안내 내용과 바로가기는 유지하며 DATA_SCHEMA=6, ohg.v1, 회복기록 구조, Android 정확알림·화면 OFF 알림·부팅 재예약·복약/외래/생활/습관 알림·마음프로 네이티브 TTS·이완 TTS는 변경하지 않았습니다. Android는 versionCode 879 / versionName 8.2.59입니다. 웹 main SHA는 2cb98e3a63ceaaaa92a8947bcb0d8d887edbc5cc 입니다.' \
+            --prerelease
