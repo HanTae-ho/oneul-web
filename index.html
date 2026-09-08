@@ -174,7 +174,7 @@ addEventListener('appinstalled', function(){
 
   /* ── 마음프로 (v44) ──
      ★ 중앙 대화만 스크롤됩니다. 상단 프로필과 하단의 빠른 행동·입력창·보내기는 고정합니다.
-     ★ 개인 회복기록은 자동 전송하지 않고, 사용자가 직접 보낸 문장만 AI 서버로 전송합니다. */
+     ★ 개인 회복기록은 자동 전송하지 않고, 일반 AI 대화에서 현재 문장과 최근 일반 대화 문맥만 AI 서버로 전송합니다. */
   #view.ai-mode{overflow:hidden}
   #p-ai.pg.on{height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden;
     padding:calc(var(--st) + 9px) 12px 0}
@@ -2239,12 +2239,13 @@ addEventListener('appinstalled', function(){
 
   <div class="acc">
     <button class="acc-h">
-      <span class="acc-n"><b>지원 및 안내</b><span>도움말 · 자주 묻는 질문 · 사용설명서</span></span>
+      <span class="acc-n"><b>지원 및 안내</b><span>도움말 · 사용설명서 · 개인정보처리방침</span></span>
       <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
     </button>
     <div class="acc-b">
       <button class="toolcard" type="button" onclick="go('guide')"><span class="ic" data-ico="check"></span><span class="b"><b>도움말 · 자주 묻는 질문</b><span>설정 · 기록 · 알림 · 회복도구 · 마음프로 사용법</span></span><span class="go">열기</span></button>
       <button class="toolcard" type="button" style="margin-top:9px" onclick="go('manual')"><span class="ic" data-ico="sprout"></span><span class="b"><b>사용설명서</b><span>처음 시작부터 기록 · 알림 · 안전한 사용까지 메뉴별 안내</span></span><span class="go">열기</span></button>
+      <a class="toolcard" style="margin-top:9px" href="./privacy.html"><span class="ic" data-ico="check"></span><span class="b"><b>개인정보처리방침</b><span>기기 저장 · 위치 · 마음프로 · 외부 서비스 데이터 처리 안내</span></span><span class="go">열기</span></a>
     </div>
   </div>
 
@@ -2441,9 +2442,9 @@ addEventListener('appinstalled', function(){
 <script>
 /* ═══════════════════════════════════════════════════════
    오늘 한 걸음 — 중독 회복 지원 웹앱
-   기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
+   개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.56';
+const BUILD = 'V8.2.57';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
