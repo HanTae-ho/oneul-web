@@ -1,0 +1,69 @@
+name: Apply V8.2.59 single accordion
+
+on:
+  push:
+    branches: [v8.2.59-single-accordion]
+    paths:
+      - '.tmp_v8259_single_accordion.py'
+      - '.github/workflows/v8259-single-accordion.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.59-single-accordion
+      - name: Apply exact accordion patch
+        run: python .tmp_v8259_single_accordion.py
+      - name: Verify protected constants and accordion behavior
+        run: |
+          grep -Fq "const BUILD = 'V8.2.59';" index.html
+          grep -Fq "const KEY = 'ohg.v1';" index.html
+          grep -Fq "const DATA_SCHEMA = 6;" index.html
+          grep -Fq "enableSingleAccordion('#p-guide');" index.html
+          grep -Fq "enableSingleAccordion('#p-manual');" index.html
+          grep -Fq "details.pacc[open]" privacy.html
+          grep -Fq "admin@maumpro.com" privacy.html
+          grep -Fq "V8.2.59" privacy.html
+          grep -Fq "const APP_VERSION = 'V8.2.59';" sw.js
+          grep -Fq "const V = 'ohg-v8259-single-accordion';" sw.js
+      - name: Check JavaScript and HTML basics
+        run: |
+          node --check sw.js
+          node --check learning-data.js
+          node --check qa-data.js
+          node --check screening-data.js
+          node --check workbook-data.js
+          python - <<'PY'
+          import re, pathlib, subprocess
+          for html in ['index.html','privacy.html']:
+              s=pathlib.Path(html).read_text(encoding='utf-8')
+              scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+              for i,js in enumerate(scripts):
+                  if not js.strip(): continue
+                  p=f'/tmp/{html.replace(".","-")}-{i}.js'
+                  pathlib.Path(p).write_text(js,encoding='utf-8')
+                  subprocess.run(['node','--check',p],check=True)
+          p=pathlib.Path('privacy.html').read_text(encoding='utf-8')
+          assert p.count('<details class="pacc">') == 6
+          assert p.count('</details>') >= 6
+          print('privacy accordion count: 6')
+          PY
+      - name: Diff guard
+        run: |
+          git diff --check
+          git status --short
+          git diff -- README.md index.html sw.js privacy.html
+      - name: Commit app changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md index.html sw.js
+          git diff --cached --check
+          git commit -m 'V8.2.59 안내문 단일 아코디언 적용'
+          git push
