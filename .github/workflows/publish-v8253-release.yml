@@ -1,0 +1,38 @@
+name: Publish V8.2.53 test release
+
+on:
+  push:
+    branches: [android-v8.2.53-generic-tool-names]
+    paths:
+      - '.github/workflows/publish-v8253-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.53 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34175954361 -n oneul-v8.2.53-generic-tool-names-apk -D dist-apk
+          gh run download 34175954361 -n oneul-v8.2.53-generic-tool-names-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.53.apk
+          cp dist-aab/*.aab oneul-v8.2.53.aab
+          test -s oneul-v8.2.53.apk
+          test -s oneul-v8.2.53.aab
+          sha256sum oneul-v8.2.53.apk oneul-v8.2.53.aab
+      - name: Publish V8.2.53 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.53-test --yes --cleanup-tag || true
+          gh release create v8.2.53-test oneul-v8.2.53.apk oneul-v8.2.53.aab \
+            --target android-v8.2.53-generic-tool-names \
+            --title '오늘 한 걸음 V8.2.53 회복 실천도구 범용 명칭 테스트' \
+            --notes '회복학습의 SMART Recovery 소개는 그대로 유지하고, 실제 실천도구의 사용자 표시 명칭만 쉬운 한국어·범용 용어로 정리했습니다. 가치 우선순위 정하기, 의사결정 저울, 충동 다루기, 중독 생각과 거리두기, 상황·생각·감정 돌아보기, 생각 점검하기, 생각의 함정 알아차리기, 삶의 균형 살펴보기, 건강한 관심사 찾기, 실천 목표 세우기 등으로 통일했습니다. 내 발자취 실천기록, 가족도구, 마음프로의 도구 안내와 바로가기 명칭도 같은 용어를 사용합니다. 내부 id·kind·smartWorks 저장형식, DATA_SCHEMA=6, ohg.v1은 유지합니다. Android는 V8.2.52의 검증된 네이티브 TTS·정확알림·화면 OFF 알림·부팅 재예약·외래 반복예약·이완 TTS 스택을 그대로 사용하고 versionCode 873 / versionName 8.2.53만 적용했습니다.' \
+            --prerelease
