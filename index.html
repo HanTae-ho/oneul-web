@@ -1302,6 +1302,7 @@ addEventListener('appinstalled', function(){
   <div class="note" style="margin-bottom:12px">
     SMART Recovery의 4-Point는 순서대로 통과하는 단계가 아닙니다. <b>지금 필요한 영역</b>을 골라 도구를 사용해보세요.
   </div>
+  <button class="btn sec sm" style="margin-bottom:12px" onclick="recTab='work';recPracticeFilter='smart';go('rec')">내 SMART 기록 보기</button>
   <button class="btn sec" id="smart-tools-learn">SMART Recovery 설명 보기</button>
   <div id="smart-tools-body" style="margin-top:14px"></div>
 </section>
@@ -1729,6 +1730,7 @@ addEventListener('appinstalled', function(){
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('tools')">← 회복도구</button>
   </div>
   <div class="note w" style="margin-bottom:13px">자가점검은 진단이 아닙니다. 점수는 현재 상태를 살펴보고 상담이나 전문 평가가 필요한지 확인하는 참고자료입니다. 결과는 이 기기에만 저장됩니다.</div>
+  <button class="btn sec" style="margin-bottom:13px" onclick="recTab='screen';go('rec')">내 점검 결과 보기</button>
   <div id="screening-list"></div>
 </section>
 
@@ -1779,6 +1781,7 @@ addEventListener('appinstalled', function(){
     <button class="tiny" style="color:var(--acc);font-weight:600" id="workbook-list-back">← 돌아가기</button>
   </div>
   <p class="muted" style="margin:-2px 0 14px">12단계 내용을 읽은 뒤 실제 경험을 적어보는 공간입니다. 작성 내용은 이 기기에만 저장됩니다.</p>
+  <button class="btn sec sm" style="margin-bottom:12px" onclick="recTab='work';recPracticeFilter='step';go('rec')">내 12단계 기록 보기</button>
   <div class="learnlist" id="workbook-list"></div>
 </section>
 
@@ -1930,7 +1933,7 @@ addEventListener('appinstalled', function(){
     <h1 style="margin:0">내 발자취</h1>
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('my')">← 나</button>
   </div>
-  <p class="muted" style="margin:0 0 14px">감정 · 하루 · 몸 · 실천기록과 회복 흐름을 한곳에서 돌아봅니다.</p>
+  <p class="muted" style="margin:0 0 14px">감정 · 하루 · 몸 · 실천기록 · 자가점검과 회복 흐름을 한곳에서 돌아봅니다.</p>
   <div class="opts" id="rec-tab" style="margin-bottom:14px"></div>
   <div id="rec-body"></div>
 </section>
@@ -1973,10 +1976,8 @@ addEventListener('appinstalled', function(){
       <div class="note w" style="margin-bottom:10px">
         마음프로는 치료나 응급상담을 대신하지 않습니다. 생명이 위험하거나 경련·환각·심한 금단이 있으면 <b>119</b>가 먼저입니다. 죽고 싶은 마음이 급하면 <b>109</b>에 바로 연결하세요.
       </div>
-      <p class="muted" style="margin:0 0 8px">
-        타이머·도움글·모임·센터·병원·알림·앱 메뉴처럼 <b>앱이 직접 처리할 수 있는 요청은 기기에서 먼저 처리</b>합니다. 일반 대화가 필요할 때만 사용자가 직접 적은 문장을 AI 서버로 보냅니다.
-      </p>
-      <p class="tiny" style="margin:0">회복 시작일·충동·재발·HALT·복약·기분·자가점검 결과 같은 개인 회복기록은 자동 전송하지 않습니다. 대화 내용은 이 기기에 저장됩니다.</p>
+      <p class="muted" style="margin:0 0 6px">앱 기능은 가능한 경우 기기에서 바로 처리합니다. 일반 대화에 필요한 <b>내가 직접 적은 문장만</b> AI로 보냅니다.</p>
+      <p class="tiny" style="margin:0">개인 회복기록은 자동 전송하지 않습니다. Android 앱에서는 설정 또는 “음성으로”·“그만 읽어”로 답변 읽기를 조절할 수 있습니다.</p>
       <p class="tiny hide" id="ai-guide-voice" style="margin:8px 0 0"></p>
     </div>
   </div>
@@ -2072,7 +2073,7 @@ addEventListener('appinstalled', function(){
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('home')">← 홈</button>
   </div>
   <p class="muted" style="margin:0 0 14px">내 기록을 돌아보거나, 내 정보와 앱 설정을 관리합니다.</p>
-  <button class="toolcard" id="my-trail"><span class="ic" data-ico="check"></span><span class="b"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 실천기록 · 통계</span></span><span class="go">열기</span></button>
+  <button class="toolcard" id="my-trail"><span class="ic" data-ico="check"></span><span class="b"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 실천기록 · 자가점검 · 통계</span></span><span class="go">열기</span></button>
   <button class="toolcard" id="my-settings" style="margin-top:9px"><span class="ic" data-ico="sprout"></span><span class="b"><b>내 정보 · 설정</b><span>역할 · 회복영역 · 화면 · 앱 · 기록 관리</span></span><span class="go">열기</span></button>
 </section>
 
@@ -2266,7 +2267,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.50';
+const BUILD = 'V8.2.51';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -7062,7 +7063,7 @@ function drawScreenResult(tool){
   $('#screen-log-go').onclick=()=>{ recTab='mood'; screenRun=null; go('rec'); };
   $('#screen-help-go').onclick=()=>{ screenRun=null; go('help'); };
   $('#screen-ai-go').onclick=()=>{ screenRun=null; openAI('screening'); };
-  $('#screen-stat-go').onclick=()=>{ recTab='stat'; screenRun=null; go('rec'); };
+  $('#screen-stat-go').onclick=()=>{ recTab='screen'; screenRun=null; go('rec'); };
   $('#screen-again').onclick=()=>beginScreen(tool.id);
   $('#screen-list-go').onclick=()=>{screenRun=null;go('screening');};
 }
@@ -7116,9 +7117,9 @@ let recPracticeFilter = 'all';
 function drawRec(){
   /* 가족은 충동·재발을 기록하지 않습니다. 그건 그 사람의 기록입니다. */
   const tabs = famMode()
-    ? [{v:'mood',l:'감정'},{v:'day',l:'하루'},{v:'body',l:'몸'},{v:'work',l:'실천기록'},{v:'stat',l:'통계'}]
+    ? [{v:'mood',l:'감정'},{v:'day',l:'하루'},{v:'body',l:'몸'},{v:'work',l:'실천기록'},{v:'screen',l:'자가점검'},{v:'stat',l:'통계'}]
     : [{v:'mood',l:'감정'},{v:'urge',l:'충동'},{v:'day',l:'하루'},{v:'body',l:'몸'},
-       {v:'relapse',l:'다시 시작'},{v:'work',l:'실천기록'},{v:'stat',l:'통계'}];
+       {v:'relapse',l:'다시 시작'},{v:'work',l:'실천기록'},{v:'screen',l:'자가점검'},{v:'stat',l:'통계'}];
   if(!tabs.some(t => t.v === recTab)) recTab = 'mood';
 
   const tb = $('#rec-tab'); tb.innerHTML = '';
@@ -7135,7 +7136,19 @@ function drawRec(){
   if(recTab === 'body')    body.appendChild(recBody());
   if(recTab === 'relapse') body.appendChild(recRelapse());
   if(recTab === 'work')    body.appendChild(recPractice());
+  if(recTab === 'screen')  body.appendChild(recScreening());
   if(recTab === 'stat')    body.appendChild(recStat());
+}
+
+function recScreening(){
+  const w=el('div');
+  const stats=screeningStats();
+  if(stats) w.appendChild(stats);
+  else w.appendChild(emptyBox('아직 저장한 자가점검 결과가 없습니다.<br>회복도구 → 자가점검에서 지금 상태를 확인해보세요.'));
+  const b=el('button','btn sec','자가점검 하러 가기');
+  b.type='button'; b.style.marginTop='4px'; b.onclick=()=>go('screening');
+  w.appendChild(b);
+  return w;
 }
 
 /* ── 하루 (자기 전 마무리) ──
@@ -7994,6 +8007,7 @@ function aiVoiceCommand(text){
   const x=String(text||'').replace(/\s+/g,'').replace(/[.!?~]/g,'');
   if(!x || x.length>60) return '';
   if(/그만읽|읽지마|읽지말|읽는거멈|음성멈|음성꺼|소리꺼|말하지마|그만말/.test(x)) return 'off';
+  if(/^(음성으로|말로|소리로)$/.test(x)) return 'on';
   if(/계속읽|자동.*읽|이제부터.*읽|답변.*읽|소리내.*읽/.test(x) || /^(읽어줘|읽어주세요)$/.test(x)) return 'on';
   if(/(음성으로|음성|소리로|소리내서|말로).*(안내|설명|답|읽|말|해줘|해주세요)/.test(x)) return 'on';
   if(/말로(해줘|해주세요|설명해줘|안내해줘|답해줘|말해줘)/.test(x)) return 'on';
