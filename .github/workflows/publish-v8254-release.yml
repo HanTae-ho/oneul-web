@@ -19,8 +19,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh run download 34178174639 -n oneul-v8.2.54-smart-copy-completion-apk -D dist-apk
-          gh run download 34178174639 -n oneul-v8.2.54-smart-copy-completion-aab -D dist-aab
+          gh run download 34178197749 -n oneul-v8.2.54-smart-copy-completion-apk -D dist-apk
+          gh run download 34178197749 -n oneul-v8.2.54-smart-copy-completion-aab -D dist-aab
           cp dist-apk/*.apk oneul-v8.2.54.apk
           cp dist-aab/*.aab oneul-v8.2.54.aab
           test -s oneul-v8.2.54.apk
@@ -36,3 +36,5 @@ jobs:
             --title '오늘 한 걸음 V8.2.54 회복 실천도구 문구 통합 마무리 테스트' \
             --notes 'V8.2.53의 범용 명칭 원칙을 회복학습 → SMART Recovery Point 1~4의 본문과 실천 버튼까지 확장하고, 가족도구·마음프로·내 발자취 실천기록·삶의 균형·실천 목표 화면에 남아 있던 우회 표현과 구명칭을 같은 한국어 명칭으로 통일했습니다. SMART Recovery와 4-Point 학습 구조, A~E 설명은 유지합니다. 내부 hov/cba/deads/disarm/abc/dibs/vaci 등 id·kind·tool 값과 smartWorks 저장 구조, DATA_SCHEMA=6, ohg.v1은 변경하지 않았습니다. Android는 V8.2.53의 검증된 네이티브 TTS·정확알림·화면 OFF 알림·부팅 재예약·복약/외래/생활/습관 알림·이완 TTS 스택을 그대로 사용하고 versionCode 874 / versionName 8.2.54만 적용했습니다. 웹 기준 main SHA는 f61a22c6c1b147549865189a0f693cd975ec306a 입니다.' \
             --prerelease
+
+# trigger: publish verified V8.2.54 artifacts
