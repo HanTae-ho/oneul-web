@@ -51,6 +51,8 @@ const srv = http.createServer((req, res) => {
   const ins = await pg.$$('#ob-dates input');
   await ins[0].fill(d40);
   await ins[1].fill(daysAgo(12));
+  assert(await pg.isChecked('#ob-ai-use'), '최초 설정에서 마음프로 AI 사용은 기본 ON');
+  await pg.check('#ob-privacy');
   await shot('2-onboard');
   await pg.click('#ob-go');
   await pg.waitForTimeout(300);

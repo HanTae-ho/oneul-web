@@ -174,7 +174,7 @@ addEventListener('appinstalled', function(){
 
   /* ── 마음프로 (v44) ──
      ★ 중앙 대화만 스크롤됩니다. 상단 프로필과 하단의 빠른 행동·입력창·보내기는 고정합니다.
-     ★ 개인 회복기록은 자동 전송하지 않고, 일반 AI 대화에서 현재 문장과 최근 일반 대화 문맥만 AI 서버로 전송합니다. */
+     ★ 개인 회복기록은 자동 전송하지 않고, AI 답변이 필요한 경우 현재 문장과 최근 AI 대화 문맥만 서버로 전송합니다. */
   #view.ai-mode{overflow:hidden}
   #p-ai.pg.on{height:100%;min-height:0;display:flex;flex-direction:column;overflow:hidden;
     padding:calc(var(--st) + 9px) 12px 0}
@@ -705,6 +705,18 @@ addEventListener('appinstalled', function(){
       예전에 주로 마시던 시간입니다. 그 시간이 되면 앱이 먼저 챙겨드립니다.
     </p>
     <div class="opts" id="ob-hours"></div>
+  </div>
+
+  <div class="card" id="ob-privacy-ai">
+    <label style="display:flex;align-items:flex-start;gap:9px;cursor:pointer">
+      <input type="checkbox" id="ob-privacy" style="width:18px;height:18px;flex:none;margin:3px 0 0;padding:0">
+      <span><a href="./privacy.html" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--acc);font-weight:700">개인정보처리방침</a>을 확인했습니다. <span class="tiny" style="color:var(--bad);font-weight:700">필수</span></span>
+    </label>
+    <div class="sep"></div>
+    <label style="display:flex;align-items:flex-start;gap:9px;cursor:pointer">
+      <input type="checkbox" id="ob-ai-use" checked style="width:18px;height:18px;flex:none;margin:3px 0 0;padding:0">
+      <span><b>마음프로 AI 사용</b><span class="tiny" style="display:block;margin-top:3px">마음프로에 입력한 내용은 AI 답변이 필요한 경우 외부 AI 서비스에서 처리될 수 있습니다. 기기에 저장된 회복기록은 자동으로 전송되지 않습니다.</span></span>
+    </label>
   </div>
 
   <button class="btn" id="ob-go">시작하기</button>
@@ -1991,11 +2003,6 @@ addEventListener('appinstalled', function(){
       <div class="note w" style="margin-bottom:10px">
         마음프로는 치료나 응급상담을 대신하지 않습니다. 생명이 위험하거나 경련·환각·심한 금단이 있으면 <b>119</b>가 먼저입니다. 죽고 싶은 마음이 급하면 <b>109</b>에 바로 연결하세요.
       </div>
-      <p class="muted" style="margin:0">앱 기능은 기기에서 먼저 처리하고, <b>내가 직접 적은 일반 대화만</b> AI로 보냅니다. 개인 회복기록은 자동 전송하지 않습니다.</p>
-      <div class="sp" style="align-items:center;margin-top:9px;gap:8px">
-        <p class="tiny" id="ai-consent-state" style="margin:0;flex:1"></p>
-        <button class="tiny hide" id="ai-consent-revoke" type="button" style="color:var(--acc);font-weight:600">동의 철회</button>
-      </div>
     </div>
   </div>
 
@@ -2137,7 +2144,7 @@ addEventListener('appinstalled', function(){
 
   <div class="acc">
     <button class="acc-h">
-      <span class="acc-n"><b>앱</b><span id="acc-app-s">자원 목록 · 화면 설정 · 앱 새로고침 · 앱 설치</span></span>
+      <span class="acc-n"><b>앱</b><span id="acc-app-s">자원 목록 · 화면 설정 · 마음프로 AI · 앱 새로고침 · 앱 설치</span></span>
       <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
     </button>
     <div class="acc-b">
@@ -2158,6 +2165,14 @@ addEventListener('appinstalled', function(){
       <div class="opts" id="me-theme">
         <button class="opt" data-theme="light">밝게</button>
         <button class="opt" data-theme="dark">어둡게</button>
+      </div>
+
+      <div class="sep"></div>
+      <h3>마음프로 AI</h3>
+      <p class="muted" style="margin:-4px 0 11px">AI 답변이 필요한 경우 마음프로에 직접 입력한 내용과 최근 대화 일부가 외부 AI 서비스에서 처리될 수 있습니다. 기기에 저장된 회복기록은 자동으로 전송되지 않습니다.</p>
+      <div class="opts" id="me-ai-use">
+        <button class="opt" data-ai-use="1">사용</button>
+        <button class="opt" data-ai-use="0">사용 안 함</button>
       </div>
 
       <div id="me-ai-voice" class="hide">
@@ -2386,7 +2401,7 @@ addEventListener('appinstalled', function(){
 
     <details class="faq"><summary>10. 마음프로 — 앱 안내와 대화 기능</summary><div class="faq-a">
       <p>마음프로는 회복학습과 앱 사용법을 안내하고 사용자가 직접 보낸 문장에 답합니다. 12단계·SMART Recovery·복약·외래·일정·알림·자가점검 같은 앱 기능 질문은 가능한 경우 앱에 들어 있는 내용과 연결 기능을 먼저 사용합니다.</p>
-      <p style="margin-top:8px"><b>내 발자취, 자가점검 점수, 12단계·회복 실천도구 기록은 자동으로 마음프로에 전송되지 않습니다.</b> 일반 대화에서 사용자가 직접 전송한 문장은 AI 답변 생성을 위해 서버로 전송됩니다.</p>
+      <p style="margin-top:8px"><b>내 발자취, 자가점검 점수, 12단계·회복 실천도구 기록은 자동으로 마음프로에 전송되지 않습니다.</b> AI 답변이 필요한 경우 사용자가 직접 입력한 내용과 최근 대화 일부가 서버로 전송될 수 있습니다. 마음프로 AI 사용은 내 정보 · 설정 → 앱에서 언제든 켜거나 끌 수 있습니다.</p>
       <p style="margin-top:8px">Android 설치 앱에서는 마음프로 답변 자동 읽기를 사용할 수 있고, “계속 읽어줘”, “그만 읽어” 같은 음성 명령은 앱 안에서 처리됩니다.</p>
       <p style="margin-top:8px">마음프로는 치료자나 응급서비스를 대신하지 않습니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('ai')">마음프로 열기</button>
@@ -2400,7 +2415,7 @@ addEventListener('appinstalled', function(){
 
     <details class="faq"><summary>12. 내 정보 · 설정 — 설정, 백업, 앱 관리</summary><div class="faq-a">
       <p><b>나</b>에서는 역할, 회복 영역·시작일·목표·지역 등 기본 정보를 관리합니다.</p>
-      <p style="margin-top:8px"><b>앱</b>에서는 자원 목록 새로 받기, 화면 밝기, 앱 새로고침·설치와 Android 마음프로 음성 설정을 관리합니다.</p>
+      <p style="margin-top:8px"><b>앱</b>에서는 자원 목록 새로 받기, 화면 밝기, 마음프로 AI 사용 여부, 앱 새로고침·설치와 Android 마음프로 음성 설정을 관리합니다.</p>
       <p style="margin-top:8px"><b>기록 관리</b>에서는 JSON 파일로 내보내기·불러오기와 전체 지우기를 할 수 있습니다. 다른 기기로 옮기거나 앱을 삭제하기 전에는 내보내기를 먼저 권합니다.</p>
       <p style="margin-top:8px"><b>앱에 바라는 점</b>은 불편한 점이나 제안을 보내는 기능입니다. 작성 내용과 앱 버전만 전송되며 민감한 개인정보는 직접 적지 않는 것이 좋습니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('me')">내 정보 · 설정 열기</button>
@@ -2448,7 +2463,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.60';
+const BUILD = 'V8.2.61';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -2499,7 +2514,7 @@ const BLANK = {
   smartWorks: [],                         /* SMART Recovery 작성형 도구 — [{tool, role, ...}] */
   familyStepWorks: [], familyStepDrafts: {},
   timeCapsule: { text:'', createdAt:0, updatedAt:0 }, /* 미래의 나에게 — 개인 회복기록, 기기 안에만 저장 */
-  aiChat: [], aiClient: '', aiConsent: 0, aiAutoRead: 0, /* AI 대화·음성 기본설정은 이 기기에만 저장 */
+  aiChat: [], aiClient: '', aiConsent: 0, aiEnabled: 1, aiAutoRead: 0, /* AI 대화·음성 기본설정은 이 기기에만 저장 */
   sheet: '', res: null, resAt: 0, resVer: '', theme: '',
   notify: 0, fired: [],
   admin: 0, adminUrl: ''
@@ -3496,6 +3511,11 @@ $('#ob-go').onclick = () => {
     return;
   }
   S.role = obRole;
+  if(!$('#ob-privacy').checked){
+    toast('개인정보처리방침을 확인해 주세요.');
+    return;
+  }
+  S.aiEnabled = $('#ob-ai-use').checked ? 1 : 0;
   S.types = obTypes.slice();
   S.dates = {};
   S.cum = {};
@@ -3857,6 +3877,9 @@ function drawThemeSetting(){
     b.classList.toggle('on', on);
   });
 }
+function drawAIUseSetting(){
+  $$('#me-ai-use [data-ai-use]').forEach(b => b.classList.toggle('on', Number(b.dataset.aiUse) === (Number(S.aiEnabled || 0) === 1 ? 1 : 0)));
+}
 function drawAiVoiceSetting(){
   const wrap=$('#me-ai-voice');
   if(!wrap) return;
@@ -3870,6 +3893,13 @@ $('#me-theme').addEventListener('click', e => {
   if(!b) return;
   S.theme = b.dataset.theme === 'dark' ? 'dark' : '';
   applyTheme(); save(); drawThemeSetting();
+});
+$('#me-ai-use').addEventListener('click', e => {
+  const b = e.target.closest('[data-ai-use]');
+  if(!b) return;
+  S.aiEnabled = Number(b.dataset.aiUse) === 1 ? 1 : 0;
+  save(); drawAIUseSetting();
+  toast(S.aiEnabled ? '마음프로 AI를 사용합니다.' : '마음프로 AI 사용을 껐습니다. 앱의 로컬 기능은 그대로 사용할 수 있습니다.');
 });
 $('#me-ai-auto-read').addEventListener('click', e=>{
   const b=e.target.closest('[data-ai-auto-read]');
@@ -8125,37 +8155,6 @@ function aiClientId(){
   save();
   return S.aiClient;
 }
-const AI_CONSENT_VERSION = 1;
-function drawAIConsentState(){
-  const st=$('#ai-consent-state'), rv=$('#ai-consent-revoke');
-  const on = Number(S.aiConsent || 0) === AI_CONSENT_VERSION;
-  if(st) st.textContent = on ? 'AI 외부 전송 동의: 동의함' : 'AI 외부 전송 동의: 아직 동의하지 않음';
-  if(rv) rv.classList.toggle('hide', !on);
-}
-function aiWithdrawExternalConsent(){
-  S.aiConsent = 0; save(); drawAIConsentState();
-  toast('마음프로 AI 외부 전송 동의를 철회했습니다.');
-}
-function aiEnsureExternalConsent(text, topic){
-  if(Number(S.aiConsent || 0) === AI_CONSENT_VERSION) return true;
-  /* 서버가 연결되지 않은 상태에서는 외부 전송 자체가 없으므로 동의를 묻지 않습니다. */
-  if(!aiEndpoint()) return true;
-  modal(
-    '<h3>마음프로 AI 대화 전송 안내</h3>' +
-    '<p class="muted">일반 AI 답변을 받기 위해 <b>내가 직접 보내는 문장</b>, 최근 일반 AI 대화 최대 8개, 익명형 식별값, 대화 주제와 앱 버전이 Google Apps Script를 거쳐 OpenAI API로 전송됩니다.</p>' +
-    '<div class="note" style="margin:10px 0"><b>자동으로 보내지 않는 내용</b><br>내 발자취 · 자가점검 점수 · 12단계 · 회복 실천도구 · 복약 등 기기에 저장된 회복기록은 자동 첨부하지 않습니다.</div>' +
-    '<p class="muted">내가 직접 적은 문장에 건강 · 중독 · 복약 등 민감한 내용이 들어 있으면 그 내용도 함께 전송될 수 있습니다. 이름 · 전화번호 · 주소 · 병원명처럼 나를 알아볼 수 있는 정보는 적지 않는 것을 권합니다.</p>' +
-    '<p class="tiny">Google 및 OpenAI의 글로벌 인프라에서 국외 처리될 수 있습니다. <a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--acc);font-weight:600">개인정보처리방침 보기</a></p>' +
-    '<button class="btn" id="ai-consent-yes">동의하고 계속</button>' +
-    '<div style="height:8px"></div><button class="btn ghost" id="ai-consent-no">취소</button>'
-  );
-  const yes=$('#ai-consent-yes'), no=$('#ai-consent-no');
-  if(yes) yes.onclick=()=>{
-    S.aiConsent = AI_CONSENT_VERSION; save(); drawAIConsentState(); closeModal(); aiSend(text, topic);
-  };
-  if(no) no.onclick=closeModal;
-  return false;
-}
 function aiAdd(role, text, local){
   if(!Array.isArray(S.aiChat)) S.aiChat = [];
   const m = { role:role, text:String(text || '').slice(0, 1800), t:Date.now() };
@@ -9111,7 +9110,11 @@ async function aiSend(text, topic){
   const localIntent = (!crisis && !voiceCommand && !timerMin && !wantsRead && !knowledge) ? aiLocalIntent(text, topic) : '';
   const isLocal = !!(crisis || voiceCommand || timerMin || wantsRead || knowledge || localIntent);
 
-  if(!isLocal && !aiEnsureExternalConsent(text, topic)) return;
+  if(!isLocal && Number(S.aiEnabled || 0) !== 1){
+    aiAdd('assistant','마음프로 AI 사용이 꺼져 있어 이 요청에는 AI 답변을 사용할 수 없습니다. 내 정보 · 설정 → 앱에서 마음프로 AI 사용을 켤 수 있습니다.', true);
+    drawAI();
+    return;
+  }
 
   const prior = (Array.isArray(S.aiChat) ? S.aiChat : [])
     .filter(m => !m.local)
@@ -9175,7 +9178,7 @@ async function aiSend(text, topic){
   }
   if(localIntent && aiLocalNav(localIntent)) return;
 
-  /* 여기까지 온 일반 대화만 AI 서버로 보냅니다. 자원 후보나 회복기록은 붙이지 않습니다. */
+  /* 여기까지 온 요청 중 AI 답변이 필요한 내용만 서버로 보냅니다. 자원 후보나 회복기록은 붙이지 않습니다. */
   const url = aiEndpoint();
   if(!url){
     if(userMsg){ userMsg.local = 1; save(); }
@@ -9215,8 +9218,6 @@ async function aiSend(text, topic){
 }
 
 $('#ai-guide-toggle').onclick = () => { if(ai.guideTimer){ clearTimeout(ai.guideTimer); ai.guideTimer=0; } ai.guideOpen=!ai.guideOpen; drawAIGuide(); };
-const aiConsentRevoke=$('#ai-consent-revoke'); if(aiConsentRevoke) aiConsentRevoke.onclick=aiWithdrawExternalConsent;
-drawAIConsentState();
 $('#ai-back').onclick = () => appBack(ai.back || 'help');
 $('#ai-send').onclick = () => aiSend($('#ai-input').value, '');
 $('#ai-input').addEventListener('keydown', e => {
@@ -9898,6 +9899,7 @@ function fetchRes(url){
 function drawMe(){
   const fam = famMode();
   drawThemeSetting();
+  drawAIUseSetting();
   drawAiVoiceSetting();
   drawFeedbackStatus();
 
@@ -10677,9 +10679,9 @@ function markAppAcc(){
   if(!s) return;
   const voice = nativeAndroidApp() ? ' · 마음프로 음성' : '';
   s.innerHTML = updReady
-    ? '자원 목록 · 화면 설정' + voice + ' · 앱 새로고침 · 앱 설치<br><span class="flag">새 판 ' +
+    ? '자원 목록 · 화면 설정 · 마음프로 AI' + voice + ' · 앱 새로고침 · 앱 설치<br><span class="flag">새 판 ' +
       esc(updReady) + ' 이 나와 있습니다</span>'
-    : '자원 목록 · 화면 설정' + voice + ' · 앱 새로고침 · 앱 설치';
+    : '자원 목록 · 화면 설정 · 마음프로 AI' + voice + ' · 앱 새로고침 · 앱 설치';
 }
 
 function drawReload(){
