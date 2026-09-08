@@ -22,22 +22,32 @@ jobs:
         run: python .tmp_v8260_mindpro_consent.py
       - name: Verify consent gate and protected data
         run: |
-          grep -Fq "const BUILD = 'V8.2.60';" index.html
-          grep -Fq "const KEY = 'ohg.v1';" index.html
-          grep -Fq "const DATA_SCHEMA = 6;" index.html
-          grep -Fq "const AI_CONSENT_VERSION = 1;" index.html
-          grep -Fq "if(!isLocal && !aiEnsureExternalConsent(text, topic)) return;" index.html
-          grep -Fq "S.aiConsent = AI_CONSENT_VERSION" index.html
-          grep -Fq "S.aiConsent = 0; save();" index.html
-          grep -Fq "동의하고 계속" index.html
-          grep -Fq "개인정보처리방침 보기" index.html
-          grep -Fq "최근 일반 AI 대화 최대 8개" index.html
-          grep -Fq "내 발자취 · 자가점검 점수 · 12단계 · 회복 실천도구 · 복약" index.html
-          grep -Fq "V8.2.60" privacy.html
-          grep -Fq "명시적 동의" privacy.html
-          grep -Fq "동의를 철회" privacy.html
-          grep -Fq "const APP_VERSION = 'V8.2.60';" sw.js
-          grep -Fq "const V = 'ohg-v8260-mindpro-consent';" sw.js
+          python - <<'PY'
+          from pathlib import Path
+          checks={
+            'index.html':[
+              "const BUILD = 'V8.2.60';",
+              "const KEY = 'ohg.v1';",
+              "const DATA_SCHEMA = 6;",
+              "const AI_CONSENT_VERSION = 1;",
+              "if(!isLocal && !aiEnsureExternalConsent(text, topic)) return;",
+              "S.aiConsent = AI_CONSENT_VERSION",
+              "S.aiConsent = 0; save();",
+              "동의하고 계속",
+              "개인정보처리방침 보기",
+              "최근 일반 AI 대화 최대 8개",
+              "내 발자취 · 자가점검 점수 · 12단계 · 회복 실천도구 · 복약",
+            ],
+            'privacy.html':["V8.2.60","명시적 동의","동의는 마음프로 안내에서 철회"],
+            'sw.js':["const APP_VERSION = 'V8.2.60';","const V = 'ohg-v8260-mindpro-consent';"],
+          }
+          for fn, needles in checks.items():
+              s=Path(fn).read_text(encoding='utf-8')
+              for needle in needles:
+                  if needle not in s:
+                      raise AssertionError(f'MISSING in {fn}: {needle}')
+                  print('PASS',fn,needle)
+          PY
       - name: Verify consent happens before external chat history is created
         run: |
           python - <<'PY'
