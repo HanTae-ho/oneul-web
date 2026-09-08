@@ -95,3 +95,5 @@ jobs:
         with:
           name: oneul-v8.2.54-smart-copy-completion-aab
           path: android-v8/app/build/outputs/bundle/release/*.aab
+
+# trigger: V8.2.54 build after workflow creation
