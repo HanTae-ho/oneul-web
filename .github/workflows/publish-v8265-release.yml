@@ -1,0 +1,38 @@
+name: Publish V8.2.65 test release
+
+on:
+  push:
+    branches: [android-v8.2.65-reclaim-to-my]
+    paths:
+      - '.github/workflows/publish-v8265-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.65 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34228432949 -n oneul-v8.2.65-reclaim-apk -D dist-apk
+          gh run download 34228432949 -n oneul-v8.2.65-reclaim-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.65.apk
+          cp dist-aab/*.aab oneul-v8.2.65.aab
+          test -s oneul-v8.2.65.apk
+          test -s oneul-v8.2.65.aab
+          sha256sum oneul-v8.2.65.apk oneul-v8.2.65.aab | tee SHA256SUMS.txt
+      - name: Publish V8.2.65 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.65-test --yes --cleanup-tag || true
+          gh release create v8.2.65-test oneul-v8.2.65.apk oneul-v8.2.65.aab SHA256SUMS.txt \
+            --target android-v8.2.65-reclaim-to-my \
+            --title '오늘 한 걸음 V8.2.65 내가 되찾은 것 위치 이동 테스트' \
+            --notes '내가 되찾은 것 요약을 내 발자취 내부에서 빼고 나 화면의 내 발자취 카드 바로 위로 이동했습니다. 회복일·되찾은 시간·지킨 비용·실천한 습관의 계산식, 기준 설정, 도박 비용 누적 계산 차단, 24×24 직접 SVG 아이콘은 그대로 유지합니다. DATA_SCHEMA=6, ohg.v1, 관리자·마음프로·자원시트·기존 회복기록 구조는 변경하지 않았습니다. Android는 검증된 V8.2.64 네이티브 스택을 그대로 사용하고 versionCode 885 / versionName 8.2.65만 적용했습니다. 정확알림·화면 OFF 알림·부팅 재예약·복약/외래/생활/습관 알림·마음프로 네이티브 음성·이완 TTS는 유지됩니다. 웹 main SHA는 5aa5038cee2e657f6045d85e432c96804520ae7f 입니다.' \
+            --prerelease
