@@ -2096,9 +2096,55 @@ addEventListener('appinstalled', function(){
     <h1 style="margin:0">나</h1>
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('home')">← 홈</button>
   </div>
-  <p class="muted" style="margin:0 0 14px">내 기록을 돌아보거나, 내 정보와 앱 설정을 관리합니다.</p>
+  <p class="muted" style="margin:0 0 14px">내 기록과 설정을 확인하고, 앱 안내와 의견 보내기를 이용합니다.</p>
   <button class="toolcard" id="my-trail"><span class="ic" data-ico="check"></span><span class="b"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 실천기록 · 자가점검 · 통계</span></span><span class="go">열기</span></button>
   <button class="toolcard" id="my-settings" style="margin-top:9px"><span class="ic" data-ico="sprout"></span><span class="b"><b>내 정보 · 설정</b><span>역할 · 회복영역 · 화면 · 앱 · 기록 관리</span></span><span class="go">열기</span></button>
+
+  <div style="height:12px"></div>
+<div class="acc">
+    <button class="acc-h">
+      <span class="acc-n"><b>앱에 바라는 점</b><span>불편한 점 · 고쳤으면 하는 내용 · 새로 있었으면 하는 기능</span></span>
+      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
+    </button>
+    <div class="acc-b">
+      <p class="muted" style="margin:0 0 11px">
+        사용하면서 불편했던 점, 고쳤으면 하는 내용, 새로 있었으면 하는 기능을 자유롭게 알려주세요.
+      </p>
+      <textarea id="me-feedback-text" maxlength="2000" rows="5" placeholder="내용을 입력해주세요"></textarea>
+      <div class="sp" style="align-items:center;margin-top:9px">
+        <p class="tiny" id="me-feedback-st" style="margin:0;flex:1"></p>
+        <button class="btn sec sm" id="me-feedback-send" style="width:auto">보내기</button>
+      </div>
+      <p class="tiny" style="margin:9px 0 0">
+        작성한 내용과 앱 버전만 전송됩니다. 이름·회복유형·회복일·기록·위치정보는 자동으로 보내지지 않습니다.
+        민감한 개인정보는 입력하지 않는 것이 좋습니다.
+      </p>
+    </div>
+  </div>
+
+<div class="acc">
+    <button class="acc-h">
+      <span class="acc-n"><b>지원 및 안내</b><span>도움말 · 사용설명서 · 개인정보처리방침</span></span>
+      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
+    </button>
+    <div class="acc-b">
+      <button class="toolcard" type="button" onclick="go('guide')"><span class="ic" data-ico="check"></span><span class="b"><b>도움말 · 자주 묻는 질문</b><span>설정 · 기록 · 알림 · 회복도구 · 마음프로 사용법</span></span><span class="go">열기</span></button>
+      <button class="toolcard" type="button" style="margin-top:9px" onclick="go('manual')"><span class="ic" data-ico="sprout"></span><span class="b"><b>사용설명서</b><span>처음 시작부터 기록 · 알림 · 안전한 사용까지 메뉴별 안내</span></span><span class="go">열기</span></button>
+      <a class="toolcard" style="margin-top:9px" href="./privacy.html"><span class="ic" data-ico="check"></span><span class="b"><b>개인정보처리방침</b><span>기기 저장 · 마음프로 · 외부 전송 안내</span></span><span class="go">열기</span></a>
+    </div>
+  </div>
+
+  <!-- 관리자 기능과 접근 방식은 그대로 두고 위치만 나 화면으로 옮깁니다. -->
+<div class="acc">
+    <button class="acc-h">
+      <span class="acc-n"><b>관리자</b><span>자원 목록 관리 · 앱에 바라는 점 전체보기</span></span>
+      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
+    </button>
+    <div class="acc-b">
+      <p class="muted" style="margin:0 0 11px" id="me-admin-m"></p>
+      <div class="opts" id="me-admin"></div>
+    </div>
+  </div>
 </section>
 
 <!-- ══════════ 내 정보 ══════════ -->
@@ -2234,54 +2280,7 @@ addEventListener('appinstalled', function(){
       <button class="btn ghost sm" id="me-wipe" style="color:var(--bad);border-color:var(--bad)">전체 지우기</button>
     </div>
   </div>
-
-  <div class="acc">
-    <button class="acc-h">
-      <span class="acc-n"><b>앱에 바라는 점</b><span>불편한 점 · 고쳤으면 하는 내용 · 새로 있었으면 하는 기능</span></span>
-      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
-    </button>
-    <div class="acc-b">
-      <p class="muted" style="margin:0 0 11px">
-        사용하면서 불편했던 점, 고쳤으면 하는 내용, 새로 있었으면 하는 기능을 자유롭게 알려주세요.
-      </p>
-      <textarea id="me-feedback-text" maxlength="2000" rows="5" placeholder="내용을 입력해주세요"></textarea>
-      <div class="sp" style="align-items:center;margin-top:9px">
-        <p class="tiny" id="me-feedback-st" style="margin:0;flex:1"></p>
-        <button class="btn sec sm" id="me-feedback-send" style="width:auto">보내기</button>
-      </div>
-      <p class="tiny" style="margin:9px 0 0">
-        작성한 내용과 앱 버전만 전송됩니다. 이름·회복유형·회복일·기록·위치정보는 자동으로 보내지지 않습니다.
-        민감한 개인정보는 입력하지 않는 것이 좋습니다.
-      </p>
-    </div>
-  </div>
-
-  <div class="acc">
-    <button class="acc-h">
-      <span class="acc-n"><b>지원 및 안내</b><span>도움말 · 사용설명서 · 개인정보처리방침</span></span>
-      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
-    </button>
-    <div class="acc-b">
-      <button class="toolcard" type="button" onclick="go('guide')"><span class="ic" data-ico="check"></span><span class="b"><b>도움말 · 자주 묻는 질문</b><span>설정 · 기록 · 알림 · 회복도구 · 마음프로 사용법</span></span><span class="go">열기</span></button>
-      <button class="toolcard" type="button" style="margin-top:9px" onclick="go('manual')"><span class="ic" data-ico="sprout"></span><span class="b"><b>사용설명서</b><span>처음 시작부터 기록 · 알림 · 안전한 사용까지 메뉴별 안내</span></span><span class="go">열기</span></button>
-      <a class="toolcard" style="margin-top:9px" href="./privacy.html"><span class="ic" data-ico="check"></span><span class="b"><b>개인정보처리방침</b><span>기기 저장 · 마음프로 · 외부 전송 안내</span></span><span class="go">열기</span></a>
-    </div>
-  </div>
-
-  <!-- 목록을 고치는 사람(팀장님)만 들어갑니다. 자물쇠는 화면을 정리하기 위한 것이지
-       목록을 지키는 것이 아닙니다 — 목록을 지키는 것은 구글 계정입니다. -->
-  <div class="acc">
-    <button class="acc-h">
-      <span class="acc-n"><b>관리자</b><span>자원 목록 관리 · 앱에 바라는 점 전체보기</span></span>
-      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
-    </button>
-    <div class="acc-b">
-      <p class="muted" style="margin:0 0 11px" id="me-admin-m"></p>
-      <div class="opts" id="me-admin"></div>
-    </div>
-  </div>
-
-  <div class="note w" style="margin-top:16px">
+<div class="note w" style="margin-top:16px">
     이 앱은 치료를 대신하지 않습니다. 회복을 돕는 도구입니다.
     필요할 때는 반드시 전문가와 연결되세요.
   </div>
@@ -2290,7 +2289,7 @@ addEventListener('appinstalled', function(){
 
 <!-- ══════════ 도움말 · 자주 묻는 질문 ══════════ -->
 <section class="pg" id="p-guide">
-  <div class="sp" style="margin-bottom:11px"><h1 style="margin:0">도움말</h1><button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('me')">← 내 정보 · 설정</button></div>
+  <div class="sp" style="margin-bottom:11px"><h1 style="margin:0">도움말</h1><button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('my')">← 나</button></div>
   <p class="muted" style="margin:0 0 16px">궁금한 항목을 눌러 짧게 확인할 수 있습니다. 필요한 곳은 바로 열 수 있습니다.</p>
 
   <h2>시작 · 기록</h2>
@@ -2332,7 +2331,7 @@ addEventListener('appinstalled', function(){
 
 <!-- ══════════ 사용설명서 ══════════ -->
 <section class="pg" id="p-manual">
-  <div class="sp" style="margin-bottom:11px"><h1 style="margin:0">사용설명서</h1><button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('me')">← 내 정보 · 설정</button></div>
+  <div class="sp" style="margin-bottom:11px"><h1 style="margin:0">사용설명서</h1><button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('my')">← 나</button></div>
   <p class="muted" style="margin:0 0 14px">오늘 한 걸음의 기능을 메뉴 순서대로 설명합니다. 필요한 항목만 펼쳐서 확인하세요.</p>
   <div class="note" style="margin-bottom:14px"><b>기본 원칙</b><br>회복기록은 현재 기기 안에 저장됩니다. 앱 삭제·앱 데이터 삭제·기기 초기화 전에는 <b>기록 내보내기</b>를 먼저 권합니다. 이 앱은 치료나 응급서비스를 대신하지 않습니다.</div>
 
@@ -2413,12 +2412,12 @@ addEventListener('appinstalled', function(){
       <button class="btn ghost sm faq-go" type="button" onclick="go('me')">역할 설정 열기</button>
     </div></details>
 
-    <details class="faq"><summary>12. 내 정보 · 설정 — 설정, 백업, 앱 관리</summary><div class="faq-a">
+    <details class="faq"><summary>12. 나 · 내 정보 · 설정 — 기록, 설정, 안내</summary><div class="faq-a">
       <p><b>나</b>에서는 역할, 회복 영역·시작일·목표·지역 등 기본 정보를 관리합니다.</p>
       <p style="margin-top:8px"><b>앱</b>에서는 자원 목록 새로 받기, 화면 밝기, 마음프로 AI 사용 여부, 앱 새로고침·설치와 Android 마음프로 음성 설정을 관리합니다.</p>
       <p style="margin-top:8px"><b>기록 관리</b>에서는 JSON 파일로 내보내기·불러오기와 전체 지우기를 할 수 있습니다. 다른 기기로 옮기거나 앱을 삭제하기 전에는 내보내기를 먼저 권합니다.</p>
-      <p style="margin-top:8px"><b>앱에 바라는 점</b>은 불편한 점이나 제안을 보내는 기능입니다. 작성 내용과 앱 버전만 전송되며 민감한 개인정보는 직접 적지 않는 것이 좋습니다.</p>
-      <button class="btn ghost sm faq-go" type="button" onclick="go('me')">내 정보 · 설정 열기</button>
+      <p style="margin-top:8px"><b>앱에 바라는 점·지원 및 안내·관리자</b>는 <b>나</b> 화면에서 바로 이용합니다. 관리자 기능의 기존 접근 방식은 그대로 유지됩니다.</p>
+      <button class="btn ghost sm faq-go" type="button" onclick="go('my')">나 열기</button>
     </div></details>
 
     <details class="faq"><summary>13. Android 설치 앱 — 알림과 음성</summary><div class="faq-a">
@@ -2436,7 +2435,7 @@ addEventListener('appinstalled', function(){
     </div></details>
   </div>
 
-  <div class="note w" style="margin-top:18px">기능을 찾기 어렵거나 짧은 답이 필요하면 <b>지원 및 안내 → 도움말 · 자주 묻는 질문</b>을 함께 이용하세요.</div>
+  <div class="note w" style="margin-top:18px">기능을 찾기 어렵거나 짧은 답이 필요하면 <b>나 → 지원 및 안내 → 도움말 · 자주 묻는 질문</b>을 함께 이용하세요.</div>
   <button class="btn ghost" type="button" style="margin-top:10px" onclick="go('guide')">도움말 · 자주 묻는 질문 열기</button>
 </section>
 
@@ -2463,7 +2462,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.61';
+const BUILD = 'V8.2.62';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -10050,11 +10049,11 @@ function drawBody(){
    ★ 하나를 열면 나머지는 닫습니다. 열려 있던 것을 다시 누르면 닫힙니다.
    ★ 연 다음 그 줄을 화면 위로 올려줍니다. 안 그러면 아래쪽 묶음을 열었을 때
      펼쳐진 내용이 화면 밖에 있어서 "안 열렸다" 고 느낍니다. */
-$$('#p-me .acc-h').forEach(h => {
+$$('#p-me .acc-h, #p-my .acc-h').forEach(h => {
   h.onclick = () => {
     const a = h.parentNode;
     const was = a.classList.contains('on');
-    $$('#p-me .acc').forEach(x => x.classList.remove('on'));
+    (h.closest('.pg') || document).querySelectorAll('.acc').forEach(x => x.classList.remove('on'));
     if(was) return;
     a.classList.add('on');
     setTimeout(() => {
