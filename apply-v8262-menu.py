@@ -32,41 +32,40 @@ def cut_top_acc(text, marker):
     block = text[start:end]
     return text[:start] + text[end:], block
 
-# ── index.html ──
 p = Path('index.html')
 s = p.read_text(encoding='utf-8')
 s = must_replace(s, "const BUILD = 'V8.2.61';", "const BUILD = 'V8.2.62';", label='BUILD')
 
-s, feedback = cut_top_acc(s, '<b>앱에 바라는 점</b>')
-s, support = cut_top_acc(s, '<b>지원 및 안내</b>')
-s, admin = cut_top_acc(s, '<b>관리자</b><span>자원 목록 관리 · 앱에 바라는 점 전체보기</span>')
+feedback_marker = '<b>앱에 바라는 점</b><span>불편한 점 · 고쳤으면 하는 내용 · 새로 있었으면 하는 기능</span>'
+support_marker = '<b>지원 및 안내</b><span>도움말 · 사용설명서 · 개인정보처리방침</span>'
+admin_marker = '<b>관리자</b><span>자원 목록 관리 · 앱에 바라는 점 전체보기</span>'
+s, feedback = cut_top_acc(s, feedback_marker)
+s, support = cut_top_acc(s, support_marker)
+s, admin = cut_top_acc(s, admin_marker)
 
-# 관리자 카드 앞의 오래된 소스 주석도 현재 위치에 맞게 제거합니다.
 s = re.sub(r'\n\s*<!-- 목록을 고치는 사람\(팀장님\)만 들어갑니다\..*?구글 계정입니다\. -->\s*', '\n', s, count=1, flags=re.S)
 
-old_intro = '<p class="muted" style="margin:0 0 14px">내 기록을 돌아보거나, 내 정보와 앱 설정을 관리합니다.</p>'
-new_intro = '<p class="muted" style="margin:0 0 14px">내 기록과 설정을 확인하고, 앱 안내와 의견 보내기를 이용합니다.</p>'
-s = must_replace(s, old_intro, new_intro, label='my intro')
+s = must_replace(
+    s,
+    '<p class="muted" style="margin:0 0 14px">내 기록을 돌아보거나, 내 정보와 앱 설정을 관리합니다.</p>',
+    '<p class="muted" style="margin:0 0 14px">내 기록과 설정을 확인하고, 앱 안내와 의견 보내기를 이용합니다.</p>',
+    label='my intro'
+)
 
 my_start = s.find('<section class="pg" id="p-my">')
-if my_start < 0:
-    raise SystemExit('p-my not found')
 my_end = s.find('</section>', my_start)
-if my_end < 0:
-    raise SystemExit('p-my end not found')
+if my_start < 0 or my_end < 0:
+    raise SystemExit('p-my bounds not found')
 insert = '\n  <div style="height:12px"></div>\n' + feedback + '\n\n' + support + '\n\n  <!-- 관리자 기능과 접근 방식은 그대로 두고 위치만 나 화면으로 옮깁니다. -->\n' + admin + '\n'
 s = s[:my_end] + insert + s[my_end:]
 
-# 내 정보·설정과 나 화면의 아코디언을 같은 방식으로 동작시킵니다.
 s = must_replace(s, "$$('#p-me .acc-h').forEach(h => {", "$$('#p-me .acc-h, #p-my .acc-h').forEach(h => {", label='accordion bind')
 s = must_replace(s, "$$('#p-me .acc').forEach(x => x.classList.remove('on'));", "(h.closest('.pg') || document).querySelectorAll('.acc').forEach(x => x.classList.remove('on'));", label='accordion scope')
 
-# 지원·안내 화면은 이제 나에서 들어오므로 뒤로가기도 나로 맞춥니다.
 old_back = "onclick=\"appBack('me')\">← 내 정보 · 설정</button>"
 if s.count(old_back) != 2:
     raise SystemExit(f'guide/manual back expected 2, found {s.count(old_back)}')
 s = s.replace(old_back, "onclick=\"appBack('my')\">← 나</button>")
-
 s = s.replace('지원 및 안내 → 도움말 · 자주 묻는 질문', '나 → 지원 및 안내 → 도움말 · 자주 묻는 질문')
 
 s = must_replace(
@@ -81,7 +80,6 @@ s = must_replace(
     '<p style="margin-top:8px"><b>앱에 바라는 점·지원 및 안내·관리자</b>는 <b>나</b> 화면에서 바로 이용합니다. 관리자 기능의 기존 접근 방식은 그대로 유지됩니다.</p>',
     label='manual moved items'
 )
-# 위 항목 안의 버튼 하나만 나 화면으로 연결합니다.
 item12 = s.find('<details class="faq"><summary>12. 나 · 내 정보 · 설정 — 기록, 설정, 안내</summary>')
 item13 = s.find('<details class="faq"><summary>13. Android 설치 앱', item12)
 if item12 < 0 or item13 < 0:
@@ -92,10 +90,8 @@ if chunk.count(old_btn) != 1:
     raise SystemExit(f'manual item12 button expected 1, found {chunk.count(old_btn)}')
 chunk = chunk.replace(old_btn, '<button class="btn ghost sm faq-go" type="button" onclick="go(\'my\')">나 열기</button>', 1)
 s = s[:item12] + chunk + s[item13:]
-
 p.write_text(s, encoding='utf-8')
 
-# ── privacy.html ──
 p = Path('privacy.html')
 s = p.read_text(encoding='utf-8')
 s = must_replace(
@@ -107,14 +103,12 @@ s = must_replace(
 s = s.replace('V8.2.61', 'V8.2.62')
 p.write_text(s, encoding='utf-8')
 
-# ── sw.js ──
 p = Path('sw.js')
 s = p.read_text(encoding='utf-8')
 s = must_replace(s, "const APP_VERSION = 'V8.2.61';", "const APP_VERSION = 'V8.2.62';", label='sw app version')
 s = must_replace(s, "const V = 'ohg-v8261-onboarding-ai';", "const V = 'ohg-v8262-me-menu-back';", label='sw cache')
 p.write_text(s, encoding='utf-8')
 
-# ── README.md ──
 p = Path('README.md')
 s = p.read_text(encoding='utf-8')
 if '## V8.2.62 — 나 메뉴 정리 · 개인정보처리방침 이전 화면 복귀' in s:
@@ -129,15 +123,16 @@ entry = '''## V8.2.62 — 나 메뉴 정리 · 개인정보처리방침 이전 �
 '''
 p.write_text(entry + s, encoding='utf-8')
 
-# ── 최종 정적 검증 ──
 idx = Path('index.html').read_text(encoding='utf-8')
-my = idx[idx.index('<section class="pg" id="p-my">'):idx.index('</section>', idx.index('<section class="pg" id="p-my">'))]
-me = idx[idx.index('<section class="pg" id="p-me">'):idx.index('</section>', idx.index('<section class="pg" id="p-me">'))]
-for label in ('앱에 바라는 점', '지원 및 안내', '관리자'):
-    if label not in my:
-        raise SystemExit(f'{label} missing from p-my')
-    if label in me:
-        raise SystemExit(f'{label} still present in p-me')
+my_start = idx.index('<section class="pg" id="p-my">')
+my = idx[my_start:idx.index('</section>', my_start)]
+me_start = idx.index('<section class="pg" id="p-me">')
+me = idx[me_start:idx.index('</section>', me_start)]
+for marker in (feedback_marker, support_marker, admin_marker):
+    if marker not in my:
+        raise SystemExit(f'moved card missing from p-my: {marker[:30]}')
+    if marker in me:
+        raise SystemExit(f'moved card still in p-me: {marker[:30]}')
 for label in ('<b>나</b>', '<b>앱</b>', '<b>추천하기</b>', '<b>기록 관리</b>'):
     if label not in me:
         raise SystemExit(f'settings item missing: {label}')
