@@ -1,0 +1,63 @@
+name: Apply V8.2.56 user manual
+
+on:
+  push:
+    branches: [v8.2.56-user-manual]
+    paths:
+      - '.tmp_v8256_user_manual.py'
+      - '.github/workflows/v8256-user-manual.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.56-user-manual
+      - name: Apply exact user manual patch
+        run: python .tmp_v8256_user_manual.py
+      - name: Verify protected constants and manual links
+        run: |
+          grep -Fq "const BUILD = 'V8.2.56';" index.html
+          grep -Fq "const KEY = 'ohg.v1';" index.html
+          grep -Fq "const DATA_SCHEMA = 6;" index.html
+          grep -Fq 'id="p-manual"' index.html
+          grep -Fq "go('manual')" index.html
+          grep -Fq '사용설명서' index.html
+          grep -Fq "const APP_VERSION = 'V8.2.56';" sw.js
+          grep -Fq "const V = 'ohg-v8256-user-manual';" sw.js
+      - name: Check JavaScript syntax
+        run: |
+          node --check sw.js
+          node --check learning-data.js
+          node --check qa-data.js
+          node --check screening-data.js
+          node --check workbook-data.js
+          python - <<'PY'
+          import re, pathlib, subprocess, tempfile, os
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          for i,js in enumerate(scripts):
+              if not js.strip(): continue
+              p=f'/tmp/inline-{i}.js'
+              pathlib.Path(p).write_text(js,encoding='utf-8')
+              subprocess.run(['node','--check',p],check=True)
+          print('inline scripts:',len(scripts))
+          PY
+      - name: Diff guard
+        run: |
+          git diff --check
+          git status --short
+          git diff -- README.md index.html sw.js
+      - name: Commit app changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md index.html sw.js
+          git diff --cached --check
+          git commit -m 'V8.2.56 사용설명서 추가'
+          git push
