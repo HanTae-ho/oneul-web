@@ -1,0 +1,53 @@
+name: Apply V8.2.66 docs and reclaim label
+
+on:
+  push:
+    branches: [v8.2.66-manual-reclaim-label]
+    paths:
+      - '.github/workflows/apply-v8266-docs.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.66-manual-reclaim-label
+          fetch-depth: 0
+      - name: Apply approved minimal changes
+        run: python3 v8.2.66-manual-reclaim-label.py
+      - name: Verify scope and JavaScript
+        run: |
+          set -euo pipefail
+          grep -q "const BUILD = 'V8.2.66';" index.html
+          grep -q "const KEY = 'ohg.v1';" index.html
+          grep -q "const DATA_SCHEMA = 6;" index.html
+          grep -q "card('sprout','회복 실천',habits+'회','내가 실천하고 기록한 회복 행동'" index.html
+          grep -q "내가 되찾은 것은 어디에서 보나요?" index.html
+          grep -q "12. 나 — 회복 요약 · 기록 · 설정 · 안내" index.html
+          grep -q "나</b> 화면에서 바로 이용합니다" index.html
+          grep -q "const APP_VERSION = 'V8.2.66';" sw.js
+          grep -q "ohg-v8266-manual-reclaim-label" sw.js
+          grep -q "V8.2.66" privacy.html
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=[]
+          for m in re.finditer(r'<script([^>]*)>(.*?)</script>', s, re.S|re.I):
+              if 'src=' not in m.group(1).lower(): blocks.append(m.group(2))
+          Path('/tmp/oneul-inline.js').write_text('\n'.join(blocks), encoding='utf-8')
+          PY
+          node --check /tmp/oneul-inline.js
+      - name: Commit target files and remove temporary patch files
+        run: |
+          set -euo pipefail
+          git config user.name 'HanTae-ho'
+          git config user.email '64190685+HanTae-ho@users.noreply.github.com'
+          git rm v8.2.66-manual-reclaim-label.py .github/workflows/apply-v8266-docs.yml
+          git add README.md index.html privacy.html sw.js
+          git commit -m 'V8.2.66 update manual and reclaim practice label'
+          git push origin HEAD:v8.2.66-manual-reclaim-label
