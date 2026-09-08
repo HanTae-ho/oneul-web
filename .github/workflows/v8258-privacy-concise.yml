@@ -1,0 +1,70 @@
+name: Apply V8.2.58 privacy concise
+
+on:
+  push:
+    branches: [v8.2.58-privacy-concise]
+    paths:
+      - '.tmp_v8258_privacy_concise.py'
+      - '.github/workflows/v8258-privacy-concise.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.58-privacy-concise
+      - name: Apply V8.2.58 patch
+        run: python .tmp_v8258_privacy_concise.py
+      - name: Verify protected constants and concise privacy
+        run: |
+          grep -Fq "const BUILD = 'V8.2.58';" index.html
+          grep -Fq "const KEY = 'ohg.v1';" index.html
+          grep -Fq "const DATA_SCHEMA = 6;" index.html
+          grep -Fq '기기 저장 · 마음프로 · 외부 전송 안내' index.html
+          grep -Fq "const APP_VERSION = 'V8.2.58';" sw.js
+          grep -Fq "const V = 'ohg-v8258-privacy-concise';" sw.js
+          grep -Fq 'admin@maumpro.com' privacy.html
+          grep -Fq '<h2>6. 이용자의 선택과 문의</h2>' privacy.html
+          test "$(grep -o '<h2>' privacy.html | wc -l)" -eq 6
+          grep -Fq '최근 일반 AI 대화 최대 8개' privacy.html
+          grep -Fq '저장된 회복기록을 마음프로에 자동으로 보내지 않습니다' privacy.html
+          grep -Fq 'OpenAI API 처리 데이터' privacy.html
+      - name: Check JavaScript and HTML basics
+        run: |
+          node --check sw.js
+          node --check learning-data.js
+          node --check qa-data.js
+          node --check screening-data.js
+          node --check workbook-data.js
+          python - <<'PY'
+          import re, pathlib, subprocess
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          for i,js in enumerate(scripts):
+              if not js.strip(): continue
+              p=f'/tmp/inline-{i}.js'
+              pathlib.Path(p).write_text(js,encoding='utf-8')
+              subprocess.run(['node','--check',p],check=True)
+          p=pathlib.Path('privacy.html').read_text(encoding='utf-8')
+          assert '<html lang="ko">' in p and '</html>' in p
+          assert 'V8.2.58' in p
+          print('inline scripts:',len(scripts),'privacy bytes:',len(p.encode()))
+          PY
+      - name: Diff guard
+        run: |
+          git diff --check
+          git status --short
+          git diff -- README.md index.html sw.js privacy.html
+      - name: Commit app changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md index.html sw.js
+          git diff --cached --check
+          git commit -m 'V8.2.58 개인정보처리방침 간결화'
+          git push
