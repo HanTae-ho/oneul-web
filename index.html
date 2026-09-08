@@ -1183,6 +1183,7 @@ addEventListener('appinstalled', function(){
     <h2>자가점검</h2>
     <div class="checkmini">
       <button class="minitool wide" id="tool-check"><span class="ic" data-ico="check"></span><b>자가점검</b><span>내 상태를 스스로 확인하기</span></button>
+      <button class="minitool wide" id="tool-check-view" onclick="recTab='screen';go('rec')"><span class="ic" data-ico="check"></span><b>점검 보기</b><span>지난 점검 결과와 변화 확인</span></button>
     </div>
   </div>
 </section>
@@ -1730,7 +1731,6 @@ addEventListener('appinstalled', function(){
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('tools')">← 회복도구</button>
   </div>
   <div class="note w" style="margin-bottom:13px">자가점검은 진단이 아닙니다. 점수는 현재 상태를 살펴보고 상담이나 전문 평가가 필요한지 확인하는 참고자료입니다. 결과는 이 기기에만 저장됩니다.</div>
-  <button class="btn sec" style="margin-bottom:13px" onclick="recTab='screen';go('rec')">내 점검 결과 보기</button>
   <div id="screening-list"></div>
 </section>
 
@@ -1969,16 +1969,14 @@ addEventListener('appinstalled', function(){
 
   <div class="aiguide" id="ai-guide">
     <button class="aiguide-h" id="ai-guide-toggle" type="button" aria-expanded="false">
-      <span><b>마음프로 안내</b><small>안전 · 개인정보 · 앱 기능 · 음성</small></span>
+      <span><b>마음프로 안내</b><small>안전 · 개인정보 · 앱 기능</small></span>
       <span class="aiguide-v" aria-hidden="true">+</span>
     </button>
     <div class="aiguide-b">
       <div class="note w" style="margin-bottom:10px">
         마음프로는 치료나 응급상담을 대신하지 않습니다. 생명이 위험하거나 경련·환각·심한 금단이 있으면 <b>119</b>가 먼저입니다. 죽고 싶은 마음이 급하면 <b>109</b>에 바로 연결하세요.
       </div>
-      <p class="muted" style="margin:0 0 6px">앱 기능은 가능한 경우 기기에서 바로 처리합니다. 일반 대화에 필요한 <b>내가 직접 적은 문장만</b> AI로 보냅니다.</p>
-      <p class="tiny" style="margin:0">개인 회복기록은 자동 전송하지 않습니다. Android 앱에서는 설정 또는 “음성으로”·“그만 읽어”로 답변 읽기를 조절할 수 있습니다.</p>
-      <p class="tiny hide" id="ai-guide-voice" style="margin:8px 0 0"></p>
+      <p class="muted" style="margin:0">앱 기능은 기기에서 먼저 처리하고, <b>내가 직접 적은 일반 대화만</b> AI로 보냅니다. 개인 회복기록은 자동 전송하지 않습니다.</p>
     </div>
   </div>
 
@@ -2267,7 +2265,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    기록은 이 기기 안에만 저장됩니다. 서버로 가지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.51';
+const BUILD = 'V8.2.52';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
