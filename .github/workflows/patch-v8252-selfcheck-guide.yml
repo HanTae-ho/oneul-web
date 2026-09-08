@@ -1,0 +1,49 @@
+name: Patch V8.2.52 selfcheck card and MindPro guide
+
+on:
+  push:
+    branches: [v8.2.52-selfcheck-card-guide]
+    paths:
+      - 'patch-v8252-selfcheck-guide.py'
+      - '.github/workflows/patch-v8252-selfcheck-guide.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.52-selfcheck-card-guide
+      - name: Apply patch
+        run: python3 patch-v8252-selfcheck-guide.py
+      - name: Verify diff and JavaScript
+        run: |
+          git diff --check
+          node --check sw.js
+          python3 - <<'PY'
+          import re,pathlib,subprocess
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',s,re.S|re.I)
+          for i,b in enumerate(blocks):
+            p=pathlib.Path(f'/tmp/inline-{i}.js'); p.write_text(b,encoding='utf-8')
+            subprocess.run(['node','--check',str(p)],check=True)
+          assert "const BUILD = 'V8.2.52';" in s
+          assert "const KEY = 'ohg.v1';" in s
+          assert 'const DATA_SCHEMA = 6;' in s
+          assert 'id="tool-check-view"' in s
+          assert '<b>점검 보기</b><span>지난 점검 결과와 변화 확인</span>' in s
+          assert '내 점검 결과 보기</button>' not in s
+          assert '안전 · 개인정보 · 앱 기능</small>' in s
+          assert 'Android 앱에서는 설정 또는 “음성으로”' not in s
+          assert '개인 회복기록은 자동 전송하지 않습니다.</p>' in s
+          PY
+      - name: Commit patched files
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js README.md
+          git commit -m 'V8.2.52 place selfcheck results beside selfcheck and shorten MindPro guide'
+          git push origin HEAD:v8.2.52-selfcheck-card-guide
