@@ -36,8 +36,9 @@ p.write_text(sw, encoding='utf-8')
 
 p = Path('privacy.html')
 pr = p.read_text(encoding='utf-8')
-assert pr.count('V8.2.64') >= 2
-pr = pr.replace('V8.2.64', 'V8.2.65')
+# 개인정보처리방침 내용은 그대로 두고 앱 기준 버전 표기만 현재 릴리즈에 맞춥니다.
+assert pr.count('V8.2.63') >= 2
+pr = pr.replace('V8.2.63', 'V8.2.65')
 p.write_text(pr, encoding='utf-8')
 
 p = Path('README.md')
