@@ -1,0 +1,38 @@
+name: Patch V8.2.53 generic recovery tool names
+on:
+  push:
+    branches: [v8.2.53-generic-tool-names]
+    paths:
+      - 'patch-v8253-generic-tool-names.py'
+      - '.github/workflows/patch-v8253-generic-tool-names.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v8.2.53-generic-tool-names
+      - run: python3 patch-v8253-generic-tool-names.py
+      - run: |
+          git diff --check
+          node --check sw.js
+          python3 - <<'PY'
+          import pathlib,re,subprocess
+          s=pathlib.Path('index.html').read_text(encoding='utf-8')
+          assert "const BUILD = 'V8.2.53';" in s
+          assert "const KEY = 'ohg.v1';" in s
+          assert 'const DATA_SCHEMA = 6;' in s
+          for text in ['회복 실천도구','가치 우선순위 정하기','의사결정 저울','충동 다루기','중독 생각과 거리두기','상황·생각·감정 돌아보기','생각 점검하기','생각의 함정 알아차리기','삶의 균형 살펴보기','건강한 관심사 찾기','실천 목표 세우기']:
+            assert text in s
+          assert "{v:'smart',l:'실천도구'}" in s
+          assert '내 실천도구 기록 보기' in s
+          assert 'SMART Recovery 설명 보기' in s
+          for i,b in enumerate(re.findall(r'<script(?![^>]*\\bsrc=)[^>]*>(.*?)</script>',s,re.S|re.I)):
+            p=pathlib.Path(f'/tmp/s{i}.js');p.write_text(b,encoding='utf-8');subprocess.run(['node','--check',str(p)],check=True)
+          PY
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: V8.2.53 use generic Korean recovery tool names
+          file_pattern: 'index.html sw.js README.md'
