@@ -1992,6 +1992,10 @@ addEventListener('appinstalled', function(){
         마음프로는 치료나 응급상담을 대신하지 않습니다. 생명이 위험하거나 경련·환각·심한 금단이 있으면 <b>119</b>가 먼저입니다. 죽고 싶은 마음이 급하면 <b>109</b>에 바로 연결하세요.
       </div>
       <p class="muted" style="margin:0">앱 기능은 기기에서 먼저 처리하고, <b>내가 직접 적은 일반 대화만</b> AI로 보냅니다. 개인 회복기록은 자동 전송하지 않습니다.</p>
+      <div class="sp" style="align-items:center;margin-top:9px;gap:8px">
+        <p class="tiny" id="ai-consent-state" style="margin:0;flex:1"></p>
+        <button class="tiny hide" id="ai-consent-revoke" type="button" style="color:var(--acc);font-weight:600">동의 철회</button>
+      </div>
     </div>
   </div>
 
@@ -2444,7 +2448,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.59';
+const BUILD = 'V8.2.60';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -8121,6 +8125,37 @@ function aiClientId(){
   save();
   return S.aiClient;
 }
+const AI_CONSENT_VERSION = 1;
+function drawAIConsentState(){
+  const st=$('#ai-consent-state'), rv=$('#ai-consent-revoke');
+  const on = Number(S.aiConsent || 0) === AI_CONSENT_VERSION;
+  if(st) st.textContent = on ? 'AI 외부 전송 동의: 동의함' : 'AI 외부 전송 동의: 아직 동의하지 않음';
+  if(rv) rv.classList.toggle('hide', !on);
+}
+function aiWithdrawExternalConsent(){
+  S.aiConsent = 0; save(); drawAIConsentState();
+  toast('마음프로 AI 외부 전송 동의를 철회했습니다.');
+}
+function aiEnsureExternalConsent(text, topic){
+  if(Number(S.aiConsent || 0) === AI_CONSENT_VERSION) return true;
+  /* 서버가 연결되지 않은 상태에서는 외부 전송 자체가 없으므로 동의를 묻지 않습니다. */
+  if(!aiEndpoint()) return true;
+  modal(
+    '<h3>마음프로 AI 대화 전송 안내</h3>' +
+    '<p class="muted">일반 AI 답변을 받기 위해 <b>내가 직접 보내는 문장</b>, 최근 일반 AI 대화 최대 8개, 익명형 식별값, 대화 주제와 앱 버전이 Google Apps Script를 거쳐 OpenAI API로 전송됩니다.</p>' +
+    '<div class="note" style="margin:10px 0"><b>자동으로 보내지 않는 내용</b><br>내 발자취 · 자가점검 점수 · 12단계 · 회복 실천도구 · 복약 등 기기에 저장된 회복기록은 자동 첨부하지 않습니다.</div>' +
+    '<p class="muted">내가 직접 적은 문장에 건강 · 중독 · 복약 등 민감한 내용이 들어 있으면 그 내용도 함께 전송될 수 있습니다. 이름 · 전화번호 · 주소 · 병원명처럼 나를 알아볼 수 있는 정보는 적지 않는 것을 권합니다.</p>' +
+    '<p class="tiny">Google 및 OpenAI의 글로벌 인프라에서 국외 처리될 수 있습니다. <a href="./privacy.html" target="_blank" rel="noopener" style="color:var(--acc);font-weight:600">개인정보처리방침 보기</a></p>' +
+    '<button class="btn" id="ai-consent-yes">동의하고 계속</button>' +
+    '<div style="height:8px"></div><button class="btn ghost" id="ai-consent-no">취소</button>'
+  );
+  const yes=$('#ai-consent-yes'), no=$('#ai-consent-no');
+  if(yes) yes.onclick=()=>{
+    S.aiConsent = AI_CONSENT_VERSION; save(); drawAIConsentState(); closeModal(); aiSend(text, topic);
+  };
+  if(no) no.onclick=closeModal;
+  return false;
+}
 function aiAdd(role, text, local){
   if(!Array.isArray(S.aiChat)) S.aiChat = [];
   const m = { role:role, text:String(text || '').slice(0, 1800), t:Date.now() };
@@ -9076,6 +9111,8 @@ async function aiSend(text, topic){
   const localIntent = (!crisis && !voiceCommand && !timerMin && !wantsRead && !knowledge) ? aiLocalIntent(text, topic) : '';
   const isLocal = !!(crisis || voiceCommand || timerMin || wantsRead || knowledge || localIntent);
 
+  if(!isLocal && !aiEnsureExternalConsent(text, topic)) return;
+
   const prior = (Array.isArray(S.aiChat) ? S.aiChat : [])
     .filter(m => !m.local)
     .slice(-8);
@@ -9178,6 +9215,8 @@ async function aiSend(text, topic){
 }
 
 $('#ai-guide-toggle').onclick = () => { if(ai.guideTimer){ clearTimeout(ai.guideTimer); ai.guideTimer=0; } ai.guideOpen=!ai.guideOpen; drawAIGuide(); };
+const aiConsentRevoke=$('#ai-consent-revoke'); if(aiConsentRevoke) aiConsentRevoke.onclick=aiWithdrawExternalConsent;
+drawAIConsentState();
 $('#ai-back').onclick = () => appBack(ai.back || 'help');
 $('#ai-send').onclick = () => aiSend($('#ai-input').value, '');
 $('#ai-input').addEventListener('keydown', e => {
