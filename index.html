@@ -1977,8 +1977,7 @@ addEventListener('appinstalled', function(){
     <h1 style="margin:0">내 발자취</h1>
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('my')">← 나</button>
   </div>
-  <p class="muted" style="margin:0 0 14px">회복하면서 되찾은 것과 감정 · 하루 · 몸 · 실천기록 · 자가점검의 흐름을 한곳에서 돌아봅니다.</p>
-  <div id="rec-reclaim"></div>
+  <p class="muted" style="margin:0 0 14px">감정 · 하루 · 몸 · 실천기록 · 자가점검과 회복 흐름을 한곳에서 돌아봅니다.</p>
   <div class="opts" id="rec-tab" style="margin-bottom:14px"></div>
   <div id="rec-body"></div>
 </section>
@@ -2115,6 +2114,7 @@ addEventListener('appinstalled', function(){
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('home')">← 홈</button>
   </div>
   <p class="muted" style="margin:0 0 14px">내 기록과 설정을 확인하고, 앱 안내와 의견 보내기를 이용합니다.</p>
+  <div id="rec-reclaim"></div>
   <button class="toolcard" id="my-trail"><span class="ic" data-ico="check"></span><span class="b"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 실천기록 · 자가점검 · 통계</span></span><span class="go">열기</span></button>
   <button class="toolcard" id="my-settings" style="margin-top:9px"><span class="ic" data-ico="sprout"></span><span class="b"><b>내 정보 · 설정</b><span>역할 · 회복영역 · 화면 · 앱 · 기록 관리</span></span><span class="go">열기</span></button>
 
@@ -2480,7 +2480,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.64';
+const BUILD = 'V8.2.65';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -3356,7 +3356,7 @@ function go(p,opt){
   if(p === 'help') drawHelp();
   if(p === 'ai')   drawAI();
   if(p === 'me')   drawMe();
-  if(p === 'my'){ drawFeedbackStatus(); drawAdmin(); }
+  if(p === 'my'){ drawReclaim(); drawFeedbackStatus(); drawAdmin(); }
   if(p === 'relapse') drawRelapse();
   if(p === 'night')   drawNight();
   if(p === 'urge')    drawUrge();
@@ -7438,12 +7438,11 @@ function openReclaimSettings(){
     cfg.costOn=(k==='gambling')?0:($('#reclaim-cost-on').checked?1:0); cfg.costPerDay=cost;
     if(cfg.timeOn&&!time){toast('되찾은 시간을 표시하려면 하루 평균 시간을 입력해주세요.');return;}
     if(cfg.costOn&&!cost){toast('지킨 비용을 표시하려면 하루 평균 비용을 입력해주세요.');return;}
-    save(); closeModal(); drawRec(); toast('기준을 저장했습니다.');
+    save(); closeModal(); drawReclaim(); toast('기준을 저장했습니다.');
   };
 }
 
 function drawRec(){
-  drawReclaim();
   /* 가족은 충동·재발을 기록하지 않습니다. 그건 그 사람의 기록입니다. */
   const tabs = famMode()
     ? [{v:'mood',l:'감정'},{v:'day',l:'하루'},{v:'body',l:'몸'},{v:'work',l:'실천기록'},{v:'screen',l:'자가점검'},{v:'stat',l:'통계'}]
