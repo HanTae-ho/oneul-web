@@ -9,17 +9,18 @@
 :root{--bg:#f2f7f9;--panel:#fff;--line:#dbe6ea;--tx:#1b262c;--dim:#657781;--acc:#1f6f8a;--accbg:#e2eff4;--warn:#8b5b16;--warnbg:#fdf1e0}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.75 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;-webkit-font-smoothing:antialiased}
 main{max-width:720px;margin:0 auto;padding:22px 16px 48px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.back{color:var(--acc);font-weight:700;text-decoration:none}.ver{font-size:12px;color:var(--dim)}h1{font-size:25px;line-height:1.35;margin:0 0 8px}.lead{color:var(--dim);margin:0 0 18px}.note{background:var(--accbg);border-radius:13px;padding:14px 15px;margin:12px 0 16px}.warn{background:var(--warnbg);color:var(--warn);border-radius:13px;padding:12px 14px;margin:12px 0}ul{margin:7px 0 0;padding-left:20px}li+li{margin-top:5px}a{color:var(--acc);word-break:break-all}.small{font-size:12.5px;color:var(--dim)}footer{margin-top:30px;padding-top:18px;border-top:1px solid var(--line);color:var(--dim);font-size:12.5px}.tbl{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:13px}.tbl th,.tbl td{border:1px solid var(--line);padding:8px 9px;text-align:left;vertical-align:top}.tbl th{background:var(--accbg);font-weight:700}.tbl td:first-child{white-space:nowrap;font-weight:700}
-.pacc{background:var(--panel);border:1px solid var(--line);border-radius:16px;margin:9px 0;overflow:hidden}.pacc summary{list-style:none;cursor:pointer;padding:15px 44px 15px 16px;font-size:16px;font-weight:700;line-height:1.45;position:relative}.pacc summary::-webkit-details-marker{display:none}.pacc summary::after{content:'⌄';position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--acc);font-size:20px;transition:transform .18s ease}.pacc[open] summary::after{transform:translateY(-50%) rotate(180deg)}.pacc[open] summary{border-bottom:1px solid var(--line);background:var(--accbg)}.pbody{padding:15px 16px}.pbody>p:first-child{margin-top:0}.pbody>p:last-child{margin-bottom:0}
+.pacc{background:var(--panel);border:1px solid var(--line);border-radius:16px;margin:9px 0;overflow:hidden}.pacc summary{list-style:none;cursor:pointer;padding:15px 44px 15px 16px;font-size:16px;font-weight:700;line-height:1.45;position:relative}.pacc summary::-webkit-details-marker{display:none}.pacc summary::after{content:'⌄';position:absolute;right:16px;top:50%;transform:translateY(-50%);color:var(--acc);font-size:20px;transition:transform .18s ease}.pacc[open] summary::after{transform:translateY(-50%) rotate(180deg)}.pacc[open] summary{border-bottom:1px solid var(--line);background:var(--accbg)}.pbody{padding:15px 16px}.pbody>p:first-child{margin-top:0}.pbody>p:last-child{margin-bottom:0}.legal-link{display:block;margin:0 0 18px;padding:12px 14px;border:1px solid var(--line);border-radius:13px;background:var(--panel);font-weight:700;text-decoration:none}
 @media(max-width:520px){.tbl{display:block;overflow-x:auto}.tbl th,.tbl td{min-width:105px}.tbl td:first-child{white-space:normal}}
 </style>
 </head>
 <body><main>
 <div class="top"><a class="back" href="./index.html" onclick="if(history.length>1){event.preventDefault();history.back();}">← 이전 화면으로</a><span class="ver">V8.2.66</span></div>
 <h1>개인정보처리방침</h1>
-<p class="lead">시행일: 2026년 9월 8일 · 오늘 한 걸음 웹/PWA/Android 앱</p>
+<p class="lead">시행일: 2026년 9월 9일 · 오늘 한 걸음 웹/PWA/Android 앱</p>
 
 <div class="note"><b>핵심 안내</b><br>
 오늘 한 걸음은 회원가입 없이 사용할 수 있는 Local-first 회복지원 앱입니다. 회복기록은 기본적으로 사용자의 기기에 저장되며 별도 운영 서버로 자동 백업하지 않습니다. 마음프로 AI를 사용하는 경우에도 저장된 회복기록을 자동 첨부하지 않고, AI 답변에 필요한 입력 내용과 제한된 최근 대화만 외부 서비스에서 처리합니다.</div>
+<a class="legal-link" href="./legal.html">저작권 · 출처 · 라이선스 안내 보기 →</a>
 
 <div class="privacy-list">
 <details class="pacc"><summary>1. 무엇을 왜 처리하나요?</summary><div class="pbody">
@@ -55,11 +56,12 @@ main{max-width:720px;margin:0 auto;padding:22px 16px 48px}.top{display:flex;alig
 <tr><td>GitHub Pages</td><td>웹/PWA 및 개인정보처리방침 제공</td><td>서비스 접속 과정의 일반적인 요청·접속 정보가 호스팅 사업자에 의해 처리될 수 있음</td></tr>
 <tr><td>Google Apps Script / Google Sheets</td><td>자원목록 제공, 의견 접수, 마음프로 API 중계</td><td>자원 요청, 이용자가 작성한 의견과 앱 버전, 마음프로 AI 요청 데이터</td></tr>
 <tr><td>OpenAI API</td><td>마음프로 AI 답변 생성</td><td>clientId, 현재 메시지, 주제, 앱 버전, 최근 AI 대화 최대 8개</td></tr>
+<tr><td>Wikimedia Commons</td><td>‘듣는 글’의 공개 음원 직접재생 및 원본 출처 확인</td><td>음원 또는 원본 파일 페이지 요청 과정에서 IP 주소, 브라우저·기기 정보, 접속 시각 등 일반적인 네트워크 요청 정보가 Wikimedia 측 정책에 따라 처리될 수 있음</td></tr>
 </tbody>
 </table>
-<p><b>국외 처리</b><br>Google은 전 세계의 서버를 운영하고 있으며, OpenAI도 API 제공을 위해 여러 국가의 인프라와 하위처리자를 이용할 수 있으므로 관련 데이터가 대한민국 밖에서 처리될 수 있습니다. 전송은 해당 기능을 사용하는 시점에 인터넷을 통해 이루어집니다.</p>
+<p><b>국외 처리</b><br>Google은 전 세계의 서버를 운영하고 있으며, OpenAI도 API 제공을 위해 여러 국가의 인프라와 하위처리자를 이용할 수 있습니다. Wikimedia Foundation도 Wikimedia Commons 등 Wikimedia 서비스를 국제적으로 운영합니다. 관련 데이터는 해당 기능을 사용하는 시점에 인터넷을 통해 대한민국 밖에서 처리될 수 있습니다.</p>
 <p class="small">OpenAI API에 전송된 데이터는 기본적으로 모델 학습에 사용되지 않습니다. 일반적인 API 악용방지 로그에는 고객 콘텐츠가 포함될 수 있으며 기본적으로 최대 30일 보관될 수 있습니다. 실제 처리 위치와 보관 방식은 각 서비스의 운영정책·계정 설정에 따라 달라질 수 있습니다.</p>
-<p class="small"><a href="https://policies.google.com/privacy?hl=ko" target="_blank" rel="noopener">Google 개인정보처리방침</a> · <a href="https://platform.openai.com/docs/models/default-usage-policies-by-endpoint" target="_blank" rel="noopener">OpenAI API 데이터 처리 안내</a></p>
+<p class="small"><a href="https://policies.google.com/privacy?hl=ko" target="_blank" rel="noopener">Google 개인정보처리방침</a> · <a href="https://platform.openai.com/docs/models/default-usage-policies-by-endpoint" target="_blank" rel="noopener">OpenAI API 데이터 처리 안내</a> · <a href="https://foundation.wikimedia.org/wiki/Policy:Privacy_policy" target="_blank" rel="noopener">Wikimedia Foundation 개인정보처리방침</a></p>
 </div></details>
 
 <details class="pacc"><summary>4. 위치·Android 권한·자동수집은 어떻게 사용하나요?</summary><div class="pbody">
@@ -95,7 +97,7 @@ main{max-width:720px;margin:0 auto;padding:22px 16px 48px}.top{display:flex;alig
 </div></details>
 </div>
 
-<footer>오늘 한 걸음 개인정보처리방침 · 시행일 2026-09-08 · 앱 기준 V8.2.66 · 최종 정리본</footer>
+<footer>오늘 한 걸음 개인정보처리방침 · 시행일 2026-09-09 · 앱 기준 V8.2.66</footer>
 <script>
 document.querySelectorAll('details.pacc').forEach(item => {
   item.addEventListener('toggle', () => {
