@@ -22,9 +22,6 @@ jobs:
       - name: Validate V8.2.69 scope and JavaScript
         run: |
           set -euo pipefail
-          grep -F "const BUILD='V8.2.69'" index.html
-          grep -F "const DATA_SCHEMA=6" index.html
-          grep -F "const KEY='ohg.v1'" index.html
           grep -F 'apply=1' index.html
           grep -F 'clear=1' index.html
           grep -F './music-audio-data.js' index.html
@@ -37,6 +34,9 @@ jobs:
           from pathlib import Path
           import re
           s=Path('index.html').read_text(encoding='utf-8')
+          assert re.search(r"const\s+BUILD\s*=\s*['\"]V8\.2\.69['\"]",s)
+          assert re.search(r"const\s+DATA_SCHEMA\s*=\s*6\b",s)
+          assert re.search(r"const\s+KEY\s*=\s*['\"]ohg\.v1['\"]",s)
           a=s.index('<section class="pg" id="p-my">'); b=s.index('</section>',a); sec=s[a:b]
           assert '<b>관리자</b>' not in sec
           assert sec.index('<b>내 발자취</b>') < sec.index('<b>내 정보 · 설정</b>') < sec.index('<b>지원 및 안내</b>') < sec.index('<b>앱에 바라는 점</b>')
@@ -45,8 +45,8 @@ jobs:
           assert "const b = $('#me-admin');\n  $('#tab-admin').classList.add('hide');\n  if(!b) return;" in s
           assert '<section class="pg" id="p-admin">' in s
           scripts=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',s,re.S|re.I)
-          for i,js in enumerate(scripts): Path(f'/tmp/inline-{i}.js').write_text(js,encoding='utf-8')
           assert scripts
+          for i,js in enumerate(scripts): Path(f'/tmp/inline-{i}.js').write_text(js,encoding='utf-8')
           PY
           for f in /tmp/inline-*.js; do node --check "$f"; done
           node --check music-audio-data.js
