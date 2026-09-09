@@ -1,3 +1,13 @@
+# V9.0.2 댓글 확장 배포 메모
+
+V9.0.2에서는 기존 소셜 전용 스프레드시트에 `Comments`, `CommentReports` 두 시트가 추가됩니다. `social-apps-script.gs`를 교체한 뒤 **SOCIAL_SETUP을 한 번 실행**하면 기존 Profiles/Posts/Supports/Reports는 유지하고 새 시트만 준비합니다. 이어서 **기존 웹 앱 배포를 새 버전으로 갱신**합니다. `/exec` 주소는 바꾸지 않습니다.
+
+운영 검토는 Apps Script의 `SOCIAL_REVIEW_CHECK()`를 실행하거나 `Reports` / `CommentReports` 시트를 확인합니다. 댓글 신고는 `CommentReports`에 `pending` 상태로 저장됩니다.
+
+> 자원서버가 `config.SOCIAL_URL`을 앱에 내려주는 작업은 별도 보류 항목입니다. 이 연결이 완료되기 전에는 앱이 소셜 서버 준비 중으로 표시됩니다.
+
+---
+
 # V9.0 소셜 서버 연결
 
 V9.0 소셜은 개인 회복기록과 완전히 분리합니다. 기존 자원시트나 `ohg.v1`에 소셜 게시글을 넣지 않습니다.
