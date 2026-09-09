@@ -1,0 +1,118 @@
+name: Build and publish V9.0 Android prerelease
+
+on:
+  push:
+    branches: [android-v9.0-social-stage1-release]
+    paths:
+      - 'android-v9.0-social-stage1-release.sh'
+      - '.github/workflows/build-android-v90-social-stage1-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android 16 SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Extract Android source
+        run: |
+          rm -rf android-v8
+          mkdir android-v8
+          unzip -q android-v8-source.zip -d android-v8
+
+      - name: Apply V9.0 version-only patch
+        run: bash android-v9.0-social-stage1-release.sh
+
+      - name: Verify preserved reminder and TTS engines
+        run: |
+          set -euo pipefail
+          PKG=android-v8/app/src/main/java/io/github/hantae_ho/twa
+          ACT="$PKG/NotificationSettingsActivity.java"
+          grep -F 'ReminderStore.importSchedule(this, "", "", "", "", val(u, "build"))' "$ACT"
+          grep -F 'HabitReminderStore.importSchedule(this, "")' "$ACT"
+          grep -F 'TreatmentReminderStore.importSchedule(this, "", "", TreatmentReminderStore.time(this), 0)' "$ACT"
+          grep -F 'String visitAlerts = TreatmentReminderStore.alertsPacked(this)' "$ACT"
+          grep -F 'String visitTime = TreatmentReminderStore.time(this)' "$ACT"
+          grep -F 'ReminderStore.importSchedule(this, pendingRisk, pendingMeds, pendingEats, pendingBed, pendingBuild)' "$ACT"
+          grep -F 'HabitReminderStore.importSchedule(this, pendingHabits)' "$ACT"
+          grep -F 'TreatmentReminderStore.importSchedule(this, pendingVisit, visitAlerts, visitTime, pendingVisitInterval)' "$ACT"
+          grep -F 'setExactAndAllowWhileIdle' "$PKG/ReminderScheduler.java"
+          grep -F 'setExactAndAllowWhileIdle' "$PKG/HabitReminderScheduler.java"
+          grep -F 'setExactAndAllowWhileIdle' "$PKG/TreatmentReminderScheduler.java"
+          grep -F 'scheduleNextForOffset' "$PKG/TreatmentAlarmReceiver.java"
+          grep -F 'PowerManager.PARTIAL_WAKE_LOCK' "$PKG/RelaxTtsActivity.java"
+          grep -F 'TextToSpeech.QUEUE_FLUSH' "$PKG/MindProVoiceService.java"
+
+      - name: Restore release keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_B64" | base64 --decode > "$GITHUB_WORKSPACE/android-v8/signing.keystore"
+
+      - name: Create signing properties
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cat > android-v8/keystore.properties <<EOF
+          storeFile=$GITHUB_WORKSPACE/android-v8/signing.keystore
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Build signed APK and AAB
+        run: gradle -p android-v8 :app:assembleRelease :app:bundleRelease
+
+      - name: Verify APK version permissions and package
+        run: |
+          set -euo pipefail
+          APK=$(find android-v8/app/build/outputs/apk/release -name '*.apk' -type f | head -1)
+          AAB=$(find android-v8/app/build/outputs/bundle/release -name '*.aab' -type f | head -1)
+          test -s "$APK"
+          test -s "$AAB"
+          AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          "$AAPT" dump badging "$APK" | tee /tmp/badging.txt
+          grep -F "package: name='io.github.hantae_ho.twa' versionCode='893' versionName='9.0'" /tmp/badging.txt
+          "$AAPT" dump permissions "$APK" | tee /tmp/permissions.txt
+          grep -F 'android.permission.SCHEDULE_EXACT_ALARM' /tmp/permissions.txt
+          grep -F 'android.permission.WAKE_LOCK' /tmp/permissions.txt
+          grep -F 'android.permission.POST_NOTIFICATIONS' /tmp/permissions.txt
+          grep -F 'android.permission.RECEIVE_BOOT_COMPLETED' /tmp/permissions.txt
+          ! grep -Eq 'android.permission.(RECORD_AUDIO|CAMERA|READ_CONTACTS|WRITE_CONTACTS|ACCESS_FINE_LOCATION|ACCESS_COARSE_LOCATION)' /tmp/permissions.txt
+          cp "$APK" oneul-v9.0.apk
+          cp "$AAB" oneul-v9.0.aab
+          sha256sum oneul-v9.0.apk oneul-v9.0.aab | tee SHA256SUMS.txt
+
+      - name: Upload release files artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oneul-v9.0-release-files
+          path: |
+            oneul-v9.0.apk
+            oneul-v9.0.aab
+            SHA256SUMS.txt
+
+      - name: Publish V9.0 test prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v9.0-test --yes --cleanup-tag || true
+          gh release create v9.0-test oneul-v9.0.apk oneul-v9.0.aab SHA256SUMS.txt \
+            --target android-v9.0-social-stage1-release \
+            --title '오늘 한 걸음 V9.0 소셜 1단계 · 마음프로 보정 테스트 릴리즈' \
+            --notes 'V9.0 테스트 릴리즈입니다. 웹 main에는 소셜 1단계 기반(익명 닉네임, 내부 사용자 ID, 게시물 소유자 구분, 오늘의 한 걸음 글·응원, 내 글 수정·삭제, 신고·차단, 소셜 프로필 삭제)이 포함되어 있으며 회복기록 ohg.v1과 소셜 저장 ohg.social.v1을 분리합니다. 실제 다중사용자 공개 피드는 별도 social Apps Script를 배포하고 SOCIAL_URL을 연결해야 작동합니다. 마음프로는 한국 SMART Recovery 공식안내 위치를 GA 계열 뒤로 정리했고, 기기 기준 오늘·내일·모레·어제·특정 요일 및 유효 날짜 모임검색, AA·GA·NA·SMART 종류 구분, 현재모임 종료시간 미확인 주의, 일반 AI 현재시각 컨텍스트를 적용했습니다. 추가 시뮬레이션에서 상담문장 오분류, 자연어 타이머, 일시적 서버오류 재시도, 날짜 경계조건, 지난 모임 카드, 조사 문구를 보정했으며 67개 회귀 시나리오와 204개 확장 시뮬레이션, 총 271개 결정론적 검증을 통과했습니다. Android는 실기기 검증된 V8.5 네이티브 소스를 그대로 사용하고 versionCode 893 / versionName 9.0만 올립니다. 정확알림, 화면 OFF 알림, 부팅 후 재예약, 복약·외래·생활·습관 알림, silent reminder apply/clear, 마음프로 네이티브 음성, 이완 TTS 엔진을 변경하지 않았고 빌드에서 정적 검증합니다. DATA_SCHEMA=6, 회복 저장키 ohg.v1은 그대로입니다. 웹 main SHA: c87e53eda22475fa4a0d2a8a72e6d61fe5ea0de9. 실기기 확인 전이므로 prerelease입니다.' \
+            --prerelease

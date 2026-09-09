@@ -1,0 +1,91 @@
+name: Build V8.1 Treatment Android
+
+on:
+  push:
+    branches: [android-v8.1-treatment]
+    paths:
+      - 'android-v8-source.zip'
+      - 'android-v8.0.1-patch.sh'
+      - 'android-v8.0.2-fix.sh'
+      - 'android-v8.0.3-exact-alarm.sh'
+      - 'android-v8.0.3-overlay/**'
+      - 'android-v8.0.5-native-entry.sh'
+      - 'android-v8.1-treatment.sh'
+      - '.github/workflows/build-android-v81-treatment.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android 16 SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Extract Android source
+        run: |
+          rm -rf android-v8
+          mkdir android-v8
+          unzip -q android-v8-source.zip -d android-v8
+      - name: Apply V8.1 treatment reminders
+        run: bash android-v8.1-treatment.sh
+      - name: Restore release keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 --decode > "$GITHUB_WORKSPACE/android-v8/signing.keystore"
+      - name: Verify signing certificate
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          keytool -list -v -keystore "$GITHUB_WORKSPACE/android-v8/signing.keystore" -storepass "$STORE_PASSWORD" -alias "$KEY_ALIAS" | grep 'SHA256:'
+      - name: Create signing properties
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cat > android-v8/keystore.properties <<EOF
+          storeFile=$GITHUB_WORKSPACE/android-v8/signing.keystore
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+      - name: Build release APK and AAB
+        run: gradle -p android-v8 :app:assembleRelease :app:bundleRelease
+      - name: Verify built APK manifest and version
+        run: |
+          APK=$(find android-v8/app/build/outputs/apk/release -name '*.apk' -type f | head -1)
+          test -n "$APK"
+          AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          "$AAPT" dump badging "$APK" | grep -F "versionCode='810' versionName='8.1'"
+          "$AAPT" dump permissions "$APK" | grep -F 'android.permission.SCHEDULE_EXACT_ALARM'
+          "$AAPT" dump xmltree "$APK" AndroidManifest.xml > /tmp/manifest.txt
+          grep -F 'https://hantae-ho.github.io/oneul-web/native.html' /tmp/manifest.txt
+          grep -F 'io.github.hantae_ho.twa.LauncherActivity' /tmp/manifest.txt
+          grep -F 'io.github.hantae_ho.twa.NotificationSettingsActivity' /tmp/manifest.txt
+          grep -F 'io.github.hantae_ho.twa.TreatmentAlarmReceiver' /tmp/manifest.txt
+      - name: Verify treatment reminder source
+        run: |
+          grep -q 'setExactAndAllowWhileIdle' android-v8/app/src/main/java/io/github/hantae_ho/twa/TreatmentReminderScheduler.java
+          grep -q '오늘은 외래 예정일입니다' android-v8/app/src/main/java/io/github/hantae_ho/twa/NotificationHelper.java
+          grep -q 'pendingVisitAlerts' android-v8/app/src/main/java/io/github/hantae_ho/twa/NotificationSettingsActivity.java
+          grep -q 'TreatmentReminderScheduler.scheduleAll' android-v8/app/src/main/java/io/github/hantae_ho/twa/BootReceiver.java
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: oneul-v8.1-treatment-apk
+          path: android-v8/app/build/outputs/apk/release/*.apk
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: oneul-v8.1-treatment-aab
+          path: android-v8/app/build/outputs/bundle/release/*.aab

@@ -1,0 +1,37 @@
+name: Publish V8.1.8 test release
+
+on:
+  push:
+    branches: [android-v8.1.8-pre-social]
+    paths:
+      - '.github/workflows/publish-v818-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.1.8 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33850154406 -n oneul-v8.1.8-pre-social-apk -D dist-apk
+          gh run download 33850154406 -n oneul-v8.1.8-pre-social-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.1.8.apk
+          cp dist-aab/*.aab oneul-v8.1.8.aab
+          test -s oneul-v8.1.8.apk
+          test -s oneul-v8.1.8.aab
+      - name: Publish V8.1.8 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.1.8-test --yes --cleanup-tag || true
+          gh release create v8.1.8-test oneul-v8.1.8.apk oneul-v8.1.8.aab \
+            --target android-v8.1.8-pre-social \
+            --title '오늘 한 걸음 V8.1.8 소셜 전 정리 테스트' \
+            --notes '소셜 기능을 넣기 전 정리판입니다. 기존 메뉴 개편 후 남아 있던 안내 문구를 현재 회복도구 → 일정·알림 구조에 맞게 정리하고, 개인 회복기록 데이터 스키마 버전을 분리했습니다. 향후 소셜 닉네임·응원글·댓글·인증정보는 개인 회복기록과 백업 JSON에 섞지 않는 구조를 기준으로 합니다. V8.1.7의 습관·생활·치료 Android 예약알림 엔진은 변경하지 않았습니다.' \
+            --prerelease

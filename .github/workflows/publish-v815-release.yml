@@ -1,0 +1,39 @@
+name: Publish V8.1.5 test release
+
+on:
+  push:
+    branches: [android-v8.1.5-habits]
+    paths:
+      - '.github/workflows/publish-v815-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: android-v8.1.5-habits
+      - name: Download verified V8.1.5 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33821728219 -n oneul-v8.1.5-habits-apk -D dist-apk
+          gh run download 33821728219 -n oneul-v8.1.5-habits-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.1.5.apk
+          cp dist-aab/*.aab oneul-v8.1.5.aab
+          test -s oneul-v8.1.5.apk
+          test -s oneul-v8.1.5.aab
+      - name: Publish V8.1.5 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.1.5-test --yes --cleanup-tag || true
+          gh release create v8.1.5-test oneul-v8.1.5.apk oneul-v8.1.5.aab \
+            --target android-v8.1.5-habits \
+            --title '오늘 한 걸음 V8.1.5 습관·알림 단순화 테스트' \
+            --notes '습관 기능을 실제 구현했습니다. 추천 습관을 그대로 사용하거나 수정할 수 있고, 새 습관의 기간·빈도·체크문구·알림시간을 정할 수 있습니다. 홈에서 오늘 습관을 체크할 수 있습니다. 치료 일정의 상위 사용 스위치와 외래 알림 설정을 제거하고 복약·외래를 개별 관리하도록 단순화했습니다. Android에서는 일정·알림의 알림 설정을 누르면 네이티브 예약알림 화면으로 바로 이동하며, 외래 3일 전·1일 전·당일과 알림시간도 그 화면에서 관리합니다. 기존 복약·생활·외래 반복 예약 엔진은 유지합니다.' \
+            --prerelease

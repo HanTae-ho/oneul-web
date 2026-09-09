@@ -1,0 +1,37 @@
+name: Publish V8.2.34 test release
+
+on:
+  push:
+    branches: [android-v8.2.34-family-navigation]
+    paths:
+      - '.github/workflows/publish-v8234-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.34 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34073111593 -n oneul-v8.2.34-family-navigation-apk -D dist-apk
+          gh run download 34073111593 -n oneul-v8.2.34-family-navigation-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.34.apk
+          cp dist-aab/*.aab oneul-v8.2.34.aab
+          test -s oneul-v8.2.34.apk
+          test -s oneul-v8.2.34.aab
+      - name: Publish V8.2.34 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.34-test --yes --cleanup-tag || true
+          gh release create v8.2.34-test oneul-v8.2.34.apk oneul-v8.2.34.aab \
+            --target android-v8.2.34-family-navigation \
+            --title '오늘 한 걸음 V8.2.34 가족 안내 접근성·되돌아가기 테스트' \
+            --notes '가족모드의 나를 돌보기 화면 상단에 내 경계 정리 바로가기를 추가했습니다. 기존 경계 안내 글 안의 진입점도 그대로 유지합니다. 또한 가족 안내에서 CBA, ABC(내 생각과 반응 살펴보기), 밸런스 파이, 건강 회복으로 들어간 경우 공통 상단 되돌아가기가 SMART 실천도구가 아니라 가족 안내로 표시되도록 route-aware 규칙을 보완했습니다. SMART 허브나 학습에서 직접 진입한 경우 기존 되돌아가기 문구는 그대로 유지됩니다. 가족 모임 찾기와 헬프는 이번 SMART 되돌아가기 문제의 대상이 아니어서 구조를 변경하지 않았습니다. DATA_SCHEMA 6, 기존 family-boundary 기록, 가족 충동·재발 비기록, Local-first, Android 이완 TTS, 화면 OFF 지속 재생, 속도 선택, 정확알림 엔진과 부팅 후 재예약은 모두 유지했습니다.' \
+            --prerelease

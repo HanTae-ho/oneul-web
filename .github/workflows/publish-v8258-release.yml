@@ -1,0 +1,38 @@
+name: Publish V8.2.58 test release
+
+on:
+  push:
+    branches: [android-v8.2.58-privacy-concise]
+    paths:
+      - '.github/workflows/publish-v8258-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.58 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34202193249 -n oneul-v8.2.58-privacy-concise-apk -D dist-apk
+          gh run download 34202193249 -n oneul-v8.2.58-privacy-concise-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.58.apk
+          cp dist-aab/*.aab oneul-v8.2.58.aab
+          test -s oneul-v8.2.58.apk
+          test -s oneul-v8.2.58.aab
+          sha256sum oneul-v8.2.58.apk oneul-v8.2.58.aab
+      - name: Publish V8.2.58 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.58-test --yes --cleanup-tag || true
+          gh release create v8.2.58-test oneul-v8.2.58.apk oneul-v8.2.58.aab \
+            --target android-v8.2.58-privacy-concise \
+            --title '오늘 한 걸음 V8.2.58 개인정보처리방침 간결화 테스트' \
+            --notes 'V8.2.57에서 검증한 실제 데이터 흐름은 유지하면서 개인정보처리방침을 핵심 6개 항목으로 줄였습니다. 문의 방법은 admin@maumpro.com으로 변경했습니다. 기기 내부 회복기록은 마음프로에 자동 첨부되지 않고, 마음프로 일반 AI 대화는 익명형 clientId·현재 메시지·주제·앱 버전·최근 일반 AI 대화 최대 8개가 Apps Script 중계를 거쳐 OpenAI API로 전송되는 실제 동작을 그대로 공개합니다. Android는 V8.2.57에서 검증한 정확알림·화면 OFF 알림·부팅 재예약·복약/외래/생활/습관 알림·마음프로 네이티브 TTS·이완 TTS 스택을 그대로 사용하고 versionCode 878 / versionName 8.2.58만 적용했습니다. 웹 main SHA는 ebacdbf2505a72c06bee6d15133c5b798b5c747c 입니다.' \
+            --prerelease

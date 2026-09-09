@@ -1,0 +1,38 @@
+name: Publish V8.2.0 test release
+
+on:
+  push:
+    branches: [android-v8.2.0-future-self]
+    paths:
+      - '.github/workflows/publish-v820-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.0 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33854518682 -n oneul-v8.2.0-future-self-apk -D dist-apk
+          gh run download 33854518682 -n oneul-v8.2.0-future-self-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.0.apk
+          cp dist-aab/*.aab oneul-v8.2.0.aab
+          test -s oneul-v8.2.0.apk
+          test -s oneul-v8.2.0.aab
+          sha256sum oneul-v8.2.0.apk oneul-v8.2.0.aab
+      - name: Publish V8.2.0 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.0-test --yes --cleanup-tag || true
+          gh release create v8.2.0-test oneul-v8.2.0.apk oneul-v8.2.0.aab \
+            --target android-v8.2.0-future-self \
+            --title '오늘 한 걸음 V8.2.0 미래의 나에게 테스트' \
+            --notes '회복을 시작한 마음을 최대 800자의 텍스트로 기기 안에 저장·수정·삭제할 수 있는 「미래의 나에게」를 추가했습니다. 저장된 메시지가 있을 때 「지금 위험해요 → 마음 처방전」에 「초심 다시 보기」가 나타나며, 위기 진입에서는 메시지를 읽고 충동 대응을 계속하는 흐름을 우선합니다. 이번 판에는 음성 녹음·재생을 넣지 않았고, 기존 습관·생활·치료 Android 예약알림 엔진은 변경하지 않았습니다.' \
+            --prerelease

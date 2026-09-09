@@ -1,0 +1,37 @@
+name: Publish V8.2.13 test release
+
+on:
+  push:
+    branches: [android-v8.2.13-smart-nav-abc]
+    paths:
+      - '.github/workflows/publish-v8213-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.13 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34005762911 -n oneul-v8.2.13-smart-nav-abc-apk -D dist-apk
+          gh run download 34005762911 -n oneul-v8.2.13-smart-nav-abc-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.13.apk
+          cp dist-aab/*.aab oneul-v8.2.13.aab
+          test -s oneul-v8.2.13.apk
+          test -s oneul-v8.2.13.aab
+      - name: Publish V8.2.13 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.13-test --yes --cleanup-tag || true
+          gh release create v8.2.13-test oneul-v8.2.13.apk oneul-v8.2.13.aab \
+            --target android-v8.2.13-smart-nav-abc \
+            --title '오늘 한 걸음 V8.2.13 SMART 뒤로가기 + ABC 테스트' \
+            --notes 'SMART 개별 실천도구의 상단 뒤로가기 표기를 전체 점검해 실제 진입경로와 일치하도록 수정했습니다. SMART 실천도구에서 들어오면 ← SMART 실천도구, 회복학습의 SMART Recovery에서 들어오면 ← SMART Recovery, 미래의 나에게에서 DISARM으로 들어오면 ← 미래의 나에게로 표시됩니다. HOV·나의 3가지 질문·변화 계획·CBA·DEADS·DISARM에 공통 적용했고, 변화 계획과 나의 3가지 질문의 하단 탭 소속도 회복도구로 보정했습니다. 다음 단계로 Point 3에 ABC 문제 해결 작성형 도구를 추가하여 A 활성화 사건 → B 생각·신념 → C 감정·행동·결과 → D 질문·반박 → E 효과적인 새로운 생각을 기록하고 저장·보기·수정·삭제할 수 있습니다. 기존 smartWorks를 사용하고 당사자·가족 기록을 분리하며, 가족모드에서는 상대를 분석하는 것이 아니라 가족 자신의 반응을 돌아보도록 안내합니다. DATA_SCHEMA는 6을 유지하며 기존 HOV·CBA·DEADS·DISARM·충동일기·미래의 나에게·12단계 및 Android 습관·생활·치료·외래 정확알림 엔진은 변경하지 않았습니다.' \
+            --prerelease

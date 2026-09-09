@@ -1,0 +1,37 @@
+name: Publish V8.2.30 test release
+
+on:
+  push:
+    branches: [android-v8.2.30-smart-health]
+    paths:
+      - '.github/workflows/publish-v8230-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.30 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34038718757 -n oneul-v8.2.30-smart-health-apk -D dist-apk
+          gh run download 34038718757 -n oneul-v8.2.30-smart-health-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.30.apk
+          cp dist-aab/*.aab oneul-v8.2.30.aab
+          test -s oneul-v8.2.30.apk
+          test -s oneul-v8.2.30.aab
+      - name: Publish V8.2.30 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.30-test --yes --cleanup-tag || true
+          gh release create v8.2.30-test oneul-v8.2.30.apk oneul-v8.2.30.aab \
+            --target android-v8.2.30-smart-health \
+            --title '오늘 한 걸음 V8.2.30 건강 회복 · 생활 돌보기 테스트' \
+            --notes 'SMART Recovery Point 4에 건강 회복 · 생활 돌보기를 추가했습니다. 별도 건강 기록체계를 새로 만들지 않고 식사와 수면은 기존 생활 일정, 운동은 습관, 복약과 외래는 치료 일정, 미루기는 SMART 목표, 현재 생활 흐름은 내 발자취의 몸 기록으로 연결합니다. 가족 모드에서는 상대방의 치료를 관리하는 기능으로 보이지 않도록 복약·치료 카드를 숨기고 가족 자신의 건강과 생활을 돌보도록 안내합니다. DATA_SCHEMA 6과 기존 기록 구조는 변경하지 않았습니다. V8.2.29의 Android 네이티브 이완 TTS, 0.7/0.8/0.9/1.0 말하기 속도 선택, 화면 OFF 지속 재생, 정확알림 엔진과 부팅 후 재예약도 그대로 유지했습니다.' \
+            --prerelease

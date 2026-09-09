@@ -1,0 +1,37 @@
+name: Publish V8.2.33 test release
+
+on:
+  push:
+    branches: [android-v8.2.33-family-boundary]
+    paths:
+      - '.github/workflows/publish-v8233-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.33 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34072201343 -n oneul-v8.2.33-family-boundary-apk -D dist-apk
+          gh run download 34072201343 -n oneul-v8.2.33-family-boundary-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.33.apk
+          cp dist-aab/*.aab oneul-v8.2.33.aab
+          test -s oneul-v8.2.33.apk
+          test -s oneul-v8.2.33.aab
+      - name: Publish V8.2.33 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.33-test --yes --cleanup-tag || true
+          gh release create v8.2.33-test oneul-v8.2.33.apk oneul-v8.2.33.aab \
+            --target android-v8.2.33-family-boundary \
+            --title '오늘 한 걸음 V8.2.33 가족 내 경계 정리 테스트' \
+            --notes '가족 안내의 기존 경계 글에서만 들어가는 `내 경계 정리` 최소 실천도구를 추가했습니다. 경계는 상대를 통제하거나 벌주는 규칙이 아니라 가족 자신의 기준과 보호 행동으로 정리합니다. 상황 → 내가 지키고 싶은 것 → 안전한 때 알리거나 요청할 말(선택) → 경계가 지켜지지 않을 때 내가 할 행동 → 실제로 지킬 수 있는 크기 순서로 작성하며, 필요하면 더 작은 행동으로 다시 정리할 수 있습니다. 폭력·위협 또는 안전이 불확실하면 기존 가족 위기 안내로 바로 연결합니다. 기록은 기존 S.smartWorks에 family-boundary / family로 저장하며 수정·삭제가 가능하고 DATA_SCHEMA 6은 그대로 유지합니다. Android 네이티브 이완 TTS, 화면 OFF 지속 재생, 0.7/0.8/0.9/1.0 속도 선택, 정확알림 엔진과 부팅 후 재예약은 변경하지 않았습니다.' \
+            --prerelease

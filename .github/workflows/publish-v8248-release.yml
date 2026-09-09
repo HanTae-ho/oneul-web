@@ -1,0 +1,38 @@
+name: Publish V8.2.48 test release
+
+on:
+  push:
+    branches: [android-v8.2.48-audit-skip]
+    paths:
+      - '.github/workflows/publish-v8248-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.48 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34141034149 -n oneul-v8.2.48-audit-skip-apk -D dist-apk
+          gh run download 34141034149 -n oneul-v8.2.48-audit-skip-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.48.apk
+          cp dist-aab/*.aab oneul-v8.2.48.aab
+          test -s oneul-v8.2.48.apk
+          test -s oneul-v8.2.48.aab
+          sha256sum oneul-v8.2.48.apk oneul-v8.2.48.aab
+      - name: Publish V8.2.48 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.48-test --yes --cleanup-tag || true
+          gh release create v8.2.48-test oneul-v8.2.48.apk oneul-v8.2.48.aab \
+            --target android-v8.2.48-audit-skip \
+            --title '오늘 한 걸음 V8.2.48 AUDIT-K 건너뛰기 테스트' \
+            --notes 'V8.2.47 정상본을 기준으로 AUDIT-K 표준 건너뛰기 흐름만 수정했습니다. 1번 전혀 안 마심 선택 시 2~8번을 건너뛰고 9번으로 이동하며, 2번과 3번이 모두 0점이면 4~8번을 건너뛰고 9번으로 이동합니다. 되돌아가 답을 바꾸면 자동 입력한 문항을 다시 응답하도록 복구합니다. 다른 자가점검 문항·채점·저장형식, DATA_SCHEMA=6, ohg.v1은 유지합니다. Android 네이티브 코드는 V8.2.47 검증 스택을 그대로 사용하고 versionCode 868 / versionName 8.2.48만 적용했으며 정확알림·화면 OFF 알림·부팅 재예약·외래 반복예약·이완 TTS를 보존했습니다.' \
+            --prerelease

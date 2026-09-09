@@ -1,0 +1,38 @@
+name: Publish V8.2.68 test release
+
+on:
+  push:
+    branches: [android-v8.2.68-reminder-sync]
+    paths:
+      - '.github/workflows/publish-v8268-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.68 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34296532146 -n oneul-v8.2.68-reminder-sync-apk -D dist-apk
+          gh run download 34296532146 -n oneul-v8.2.68-reminder-sync-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.68.apk
+          cp dist-aab/*.aab oneul-v8.2.68.aab
+          test -s oneul-v8.2.68.apk
+          test -s oneul-v8.2.68.aab
+          sha256sum oneul-v8.2.68.apk oneul-v8.2.68.aab | tee SHA256SUMS.txt
+      - name: Publish V8.2.68 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.68-test --yes --cleanup-tag || true
+          gh release create v8.2.68-test oneul-v8.2.68.apk oneul-v8.2.68.aab SHA256SUMS.txt \
+            --target android-v8.2.68-reminder-sync \
+            --title '오늘 한 걸음 V8.2.68 알림 동기화·저작권 안전 30곡 테스트' \
+            --notes 'V8.2.68 테스트 릴리즈입니다. 기록관리 전체 지우기 시 웹 기록과 Android 네이티브 예약알림을 함께 정리하도록 수정했고, 백업 불러오기 및 복약·식사·잠·습관·외래·위험시간 변경 시 알림 관련 상태가 달라진 경우에만 Android 예약을 조용히 동기화합니다. 외래 알림의 3일 전·1일 전·당일을 모두 끈 설정이 다시 기본값으로 되살아나는 경계조건도 수정했습니다. 저작권 안전 최종 30곡을 앱 내 감사목록으로 반영했으며 Public Domain/CC0 20곡 + CC BY/BY-SA 10곡으로 정리했습니다. 13번은 슈베르트 D.958 II · Paul Pitman · Musopen Public Domain, 22번은 Set Chopin Free Frank Levy 녹음입니다. Android는 versionCode 888 / versionName 8.2.68이며 정확알림·화면 OFF 알림·부팅 재예약·복약/외래/생활/습관 알림·마음프로 네이티브 음성·이완 TTS 엔진을 그대로 유지하고 자동 검증했습니다. DATA_SCHEMA=6, ohg.v1, 기존 회복기록 구조는 변경하지 않았습니다. 웹 main SHA는 ed971f4883f5cdd904fca1e34d6634fca9dba30e 입니다. 실기기 확인 전이므로 prerelease입니다.' \
+            --prerelease

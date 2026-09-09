@@ -1,0 +1,38 @@
+name: Publish V8.2.37 test release
+
+on:
+  push:
+    branches: [android-v8.2.37-family-tools-hub]
+    paths:
+      - '.github/workflows/publish-v8237-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.37 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34080224312 -n oneul-v8.2.37-family-tools-hub-apk -D dist-apk
+          gh run download 34080224312 -n oneul-v8.2.37-family-tools-hub-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.37.apk
+          cp dist-aab/*.aab oneul-v8.2.37.aab
+          test -s oneul-v8.2.37.apk
+          test -s oneul-v8.2.37.aab
+          sha256sum oneul-v8.2.37.apk oneul-v8.2.37.aab
+      - name: Publish V8.2.37 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.37-test --yes --cleanup-tag || true
+          gh release create v8.2.37-test oneul-v8.2.37.apk oneul-v8.2.37.aab \
+            --target android-v8.2.37-family-tools-hub \
+            --title '오늘 한 걸음 V8.2.37 가족을 위한 도구 허브 테스트' \
+            --notes '가족모드의 회복도구 → 배우고 연습하기에 가족을 위한 도구 허브를 추가했습니다. 허브는 새 저장체계가 아니라 기존 실천도구의 바로가기이며, 내 경계 정리·대화 준비·다시 사용했을 때 내 대응계획을 중심으로 ABC·CBA·문제 해결 5단계·삶의 균형·VACI·이완·건강 회복을 연결합니다. 가족 12단계·가족모임·헬프는 기존 위치를 유지합니다. 가족 안내의 중독·회복·다시 사용 관련 문구와 SMART Point 2 가족 설명을 보정했고, 가족 안내/가족도구 허브에 따른 되돌아가기와 하단 회복도구 탭 정합성도 정리했습니다. DATA_SCHEMA 6, 가족 충동·재발 비기록, 기존 저장구조, Android 이완 TTS, 화면 OFF 지속 재생, 속도 선택, 정확알림 엔진과 부팅 후 재예약은 모두 유지했습니다.' \
+            --prerelease

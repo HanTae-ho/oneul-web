@@ -1,0 +1,37 @@
+name: Publish V8.2.10 test release
+
+on:
+  push:
+    branches: [android-v8.2.10-smart-disarm]
+    paths:
+      - '.github/workflows/publish-v8210-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.10 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33953182307 -n oneul-v8.2.10-smart-disarm-apk -D dist-apk
+          gh run download 33953182307 -n oneul-v8.2.10-smart-disarm-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.10.apk
+          cp dist-aab/*.aab oneul-v8.2.10.aab
+          test -s oneul-v8.2.10.apk
+          test -s oneul-v8.2.10.aab
+      - name: Publish V8.2.10 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.10-test --yes --cleanup-tag || true
+          gh release create v8.2.10-test oneul-v8.2.10.apk oneul-v8.2.10.aab \
+            --target android-v8.2.10-smart-disarm \
+            --title '오늘 한 걸음 V8.2.10 SMART Recovery DISARM 테스트' \
+            --notes 'SMART Recovery Point 2에 DISARM(Destructive Images and Self-talk Awareness and Refusal Method) 작성·실행 도구를 추가했습니다. 원자료의 핵심 구조에 맞춰 충동을 부추기는 파괴적인 이미지·자기대화를 먼저 알아차리고, 현실적이고 건설적인 생각으로 거부·대체하도록 구성했습니다. 충동의 목소리에 이름 붙이기는 선택사항으로 두었고, 반복 생각·이미지, 그 생각이 약속하는 것, 현실 확인, 단호한 거부 문장, 현실적인 대체 생각·이미지를 기기에 저장해 다시 사용할 수 있습니다. 저장 계획이 없어도 DISARM의 두 단계 안내 후 기존 5분 충동 대응으로 바로 이어갈 수 있으며, 사용 시 기존 충동 기록에 DISARM 대처를 남깁니다. 가족모드에서는 상대의 생각을 분석·논박하거나 충동을 감시·통제하는 용도로 사용하지 않도록 작성·실행 기능을 차단했습니다. 기존 DEADS, 충동일기, SMART Point 1 작성도구, 12단계 및 Android 습관·생활·치료·외래 예약알림 엔진은 변경하지 않았습니다.' \
+            --prerelease

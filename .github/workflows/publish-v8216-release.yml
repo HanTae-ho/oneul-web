@@ -1,0 +1,37 @@
+name: Publish V8.2.16 test release
+
+on:
+  push:
+    branches: [android-v8.2.16-smart-thinking-styles]
+    paths:
+      - '.github/workflows/publish-v8216-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.16 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34008440501 -n oneul-v8.2.16-smart-thinking-styles-apk -D dist-apk
+          gh run download 34008440501 -n oneul-v8.2.16-smart-thinking-styles-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.16.apk
+          cp dist-aab/*.aab oneul-v8.2.16.aab
+          test -s oneul-v8.2.16.apk
+          test -s oneul-v8.2.16.aab
+      - name: Publish V8.2.16 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.16-test --yes --cleanup-tag || true
+          gh release create v8.2.16-test oneul-v8.2.16.apk oneul-v8.2.16.aab \
+            --target android-v8.2.16-smart-thinking-styles \
+            --title '오늘 한 걸음 V8.2.16 SMART 사고방식 테스트' \
+            --notes 'SMART Recovery Point 3에 도움이 되지 않는 사고방식 자기점검 도구를 추가했습니다. 번역본의 8가지 유형(정신적 여과, 성급한 결론/독심술, 개인화, 파국, 흑백사고, Shoulds/Musts, 과잉 일반화, 낙인 찍기)을 읽고 내게 자주 나타나는 유형을 복수선택할 수 있습니다. 최근 실제 생각, 상황, 감정·행동에 미친 영향을 기록하며, 저장한 생각을 ABC 또는 DIBS 작성 화면으로 바로 이어서 초기값으로 사용할 수 있습니다. 기록은 기존 smartWorks에 기기 내부 저장되며 보기·수정·삭제가 가능합니다. 가족모드는 상대를 평가하지 않고 가족 자신의 사고와 반응을 점검하도록 안내합니다. 기존 SMART 도구, 홈 오늘 일정 길게 눌러 수정, 12단계, Android 습관·생활·치료·외래 정확알림 엔진은 변경하지 않았습니다.' \
+            --prerelease

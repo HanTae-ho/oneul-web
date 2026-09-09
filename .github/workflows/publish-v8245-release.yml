@@ -1,0 +1,38 @@
+name: Publish V8.2.45 test release
+
+on:
+  push:
+    branches: [android-v8.2.45-mobile-scroll]
+    paths:
+      - '.github/workflows/publish-v8245-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.45 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34128039294 -n oneul-v8.2.45-mobile-scroll-apk -D dist-apk
+          gh run download 34128039294 -n oneul-v8.2.45-mobile-scroll-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.45.apk
+          cp dist-aab/*.aab oneul-v8.2.45.aab
+          test -s oneul-v8.2.45.apk
+          test -s oneul-v8.2.45.aab
+          sha256sum oneul-v8.2.45.apk oneul-v8.2.45.aab
+      - name: Publish V8.2.45 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.45-test --yes --cleanup-tag || true
+          gh release create v8.2.45-test oneul-v8.2.45.apk oneul-v8.2.45.aab \
+            --target android-v8.2.45-mobile-scroll \
+            --title '오늘 한 걸음 V8.2.45 모바일 스크롤 정리 테스트' \
+            --notes 'V8.2.44 정상본을 기준으로 모바일의 긴 화면만 정리했습니다. 12단계 점검 세부항목은 한 번에 하나만 펼치고, 듣는 글 30편은 충동/무너진 뒤/가라앉을 때/사람/막막할 때/몸/괜찮을 때 범주 칩으로 한 범주만 표시합니다. VACI 저장기록 상세도 단일 아코디언으로 맞췄습니다. DATA_SCHEMA=6, ohg.v1은 유지합니다. Android 네이티브 코드는 V8.2.44 검증 스택을 그대로 사용하고 versionCode 865 / versionName 8.2.45만 적용했으며 정확알림·화면 OFF 알림·부팅 재예약·외래 반복예약·이완 TTS를 보존했습니다.' \
+            --prerelease

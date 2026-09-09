@@ -1,0 +1,37 @@
+name: Publish V8.2.9 test release
+
+on:
+  push:
+    branches: [android-v8.2.9-smart-deads]
+    paths:
+      - '.github/workflows/publish-v829-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.9 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33951385776 -n oneul-v8.2.9-smart-deads-apk -D dist-apk
+          gh run download 33951385776 -n oneul-v8.2.9-smart-deads-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.9.apk
+          cp dist-aab/*.aab oneul-v8.2.9.aab
+          test -s oneul-v8.2.9.apk
+          test -s oneul-v8.2.9.aab
+      - name: Publish V8.2.9 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.9-test --yes --cleanup-tag || true
+          gh release create v8.2.9-test oneul-v8.2.9.apk oneul-v8.2.9.aab \
+            --target android-v8.2.9-smart-deads \
+            --title '오늘 한 걸음 V8.2.9 SMART Recovery DEADS 테스트' \
+            --notes 'SMART Recovery Point 2에 DEADS 충동 대처 작성·실행 도구를 추가했습니다. D 거부·지연, E 벗어나기, A 회피·수용·반박, D 활동으로 주의 돌리기, S 대체하기의 다섯 전략을 원자료 구조에 맞춰 제공합니다. A의 Attack은 사람에 대한 공격이 아니라 충동을 부추기는 생각을 정면으로 다루고 반박하는 의미임을 명확히 표시했습니다. 개인은 전략을 미리 저장·보기·수정·삭제할 수 있고, 지금 DEADS 사용하기에서 최근 계획을 불러와 한 전략을 선택한 뒤 기존 5분 충동 대응으로 바로 이어갈 수 있습니다. 선택한 DEADS 전략은 현재 충동 대처기록에 함께 남습니다. 원자료의 지연 설명과 앱의 5분 시작은 구분해 안내하며, 가족모드에서는 상대의 충동을 감시·통제하는 용도로 사용하지 않도록 작성·실행 기능을 차단합니다. 기존 충동일기, SMART Point 1 작성도구, 12단계 및 Android 습관·생활·치료·외래 예약알림 엔진은 변경하지 않았습니다.' \
+            --prerelease

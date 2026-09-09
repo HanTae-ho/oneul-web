@@ -1,0 +1,38 @@
+name: Publish V8.2.51 test release
+
+on:
+  push:
+    branches: [android-v8.2.51-trail-screening-mindpro]
+    paths:
+      - '.github/workflows/publish-v8251-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.51 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34172632587 -n oneul-v8.2.51-trail-screening-mindpro-apk -D dist-apk
+          gh run download 34172632587 -n oneul-v8.2.51-trail-screening-mindpro-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.51.apk
+          cp dist-aab/*.aab oneul-v8.2.51.aab
+          test -s oneul-v8.2.51.apk
+          test -s oneul-v8.2.51.aab
+          sha256sum oneul-v8.2.51.apk oneul-v8.2.51.aab
+      - name: Publish V8.2.51 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.51-test --yes --cleanup-tag || true
+          gh release create v8.2.51-test oneul-v8.2.51.apk oneul-v8.2.51.aab \
+            --target android-v8.2.51-trail-screening-mindpro \
+            --title '오늘 한 걸음 V8.2.51 자가점검 기록·마음프로 간결화 테스트' \
+            --notes 'V8.2.50 정상본을 기준으로 내 발자취에 자가점검 독립 탭을 추가하고, 회복도구의 자가점검·12단계·SMART에서 관련 과거 기록으로 바로 이동할 수 있게 했습니다. 자가점검 결과의 변화 보기 역시 새 자가점검 탭으로 연결됩니다. 마음프로는 응급·안전 경고를 유지하면서 그 아래 안내를 짧게 정리했고, 음성으로·말로·소리로 같은 단독 입력도 AI 서버로 보내지 않고 현재 대화 자동 읽기 ON 명령으로 처리합니다. DATA_SCHEMA=6, ohg.v1, 기존 저장형식은 유지합니다. Android는 V8.2.50에서 검증된 네이티브 TTS·정확알림·화면 OFF 알림·부팅 재예약·외래 반복예약·이완 TTS 스택을 그대로 사용하고 versionCode 871 / versionName 8.2.51만 적용했습니다.' \
+            --prerelease

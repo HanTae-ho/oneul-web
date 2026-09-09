@@ -1,0 +1,37 @@
+name: Publish V8.2.21 test release
+
+on:
+  push:
+    branches: [android-v8.2.21-smart-learning-links]
+    paths:
+      - '.github/workflows/publish-v8221-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.21 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34012523400 -n oneul-v8.2.21-smart-learning-links-apk -D dist-apk
+          gh run download 34012523400 -n oneul-v8.2.21-smart-learning-links-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.21.apk
+          cp dist-aab/*.aab oneul-v8.2.21.aab
+          test -s oneul-v8.2.21.apk
+          test -s oneul-v8.2.21.aab
+      - name: Publish V8.2.21 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.21-test --yes --cleanup-tag || true
+          gh release create v8.2.21-test oneul-v8.2.21.apk oneul-v8.2.21.aab \
+            --target android-v8.2.21-smart-learning-links \
+            --title '오늘 한 걸음 V8.2.21 SMART 학습-실천 연결 테스트' \
+            --notes 'SMART Recovery 회복학습과 실천도구 연결을 Point 1~4 기준으로 다시 점검하고 보완했습니다. Point 1은 HOV·나의 3가지 질문·변화계획·CBA, Point 2는 DEADS·DISARM·충동일기, Point 3은 ABC·DIBS·도움이 되지 않는 사고방식·문제 해결 5단계, Point 4는 라이프스타일 밸런스 파이로 연결됩니다. 학습 Point 상세에서 실천도구로 이동한 뒤 돌아가기를 누르면 실제로 들어왔던 SMART Recovery Point 상세가 다시 열리도록 경로 복원도 보완했습니다. 충동일기 역시 진입 출처에 따라 회복도구·SMART Recovery·SMART 실천도구로 돌아가기 문구와 동작이 일치합니다. 사용자 화면에서는 제작과정 표현을 제거하고 삶을 돌아보는 질문 전체 보기 등 자연스러운 문구로 정리했습니다. DATA_SCHEMA 6, 기존 기록 저장구조, 홈 일정, Android 습관·생활·치료·외래 정확알림 엔진은 변경하지 않았습니다.' \
+            --prerelease

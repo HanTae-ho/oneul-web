@@ -1,0 +1,37 @@
+name: Publish V8.2.22 test release
+
+on:
+  push:
+    branches: [android-v8.2.22-smart-vaci]
+    paths:
+      - '.github/workflows/publish-v8222-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.22 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34013362430 -n oneul-v8.2.22-smart-vaci-apk -D dist-apk
+          gh run download 34013362430 -n oneul-v8.2.22-smart-vaci-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.22.apk
+          cp dist-aab/*.aab oneul-v8.2.22.aab
+          test -s oneul-v8.2.22.apk
+          test -s oneul-v8.2.22.aab
+      - name: Publish V8.2.22 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.22-test --yes --cleanup-tag || true
+          gh release create v8.2.22-test oneul-v8.2.22.apk oneul-v8.2.22.aab \
+            --target android-v8.2.22-smart-vaci \
+            --title '오늘 한 걸음 V8.2.22 SMART VACI 테스트' \
+            --notes 'SMART Recovery Point 4에 VACI(활력 넘치는 창의적 관심사)를 추가했습니다. 새로 시도하거나 다시 시작해보고 싶은 활동을 적고 시도 전 관심도를 1~10으로 기록한 뒤, 실제로 해본 후 시도 후 점수와 활동 후 평가·생각을 추가할 수 있습니다. 한 목록에 여러 관심사를 추가할 수 있으며 새 관심사를 추가하면 이전 항목은 접히고 새 항목만 열려 긴 스크롤을 줄였습니다. Point 4 회복학습과 SMART 실천도구에서 모두 VACI로 연결되며, 학습에서 들어온 경우 돌아가기를 누르면 원래 Point 4 학습 상세로 복원됩니다. 가족모드는 상대를 평가하거나 통제하는 대신 가족 자신의 회복·자기돌봄·관계 밖의 삶을 넓히는 관심사에 초점을 둡니다. 사용자 화면에는 제작과정 표현을 노출하지 않습니다. DATA_SCHEMA 6, 기존 SMART 기록, 홈 일정, Android 습관·생활·치료·외래 정확알림 엔진은 변경하지 않았습니다.' \
+            --prerelease

@@ -1,0 +1,38 @@
+name: Publish V8.2.55 test release
+
+on:
+  push:
+    branches: [android-v8.2.55-help-faq]
+    paths:
+      - '.github/workflows/publish-v8255-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.55 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34187393539 -n oneul-v8.2.55-help-faq-apk -D dist-apk
+          gh run download 34187393539 -n oneul-v8.2.55-help-faq-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.55.apk
+          cp dist-aab/*.aab oneul-v8.2.55.aab
+          test -s oneul-v8.2.55.apk
+          test -s oneul-v8.2.55.aab
+          sha256sum oneul-v8.2.55.apk oneul-v8.2.55.aab
+      - name: Publish V8.2.55 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.55-test --yes --cleanup-tag || true
+          gh release create v8.2.55-test oneul-v8.2.55.apk oneul-v8.2.55.aab \
+            --target android-v8.2.55-help-faq \
+            --title '오늘 한 걸음 V8.2.55 도움말 · 자주 묻는 질문 테스트' \
+            --notes '내 정보 · 설정에 지원 및 안내 → 도움말 · 자주 묻는 질문을 추가했습니다. FAQ는 시작·기록, 일정·알림, 회복도구, 마음프로·안전으로 나누고 실제 메뉴 경로와 필요한 바로가기를 제공합니다. 개인 회복기록은 기본적으로 기기 내부에 저장되고 저장된 기록은 마음프로에 자동 전송되지 않으며, 마음프로에서 사용자가 직접 전송한 문장만 AI 답변 생성을 위해 서버로 전송된다는 점을 안내합니다. 사용설명서와 개인정보처리방침은 다음 단계에서 별도로 작성합니다. Android는 V8.2.54에서 실기기 검증을 마친 네이티브 TTS·정확알림·화면 OFF 알림·부팅 재예약·복약/외래/생활/습관 알림·이완 TTS 스택을 그대로 사용하고 versionCode 875 / versionName 8.2.55만 적용했습니다. 웹 기준 main SHA는 e45fcc33bd284d07935176272f687ecdc0defb6e 입니다.' \
+            --prerelease

@@ -1,0 +1,38 @@
+name: Publish V8.2.63 test release
+
+on:
+  push:
+    branches: [android-v8.2.63-admin-render-fix]
+    paths:
+      - '.github/workflows/publish-v8263-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.63 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34222065009 -n oneul-v8.2.63-admin-fix-apk -D dist-apk
+          gh run download 34222065009 -n oneul-v8.2.63-admin-fix-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.63.apk
+          cp dist-aab/*.aab oneul-v8.2.63.aab
+          test -s oneul-v8.2.63.apk
+          test -s oneul-v8.2.63.aab
+          sha256sum oneul-v8.2.63.apk oneul-v8.2.63.aab
+      - name: Publish V8.2.63 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.63-test --yes --cleanup-tag || true
+          gh release create v8.2.63-test oneul-v8.2.63.apk oneul-v8.2.63.aab \
+            --target android-v8.2.63-admin-render-fix \
+            --title '오늘 한 걸음 V8.2.63 관리자 메뉴 복구 테스트' \
+            --notes 'V8.2.62에서 관리자 카드를 나 화면으로 이동한 뒤 관리자 렌더링 호출이 빠져 로그인 버튼이 비어 보이던 문제만 복구했습니다. 나 화면 진입 시 기존 drawAdmin()과 drawFeedbackStatus()를 호출하고, 관리자 로그아웃 후 나 화면으로 돌아가도록 연결했습니다. DATA_SCHEMA=6, ohg.v1, 마음프로 Local-first/AI 전송 구조, 자원시트, 회복기록 구조는 변경하지 않았습니다. Android는 검증된 V8.2.62 네이티브 스택을 그대로 사용하고 versionCode 883 / versionName 8.2.63만 적용했습니다. 정확알림·화면 OFF 알림·부팅 재예약·복약/외래/생활/습관 알림·마음프로 네이티브 음성·이완 TTS는 유지됩니다. 웹 main SHA는 1481e55a146650fc5fdf5361b57f92c3876f0806 입니다.' \
+            --prerelease

@@ -1,0 +1,37 @@
+name: Publish V8.2.7 test release
+
+on:
+  push:
+    branches: [android-v8.2.7-smart-change-plan]
+    paths:
+      - '.github/workflows/publish-v827-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.7 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33944333149 -n oneul-v8.2.7-smart-change-plan-apk -D dist-apk
+          gh run download 33944333149 -n oneul-v8.2.7-smart-change-plan-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.7.apk
+          cp dist-aab/*.aab oneul-v8.2.7.aab
+          test -s oneul-v8.2.7.apk
+          test -s oneul-v8.2.7.aab
+      - name: Publish V8.2.7 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.7-test --yes --cleanup-tag || true
+          gh release create v8.2.7-test oneul-v8.2.7.apk oneul-v8.2.7.aab \
+            --target android-v8.2.7-smart-change-plan \
+            --title '오늘 한 걸음 V8.2.7 SMART Recovery 변화 계획 테스트' \
+            --notes 'SMART Recovery Point 1에 변화 계획 워크시트(Change Plan Worksheet)를 추가했습니다. 번역본의 원래 흐름을 따라 HOV → 변화 계획 → CBA 순으로 표시합니다. 사용자는 만들고 싶은 변화, 중요도(1-10), 자신감(1-10), 변화 이유, 계획 단계, 도움을 받을 사람과 방법, 계획이 작동하는 신호, 방해요인을 기록할 수 있습니다. 여러 시점의 계획을 저장·보기·수정·삭제할 수 있고 기록은 기존 smartWorks에 기기 내부 저장됩니다. 가족 모드는 상대를 바꾸는 계획이 아니라 본인이 직접 할 수 있는 행동·경계·자기돌봄 변화에 초점을 둡니다. 기존 HOV/CBA, 충동일기, 12단계 및 Android 습관·생활·치료·외래 예약알림 엔진은 변경하지 않았습니다.' \
+            --prerelease

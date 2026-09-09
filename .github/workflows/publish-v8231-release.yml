@@ -1,0 +1,37 @@
+name: Publish V8.2.31 test release
+
+on:
+  push:
+    branches: [android-v8.2.31-smart-integration]
+    paths:
+      - '.github/workflows/publish-v8231-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.31 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34065371560 -n oneul-v8.2.31-smart-integration-apk -D dist-apk
+          gh run download 34065371560 -n oneul-v8.2.31-smart-integration-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.31.apk
+          cp dist-aab/*.aab oneul-v8.2.31.aab
+          test -s oneul-v8.2.31.apk
+          test -s oneul-v8.2.31.aab
+      - name: Publish V8.2.31 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.31-test --yes --cleanup-tag || true
+          gh release create v8.2.31-test oneul-v8.2.31.apk oneul-v8.2.31.aab \
+            --target android-v8.2.31-smart-integration \
+            --title '오늘 한 걸음 V8.2.31 SMART Recovery 전체 앱 통합 테스트' \
+            --notes 'SMART Recovery 4-Point 학습과 실천도구를 핸드북 본문과 부록 D 기준으로 전체 대조했습니다. Point 1에는 학습에만 있던 중요성 · 자신감 빠른 점검을 추가해 준비도·중요성·자신감을 각각 확인하고 다음 도구로 이어지도록 했으며, 점수는 저장하거나 임의 해석하지 않습니다. Point 2의 충동에 대처하기는 별도 중복 도구를 만들지 않고 기존 충동 강도 → 버티기 타이머 → 호흡 → 전후 강도 흐름으로 직접 연결했습니다. 주간 플래너는 기존 생활 일정·습관, 브레인스토밍은 문제 해결 5단계, 즐거운 활동 체크리스트는 VACI를 계속 사용합니다. DATA_SCHEMA 6과 기존 SMART 기록은 유지하며 Android 네이티브 이완 TTS, 0.7/0.8/0.9/1.0 속도 선택, 화면 OFF 지속 재생, 정확알림 엔진과 부팅 후 재예약도 그대로 유지했습니다.' \
+            --prerelease

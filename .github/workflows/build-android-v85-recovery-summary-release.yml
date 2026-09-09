@@ -1,0 +1,118 @@
+name: Build and publish V8.5 Android prerelease
+
+on:
+  push:
+    branches: [android-v8.5-recovery-summary-release]
+    paths:
+      - 'android-v8.5-recovery-summary-release.sh'
+      - '.github/workflows/build-android-v85-recovery-summary-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android 16 SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Extract Android source
+        run: |
+          rm -rf android-v8
+          mkdir android-v8
+          unzip -q android-v8-source.zip -d android-v8
+
+      - name: Apply V8.5 version-only patch
+        run: bash android-v8.5-recovery-summary-release.sh
+
+      - name: Verify preserved reminder and TTS engines
+        run: |
+          set -euo pipefail
+          PKG=android-v8/app/src/main/java/io/github/hantae_ho/twa
+          ACT="$PKG/NotificationSettingsActivity.java"
+          grep -F 'ReminderStore.importSchedule(this, "", "", "", "", val(u, "build"))' "$ACT"
+          grep -F 'HabitReminderStore.importSchedule(this, "")' "$ACT"
+          grep -F 'TreatmentReminderStore.importSchedule(this, "", "", TreatmentReminderStore.time(this), 0)' "$ACT"
+          grep -F 'String visitAlerts = TreatmentReminderStore.alertsPacked(this)' "$ACT"
+          grep -F 'String visitTime = TreatmentReminderStore.time(this)' "$ACT"
+          grep -F 'ReminderStore.importSchedule(this, pendingRisk, pendingMeds, pendingEats, pendingBed, pendingBuild)' "$ACT"
+          grep -F 'HabitReminderStore.importSchedule(this, pendingHabits)' "$ACT"
+          grep -F 'TreatmentReminderStore.importSchedule(this, pendingVisit, visitAlerts, visitTime, pendingVisitInterval)' "$ACT"
+          grep -F 'setExactAndAllowWhileIdle' "$PKG/ReminderScheduler.java"
+          grep -F 'setExactAndAllowWhileIdle' "$PKG/HabitReminderScheduler.java"
+          grep -F 'setExactAndAllowWhileIdle' "$PKG/TreatmentReminderScheduler.java"
+          grep -F 'scheduleNextForOffset' "$PKG/TreatmentAlarmReceiver.java"
+          grep -F 'PowerManager.PARTIAL_WAKE_LOCK' "$PKG/RelaxTtsActivity.java"
+          grep -F 'TextToSpeech.QUEUE_FLUSH' "$PKG/MindProVoiceService.java"
+
+      - name: Restore release keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$KEYSTORE_B64" | base64 --decode > "$GITHUB_WORKSPACE/android-v8/signing.keystore"
+
+      - name: Create signing properties
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cat > android-v8/keystore.properties <<EOF
+          storeFile=$GITHUB_WORKSPACE/android-v8/signing.keystore
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Build signed APK and AAB
+        run: gradle -p android-v8 :app:assembleRelease :app:bundleRelease
+
+      - name: Verify APK version permissions and package
+        run: |
+          set -euo pipefail
+          APK=$(find android-v8/app/build/outputs/apk/release -name '*.apk' -type f | head -1)
+          AAB=$(find android-v8/app/build/outputs/bundle/release -name '*.aab' -type f | head -1)
+          test -s "$APK"
+          test -s "$AAB"
+          AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          "$AAPT" dump badging "$APK" | tee /tmp/badging.txt
+          grep -F "package: name='io.github.hantae_ho.twa' versionCode='892' versionName='8.5'" /tmp/badging.txt
+          "$AAPT" dump permissions "$APK" | tee /tmp/permissions.txt
+          grep -F 'android.permission.SCHEDULE_EXACT_ALARM' /tmp/permissions.txt
+          grep -F 'android.permission.WAKE_LOCK' /tmp/permissions.txt
+          grep -F 'android.permission.POST_NOTIFICATIONS' /tmp/permissions.txt
+          grep -F 'android.permission.RECEIVE_BOOT_COMPLETED' /tmp/permissions.txt
+          ! grep -Eq 'android.permission.(RECORD_AUDIO|CAMERA|READ_CONTACTS|WRITE_CONTACTS|ACCESS_FINE_LOCATION|ACCESS_COARSE_LOCATION)' /tmp/permissions.txt
+          cp "$APK" oneul-v8.5.apk
+          cp "$AAB" oneul-v8.5.aab
+          sha256sum oneul-v8.5.apk oneul-v8.5.aab | tee SHA256SUMS.txt
+
+      - name: Upload release files artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: oneul-v8.5-release-files
+          path: |
+            oneul-v8.5.apk
+            oneul-v8.5.aab
+            SHA256SUMS.txt
+
+      - name: Publish V8.5 test prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.5-test --yes --cleanup-tag || true
+          gh release create v8.5-test oneul-v8.5.apk oneul-v8.5.aab SHA256SUMS.txt \
+            --target android-v8.5-recovery-summary-release \
+            --title '오늘 한 걸음 V8.5 내 회복요약 테스트 릴리즈' \
+            --notes 'V8.5 테스트 릴리즈입니다. 웹 main의 나 → 내 발자취 → 통계 · 패턴 상단에 최근 4주 내 회복요약을 추가했습니다. 회복일·충동·HALT·수면·회복 실천·자가점검 변화·다시 시작을 기기 내 기록으로 한 장에 정리하고, 기존 90일 내 회복 패턴을 최대 4개 참고합니다. 상담할 때 보여주기 읽기 전용 화면과 브라우저/기기 인쇄·PDF 저장을 제공하며 회복기록을 서버나 마음프로로 자동 전송하지 않습니다. 추천하기는 고정 install.html 설치 안내 페이지를 공유하며, 이 페이지는 V8.5 실기기 확인 전까지 이미 확인된 V8.4 APK를 추천 대상으로 유지합니다. Google Play 등록 후에는 같은 설치 안내 페이지의 배포 대상만 Play Store로 전환할 수 있습니다. Android는 실기기 동작이 확인된 V8.4 네이티브 소스를 그대로 사용하고 versionCode 892 / versionName 8.5만 올렸습니다. 정확알림, 화면 OFF 알림, 부팅 후 재예약, 복약·외래·생활·습관 알림, silent reminder apply/clear, 마음프로 네이티브 음성, 이완 TTS 엔진을 변경하지 않았고 빌드에서 정적 검증합니다. DATA_SCHEMA=6, 저장키 ohg.v1은 그대로입니다. 웹 main SHA: 27edb07d765ee8d3bfc3843f28de28912b4be498. 실기기 확인 전이므로 prerelease입니다.' \
+            --prerelease

@@ -1,0 +1,38 @@
+name: Publish V8.2.57 test release
+
+on:
+  push:
+    branches: [android-v8.2.57-privacy-policy]
+    paths:
+      - '.github/workflows/publish-v8257-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.57 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34191266328 -n oneul-v8.2.57-privacy-apk -D dist-apk
+          gh run download 34191266328 -n oneul-v8.2.57-privacy-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.57.apk
+          cp dist-aab/*.aab oneul-v8.2.57.aab
+          test -s oneul-v8.2.57.apk
+          test -s oneul-v8.2.57.aab
+          sha256sum oneul-v8.2.57.apk oneul-v8.2.57.aab
+      - name: Publish V8.2.57 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.57-test --yes --cleanup-tag || true
+          gh release create v8.2.57-test oneul-v8.2.57.apk oneul-v8.2.57.aab \
+            --target android-v8.2.57-privacy-policy \
+            --title '오늘 한 걸음 V8.2.57 개인정보처리방침 테스트' \
+            --notes 'V8.2.56 실제 데이터 흐름을 재검증하여 공개 개인정보처리방침을 추가하고 내 정보 · 설정 → 지원 및 안내에서 열 수 있게 했습니다. 개인 회복기록은 기본적으로 기기 내부에 저장되고 저장된 회복기록은 마음프로에 자동 첨부되지 않습니다. 마음프로 일반 AI 대화는 익명형 clientId, 현재 메시지, 주제, 앱 버전, 최근 일반 AI 대화 최대 8개를 Apps Script 중계 후 OpenAI API로 전송하는 실제 동작을 공개했습니다. 자원목록과 앱에 바라는 점, 위치 처리, 보유·삭제 및 외부 서비스도 구분해 안내합니다. Android는 V8.2.56에서 검증한 네이티브 TTS·정확알림·화면 OFF 알림·부팅 재예약·복약/외래/생활/습관 알림·이완 TTS 스택을 그대로 사용하고 versionCode 877 / versionName 8.2.57만 적용했습니다. 빌드에서 마이크·카메라·연락처·Android 정밀/대략 위치 권한이 패키지에 추가되지 않았음을 확인했습니다. 웹 기준 main SHA는 af1eed4b4f2fc4870e9fb618cba828d0db936fdb 입니다.' \
+            --prerelease

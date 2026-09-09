@@ -1,0 +1,38 @@
+name: Publish V8.2.46 test release
+
+on:
+  push:
+    branches: [android-v8.2.46-listen-capsule]
+    paths:
+      - '.github/workflows/publish-v8246-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.2.46 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 34132945081 -n oneul-v8.2.46-listen-capsule-apk -D dist-apk
+          gh run download 34132945081 -n oneul-v8.2.46-listen-capsule-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.2.46.apk
+          cp dist-aab/*.aab oneul-v8.2.46.aab
+          test -s oneul-v8.2.46.apk
+          test -s oneul-v8.2.46.aab
+          sha256sum oneul-v8.2.46.apk oneul-v8.2.46.aab
+      - name: Publish V8.2.46 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.2.46-test --yes --cleanup-tag || true
+          gh release create v8.2.46-test oneul-v8.2.46.apk oneul-v8.2.46.aab \
+            --target android-v8.2.46-listen-capsule \
+            --title '오늘 한 걸음 V8.2.46 듣는 글·초심글 테스트' \
+            --notes 'V8.2.45 정상본을 기준으로 듣는 글 범주를 세로형 단일 아코디언으로 바꾸고, 충동 대응 화면에서 미래의 나에게 글을 화면 이동 없이 바로 펼쳐볼 수 있게 했습니다. 글자 크기는 V8.2.44/V8.2.45와 대조 후 기존 값을 유지했습니다. DATA_SCHEMA=6, ohg.v1, timeCapsule 저장형식은 그대로이며 Android 네이티브 코드는 V8.2.45 검증 스택을 유지한 채 versionCode 866 / versionName 8.2.46만 적용했습니다. 정확알림·화면 OFF 알림·부팅 재예약·외래 반복예약·이완 TTS를 보존했습니다.' \
+            --prerelease

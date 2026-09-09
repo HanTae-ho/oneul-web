@@ -1,0 +1,37 @@
+name: Publish V8.1.4 test release
+
+on:
+  push:
+    branches: [android-v8.1.4-tools-practice]
+    paths:
+      - '.github/workflows/publish-v814-release.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified V8.1.4 artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 33819534640 -n oneul-v8.1.4-tools-practice-apk -D dist-apk
+          gh run download 33819534640 -n oneul-v8.1.4-tools-practice-aab -D dist-aab
+          cp dist-apk/*.apk oneul-v8.1.4.apk
+          cp dist-aab/*.aab oneul-v8.1.4.aab
+          test -s oneul-v8.1.4.apk
+          test -s oneul-v8.1.4.aab
+      - name: Publish V8.1.4 test release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete v8.1.4-test --yes --cleanup-tag || true
+          gh release create v8.1.4-test oneul-v8.1.4.apk oneul-v8.1.4.aab \
+            --target android-v8.1.4-tools-practice \
+            --title '오늘 한 걸음 V8.1.4 회복도구·일정 통합 테스트' \
+            --notes '회복도구를 오늘의 실천·배우고 연습하기·나를 점검하기로 재편했습니다. 일정·알림은 생활 일정·치료 일정·알림 설정 3단 구조로 분리했습니다. 습관은 준비 중 카드만 배치했으며, V8.1.3의 네이티브 예약알림 및 외래 반복 예약 엔진은 그대로 유지합니다.' \
+            --prerelease
