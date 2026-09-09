@@ -4,7 +4,10 @@ on:
   push:
     branches: [v9.0.2-runtime-social-fix]
     paths:
-      - 'scripts/apply-v902-runtime-social-fix.py'
+      - 'scripts/apply-v902-small-fix.py'
+      - 'scripts/social-v902-social3.part1.b64'
+      - 'scripts/social-v902-social3.part2.b64'
+      - 'scripts/social-v902-social3.part3.b64'
       - '.github/workflows/apply-v902-runtime-social-fix.yml'
 
 permissions:
@@ -18,8 +21,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply product patch
-        run: python scripts/apply-v902-runtime-social-fix.py
+      - name: Restore exact social-3 source
+        run: |
+          cat scripts/social-v902-social3.part1.b64 scripts/social-v902-social3.part2.b64 scripts/social-v902-social3.part3.b64 | base64 --decode | gzip -dc > social-apps-script.gs
+          grep -F "const SOCIAL_VERSION = 'V9.0.2-social-3';" social-apps-script.gs
+      - name: Apply runtime and documentation patch
+        run: python scripts/apply-v902-small-fix.py
       - name: Verify browser and Apps Script syntax
         run: |
           set -euo pipefail
@@ -61,6 +68,10 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git rm -f scripts/apply-v902-runtime-social-fix.py \
+            scripts/apply-v902-small-fix.py \
+            scripts/social-v902-social3.part1.b64 \
+            scripts/social-v902-social3.part2.b64 \
+            scripts/social-v902-social3.part3.b64 \
             .github/workflows/apply-v902-runtime-social-fix.yml \
             .github/workflows/audit-v902-runtime.yml \
             .github/workflows/audit-v902-runtime-2.yml
