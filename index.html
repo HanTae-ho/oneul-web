@@ -2482,7 +2482,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.67';
+const BUILD = 'V8.2.68';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -2595,9 +2595,13 @@ function migrate(s){
   }
   return s;
 }
+let nativeReminderSyncReady = false;
+let nativeReminderLastSig = '';
+let nativeReminderSyncTimer = 0;
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(S)); }
   catch(e){ toast('저장 공간이 부족합니다. 내 정보에서 오래된 기록을 내보내주세요.'); }
+  if(nativeReminderSyncReady) queueNativeReminderSync();
 }
 
 /* ── 상수 ── */
@@ -9645,7 +9649,7 @@ function bindListenAudio(cands){
   const show = () => {
     const c = cands[i] || {};
     if(!meta) return;
-    const lab = c.l ? '음원 출처 · ' + c.l : '음원 출처';
+    const lab = c.l ? '현재 재생 음원 · ' + c.l : '현재 재생 음원';
     meta.innerHTML = c.s
       ? '<a class="link" target="_blank" rel="noopener" href="' + esc(c.s) + '">' + esc(lab) + '</a>' +
         (cands.length > 1 ? ' · 재생 대체 ' + (i + 1) + '/' + cands.length : '')
@@ -9790,7 +9794,7 @@ function drawListen(){
   $('#ls-body').innerHTML =
     '<div class="rdcard"><h3>' + esc(x.t) + '</h3>' + para(x.s) +
     '<div class="song"><b>들어볼 곡</b>' + esc(x.c) +
-    (x.a ? '<span>' + esc(x.a) + '</span>' : '') +
+    (x.a ? '<span>추천 연주 예시 · ' + esc(x.a) + '</span>' : '') +
     /* ★ v37: 시트의 직접 음원을 Primary → Backup1 → Backup2 순서로 씁니다.
          source_page / audio_search 는 재생 주소가 아니므로 후보에서 자동 제외합니다.
          preload='none' 은 유지합니다 — 서른 편을 미리 받지 않습니다. */
@@ -10362,15 +10366,43 @@ function nativeReminderPayload(){
     build: BUILD
   };
 }
-function openNativeReminderSettings(){
+function nativeReminderSignature(){
+  const p = nativeReminderPayload();
+  return JSON.stringify({risk:p.risk, meds:p.meds, eats:p.eats, bed:p.bed, habits:p.habits, visit:p.visit, visitInterval:p.visitInterval});
+}
+function nativeReminderIntent(extra){
   const p = nativeReminderPayload();
   const q = new URLSearchParams();
   Object.keys(p).forEach(k => q.set(k, p[k]));
+  Object.keys(extra || {}).forEach(k => q.set(k, String(extra[k])));
   /* package를 명시해 다른 앱이 oneul 스킴을 가로채지 못하게 합니다. */
-  const u = 'intent://reminders?' + q.toString() +
+  return 'intent://reminders?' + q.toString() +
     '#Intent;scheme=oneul;package=io.github.hantae_ho.twa;end';
-  location.href = u;
 }
+function openNativeReminderSettings(){
+  location.href = nativeReminderIntent();
+}
+function applyNativeReminderSync(){
+  if(!nativeAndroidApp()) return;
+  location.href = nativeReminderIntent({apply:1});
+}
+function clearNativeReminders(){
+  if(!nativeAndroidApp()) return;
+  location.href = nativeReminderIntent({clear:1});
+}
+function queueNativeReminderSync(){
+  if(!nativeReminderSyncReady || !nativeAndroidApp()) return;
+  let sig = '';
+  try{ sig = nativeReminderSignature(); }catch(e){ return; }
+  if(sig === nativeReminderLastSig) return;
+  nativeReminderLastSig = sig;
+  clearTimeout(nativeReminderSyncTimer);
+  nativeReminderSyncTimer = setTimeout(applyNativeReminderSync, 300);
+}
+window.addEventListener('load', () => {
+  try{ nativeReminderLastSig = nativeReminderSignature(); }catch(e){ nativeReminderLastSig = ''; }
+  nativeReminderSyncReady = true;
+}, {once:true});
 function openScheduleReminderSettings(){
   /* Android 앱은 웹 알림설정 화면을 거치지 않고 네이티브 예약알림 화면으로 직행합니다. */
   if(nativeAndroidApp()){ openNativeReminderSettings(); return; }
@@ -10878,7 +10910,7 @@ $('#me-file').onchange = e => {
       const j = JSON.parse(r.result);
       if(!j || typeof j !== 'object') throw new Error('형식이 다릅니다');
       S = migrate(Object.assign(JSON.parse(JSON.stringify(BLANK)), j));
-      save();
+      save();  /* V8.2.68: 알림 관련 값이 달라졌으면 Android 예약도 자동 교체합니다. */
       applyTheme();
       toast('불러왔습니다.');
       go('home');
@@ -10898,10 +10930,13 @@ $('#me-wipe').onclick = () => {
   $('#wipe-yes').onclick = () => {
     localStorage.removeItem(KEY);
     S = JSON.parse(JSON.stringify(BLANK));
+    /* 웹 기록만 비우고 Android AlarmManager 예약이 남는 일을 막습니다. */
+    try{ nativeReminderLastSig = nativeReminderSignature(); }catch(e){ nativeReminderLastSig = ''; }
     closeModal();
     obTypes = []; obDates = {};
     drawIntro();
     go('intro');
+    setTimeout(clearNativeReminders, 80);
   };
 };
 
