@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply version consistency patch
+      - name: Apply verify repair
         run: python scripts/apply-v902-version-consistency.py
       - name: Verify version markers and syntax
         run: |
@@ -26,7 +26,8 @@ jobs:
           grep -E "const BUILD\s*=\s*'V9\.0\.2';" index.html
           grep -E "const APP_VERSION\s*=\s*'V9\.0\.2';" sw.js
           grep -E "const V\s*=\s*'ohg-v902[^']*';" sw.js
-          grep -F "const EXPECTED_APP_VERSION = 'V9.0.2';" verify.js
+          grep -F "const build=(index.match" verify.js
+          grep -F "readIf=f=>fs.existsSync" verify.js
           node --check verify.js
           python - <<'PY'
           import re
@@ -38,23 +39,14 @@ jobs:
           node --check /tmp/index-all.js
           node --check sw.js
           npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
-      - name: Run legacy verify suite for report
-        run: |
-          set +e
-          node verify.js > /tmp/verify.txt 2>&1
-          code=$?
-          cat /tmp/verify.txt
-          echo "VERIFY_EXIT=$code"
-          exit 0
-      - name: Commit product changes only
+      - name: Run repaired verify suite
+        run: node verify.js
+      - name: Commit verify repair
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm -f scripts/apply-v902-version-consistency.py \
-            .github/workflows/apply-v902-version-consistency.yml \
-            .github/workflows/audit-verify-v902.yml
-          git add verify.js .github/workflows/check-web-runtime.yml
+          git add verify.js
           git diff --cached --stat
-          git commit -m 'V9.0.2 판 표기·검증 기준 일치'
+          git commit -m 'V9.0.2 검증 기준·외부 GS 의존 보정'
           git push
