@@ -20,11 +20,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply KST date test repair
+      - name: Apply current regression-test repairs
         run: python scripts/patch-test-kst.py
-      - name: Install Playwright Chromium
-        run: |
-          npm install --no-save playwright@1.55.0
-          npx playwright install --with-deps chromium
+      - name: Install Playwright package
+        run: npm install --no-save playwright@1.55.0
       - name: Browser regression
-        run: node test.js
+        env:
+          CHROMIUM_PATH: /usr/bin/google-chrome
+        run: |
+          test -x "$CHROMIUM_PATH"
+          node test.js
