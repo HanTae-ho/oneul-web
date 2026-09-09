@@ -54,6 +54,12 @@ if old_privacy not in s:
     raise SystemExit('verify.js stale workbook privacy assertion not found')
 s=s.replace(old_privacy,new_privacy,1)
 
+old_family_screen="""ok(/가족·보호자 모드에서는 당사자 대신/.test(index),'가족 모드에서 중독검사 대리응답 방지');"""
+new_family_screen="""ok(/function drawScreening\\(\\)[\\s\\S]{0,600}if\\(!famMode\\(\\)\\)/.test(index),'가족 모드에서 중독검사 대리응답 방지');"""
+if old_family_screen not in s:
+    raise SystemExit('verify.js stale family screening assertion not found')
+s=s.replace(old_family_screen,new_family_screen,1)
+
 old_test_check="""ok(/회복학습 목록에는 12단계·회복의 기초 이해·단계별 점검 3개/.test(test),'test.js 회복학습 3메뉴 기준으로 갱신');"""
 new_test_check="""ok(/회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery·12단계 점검 4개/.test(test),'test.js 회복학습 4메뉴 기준으로 갱신');"""
 if old_test_check not in s:
@@ -74,7 +80,6 @@ s=s.replace("console.log('\\nV8.0 네이티브 예약알림 웹 회귀검증 통
 
 p.write_text(s,encoding='utf-8')
 
-# test.js: current recovery-learning menu is 3 data topics + 12-step workbook entry.
 p=Path('test.js')
 t=p.read_text(encoding='utf-8')
 old="""  assert(await pg.evaluate(() => Array.isArray(window.LEARNING_TOPICS) && window.LEARNING_TOPICS.length === 2), '회복학습은 2개 독립 주제를 learning-data.js에서 로드해야 함');
@@ -111,6 +116,7 @@ assert "회복학습 3개 독립 주제 등록" in vr
 assert "learningAction\\(type,sectionId" in vr
 assert "실천기록" in vr
 assert "작성 내용은 <b>이 기기에 저장" in vr
+assert "function drawScreening" in vr
 assert "SMART Recovery·12단계 점검 4개" in Path('test.js').read_text(encoding='utf-8')
 assert "V8\\.0" not in '\n'.join(vr.splitlines()[:30])
 print('V9.0.2 verify consistency repair PASS')
