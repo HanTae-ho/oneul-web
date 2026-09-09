@@ -21,7 +21,6 @@ jobs:
       - name: Apply focused V9.0 fixes
         run: |
           set -euo pipefail
-          # Remove one accidental literal backslash-n left at the end of a Python source line.
           sed -i 's/\\n$//' scripts/apply_v90_ai_meeting_fix.py
           python3 -m py_compile scripts/apply_v90_ai_meeting_fix.py
           python3 scripts/apply_v90_ai_meeting_fix.py
@@ -48,7 +47,7 @@ jobs:
           ga1=s.index("{n:'한국GA 단도박모임'")
           ga2=s.index("{n:'한국단도박모임'")
           smart=s.index("{n:'한국 SMART Recovery'")
-          assert aa < na < ga1 < ga2 < smart, (aa,na,ga1,ga2,smart)
+          assert aa < na < ga1 < ga2 < smart
           assert "S.urges" not in s[s.index('function aiMeetingInfo'):s.index('function aiMeetingPayload')]
           print('group order and meeting data boundary PASS')
           PY
@@ -118,7 +117,8 @@ jobs:
           python3 - <<'PY'
           import subprocess
           files=subprocess.check_output(['git','diff','--name-only','HEAD'],text=True).splitlines()
-          allowed={'index.html','sw.js','privacy.html','README.md'}
+          # The patch script is edited only to remove its one temporary literal \\n before execution; it is deleted in the final validated commit.
+          allowed={'index.html','sw.js','privacy.html','README.md','scripts/apply_v90_ai_meeting_fix.py'}
           bad=[x for x in files if x not in allowed]
           if bad: raise SystemExit('unexpected modified files: '+', '.join(bad))
           print('changed scope PASS:', ', '.join(files))
