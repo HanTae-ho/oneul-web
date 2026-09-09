@@ -48,6 +48,12 @@ if old_family_tab not in s:
     raise SystemExit('verify.js stale family work-tab assertion not found')
 s=s.replace(old_family_tab,new_family_tab,1)
 
+old_privacy="""ok(/자원시트·의견서버·마음프로로 자동 전송되지 않습니다/.test(index),'검토 내용 서버·AI 자동전송 방지 안내');"""
+new_privacy="""ok(/작성 내용은 <b>이 기기에 저장<\\/b>되며 자동 전송되지 않습니다/.test(index)&&/작성 중 초안과 저장 기록 모두 S 안에만 두며 서버로 자동 전송하지 않습니다/.test(index),'검토 내용 서버·AI 자동전송 방지 안내');"""
+if old_privacy not in s:
+    raise SystemExit('verify.js stale workbook privacy assertion not found')
+s=s.replace(old_privacy,new_privacy,1)
+
 old_test_check="""ok(/회복학습 목록에는 12단계·회복의 기초 이해·단계별 점검 3개/.test(test),'test.js 회복학습 3메뉴 기준으로 갱신');"""
 new_test_check="""ok(/회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery·12단계 점검 4개/.test(test),'test.js 회복학습 4메뉴 기준으로 갱신');"""
 if old_test_check not in s:
@@ -104,6 +110,7 @@ assert "<b>12단계 점검" in vr
 assert "회복학습 3개 독립 주제 등록" in vr
 assert "learningAction\\(type,sectionId" in vr
 assert "실천기록" in vr
+assert "작성 내용은 <b>이 기기에 저장" in vr
 assert "SMART Recovery·12단계 점검 4개" in Path('test.js').read_text(encoding='utf-8')
 assert "V8\\.0" not in '\n'.join(vr.splitlines()[:30])
 print('V9.0.2 verify consistency repair PASS')
