@@ -1,10 +1,12 @@
 # V9.0.2 댓글 확장 배포 메모
 
+현재 저장소의 소셜 서버 기준본은 **V9.0.2-social-3**입니다. 실제 운영 중이던 `V9.0.1-social-2`를 기준으로 댓글 기능만 병합했으며, social-2의 요청 크기 제한·feed/commentList 읽기 lock 분리·Asia/Seoul 기준·Google Sheets 수식주입 방어·내부 오류 비노출을 유지합니다.
+
 V9.0.2에서는 기존 소셜 전용 스프레드시트에 `Comments`, `CommentReports` 두 시트가 추가됩니다. `social-apps-script.gs`를 교체한 뒤 **SOCIAL_SETUP을 한 번 실행**하면 기존 Profiles/Posts/Supports/Reports는 유지하고 새 시트만 준비합니다. 이어서 **기존 웹 앱 배포를 새 버전으로 갱신**합니다. `/exec` 주소는 바꾸지 않습니다.
 
 운영 검토는 Apps Script의 `SOCIAL_REVIEW_CHECK()`를 실행하거나 `Reports` / `CommentReports` 시트를 확인합니다. 댓글 신고는 `CommentReports`에 `pending` 상태로 저장됩니다.
 
-> 자원서버가 `config.SOCIAL_URL`을 앱에 내려주는 작업은 별도 보류 항목입니다. 이 연결이 완료되기 전에는 앱이 소셜 서버 준비 중으로 표시됩니다.
+> 자원서버 **v1.8.1**에서 `[설정] SOCIAL_URL`을 `config.socialUrl`로 내려주는 최소 보정본을 준비했습니다. 실제 연결은 자원 Apps Script를 v1.8.1로 기존 웹앱 배포의 새 버전으로 갱신한 뒤 확인합니다.
 
 ---
 
@@ -18,10 +20,10 @@ V9.0 소셜은 개인 회복기록과 완전히 분리합니다. 기존 자원�
 2. **확장 프로그램 → Apps Script**를 엽니다.
 3. 저장소의 `social-apps-script.gs` 전체를 붙여넣습니다.
 4. `SOCIAL_SETUP`을 한 번 실행합니다.
-5. `Profiles / Posts / Supports / Reports` 네 시트가 만들어지는지 확인합니다.
+5. `Profiles / Posts / Comments / Supports / Reports / CommentReports` 여섯 시트가 만들어지는지 확인합니다.
 6. 원하면 `SOCIAL_CHECK`를 실행해 `ok:true`를 확인합니다.
 
-이 스프레드시트에는 익명 사용자 ID·닉네임·공개 게시글·응원·신고만 저장합니다. 회복일, 충동, HALT, 다시 시작, 복약, 자가점검 등 개인 회복기록을 넣지 않습니다.
+이 스프레드시트에는 익명 사용자 ID·닉네임·공개 게시글·댓글·응원·신고만 저장합니다. 회복일, 충동, HALT, 다시 시작, 복약, 자가점검 등 개인 회복기록을 넣지 않습니다.
 
 ## 2. 웹 앱 배포
 
@@ -58,7 +60,7 @@ Apps Script에서 **배포 → 새 배포 → 웹 앱**:
 - 다른 사용자 신고
 - 다른 사용자 기기 내 차단 / 차단 해제
 
-아직 하지 않음: 댓글, 개인 메시지, 친구/팔로우, 그룹/하이브, 접속자 수, 전문가/기관 계정.
+V9.0 당시에는 댓글이 없었고 V9.0.2에서 댓글·댓글 신고가 추가되었습니다. 아직 하지 않음: 개인 메시지, 친구/팔로우, 답글, 그룹/하이브, 접속자 수, 전문가/기관 계정.
 
 ## 5. 개인정보 경계
 

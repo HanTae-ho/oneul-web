@@ -8172,7 +8172,7 @@ function recPattern(){
     });
     const ranked=Object.entries(codeDays).map(([k,set])=>({k,n:set.size})).sort((a,b)=>b.n-a.n);
     if(ranked.length&&ranked[0].n>=2){
-      const top=ranked[0], meta=HALTS.find(x=>x.k===top.k);
+      const top=ranked[0], meta=HALT.find(x=>x.k===top.k);
       add('충동과 같은 날 반복된 HALT', '충동이 기록된 '+urgeDays.size+'일 중 '+top.n+'일에 '+(meta?meta.l:top.k)+'도 같은 날 기록되었습니다.');
     }
   }
@@ -8243,7 +8243,7 @@ function recPattern(){
     });
     const haltRank=Object.entries(relHaltDays).map(([k,set])=>{ const [rel,halt]=k.split('\u0001'); return {rel,halt,n:set.size}; }).sort((a,b)=>b.n-a.n);
     if(haltRank.length&&haltRank[0].n>=2){
-      const top=haltRank[0], meta=HALTS.find(x=>x.k===top.halt);
+      const top=haltRank[0], meta=HALT.find(x=>x.k===top.halt);
       add('관계 · 같은 날 반복된 HALT', top.rel+'이 선택된 충동이 있었던 날 중 '+top.n+'일에서 '+(meta?meta.l:top.halt)+'도 같은 날 기록되었습니다.');
     }
   }
@@ -8285,7 +8285,7 @@ function recPattern(){
       rows.forEach(r=>new Set(Array.isArray(r.halt)?r.halt:[]).forEach(k=>{ if(k) counts[k]=(counts[k]||0)+1; }));
       const ranked=Object.entries(counts).map(([k,n])=>({k,n})).sort((a,b)=>b.n-a.n);
       if(ranked.length&&ranked[0].n>=2){
-        const top=ranked[0], meta=HALTS.find(x=>x.k===top.k);
+        const top=ranked[0], meta=HALT.find(x=>x.k===top.k);
         add(label+' · 다시 시작 때 반복된 상태', label+' 다시 시작 기록 '+rows.length+'회 중 '+top.n+'회에서 '+(meta?meta.l:top.k)+'을 함께 선택했습니다.');
       }
     }
