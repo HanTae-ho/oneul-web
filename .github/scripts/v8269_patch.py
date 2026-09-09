@@ -4,10 +4,10 @@ import re
 p=Path('index.html')
 s=p.read_text(encoding='utf-8')
 
-# Version.
-if "const BUILD='V8.2.68'" in s:
-    s=s.replace("const BUILD='V8.2.68'", "const BUILD='V8.2.69'", 1)
-assert "const BUILD='V8.2.69'" in s
+# Version — tolerate spacing around the assignment.
+s,n=re.subn(r"const\s+BUILD\s*=\s*'V8\.2\.68'", "const BUILD='V8.2.69'", s, count=1)
+if not n:
+    assert re.search(r"const\s+BUILD\s*=\s*'V8\.2\.69'",s), 'BUILD anchor'
 
 # SMART Recovery — insert immediately after NA in the existing GROUPS array.
 if '한국 SMART Recovery' not in s:
