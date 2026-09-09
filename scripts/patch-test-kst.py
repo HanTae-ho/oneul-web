@@ -76,5 +76,28 @@ if old5 not in s:
     raise SystemExit('stale family Twelve Step overlay check not found')
 s=s.replace(old5,new5,1)
 
+old6="""  // V7.2 자가점검 — 선택 회복영역 + 공통 마음건강 + 행동연결/재점검 안내/최근기록
+  assert(await pg.evaluate(() => Array.isArray(window.SCREENING_TOOLS) && window.SCREENING_TOOLS.length === 9), '자가점검 도구는 9종이어야 함');"""
+new6="""  // V7.2 자가점검 — 선택 회복영역 + 공통 마음건강 + 행동연결/재점검 안내/최근기록
+  // 앞의 영역별 12단계 문구 검증에서 유형을 바꿨으므로 여기서는 의도한 알코올+도박 프로필을 복원합니다.
+  await pg.evaluate(() => { S.role='self'; S.types=['alcohol','gambling']; save(); });
+  assert(await pg.evaluate(() => Array.isArray(window.SCREENING_TOOLS) && window.SCREENING_TOOLS.length === 9), '자가점검 도구는 9종이어야 함');"""
+if old6 not in s:
+    raise SystemExit('screening profile setup block not found')
+s=s.replace(old6,new6,1)
+
+old7="""  console.log('\\n=== 오류 ===');
+  console.log(errs.length ? errs.join('\\n') : '없음');
+
+  await b.close(); srv.close();"""
+new7="""  console.log('\\n=== 오류 ===');
+  console.log(errs.length ? errs.join('\\n') : '없음');
+  assert(errs.length === 0, '브라우저 회귀검사 중 JavaScript pageerror가 없어야 함');
+
+  await b.close(); srv.close();"""
+if old7 not in s:
+    raise SystemExit('final browser error-report block not found')
+s=s.replace(old7,new7,1)
+
 p.write_text(s,encoding='utf-8')
 print('test.js current browser-regression repairs PASS')
