@@ -19,6 +19,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Apply KST date test repair
+        run: python scripts/patch-test-kst.py
       - name: Install Playwright Chromium
         run: |
           npm install --no-save playwright@1.55.0
