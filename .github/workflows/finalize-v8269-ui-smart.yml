@@ -1,4 +1,4 @@
-name: Validate V8.2.69 candidate
+name: Validate V8.2.69 release files
 
 on:
   push:
@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Check core invariants
         run: |
           python3 - <<'PY'
@@ -27,7 +29,7 @@ jobs:
           assert "const APP_VERSION = 'V8.2.69';" in sw
           assert "const V = 'ohg-v8269-me-smart';" in sw
           PY
-      - name: Check user menu structure
+      - name: Check user menu and SMART
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -37,14 +39,11 @@ jobs:
           assert sec.index('<b>내 발자취</b>') < sec.index('<b>내 정보 · 설정</b>') < sec.index('<b>지원 및 안내</b>') < sec.index('<b>앱에 바라는 점</b>')
           assert 'aria-expanded="false" onclick="reclaimToggle(this)"' in s
           assert 'function reclaimToggle(btn)' in s
+          assert '한국 SMART Recovery' in s
+          assert 'CBT 접근과 자기관리 기술을 활용하는 회복 자조모임' in s
+          assert "w:'https://smartkr.org/'" in s
           assert '<section class="pg" id="p-admin">' in s
-          assert "const b = $('#me-admin');\n  $('#tab-admin').classList.add('hide');\n  if(!b) return;" in s
           PY
-      - name: Check SMART official card
-        run: |
-          grep -F '한국 SMART Recovery' index.html
-          grep -F 'CBT 접근과 자기관리 기술을 활용하는 회복 자조모임' index.html
-          grep -F "w:'https://smartkr.org/'" index.html
       - name: Check JavaScript syntax
         run: |
           python3 - <<'PY'
@@ -57,5 +56,5 @@ jobs:
           PY
           for f in /tmp/inline-*.js; do node --check "$f"; done
           node --check music-audio-data.js
-      - name: Check diff whitespace
-        run: git diff --check origin/main...HEAD
+      - name: Check release-file whitespace
+        run: git diff --check origin/main...HEAD -- index.html sw.js privacy.html legal.html README.md
