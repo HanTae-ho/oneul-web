@@ -66,5 +66,15 @@ if old4 not in s:
     raise SystemExit('stale Twelve Step area setup not found')
 s=s.replace(old4,new4,1)
 
+old5="""  assert(await pg.evaluate(() => window.FAMILY_TWELVE_STEP_PERSPECTIVES && Object.keys(FAMILY_TWELVE_STEP_PERSPECTIVES).length===12), '가족 12단계 해설 오버레이 12개 로드');
+  await pg.evaluate(() => { S.types=['alcohol']; drawLearnTopic(); });
+  await pg.click('#learn-topic-sections .help:nth-child(4)'); await pg.waitForTimeout(80);"""
+new5="""  assert(await pg.evaluate(() => window.FAMILY_TWELVE_STEP_PERSPECTIVES && Object.keys(FAMILY_TWELVE_STEP_PERSPECTIVES).length===14), '가족 12단계 소개·기초·1~12단계 해설 오버레이 14개 로드');
+  await pg.evaluate(() => { S.types=['alcohol']; drawLearnTopic(); });
+  await pg.click('#learn-topic-sections .help:nth-child(3)'); await pg.waitForTimeout(80);"""
+if old5 not in s:
+    raise SystemExit('stale family Twelve Step overlay check not found')
+s=s.replace(old5,new5,1)
+
 p.write_text(s,encoding='utf-8')
 print('test.js current browser-regression repairs PASS')
