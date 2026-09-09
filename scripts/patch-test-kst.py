@@ -31,5 +31,19 @@ new="""  // CI runner의 시스템 시간대(UTC)와 관계없이 앱과 같은 
 if old not in s:
     raise SystemExit('stale local date helper not found')
 s=s.replace(old,new,1)
+
+old2="""  const recoveryText = (await pg.$eval('#home-days', e => e.innerText)).replace(/\\n/g, ' | ');
+  console.log('   회복일 =', recoveryText);
+  assert(recoveryText.includes('41일째'), '40일 전 시작은 오늘 41일째여야 함');
+  assert(recoveryText.includes('13일째'), '12일 전 시작은 오늘 13일째여야 함');"""
+new2="""  const recoveryText = (await pg.$eval('#home-days', e => e.innerText)).replace(/\\n/g, ' | ');
+  console.log('   회복일 =', recoveryText);
+  const recoveryCompact = recoveryText.replace(/\\s*\\|\\s*/g, '').replace(/\\s+/g, '');
+  assert(recoveryCompact.includes('41일째'), '40일 전 시작은 오늘 41일째여야 함');
+  assert(recoveryCompact.includes('13일째'), '12일 전 시작은 오늘 13일째여야 함');"""
+if old2 not in s:
+    raise SystemExit('stale recovery-day assertion block not found')
+s=s.replace(old2,new2,1)
+
 p.write_text(s,encoding='utf-8')
-print('test.js KST date helper PASS')
+print('test.js KST date + recovery assertion PASS')
