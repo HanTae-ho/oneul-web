@@ -1,0 +1,316 @@
+name: Apply and validate V9.0.1 AI role meeting social fixes
+
+on:
+  push:
+    branches: [v9.0.1-ai-role-meeting-social-server]
+    paths:
+      - '.github/workflows/apply-v901-ai-role-meeting-social.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply focused V9.0.1 fixes
+        shell: python
+        run: |
+          from pathlib import Path
+
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old=s
+          s=s.replace("const BUILD='V9.0';", "const BUILD='V9.0.1';", 1)
+
+          anchor="""function aiMeetingKindOK(r, kind){
+  if(!kind) return true;
+"""
+          insert="""function aiMeetingDayKey(v){
+  const raw=String(v||'').trim();
+  if(!raw) return '';
+  const m=raw.match(/^([일월화수목금토])(?:요일)?$/);
+  if(m) return m[1];
+  const en=raw.toLowerCase().replace(/\./g,'');
+  const map={sun:'일',sunday:'일',mon:'월',monday:'월',tue:'화',tues:'화',tuesday:'화',wed:'수',wednesday:'수',thu:'목',thur:'목',thurs:'목',thursday:'목',fri:'금',friday:'금',sat:'토',saturday:'토'};
+  return map[en]||'';
+}
+function aiMeetingKindOK(r, kind){
+  if(!kind) return true;
+"""
+          if anchor not in s: raise SystemExit('meeting kind anchor missing')
+          s=s.replace(anchor,insert,1)
+
+          old_block="""  const target=aiMeetingDateTarget(text,baseDate), kind=aiMeetingKindQuery(text), mine=myKinds();
+  const nowIntent=target.isToday && /(?:지금|현재).{0,12}모임|모임.{0,12}(?:지금|현재)|하고\\s*있는\\s*.*모임/.test(String(text||''));
+  if(target.invalid) return {all:[],upcoming:[],started:[],target:target,kind:kind,nowIntent:false,mine:mine};
+  let rows=src.filter(r=>r.y===target.day);
+"""
+          new_block="""  const target=aiMeetingDateTarget(text,baseDate), kind=aiMeetingKindQuery(text), mine=myKinds();
+  const query=String(text||'');
+  const nowIntent=target.isToday && /(?:지금|현재).{0,12}모임|모임.{0,12}(?:지금|현재)|하고\\s*있는\\s*.*모임/.test(query);
+  const upcomingIntent=target.isToday && !nowIntent && /지금부터|현재\\s*이후|남은|앞으로|시작\\s*예정|참여할\\s*수|갈\\s*수|가도\\s*되는/.test(query);
+  if(target.invalid) return {all:[],upcoming:[],started:[],target:target,kind:kind,nowIntent:false,upcomingIntent:false,mine:mine};
+  let rows=src.filter(r=>aiMeetingDayKey(r.y)===target.day);
+"""
+          if old_block not in s: raise SystemExit('meeting info anchor missing')
+          s=s.replace(old_block,new_block,1)
+          s=s.replace("return {all:rows,upcoming:upcoming,started:started,target:target,kind:kind,nowIntent:nowIntent,mine:mine};",
+                      "return {all:rows,upcoming:upcoming,started:started,target:target,kind:kind,nowIntent:nowIntent,upcomingIntent:upcomingIntent,mine:mine};",1)
+
+          old_rows="""  if(info.nowIntent) rows=info.started.slice().reverse();
+  else if(info.target.isToday) rows=info.upcoming.slice();
+  else rows=info.all.slice();
+"""
+          new_rows="""  if(info.nowIntent) rows=info.started.slice().reverse();
+  else if(info.target.isToday && info.upcomingIntent) rows=info.upcoming.slice();
+  else rows=info.all.slice();
+"""
+          if old_rows not in s: raise SystemExit('meeting rows anchor missing')
+          s=s.replace(old_rows,new_rows,1)
+
+          old_today="""  if(target.isToday){
+    if(info.upcoming.length){
+      return prefix+via+personal+'오늘 '+where+'에서 지금부터 시작 예정인 등록 '+kind+'모임을 확인했어요. 현재 시각 이후 '+info.upcoming.length+'개 일정이 있습니다.\\n'+
+        aiMeetingExample(info.upcoming)+'\\n일정이 바뀌었을 수 있으니 참여 전 전화나 안내 페이지에서 한 번 확인해주세요.';
+    }
+    if(info.all.length){
+      return prefix+via+'오늘 '+where+'에 등록된 '+kind+'모임은 '+info.all.length+'개 있지만 현재 시각 이후 시작 예정인 일정은 확인되지 않습니다. 다른 요일이나 지역도 확인할 수 있습니다.';
+    }
+    return prefix+via+'오늘 '+where+'에서 확인되는 등록 '+kind+'모임이 없습니다. 지역이나 모임 종류를 넓혀 확인해볼 수 있습니다.';
+  }
+"""
+          new_today="""  if(target.isToday && info.upcomingIntent){
+    if(info.upcoming.length){
+      return prefix+via+personal+'오늘 '+where+'에서 지금부터 시작 예정인 등록 '+kind+'모임을 확인했어요. 현재 시각 이후 '+info.upcoming.length+'개 일정이 있습니다.\\n'+
+        aiMeetingExample(info.upcoming)+'\\n일정이 바뀌었을 수 있으니 참여 전 전화나 안내 페이지에서 한 번 확인해주세요.';
+    }
+    if(info.all.length){
+      return prefix+via+'오늘 '+where+'에 등록된 '+kind+'모임은 '+info.all.length+'개 있지만 현재 시각 이후 시작 예정인 일정은 확인되지 않습니다. 다른 요일이나 지역도 확인할 수 있습니다.';
+    }
+    return prefix+via+'오늘 '+where+'에서 확인되는 등록 '+kind+'모임이 없습니다. 지역이나 모임 종류를 넓혀 확인해볼 수 있습니다.';
+  }
+  if(target.isToday){
+    if(info.all.length){
+      return prefix+via+personal+'오늘 '+where+'에 등록된 '+kind+'모임 '+info.all.length+'개를 확인했어요.\\n'+
+        aiMeetingExample(info.all)+'\\n이미 시작했거나 끝난 일정이 포함될 수 있습니다. 일정이 바뀌었을 수 있으니 참여 전 전화나 안내 페이지에서 한 번 확인해주세요.';
+    }
+    return prefix+via+'오늘 '+where+'에서 확인되는 등록 '+kind+'모임이 없습니다. 지역이나 모임 종류를 넓혀 확인해볼 수 있습니다.';
+  }
+"""
+          if old_today not in s: raise SystemExit('meeting summary today anchor missing')
+          s=s.replace(old_today,new_today,1)
+
+          intent_anchor="""  /* 검증 자원 — \"모임이 싫다\" 같은 상담 문장은 빼고, 찾기/시간/위치 요청만 잡습니다. */
+"""
+          intent_insert="""  /* 검증 자원 — \"모임이 싫다\" 같은 상담 문장은 빼고, 찾기/시간/위치 요청만 잡습니다. */
+  /* '오늘 열린 모임은 뭐야', '어제 열린 모임은', '오늘 모임 뭐야'처럼 날짜가 붙은 직접 조회 표현. */
+  if(/(?:오늘|어제|내일|모레|이번\\s*주|다음\\s*주|지난\\s*주|[월화수목금토일]요일).{0,18}(?:열린|열리는|여는|하는|있던|있었던)?\\s*모임(?:은|이|가|들)?\\s*(?:(?:뭐|무엇|어디|몇|알려|보여|있어|있나|있었어).*)?[?？]?$/.test(x)) return 'meeting';
+"""
+          if intent_anchor not in s: raise SystemExit('intent anchor missing')
+          s=s.replace(intent_anchor,intent_insert,1)
+
+          role_anchor="""      clientId: aiClientId(),
+      /* AI 서버 v1.3도 현재 문장으로 읽을 수 있도록 기준시각을 메시지 앞에 함께 보냅니다. */
+"""
+          role_new="""      clientId: aiClientId(),
+      role: famMode() ? 'family' : 'self',
+      /* AI 서버 v1.3도 현재 문장으로 읽을 수 있도록 기준시각을 메시지 앞에 함께 보냅니다. */
+"""
+          if role_anchor not in s: raise SystemExit('AI body anchor missing')
+          s=s.replace(role_anchor,role_new,1)
+          p.write_text(s,encoding='utf-8')
+          print('index delta',len(s)-len(old))
+
+          sw=Path('sw.js')
+          x=sw.read_text(encoding='utf-8')
+          x=x.replace("const APP_VERSION = 'V9.0';","const APP_VERSION = 'V9.0.1';",1)
+          x=x.replace("const V = 'ohg-v900-ai-simulation-fixes';","const V = 'ohg-v901-ai-role-meeting-social';",1)
+          sw.write_text(x,encoding='utf-8')
+
+          sp=Path('social-apps-script.gs')
+          x=sp.read_text(encoding='utf-8')
+          x=x.replace("const SOCIAL_VERSION = 'V9.0-social-1';","const SOCIAL_VERSION = 'V9.0.1-social-1';",1)
+
+          old_dispatch="""    const lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try{
+      if(action === 'feed') return json_(feed_(body));
+      if(action === 'profile') return json_(profile_(body));
+"""
+          new_dispatch="""    /* 피드 조회는 읽기 전용이므로 모든 사용자의 쓰기 작업과 직렬화하지 않습니다. */
+    if(action === 'feed') return json_(feed_(body));
+    const lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    try{
+      if(action === 'profile') return json_(profile_(body));
+"""
+          if old_dispatch not in x: raise SystemExit('social dispatch anchor missing')
+          x=x.replace(old_dispatch,new_dispatch,1)
+
+          old_pd="""  // 작성글은 본문과 표시 닉네임을 비우고 삭제 상태로 전환합니다.
+  const posts=rows_(SOCIAL_SHEETS.posts).filter(r=>str_(r.userId)===me.userId);
+  const postIds=new Set(posts.map(r=>str_(r.postId)));
+  const psh=sheet_(SOCIAL_SHEETS.posts);
+  posts.forEach(r=>{
+    psh.getRange(r._row,3).setValue('');
+    psh.getRange(r._row,4).setValue('');
+    psh.getRange(r._row,6).setValue(now);
+    psh.getRange(r._row,7).setValue('deleted');
+    psh.getRange(r._row,8).setValue(0);
+  });
+"""
+          new_pd="""  // 작성글은 소유자 식별값·닉네임·본문을 비우고 삭제 상태로 전환합니다.
+  const posts=rows_(SOCIAL_SHEETS.posts).filter(r=>str_(r.userId)===me.userId);
+  const postIds=new Set(posts.map(r=>str_(r.postId)));
+  const psh=sheet_(SOCIAL_SHEETS.posts);
+  posts.forEach(r=>{
+    psh.getRange(r._row,2).setValue('');
+    psh.getRange(r._row,3).setValue('');
+    psh.getRange(r._row,4).setValue('');
+    psh.getRange(r._row,6).setValue(now);
+    psh.getRange(r._row,7).setValue('deleted');
+    psh.getRange(r._row,8).setValue(0);
+  });
+"""
+          if old_pd not in x: raise SystemExit('social profile delete posts anchor missing')
+          x=x.replace(old_pd,new_pd,1)
+
+          old_profile_end="""  const sh=sheet_(SOCIAL_SHEETS.profiles);
+  sh.getRange(profile._row,2).setValue('');
+  sh.getRange(profile._row,3).setValue('');
+  sh.getRange(profile._row,5).setValue(now);
+  sh.getRange(profile._row,6).setValue('deleted');
+  return {ok:true};
+"""
+          new_profile_end="""  // 신고기록은 운영 확인을 위해 최대 365일만 유지하되 삭제한 사용자의 내부 ID는 비웁니다.
+  const reports=rows_(SOCIAL_SHEETS.reports), rsh=sheet_(SOCIAL_SHEETS.reports);
+  reports.forEach(r=>{
+    let changed=false;
+    if(str_(r.reporterId)===me.userId){ r.reporterId=''; changed=true; }
+    if(str_(r.reportedUserId)===me.userId){ r.reportedUserId=''; changed=true; }
+    if(changed) rsh.getRange(r._row,1,1,SOCIAL_HEADERS.Reports.length).setValues([[r.reportId,r.postId,r.reporterId,r.reportedUserId,r.reason,r.createdAt]]);
+  });
+
+  const sh=sheet_(SOCIAL_SHEETS.profiles);
+  sh.getRange(profile._row,1).setValue('');
+  sh.getRange(profile._row,2).setValue('');
+  sh.getRange(profile._row,3).setValue('');
+  sh.getRange(profile._row,5).setValue(now);
+  sh.getRange(profile._row,6).setValue('deleted');
+  return {ok:true};
+"""
+          if old_profile_end not in x: raise SystemExit('social profile delete end anchor missing')
+          x=x.replace(old_profile_end,new_profile_end,1)
+
+          old_post_delete="""  const sh=sheet_(SOCIAL_SHEETS.posts);
+  sh.getRange(r._row,4).setValue('');
+  sh.getRange(r._row,6).setValue(Date.now());
+  sh.getRange(r._row,7).setValue('deleted');
+  return {ok:true};
+"""
+          new_post_delete="""  const sh=sheet_(SOCIAL_SHEETS.posts);
+  sh.getRange(r._row,4).setValue('');
+  sh.getRange(r._row,6).setValue(Date.now());
+  sh.getRange(r._row,7).setValue('deleted');
+  sh.getRange(r._row,8).setValue(0);
+  const supportRows=rows_(SOCIAL_SHEETS.supports).filter(s=>str_(s.postId)===id).map(s=>s._row).sort((a,b)=>b-a);
+  const supportSheet=sheet_(SOCIAL_SHEETS.supports);
+  supportRows.forEach(row=>supportSheet.deleteRow(row));
+  return {ok:true};
+"""
+          if old_post_delete not in x: raise SystemExit('social post delete anchor missing')
+          x=x.replace(old_post_delete,new_post_delete,1)
+
+          old_nick="""  if(RESERVED_NICKS.some(x=>x.replace(/\\s/g,'')===n.replace(/\\s/g,''))) return '';
+"""
+          new_nick="""  const nk=n.replace(/\\s/g,'').toLowerCase();
+  if(RESERVED_NICKS.some(x=>x.replace(/\\s/g,'').toLowerCase()===nk)) return '';
+  if(/관리자|운영자|오늘한걸음|마음프로|admin|official|staff/i.test(nk)) return '';
+"""
+          if old_nick not in x: raise SystemExit('social nickname anchor missing')
+          x=x.replace(old_nick,new_nick,1)
+          sp.write_text(x,encoding='utf-8')
+
+      - name: Verify JS and Apps Script syntax
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,flags=re.S|re.I)
+          Path('/tmp/index-inline.js').write_text('\n;\n'.join(scripts),encoding='utf-8')
+          Path('/tmp/social.js').write_text(Path('social-apps-script.gs').read_text(encoding='utf-8'),encoding='utf-8')
+          PY
+          node --check /tmp/index-inline.js
+          node --check /tmp/social.js
+          node --check sw.js
+
+      - name: Run focused meeting and role simulations
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          sw=Path('sw.js').read_text(encoding='utf-8')
+          social=Path('social-apps-script.gs').read_text(encoding='utf-8')
+          checks={
+            'build':"const BUILD='V9.0.1';" in s,
+            'schema':'const DATA_SCHEMA = 6;' in s,
+            'key':"const KEY = 'ohg.v1';" in s,
+            'socialkey':"const SOCIAL_KEY = 'ohg.social.v1';" in s,
+            'role':"role: famMode() ? 'family' : 'self'" in s,
+            'daykey':'function aiMeetingDayKey' in s,
+            'upcoming':'upcomingIntent' in s,
+            'allToday':"else if(info.target.isToday && info.upcomingIntent) rows=info.upcoming.slice();" in s,
+            'directPhrase':"(?:열린|열리는|여는|하는|있던|있었던)?" in s,
+            'swver':"const APP_VERSION = 'V9.0.1';" in sw,
+            'socialver':"const SOCIAL_VERSION = 'V9.0.1-social-1';" in social,
+            'feedUnlocked':"if(action === 'feed') return json_(feed_(body));\n    const lock" in social,
+            'profileIdClear':"sh.getRange(profile._row,1).setValue('');" in social,
+            'postOwnerClear':"psh.getRange(r._row,2).setValue('');" in social,
+            'supportCleanup':"supportRows.forEach(row=>supportSheet.deleteRow(row));" in social,
+          }
+          bad=[k for k,v in checks.items() if not v]
+          if bad: raise SystemExit('failed checks: '+', '.join(bad))
+          print('static checks',len(checks),'passed')
+          PY
+          cat >/tmp/scenario.js <<'JS'
+          const DAYN=['일','월','화','수','목','금','토'];
+          function directMeeting(x){return /(?:오늘|어제|내일|모레|이번\s*주|다음\s*주|지난\s*주|[월화수목금토일]요일).{0,18}(?:열린|열리는|여는|하는|있던|있었던)?\s*모임(?:은|이|가|들)?\s*(?:(?:뭐|무엇|어디|몇|알려|보여|있어|있나|있었어).*)?[?？]?$/.test(x)}
+          const yes=['오늘 열린 모임은 뭐야','어제 열린 모임은','오늘 모임 뭐야','내일 열리는 모임은?','이번 주 목요일 모임은 뭐야','지난 주 월요일 열린 모임'];
+          const no=['AA 모임이 싫어요','어제 모임에서 싸웠어요','오늘 모임에 갔다가 힘들었어요','GA 모임이 부담스러워요','내일 모임 생각만 해도 불안해요'];
+          for(const x of yes) if(!directMeeting(x)) throw new Error('should route meeting: '+x);
+          for(const x of no) if(directMeeting(x)) throw new Error('should remain counseling: '+x);
+          function dayKey(v){const raw=String(v||'').trim();const m=raw.match(/^([일월화수목금토])(?:요일)?$/);if(m)return m[1];const en=raw.toLowerCase().replace(/\./g,'');const map={sun:'일',sunday:'일',mon:'월',monday:'월',tue:'화',tues:'화',tuesday:'화',wed:'수',wednesday:'수',thu:'목',thur:'목',thurs:'목',thursday:'목',fri:'금',friday:'금',sat:'토',saturday:'토'};return map[en]||''}
+          const pairs=[['수','수'],['수요일','수'],['Wed','수'],['Wednesday','수'],['목요일','목'],['thurs','목'],['Sunday','일']];
+          for(const [a,b] of pairs) if(dayKey(a)!==b) throw new Error('day normalization '+a);
+          function upcoming(q){return /지금부터|현재\s*이후|남은|앞으로|시작\s*예정|참여할\s*수|갈\s*수|가도\s*되는/.test(q)}
+          if(upcoming('오늘 열린 모임은 뭐야')) throw new Error('all-day query became upcoming-only');
+          if(!upcoming('오늘 참여할 수 있는 모임을 알려줘')) throw new Error('participation query not upcoming');
+          if(!upcoming('오늘 남은 모임 있어?')) throw new Error('remaining query not upcoming');
+          console.log('meeting simulations passed:',yes.length+no.length+pairs.length+3);
+          JS
+          node /tmp/scenario.js
+
+      - name: Verify diff scope
+        run: |
+          set -euo pipefail
+          git diff --stat
+          files=$(git diff --name-only | sort)
+          printf '%s\n' "$files"
+          test "$files" = $'index.html\nsocial-apps-script.gs\nsw.js'
+          ! git diff -- index.html | grep -E '^[-+]const (KEY|DATA_SCHEMA) ' || true
+
+      - name: Commit validated V9.0.1 fixes
+        run: |
+          set -euo pipefail
+          git config user.name 'HanTae-ho'
+          git config user.email '64190685+HanTae-ho@users.noreply.github.com'
+          git add index.html sw.js social-apps-script.gs
+          git commit -m 'V9.0.1 마음프로 역할·모임조회·소셜서버 보정'
+          git push
