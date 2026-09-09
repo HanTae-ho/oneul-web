@@ -42,6 +42,18 @@ if old_action not in s:
     raise SystemExit('verify.js stale learningAction assertion not found')
 s=s.replace(old_action,new_action,1)
 
+old_family_tab="""ok(/\\{v:'work',l:'12단계 점검'\\}/.test(index),'가족 내 발자취 12단계 점검 탭');"""
+new_family_tab="""ok(/\\{v:'work',l:'실천기록'\\}/.test(index),'가족 내 발자취 실천기록 탭');"""
+if old_family_tab not in s:
+    raise SystemExit('verify.js stale family work-tab assertion not found')
+s=s.replace(old_family_tab,new_family_tab,1)
+
+old_test_check="""ok(/회복학습 목록에는 12단계·회복의 기초 이해·단계별 점검 3개/.test(test),'test.js 회복학습 3메뉴 기준으로 갱신');"""
+new_test_check="""ok(/회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery·12단계 점검 4개/.test(test),'test.js 회복학습 4메뉴 기준으로 갱신');"""
+if old_test_check not in s:
+    raise SystemExit('verify.js stale test.js learning-menu assertion not found')
+s=s.replace(old_test_check,new_test_check,1)
+
 old_gs="""ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
 ok(/GS_VER\\s*=\\s*'v1\\.8'/.test(resourceGs)&&/FEEDBACK_URL/.test(resourceGs),'자원시트 v1.8 유지');"""
 new_gs="""if(feedbackGs) ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
@@ -56,6 +68,30 @@ s=s.replace("console.log('\\nV8.0 네이티브 예약알림 웹 회귀검증 통
 
 p.write_text(s,encoding='utf-8')
 
+# test.js: current recovery-learning menu is 3 data topics + 12-step workbook entry.
+p=Path('test.js')
+t=p.read_text(encoding='utf-8')
+old="""  assert(await pg.evaluate(() => Array.isArray(window.LEARNING_TOPICS) && window.LEARNING_TOPICS.length === 2), '회복학습은 2개 독립 주제를 learning-data.js에서 로드해야 함');
+  await pg.click('#tool-learn'); await pg.waitForTimeout(180);
+  assert((await seen()) === 'p-learn', '회복학습 목록 페이지가 열려야 함');
+  assert((await pg.$$eval('#learn-list .help', a => a.length)) === 3, '회복학습 목록에는 12단계·회복의 기초 이해·단계별 점검 3개가 있어야 함');
+  assert((await pg.$eval('#learn-list', e => e.innerText)).includes('12단계'), '회복학습 목록에 12단계가 표시되어야 함');
+  assert((await pg.$eval('#learn-list', e => e.innerText)).includes('회복의 기초 이해'), '회복학습 목록에 심화 주제가 표시되어야 함');
+  assert((await pg.$eval('#learn-list', e => e.innerText)).includes('단계별 점검'), '회복학습 목록에 단계별 점검이 표시되어야 함');"""
+new="""  assert(await pg.evaluate(() => Array.isArray(window.LEARNING_TOPICS) && window.LEARNING_TOPICS.length === 3), '회복학습은 3개 독립 주제를 learning-data.js에서 로드해야 함');
+  await pg.click('#tool-learn'); await pg.waitForTimeout(180);
+  assert((await seen()) === 'p-learn', '회복학습 목록 페이지가 열려야 함');
+  assert((await pg.$$eval('#learn-list .help', a => a.length)) === 4, '회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery·12단계 점검 4개가 있어야 함');
+  const learnText = await pg.$eval('#learn-list', e => e.innerText);
+  assert(learnText.includes('12단계'), '회복학습 목록에 12단계가 표시되어야 함');
+  assert(learnText.includes('회복의 기초 이해'), '회복학습 목록에 심화 주제가 표시되어야 함');
+  assert(learnText.includes('SMART Recovery'), '회복학습 목록에 SMART Recovery가 표시되어야 함');
+  assert(learnText.includes('12단계 점검'), '회복학습 목록에 12단계 점검이 표시되어야 함');"""
+if old not in t:
+    raise SystemExit('test.js stale learning-menu block not found')
+t=t.replace(old,new,1)
+p.write_text(t,encoding='utf-8')
+
 idx=Path('index.html').read_text(encoding='utf-8')
 sw=Path('sw.js').read_text(encoding='utf-8')
 vr=Path('verify.js').read_text(encoding='utf-8')
@@ -67,5 +103,7 @@ assert "readIf=f=>fs.existsSync" in vr
 assert "<b>12단계 점검" in vr
 assert "회복학습 3개 독립 주제 등록" in vr
 assert "learningAction\\(type,sectionId" in vr
+assert "실천기록" in vr
+assert "SMART Recovery·12단계 점검 4개" in Path('test.js').read_text(encoding='utf-8')
 assert "V8\\.0" not in '\n'.join(vr.splitlines()[:30])
 print('V9.0.2 verify consistency repair PASS')
