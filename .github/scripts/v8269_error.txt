@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/home/runner/work/oneul-web/oneul-web/.github/scripts/v8269_patch.py", line 10, in <module>
-    assert "const BUILD='V8.2.69'" in s
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError
