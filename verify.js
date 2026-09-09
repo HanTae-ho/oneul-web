@@ -5,12 +5,17 @@ const root=__dirname;
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const index=read('index.html'), sw=read('sw.js'), test=read('test.js'), manifest=read('manifest.json');
 const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningSrc=read('screening-data.js'), workbookSrc=read('workbook-data.js');
-const feedbackGs=read('오늘한걸음_의견_v1.0.gs'), resourceGs=read('오늘한걸음_자원시트_v1.8.gs');
+const readIf=f=>fs.existsSync(path.join(root,f))?read(f):'';
+const feedbackGs=readIf('오늘한걸음_의견_v1.0.gs'), resourceGs=readIf('오늘한걸음_자원시트_v1.8.gs');
 const fail=m=>{throw new Error('VERIFY: '+m)}; const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
-ok(/const BUILD = 'V8\.0';/.test(index),'index BUILD = V8.0');
-ok(/const APP_VERSION = 'V8\.0';/.test(sw),'sw APP_VERSION = V8.0');
-ok(/const V = 'ohg-v800';/.test(sw),'sw cache = ohg-v800');
+const build=(index.match(/const BUILD\s*=\s*'([^']+)'/)||[])[1]||'';
+const appVersion=(sw.match(/const APP_VERSION\s*=\s*'([^']+)'/)||[])[1]||'';
+const cacheVersion=(sw.match(/const V\s*=\s*'([^']+)'/)||[])[1]||'';
+const expectedCachePrefix='ohg-v'+build.replace(/^V/,'').replace(/\./g,'');
+ok(/^V\d+\.\d+(?:\.\d+)?$/.test(build),'index BUILD 형식 정상: '+build);
+ok(appVersion===build,'sw APP_VERSION = index BUILD ('+build+')');
+ok(!!build && cacheVersion.startsWith(expectedCachePrefix),'sw cache = '+expectedCachePrefix+' 계열');
 ['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
   ok(index.includes('<script src="./'+f+'"></script>'),'index가 '+f+' 로드');
@@ -32,7 +37,7 @@ ok(/\$\('#tool-listen'\)\.onclick = \(\) => openListen\('tools'\)/.test(index),'
 ok(/p === 'listen' && ls\.back === 'tools'/.test(index),'회복도구에서 듣는 글 진입 시 회복도구 탭 강조 유지');
 ok(/마음 처방전.*회복도구/.test(index),'마음프로 듣는 글 안내가 두 진입경로를 반영');
 ok(/id="p-workbook-list"/.test(index)&&/id="workbook-list"/.test(index),'회복학습 안에 단계별 점검 화면 존재');
-ok(/<b>단계별 점검<\/b>/.test(index)&&/go\('workbook-list'\)/.test(index),'회복학습 목록에서 단계별 점검 직접 진입');
+ok(/<b>12단계 점검<\/b>/.test(index)&&/w\.onclick=\(\)=>go\('workbook-list'\)/.test(index),'회복학습 목록에서 12단계 점검 직접 진입');
 ok(/const order=\['step1','step4','step8','step9','step10','step11','step12'\]/.test(index),'단계별 점검 1·4·8·9·10·11·12단계 순서');
 ok(!/if\(topic\.sourceNote\) h\+=/.test(index),'회복학습 사용자 화면에서 내부 sourceNote 미표시');
 ok(/#modbox'\); if\(mb\) mb\.scrollTop=0/.test(index),'학습 모달을 새로 열 때 스크롤 맨 위 초기화');
@@ -44,7 +49,7 @@ ok(!/\.toISOString\s*\(/.test(test),'자동테스트에서 toISOString() 미사�
 ok(/timezoneId: 'Asia\/Seoul'/.test(test),'기존 브라우저 회귀테스트 시간대 Asia/Seoul 유지');
 ok(!/\/opt\/pw-browsers\/chromium/.test(test),'자동테스트 Chromium 경로 하드코딩 제거');
 ok(/process\.env\.CHROMIUM_PATH/.test(test),'필요 시 CHROMIUM_PATH 사용자 지정 지원');
-ok(/회복학습 목록에는 12단계·회복의 기초 이해·단계별 점검 3개/.test(test),'test.js 회복학습 3메뉴 기준으로 갱신');
+ok(/회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery·12단계 점검 4개/.test(test),'test.js 회복학습 4메뉴 기준으로 갱신');
 ok(/알코올 영역 1단계 카드에 AA 단계문장 표시/.test(test)&&/도박 영역 1단계 카드에 GA 단계문장 표시/.test(test)&&/약물 영역 1단계 카드에 NA 단계문장 표시/.test(test),'test.js AA·GA·NA 영역별 단계문장 회귀검사');
 
 let box={window:{}};vm.createContext(box);vm.runInContext(qaSrc,box);const qa=box.window.QA_ITEMS;
@@ -79,13 +84,13 @@ ok(!/function twelveStepDomain\(\)[\s\S]{0,500}S\.role/.test(index),'단계문�
 ok(/FAMILY_TWELVE_STEP_PERSPECTIVES/.test(index)&&/function learningSectionPerspective\(section\)/.test(index),'가족 12단계 해설 오버레이 연결');
 ok(/learningCardText\(topic,s,ready\)/.test(index),'12단계 카드 작은글씨가 동적 단계문장 함수 사용');
 ok(/function twelveStepWordingNotice\(\)/.test(index)&&/set\.adapted/.test(index),'복수영역 통합형 안내를 공식 문안과 구분해 표시');
-ok(Array.isArray(learning)&&learning.length===2&&learning[0].id==='twelve-steps'&&learning[1].id==='recovery-foundations','회복학습 2개 독립 주제 등록');
+ok(Array.isArray(learning)&&learning.length===3&&learning.map(x=>x.id).join(',')==='twelve-steps,recovery-foundations,smart-recovery','회복학습 3개 독립 주제 등록');
 ok(learning[0].sections.length===14,'12단계 소개 + 기초 + 1~12단계 14개');
 ok(learning[0].status==='content-ready','12단계 학습 콘텐츠 준비 완료 상태');
 ok(learning[0].sections.every(x=>Array.isArray(x.body)&&x.body.length>=3),'12단계 14개 섹션 모두 본문 3문단 이상');
 ok(learning[0].sections.every(x=>Array.isArray(x.reflection)&&x.reflection.length>=4),'12단계 14개 섹션 모두 생각해보기 4문항 이상');
 ok(learning[0].sections.some(x=>x.id==='foundation'),'12단계의 기초(믿음·겸손·용서) 추가');
-ok(/function openLearnSection\(topic,s\)/.test(index)&&/function learningAction\(type\)/.test(index),'회복학습 모바일 상세/행동연결 UI 존재');
+ok(/function openLearnSection\(topic,s\)/.test(index)&&/function learningAction\(type,sectionId\)/.test(index),'회복학습 모바일 상세/행동연결 UI 존재');
 ok(/type:'halt'/.test(learningSrc)&&/type:'night'/.test(learningSrc),'10단계 HALT·하루 돌아보기 연결');
 ok(/type:'meditation'/.test(learningSrc)&&/type:'breath'/.test(learningSrc),'11단계 명상·호흡 연결');
 ok(/type:'meet'/.test(learningSrc)&&/type:'help'/.test(learningSrc),'12단계 자조모임·헬프 연결');
@@ -124,12 +129,12 @@ ok(/familyStepWorks: \[\], familyStepDrafts: \{\}/.test(index),'가족 12단계 
 ok(/function workbookDefs\(scope\)/.test(index)&&/FAMILY_WORKSHEETS/.test(index),'역할별 workbook 정의 선택 엔진');
 ok(/workbookState = \{kind:'step1', from:'learn-topic', scope:'self'\}/.test(index),'workbook 역할 scope 상태 분리');
 ok(/mt\.target=famMode\(\)\?'fam':'me'/.test(index),'가족 12단계 모임 action이 가족모임으로 분기');
-ok(/\{v:'work',l:'12단계 점검'\}/.test(index),'가족 내 발자취 12단계 점검 탭');
+ok(/\{v:'work',l:'실천기록'\}/.test(index),'가족 내 발자취 실천기록 탭');
 
 ok(/stepWorks: \[\], stepDrafts: \{\}/.test(index),'당사자 검토 저장기록·자동저장 초안 localStorage 상태 유지');
 ok(/function drawWorkbook\(\)/.test(index)&&/function saveWorkbookRecord\(kind\)/.test(index),'검토시트 작성·저장 UI 존재');
 ok(/function recWorkbook\(\)/.test(index)&&/12단계 검토/.test(index),'내 발자취 12단계 검토 재조회 탭 존재');
-ok(/자원시트·의견서버·마음프로로 자동 전송되지 않습니다/.test(index),'검토 내용 서버·AI 자동전송 방지 안내');
+ok(/작성 내용은 <b>이 기기에 저장<\/b>되며 자동 전송되지 않습니다/.test(index)&&/작성 중 초안과 저장 기록 모두 S 안에만 두며 서버로 자동 전송하지 않습니다/.test(index),'검토 내용 서버·AI 자동전송 방지 안내');
 ok(['step1','step4','step8','step9','step10','step11','step12'].every(k=>new RegExp("type:'"+k+"-workbook'").test(learningSrc)),'1·4·8·9·10·11·12단계 학습에서 검토·실천 직접 연결');
 ok(/workbookDraftStore\(scope\)\[kind\]=workbookEmptyData/.test(index)&&/workbookQueueSave/.test(index),'역할별 검토 작성 중 기기내 초안 자동저장');
 ok(/wb-record-delete/.test(index),'저장한 개별 검토 기록 삭제 기능');
@@ -175,14 +180,16 @@ ok(/검사 점수와 결과는 마음프로에 자동으로 전달되지 않습�
 ok(/function screenRecentRows\(rows\)/.test(index)&&/screen-record-row/.test(index),'통계 최근 검사일·점수·결과구간 목록 존재');
 ok(/이전보다/.test(index)&&/점수의 증가·감소/.test(index),'이전 점수 차이와 과잉해석 방지 문구 존재');
 ok(/types\.includes\('etc'\)/.test(index),'기타 회복영역에서 인터넷·게임·스마트폰 점검 노출');
-ok(/가족·보호자 모드에서는 당사자 대신/.test(index),'가족 모드에서 중독검사 대리응답 방지');
+ok(/function drawScreening\(\)[\s\S]{0,600}if\(!famMode\(\)\)/.test(index),'가족 모드에서 중독검사 대리응답 방지');
 ok(/#top-me\{[^}]*width:40px;[^}]*border-radius:50%/.test(index),'사용자 아이콘 원형 40px 아바타 기반');
 ok(/#top-me img\{[^}]*object-fit:cover/.test(index),'향후 프로필 이미지 삽입 가능한 아바타 CSS');
 
 ok(/navigator\.share/.test(index),'추천하기 Web Share 유지');
 ok(/id="me-feedback-text"/.test(index)&&/id="me-feedback-send"/.test(index),'앱에 바라는 점 유지');
-ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
-ok(/GS_VER\s*=\s*'v1\.8'/.test(resourceGs)&&/FEEDBACK_URL/.test(resourceGs),'자원시트 v1.8 유지');
+if(feedbackGs) ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
+else console.log('SKIP - 의견 Apps Script 파일은 저장소 외부 배포 자원');
+if(resourceGs) ok(/GS_VER\s*=\s*'v1\.8'/.test(resourceGs)&&/FEEDBACK_URL/.test(resourceGs),'자원시트 v1.8 유지');
+else console.log('SKIP - 자원시트 Apps Script 파일은 저장소 외부 배포 자원');
 
 
 ok(/const isSamsung = \/SamsungBrowser\/i.test\(navigator.userAgent\)/.test(index),'Samsung Internet 감지');
@@ -191,4 +198,4 @@ ok(index.includes('앱스 화면에 설치'),'Samsung Internet 앱스 화면 설
 ok(index.indexOf('if(isSamsung){') < index.indexOf('} else if(isIOS){'),'Samsung 설치 분기를 표준 prompt보다 우선');
 ok(manifest.includes('\"id\": \"./index.html\"'),'manifest 안정적 app id');
 
-console.log('\nV8.0 네이티브 예약알림 웹 회귀검증 통과');
+console.log('\n'+build+' 웹 회귀검증 통과');
