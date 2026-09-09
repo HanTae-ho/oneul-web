@@ -15,21 +15,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Apply minimal V8.2.69 web changes
+      - name: Apply and persist V8.2.69 web candidate
         run: |
           sed -Ei "s/const[[:space:]]+BUILD[[:space:]]*=[[:space:]]*['\"]V8\.2\.68['\"]/const BUILD='V8.2.69'/" index.html
           python3 .github/scripts/v8269_patch.py
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js privacy.html legal.html README.md
+          git commit -m 'fix: finalize V8.2.69 menu cleanup and SMART link'
+          git push
       - name: Validate V8.2.69 scope and JavaScript
         run: |
           set -euo pipefail
-          grep -F 'apply=1' index.html
-          grep -F 'clear=1' index.html
-          grep -F './music-audio-data.js' index.html
-          grep -F '한국 SMART Recovery' index.html
-          grep -F 'CBT 접근과 자기관리 기술을 활용하는 회복 자조모임' index.html
-          grep -F 'https://smartkr.org/' index.html
-          grep -F "const APP_VERSION = 'V8.2.69';" sw.js
-          grep -F 'ohg-v8269-me-smart' sw.js
           python3 - <<'PY'
           from pathlib import Path
           import re
@@ -37,6 +34,10 @@ jobs:
           assert re.search(r"const\s+BUILD\s*=\s*['\"]V8\.2\.69['\"]",s)
           assert re.search(r"const\s+DATA_SCHEMA\s*=\s*6\b",s)
           assert re.search(r"const\s+KEY\s*=\s*['\"]ohg\.v1['\"]",s)
+          assert 'apply=1' in s and 'clear=1' in s and './music-audio-data.js' in s
+          assert '한국 SMART Recovery' in s
+          assert 'CBT 접근과 자기관리 기술을 활용하는 회복 자조모임' in s
+          assert 'https://smartkr.org/' in s
           a=s.index('<section class="pg" id="p-my">'); b=s.index('</section>',a); sec=s[a:b]
           assert '<b>관리자</b>' not in sec
           assert sec.index('<b>내 발자취</b>') < sec.index('<b>내 정보 · 설정</b>') < sec.index('<b>지원 및 안내</b>') < sec.index('<b>앱에 바라는 점</b>')
@@ -44,6 +45,8 @@ jobs:
           assert 'function reclaimToggle(btn)' in s
           assert "const b = $('#me-admin');\n  $('#tab-admin').classList.add('hide');\n  if(!b) return;" in s
           assert '<section class="pg" id="p-admin">' in s
+          sw=Path('sw.js').read_text(encoding='utf-8')
+          assert "const APP_VERSION = 'V8.2.69';" in sw and 'ohg-v8269-me-smart' in sw
           scripts=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>',s,re.S|re.I)
           assert scripts
           for i,js in enumerate(scripts): Path(f'/tmp/inline-{i}.js').write_text(js,encoding='utf-8')
@@ -51,10 +54,3 @@ jobs:
           for f in /tmp/inline-*.js; do node --check "$f"; done
           node --check music-audio-data.js
           git diff --check
-      - name: Commit finalized web candidate
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html sw.js privacy.html legal.html README.md
-          git commit -m 'fix: finalize V8.2.69 menu cleanup and SMART link'
-          git push
