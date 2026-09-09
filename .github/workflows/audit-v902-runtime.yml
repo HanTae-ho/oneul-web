@@ -1,0 +1,41 @@
+name: Audit V9.0.2 runtime references
+
+on:
+  push:
+    branches: [v9.0.2-runtime-social-fix]
+    paths:
+      - '.github/workflows/audit-v902-runtime.yml'
+      - 'index.html'
+      - 'social-apps-script.gs'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Extract all inline scripts
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          Path('/tmp/index-all.js').write_text('\n'.join(blocks),encoding='utf-8')
+          print('script blocks:',len(blocks),'lines:',len(Path('/tmp/index-all.js').read_text(encoding='utf-8').splitlines()))
+          PY
+      - name: Syntax check
+        run: |
+          node --check /tmp/index-all.js
+          node --check sw.js
+          node --check social-apps-script.gs
+      - name: ESLint no-undef audit
+        run: |
+          set +e
+          npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js > /tmp/eslint.txt 2>&1
+          code=$?
+          cat /tmp/eslint.txt
+          echo "ESLINT_EXIT=$code"
+          exit 0
