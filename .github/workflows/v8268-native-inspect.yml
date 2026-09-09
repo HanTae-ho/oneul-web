@@ -13,12 +13,17 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          rm -rf android-v8
+          mkdir android-v8
+          unzip -q android-v8-source.zip -d android-v8
           bash "$GITHUB_WORKSPACE/android-v8.2.67-legal-release.sh"
           PKG="$GITHUB_WORKSPACE/android-v8/app/src/main/java/io/github/hantae_ho/twa"
           echo '=== ReminderStore ==='
           cat "$PKG/ReminderStore.java"
           echo '=== NotificationSettings relevant ==='
-          grep -n -E 'onCreate|loadIncoming|importSchedule|pendingRisk|pendingHabits|pendingVisit|saveAndReturn|setEnabled|enabledSwitch' "$PKG/NotificationSettingsActivity.java" || true
+          grep -n -E 'onCreate|loadIncoming|importSchedule|pendingRisk|pendingHabits|pendingVisit|saveAndReturn|setEnabled|enabledSwitch|onNewIntent' "$PKG/NotificationSettingsActivity.java" || true
+          echo '=== NotificationSettings head/body ==='
+          sed -n '1,340p' "$PKG/NotificationSettingsActivity.java"
           echo '=== HabitReminderStore ==='
           sed -n '1,180p' "$PKG/HabitReminderStore.java"
           echo '=== TreatmentReminderStore ==='
