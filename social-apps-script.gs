@@ -117,6 +117,8 @@ function profile_(b){
   if(!nickname) return {ok:false,error:'INVALID_NICKNAME'};
   const sh = sheet_(SOCIAL_SHEETS.profiles), data = rows_(SOCIAL_SHEETS.profiles);
   const found = data.find(r => str_(r.userId) === userId);
+  const sameNick = data.find(r => str_(r.status) === 'active' && str_(r.userId) !== userId && str_(r.nickname).toLowerCase() === nickname.toLowerCase());
+  if(sameNick) return {ok:false,error:'NICK_TAKEN',message:'이미 사용 중인 닉네임입니다.'};
   const now = Date.now(), hash = hash_(token);
   if(found){
     if(str_(found.tokenHash) !== hash) return {ok:false,error:'AUTH'};
