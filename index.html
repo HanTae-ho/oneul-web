@@ -7893,6 +7893,27 @@ function recPattern(){
     }
   }
 
+  if(urges.length>=3&&(S.hours||[]).length){
+    const riskHours=new Set((S.hours||[]).filter(h=>Number.isInteger(+h)).map(Number));
+    const hit=urges.filter(r=>riskHours.has(new Date(+r.t).getHours())).length;
+    if(hit>=2){
+      add('설정한 위험시간과 충동', '최근 90일 충동 기록 '+urges.length+'건 중 '+hit+'건('+Math.round(hit/urges.length*100)+'%)이 내가 설정한 위험시간에 기록되었습니다.');
+    }
+  }
+
+  const sinceDay=dayKey(since), todayDay=dayKey(Date.now());
+  const habitDays=new Set();
+  (Array.isArray(S.habits)?S.habits:[]).forEach(h=>{
+    (Array.isArray(h&&h.done)?h.done:[]).forEach(d=>{
+      const v=String(d||'');
+      if(/^\d{4}-\d{2}-\d{2}$/.test(v)&&v>=sinceDay&&v<=todayDay) habitDays.add(v);
+    });
+  });
+  if(habitDays.size>=3){
+    let overlap=0; habitDays.forEach(d=>{ if(urgeDays.has(d)) overlap++; });
+    add('회복 실천이 기록된 날', '최근 90일 회복 실천을 기록한 '+habitDays.size+'일 중 '+overlap+'일에 충동도 같은 날 기록되었습니다. 이 숫자는 실천의 효과를 평가하는 점수가 아니라 기록이 겹친 날만 보여줍니다.');
+  }
+
   if(urgeDays.size>=3&&halts.length){
     const codeDays={};
     halts.forEach(r=>{
@@ -7957,7 +7978,7 @@ function recPattern(){
   if(!cards.length){
     w.appendChild(emptyBox('아직 반복되는 흐름을 말하기에 기록이 충분하지 않습니다. 같은 종류의 기록이 2~3번 이상 더 쌓이면 확인할 수 있습니다.'));
   }else{
-    cards.slice(0,6).forEach(x=>{
+    cards.forEach(x=>{
       const c=el('div','card tight');
       c.innerHTML='<h3>'+esc(x.title)+'</h3><p style="margin:0;line-height:1.72">'+esc(x.text)+'</p>';
       w.appendChild(c);
