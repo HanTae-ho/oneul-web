@@ -5,6 +5,7 @@ on:
     branches: [v9.0.2-version-consistency-fix]
     paths:
       - '.github/workflows/browser-regression-v902-temp.yml'
+      - 'scripts/patch-test-kst.py'
   workflow_dispatch:
 
 permissions:
