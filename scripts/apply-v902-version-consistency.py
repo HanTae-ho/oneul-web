@@ -36,6 +36,12 @@ if old_learning not in s:
     raise SystemExit('verify.js stale learning-topic assertion not found')
 s=s.replace(old_learning,new_learning,1)
 
+old_action="""ok(/function openLearnSection\\(topic,s\\)/.test(index)&&/function learningAction\\(type\\)/.test(index),'회복학습 모바일 상세/행동연결 UI 존재');"""
+new_action="""ok(/function openLearnSection\\(topic,s\\)/.test(index)&&/function learningAction\\(type,sectionId\\)/.test(index),'회복학습 모바일 상세/행동연결 UI 존재');"""
+if old_action not in s:
+    raise SystemExit('verify.js stale learningAction assertion not found')
+s=s.replace(old_action,new_action,1)
+
 old_gs="""ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
 ok(/GS_VER\\s*=\\s*'v1\\.8'/.test(resourceGs)&&/FEEDBACK_URL/.test(resourceGs),'자원시트 v1.8 유지');"""
 new_gs="""if(feedbackGs) ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
@@ -45,6 +51,8 @@ else console.log('SKIP - 자원시트 Apps Script 파일은 저장소 외부 배
 if old_gs not in s:
     raise SystemExit('verify.js Apps Script assertion block not found')
 s=s.replace(old_gs,new_gs,1)
+
+s=s.replace("console.log('\\nV8.0 네이티브 예약알림 웹 회귀검증 통과');", "console.log('\\n'+build+' 웹 회귀검증 통과');", 1)
 
 p.write_text(s,encoding='utf-8')
 
@@ -58,5 +66,6 @@ assert "const build=(index.match" in vr
 assert "readIf=f=>fs.existsSync" in vr
 assert "<b>12단계 점검" in vr
 assert "회복학습 3개 독립 주제 등록" in vr
+assert "learningAction\\(type,sectionId" in vr
 assert "V8\\.0" not in '\n'.join(vr.splitlines()[:30])
 print('V9.0.2 verify consistency repair PASS')
