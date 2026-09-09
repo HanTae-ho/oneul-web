@@ -24,6 +24,12 @@ if old_versions not in s:
     raise SystemExit('verify.js legacy V8.0 version block not found')
 s=s.replace(old_versions,new_versions,1)
 
+old_workbook="""ok(/<b>단계별 점검<\\/b>/.test(index)&&/go\\('workbook-list'\\)/.test(index),'회복학습 목록에서 단계별 점검 직접 진입');"""
+new_workbook="""ok(/<b>12단계 점검<\\/b>/.test(index)&&/w\\.onclick=\\(\\)=>go\\('workbook-list'\\)/.test(index),'회복학습 목록에서 12단계 점검 직접 진입');"""
+if old_workbook not in s:
+    raise SystemExit('verify.js stale workbook assertion not found')
+s=s.replace(old_workbook,new_workbook,1)
+
 old_gs="""ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
 ok(/GS_VER\\s*=\\s*'v1\\.8'/.test(resourceGs)&&/FEEDBACK_URL/.test(resourceGs),'자원시트 v1.8 유지');"""
 new_gs="""if(feedbackGs) ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
@@ -44,5 +50,6 @@ assert "const APP_VERSION = 'V9.0.2';" in sw
 assert "ohg-v902" in sw
 assert "const build=(index.match" in vr
 assert "readIf=f=>fs.existsSync" in vr
+assert "<b>12단계 점검" in vr
 assert "V8\\.0" not in '\n'.join(vr.splitlines()[:30])
 print('V9.0.2 verify consistency repair PASS')
