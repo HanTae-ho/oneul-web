@@ -45,5 +45,17 @@ if old2 not in s:
     raise SystemExit('stale recovery-day assertion block not found')
 s=s.replace(old2,new2,1)
 
+old3="""  await pg.click('#ni-save'); await pg.waitForTimeout(300);
+  console.log('11. 자기 전 저장 후 =', await seen());"""
+new3="""  await pg.click('#ni-save'); await pg.waitForTimeout(180);
+  // 칭찬 항목을 고르지 않은 경우 현재 UI는 저장 전 확인 모달을 한 번 보여줍니다.
+  if (await pg.isVisible('#ni-skip').catch(() => false)) {
+    await pg.click('#ni-skip'); await pg.waitForTimeout(220);
+  }
+  console.log('11. 자기 전 저장 후 =', await seen());"""
+if old3 not in s:
+    raise SystemExit('stale night-save test block not found')
+s=s.replace(old3,new3,1)
+
 p.write_text(s,encoding='utf-8')
-print('test.js KST date + recovery assertion PASS')
+print('test.js KST date + recovery assertion + night modal PASS')
