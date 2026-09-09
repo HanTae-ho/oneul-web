@@ -30,6 +30,12 @@ if old_workbook not in s:
     raise SystemExit('verify.js stale workbook assertion not found')
 s=s.replace(old_workbook,new_workbook,1)
 
+old_learning="""ok(Array.isArray(learning)&&learning.length===2&&learning[0].id==='twelve-steps'&&learning[1].id==='recovery-foundations','회복학습 2개 독립 주제 등록');"""
+new_learning="""ok(Array.isArray(learning)&&learning.length===3&&learning.map(x=>x.id).join(',')==='twelve-steps,recovery-foundations,smart-recovery','회복학습 3개 독립 주제 등록');"""
+if old_learning not in s:
+    raise SystemExit('verify.js stale learning-topic assertion not found')
+s=s.replace(old_learning,new_learning,1)
+
 old_gs="""ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
 ok(/GS_VER\\s*=\\s*'v1\\.8'/.test(resourceGs)&&/FEEDBACK_URL/.test(resourceGs),'자원시트 v1.8 유지');"""
 new_gs="""if(feedbackGs) ok(/MAKE_NEW_FEEDBACK_SHEET/.test(feedbackGs)&&/FEEDBACK_ADMIN_KEY/.test(feedbackGs),'의견 Apps Script 유지');
@@ -51,5 +57,6 @@ assert "ohg-v902" in sw
 assert "const build=(index.match" in vr
 assert "readIf=f=>fs.existsSync" in vr
 assert "<b>12단계 점검" in vr
+assert "회복학습 3개 독립 주제 등록" in vr
 assert "V8\\.0" not in '\n'.join(vr.splitlines()[:30])
 print('V9.0.2 verify consistency repair PASS')
