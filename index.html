@@ -2477,6 +2477,7 @@ addEventListener('appinstalled', function(){
 <script src="./learning-data.js"></script>
 <script src="./screening-data.js"></script>
 <script src="./workbook-data.js"></script>
+<script src="./music-audio-data.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════
    오늘 한 걸음 — 중독 회복 지원 웹앱
@@ -9621,7 +9622,26 @@ function listenMusicRow(n){
   const m = (S.res && Array.isArray(S.res.music)) ? S.res.music : [];
   return m.find(r => +r.n === +n) || null;
 }
+function listenAuditedItem(x){
+  return window.MUSIC_AUDIO_AUDITED && window.MUSIC_AUDIO_AUDITED[String(x && x.n)] || null;
+}
+function listenDisplayTitle(x){
+  const a=listenAuditedItem(x); return a && a.title ? a.title : x.c;
+}
+function listenDisplayCredit(x){
+  const a=listenAuditedItem(x); return a && a.credit && a.credit !== '—' ? a.credit : '';
+}
 function listenAudioCandidates(x){
+  const audited=listenAuditedItem(x);
+  if(audited && Array.isArray(audited.candidates) && audited.candidates.length){
+    const out=[];
+    audited.candidates.forEach(c=>{
+      const u=String(c && c.u || '').trim();
+      if(!/^https?:\/\//i.test(u) || out.some(a=>a.u===u)) return;
+      out.push({u:u,l:String(c.l||'').trim(),s:String(c.s||'').trim()});
+    });
+    if(out.length) return out;
+  }
   const r = listenMusicRow(x.n);
   if(r){
     const out = [];
@@ -9793,8 +9813,8 @@ function drawListen(){
 
   $('#ls-body').innerHTML =
     '<div class="rdcard"><h3>' + esc(x.t) + '</h3>' + para(x.s) +
-    '<div class="song"><b>들어볼 곡</b>' + esc(x.c) +
-    (x.a ? '<span>추천 연주 예시 · ' + esc(x.a) + '</span>' : '') +
+    '<div class="song"><b>들어볼 곡</b>' + esc(listenDisplayTitle(x)) +
+    (listenDisplayCredit(x) ? '<span>현재 재생 연주 · ' + esc(listenDisplayCredit(x)) + '</span>' : '') +
     /* ★ v37: 시트의 직접 음원을 Primary → Backup1 → Backup2 순서로 씁니다.
          source_page / audio_search 는 재생 주소가 아니므로 후보에서 자동 제외합니다.
          preload='none' 은 유지합니다 — 서른 편을 미리 받지 않습니다. */

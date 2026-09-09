@@ -6,9 +6,9 @@
 const APP_VERSION = 'V8.2.68';
 /* 내부 캐시 리비전. 기존 v46 클라이언트도 새 판을 감지하도록 숫자형 키를 유지합니다.
    V4.6 → 406, V4.7 → 407, V4.10 → 410, V5.0 → 500, V5.1 → 501, V5.2 → 502 */
-const V = 'ohg-v8268-reminder-music';
+const V = 'ohg-v8268-reminder-music-audited';
 const SHELL = ['./', './index.html', './native.html',
-  './qa-data.js', './learning-data.js', './screening-data.js', './workbook-data.js', './privacy.html', './legal.html', './manifest.json',
+  './qa-data.js', './learning-data.js', './screening-data.js', './workbook-data.js', './music-audio-data.js', './privacy.html', './legal.html', './manifest.json',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-32.png'];
 
 self.addEventListener('install', e => {
