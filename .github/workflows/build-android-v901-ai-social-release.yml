@@ -86,7 +86,7 @@ jobs:
           test -s "$AAB"
           AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
           "$AAPT" dump badging "$APK" | tee /tmp/badging.txt
-          grep -F "package: name='io.github.hantae_ho.twa' versionCode='894' versionName='9.0.1'" /tmp/badging.txt
+          grep -F "package: name='io.github.hantae_ho.twa' versionCode='895' versionName='9.0.1'" /tmp/badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/permissions.txt
           grep -F 'android.permission.SCHEDULE_EXACT_ALARM' /tmp/permissions.txt
           grep -F 'android.permission.WAKE_LOCK' /tmp/permissions.txt
@@ -114,5 +114,5 @@ jobs:
           gh release create v9.0.1-test oneul-v9.0.1.apk oneul-v9.0.1.aab SHA256SUMS.txt \
             --target android-v9.0.1-ai-social-release \
             --title '오늘 한 걸음 V9.0.1 마음프로·소셜 연결 테스트 릴리즈' \
-            --notes 'V9.0.1 테스트 릴리즈입니다. 웹 main V9.0.1에는 마음프로 AI 요청의 family/self role 연결, 오늘·어제 열린 모임 직접 조회, 오늘 전체 일정과 현재 이후 일정 분리, 모임 요일 표기 정규화가 반영되었습니다. 사용자는 마음프로 AI 서버를 v1.7로, 소셜 전용 Apps Script를 V9.0.1-social-2로 배포했습니다. 소셜은 익명 ID·닉네임·게시글·응원·신고를 회복기록과 분리하며 ohg.social.v1을 사용하고, 개인 회복기록은 DATA_SCHEMA=6 / ohg.v1을 그대로 유지합니다. Android는 V9.0 및 실기기 검증된 V8.5 네이티브 알림/TTS 스택을 변경하지 않고 versionCode 894 / versionName 9.0.1만 적용합니다. 정확알림, 화면 OFF 알림, 부팅 후 재예약, 복약·외래·생활·습관 알림, silent reminder apply/clear, 마음프로 네이티브 음성, 이완 TTS 엔진을 빌드에서 정적 검증합니다. 웹 main SHA: 5f6dba4a29e80eef24071bcfa663654ab6684bfe. 실기기 확인 전이므로 prerelease이며 추천 설치 버전은 아직 승격하지 않습니다.' \
+            --notes 'V9.0.1 갱신 테스트 릴리즈입니다. 웹 main V9.0.1에는 마음프로 AI 요청의 family/self role 연결, 오늘·어제 열린 모임 직접 조회, 오늘 전체 일정과 현재 이후 일정 분리, 모임 요일 표기 정규화가 반영되어 있으며, 사용설명서 하단 메뉴를 실제 화면에 맞춰 홈 · 회복도구 · 헬프 · 마음프로 · 소셜로 현행화했습니다. 사용자는 마음프로 AI 서버를 v1.7로, 소셜 전용 Apps Script를 V9.0.1-social-2로 배포했습니다. 소셜은 익명 ID·닉네임·게시글·응원·신고를 회복기록과 분리하며 ohg.social.v1을 사용하고, 개인 회복기록은 DATA_SCHEMA=6 / ohg.v1을 그대로 유지합니다. Android는 V9.0 및 실기기 검증된 V8.5 네이티브 알림/TTS 스택을 변경하지 않고 versionCode 895 / versionName 9.0.1만 적용합니다. 정확알림, 화면 OFF 알림, 부팅 후 재예약, 복약·외래·생활·습관 알림, silent reminder apply/clear, 마음프로 네이티브 음성, 이완 TTS 엔진을 빌드에서 정적 검증합니다. 웹 main SHA: 040e2522903cc37d3b3d78f645984f868247e9e7. 실기기 확인 전이므로 prerelease이며 추천 설치 버전은 아직 승격하지 않습니다.' \
             --prerelease
