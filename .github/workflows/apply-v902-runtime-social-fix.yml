@@ -1,0 +1,70 @@
+name: Apply V9.0.2 runtime social fix
+
+on:
+  push:
+    branches: [v9.0.2-runtime-social-fix]
+    paths:
+      - 'scripts/apply-v902-runtime-social-fix.py'
+      - '.github/workflows/apply-v902-runtime-social-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply product patch
+        run: python scripts/apply-v902-runtime-social-fix.py
+      - name: Verify browser and Apps Script syntax
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          Path('/tmp/index-all.js').write_text('\n'.join(blocks),encoding='utf-8')
+          Path('/tmp/social.js').write_text(Path('social-apps-script.gs').read_text(encoding='utf-8'),encoding='utf-8')
+          PY
+          node --check /tmp/index-all.js
+          node --check sw.js
+          node --check /tmp/social.js
+      - name: Verify no undefined browser references
+        run: |
+          npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
+      - name: Verify fixed invariants and social-2 protections
+        run: |
+          set -euo pipefail
+          ! grep -F 'HALTS.find' index.html
+          grep -F 'const HALT = [' index.html
+          grep -F 'const DATA_SCHEMA = 6;' index.html
+          grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
+          grep -F "const SOCIAL_VERSION = 'V9.0.2-social-3';" social-apps-script.gs
+          grep -F "const SOCIAL_TIME_ZONE = 'Asia/Seoul';" social-apps-script.gs
+          grep -F 'const MAX_SOCIAL_REQUEST_CHARS = 8192;' social-apps-script.gs
+          grep -F 'function cellText_' social-apps-script.gs
+          grep -F "if(action === 'feed') return json_(feed_(body));" social-apps-script.gs
+          grep -F "if(action === 'commentList') return json_(commentList_(body));" social-apps-script.gs
+          grep -F 'function commentCreate_' social-apps-script.gs
+          grep -F 'function commentDelete_' social-apps-script.gs
+          grep -F 'function commentReport_' social-apps-script.gs
+          grep -F 'function SOCIAL_REVIEW_CHECK' social-apps-script.gs
+          grep -F "const V = 'ohg-v902-social-comments-r2';" sw.js
+      - name: Commit product changes only
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm -f scripts/apply-v902-runtime-social-fix.py \
+            .github/workflows/apply-v902-runtime-social-fix.yml \
+            .github/workflows/audit-v902-runtime.yml \
+            .github/workflows/audit-v902-runtime-2.yml
+          git add index.html sw.js social-apps-script.gs README.md SOCIAL_SETUP.md .github/workflows/check-web-runtime.yml
+          git diff --cached --stat
+          git commit -m 'V9.0.2 런타임 오류·소셜 기준본 보정'
+          git push
