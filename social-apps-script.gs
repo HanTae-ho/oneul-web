@@ -14,7 +14,7 @@
  *    기존 자원시트 배포를 '새 버전'으로 갱신합니다.
  */
 
-const SOCIAL_VERSION = 'V9.0-social-1';
+const SOCIAL_VERSION = 'V9.0.1-social-1';
 const SOCIAL_SHEETS = {
   profiles: 'Profiles',
   posts: 'Posts',
@@ -145,11 +145,12 @@ function profileDelete_(b){
   const profile=profiles.find(r=>str_(r.userId)===me.userId);
   if(!profile) return {ok:false,error:'NOT_FOUND'};
 
-  // 작성글은 본문과 표시 닉네임을 비우고 삭제 상태로 전환합니다.
+  // 작성글은 소유자 식별값·닉네임·본문을 비우고 삭제 상태로 전환합니다.
   const posts=rows_(SOCIAL_SHEETS.posts).filter(r=>str_(r.userId)===me.userId);
   const postIds=new Set(posts.map(r=>str_(r.postId)));
   const psh=sheet_(SOCIAL_SHEETS.posts);
   posts.forEach(r=>{
+    psh.getRange(r._row,2).setValue('');
     psh.getRange(r._row,3).setValue('');
     psh.getRange(r._row,4).setValue('');
     psh.getRange(r._row,6).setValue(now);
@@ -164,7 +165,15 @@ function profileDelete_(b){
   const ssh=sheet_(SOCIAL_SHEETS.supports);
   supports.forEach(row=>ssh.deleteRow(row));
 
+  const reports=rows_(SOCIAL_SHEETS.reports), rsh=sheet_(SOCIAL_SHEETS.reports);
+  reports.forEach(r=>{
+    let changed=false;
+    if(str_(r.reporterId)===me.userId){ r.reporterId=''; changed=true; }
+    if(str_(r.reportedUserId)===me.userId){ r.reportedUserId=''; changed=true; }
+    if(changed) rsh.getRange(r._row,1,1,SOCIAL_HEADERS.Reports.length).setValues([[r.reportId,r.postId,r.reporterId,r.reportedUserId,r.reason,r.createdAt]]);
+  });
   const sh=sheet_(SOCIAL_SHEETS.profiles);
+  sh.getRange(profile._row,1).setValue('');
   sh.getRange(profile._row,2).setValue('');
   sh.getRange(profile._row,3).setValue('');
   sh.getRange(profile._row,5).setValue(now);
@@ -209,6 +218,10 @@ function postDelete_(b){
   sh.getRange(r._row,4).setValue('');
   sh.getRange(r._row,6).setValue(Date.now());
   sh.getRange(r._row,7).setValue('deleted');
+  sh.getRange(r._row,8).setValue(0);
+  const supportRows=rows_(SOCIAL_SHEETS.supports).filter(s=>str_(s.postId)===id).map(s=>s._row).sort((a,b)=>b-a);
+  const supportSheet=sheet_(SOCIAL_SHEETS.supports);
+  supportRows.forEach(row=>supportSheet.deleteRow(row));
   return {ok:true};
 }
 
@@ -263,7 +276,9 @@ function validNick_(v){
   const n=str_(v).replace(/\s+/g,' ').trim();
   if(n.length<2 || n.length>12) return '';
   if(!/^[가-힣A-Za-z0-9 _-]+$/.test(n)) return '';
-  if(RESERVED_NICKS.some(x=>x.replace(/\s/g,'')===n.replace(/\s/g,''))) return '';
+  const nk=n.replace(/\s/g,'').toLowerCase();
+  if(RESERVED_NICKS.some(x=>x.replace(/\s/g,'').toLowerCase()===nk)) return '';
+  if(/관리자|운영자|오늘한걸음|마음프로|admin|official|staff/i.test(nk)) return '';
   return n;
 }
 function validPostText_(v){ const s=str_(v).trim(); return s && s.length<=500 ? s : ''; }
