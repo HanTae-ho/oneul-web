@@ -19,7 +19,9 @@ jobs:
           fetch-depth: 0
 
       - name: Apply V8.5 patch
-        run: python3 scripts/apply_v85_summary_install.py
+        run: |
+          python3 scripts/apply_v85_summary_install.py
+          python3 scripts/cleanup_v85.py
 
       - name: Verify V8.5 invariants
         run: |
@@ -77,9 +79,9 @@ jobs:
       - name: Commit validated V8.5 result
         run: |
           set -euo pipefail
-          rm .github/workflows/apply-v85-summary-install.yml scripts/apply_v85_summary_install.py
+          rm .github/workflows/apply-v85-summary-install.yml scripts/apply_v85_summary_install.py scripts/cleanup_v85.py
           git config user.name 'HanTae-ho'
           git config user.email '64190685+HanTae-ho@users.noreply.github.com'
-          git add index.html install.html sw.js privacy.html legal.html README.md .github/workflows/apply-v85-summary-install.yml scripts/apply_v85_summary_install.py
+          git add index.html install.html sw.js privacy.html legal.html README.md .github/workflows/apply-v85-summary-install.yml scripts/apply_v85_summary_install.py scripts/cleanup_v85.py
           git commit -m 'V8.5 내 회복요약 · 고정 설치 안내'
           git push origin HEAD:v8.5-recovery-summary-install
