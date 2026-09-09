@@ -450,6 +450,8 @@ addEventListener('appinstalled', function(){
 
   /* V8.2.64 — 내 발자취 · 내가 되찾은 것. 아이콘은 ICO의 직접 SVG만 사용합니다. */
   .reclaim-wrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:15px;margin-bottom:14px}
+  .reclaim-acc .acc-b{padding:2px 12px 12px}
+  .reclaim-acc .reclaim-wrap{border:0;margin:0;padding:0}
   .reclaim-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
   .reclaim-head>div{min-width:0;flex:1}.reclaim-head b{display:block;font-size:16px;line-height:1.35}
   .reclaim-head span{display:block;margin-top:3px;font-size:12px;line-height:1.5;color:var(--dim)}
@@ -2119,6 +2121,24 @@ addEventListener('appinstalled', function(){
   <button class="toolcard" id="my-settings" style="margin-top:9px"><span class="ic" data-ico="sprout"></span><span class="b"><b>내 정보 · 설정</b><span>역할 · 회복영역 · 화면 · 앱 · 기록 관리</span></span><span class="go">열기</span></button>
 
   <div style="height:12px"></div>
+
+
+
+
+  <!-- 관리자 기능과 접근 방식은 그대로 두고 위치만 나 화면으로 옮깁니다. -->
+
+<div class="acc">
+    <button class="acc-h">
+      <span class="acc-n"><b>지원 및 안내</b><span>도움말 · 사용설명서 · 개인정보처리방침</span></span>
+      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
+    </button>
+    <div class="acc-b">
+      <button class="toolcard" type="button" onclick="go('guide')"><span class="ic" data-ico="check"></span><span class="b"><b>도움말 · 자주 묻는 질문</b><span>설정 · 기록 · 알림 · 회복도구 · 마음프로 사용법</span></span><span class="go">열기</span></button>
+      <button class="toolcard" type="button" style="margin-top:9px" onclick="go('manual')"><span class="ic" data-ico="sprout"></span><span class="b"><b>사용설명서</b><span>처음 시작부터 기록 · 알림 · 안전한 사용까지 메뉴별 안내</span></span><span class="go">열기</span></button>
+      <a class="toolcard" style="margin-top:9px" href="./privacy.html"><span class="ic" data-ico="check"></span><span class="b"><b>개인정보처리방침</b><span>기기 저장 · 마음프로 · 외부 전송 안내</span></span><span class="go">열기</span></a>
+    </div>
+  </div>
+
 <div class="acc">
     <button class="acc-h">
       <span class="acc-n"><b>앱에 바라는 점</b><span>불편한 점 · 고쳤으면 하는 내용 · 새로 있었으면 하는 기능</span></span>
@@ -2137,30 +2157,6 @@ addEventListener('appinstalled', function(){
         작성한 내용과 앱 버전만 전송됩니다. 이름·회복유형·회복일·기록·위치정보는 자동으로 보내지지 않습니다.
         민감한 개인정보는 입력하지 않는 것이 좋습니다.
       </p>
-    </div>
-  </div>
-
-<div class="acc">
-    <button class="acc-h">
-      <span class="acc-n"><b>지원 및 안내</b><span>도움말 · 사용설명서 · 개인정보처리방침</span></span>
-      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
-    </button>
-    <div class="acc-b">
-      <button class="toolcard" type="button" onclick="go('guide')"><span class="ic" data-ico="check"></span><span class="b"><b>도움말 · 자주 묻는 질문</b><span>설정 · 기록 · 알림 · 회복도구 · 마음프로 사용법</span></span><span class="go">열기</span></button>
-      <button class="toolcard" type="button" style="margin-top:9px" onclick="go('manual')"><span class="ic" data-ico="sprout"></span><span class="b"><b>사용설명서</b><span>처음 시작부터 기록 · 알림 · 안전한 사용까지 메뉴별 안내</span></span><span class="go">열기</span></button>
-      <a class="toolcard" style="margin-top:9px" href="./privacy.html"><span class="ic" data-ico="check"></span><span class="b"><b>개인정보처리방침</b><span>기기 저장 · 마음프로 · 외부 전송 안내</span></span><span class="go">열기</span></a>
-    </div>
-  </div>
-
-  <!-- 관리자 기능과 접근 방식은 그대로 두고 위치만 나 화면으로 옮깁니다. -->
-<div class="acc">
-    <button class="acc-h">
-      <span class="acc-n"><b>관리자</b><span>자원 목록 관리 · 앱에 바라는 점 전체보기</span></span>
-      <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
-    </button>
-    <div class="acc-b">
-      <p class="muted" style="margin:0 0 11px" id="me-admin-m"></p>
-      <div class="opts" id="me-admin"></div>
     </div>
   </div>
 </section>
@@ -2315,7 +2311,7 @@ addEventListener('appinstalled', function(){
     <details class="faq"><summary>처음에는 무엇부터 하면 되나요?</summary><div class="faq-a"><p>처음 설정에서 역할, 회복 영역, 시작일과 지역을 정한 뒤 홈에서 오늘 할 일과 상태를 확인하면 됩니다. 새 계획이나 연습은 <b>회복도구</b>에서 시작합니다.</p></div></details>
     <details class="faq"><summary>내 기록은 어디에 저장되나요?</summary><div class="faq-a"><p>감정, 충동, 하루, 몸, 12단계, 회복 실천도구, 자가점검 결과 같은 개인 회복기록은 기본적으로 <b>현재 기기 안</b>에 저장됩니다. 자동으로 다른 사람이나 마음프로에 전달되지 않습니다.</p></div></details>
     <details class="faq"><summary>지나간 기록은 어디에서 볼 수 있나요?</summary><div class="faq-a"><p><b>나 → 내 발자취</b>에서 감정·충동·하루·몸·실천기록·자가점검·통계를 다시 볼 수 있습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('rec')">내 발자취 열기</button></div></details>
-    <details class="faq"><summary>내가 되찾은 것은 어디에서 보나요?</summary><div class="faq-a"><p>당사자 모드에서는 <b>나</b> 화면 상단의 <b>내가 되찾은 것</b>에서 회복일·되찾은 시간·지킨 비용·회복 실천을 한눈에 볼 수 있습니다. 되찾은 시간과 지킨 비용은 <b>기준 설정</b>에서 원할 때만 켜며, 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('my')">나 열기</button></div></details>
+    <details class="faq"><summary>내가 되찾은 것은 어디에서 보나요?</summary><div class="faq-a"><p>당사자 모드에서는 <b>나</b> 화면 상단의 접힌 <b>내가 되찾은 것</b>을 눌러 회복일·되찾은 시간·지킨 비용·회복 실천을 한눈에 볼 수 있습니다. 되찾은 시간과 지킨 비용은 <b>기준 설정</b>에서 원할 때만 켜며, 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('my')">나 열기</button></div></details>
     <details class="faq"><summary>기록을 백업하거나 다른 기기로 옮길 수 있나요?</summary><div class="faq-a"><p><b>나 → 내 정보 · 설정 → 기록 관리</b>에서 기록을 내보내고 다시 불러올 수 있습니다. 앱 삭제나 기기 변경 전에는 먼저 내보내기를 권합니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('me')">기록 관리 열기</button></div></details>
     <details class="faq"><summary>앱을 업데이트하거나 다시 설치하면 기록은 어떻게 되나요?</summary><div class="faq-a"><p>기존 앱 위에 업데이트하는 경우에는 같은 앱 데이터가 유지되도록 설계되어 있습니다. 다만 <b>앱 삭제, 앱 데이터 삭제, 기기 초기화</b>를 하면 기기 안 기록이 사라질 수 있으므로 먼저 기록을 내보내세요.</p></div></details>
   </div>
@@ -2360,14 +2356,13 @@ addEventListener('appinstalled', function(){
       <p style="margin-top:8px"><b>② 회복 정보 설정</b> — 당사자 모드에서는 회복 영역과 시작일, 필요한 경우 회복 목표·지역·위험 시간대를 정합니다.</p>
       <p style="margin-top:8px"><b>③ 홈 확인</b> — 설정을 마치면 홈에서 오늘 상태와 회복 흐름, 오늘 챙길 항목을 확인합니다.</p>
       <p style="margin-top:8px"><b>④ 계획 만들기</b> — 회복도구 → 일정·알림에서 습관·생활·치료 일정을 정합니다.</p>
-      <p style="margin-top:8px"><b>⑤ 변화와 기록 돌아보기</b> — 당사자 모드에서는 나 화면 상단의 <b>내가 되찾은 것</b>에서 회복일·되찾은 시간·지킨 비용·회복 실천을 확인하고, <b>나 → 내 발자취</b>에서 저장한 기록과 변화 흐름을 확인합니다.</p>
+      <p style="margin-top:8px"><b>⑤ 변화와 기록 돌아보기</b> — 당사자 모드에서는 나 화면 상단의 접힌 <b>내가 되찾은 것</b>을 필요할 때 펼쳐 회복일·되찾은 시간·지킨 비용·회복 실천을 확인하고, <b>나 → 내 발자취</b>에서 저장한 기록과 변화 흐름을 확인합니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('home')">홈 열기</button>
     </div></details>
 
     <details class="faq"><summary>2. 화면과 메뉴 구조</summary><div class="faq-a">
       <p>하단 메뉴는 <b>홈 · 회복도구 · 헬프 · 마음프로</b>를 중심으로 사용합니다. 홈 오른쪽 위의 사람 모양 버튼을 누르면 <b>나</b>로 들어갑니다.</p>
-      <p style="margin-top:8px">당사자 모드의 <b>나</b> 화면에는 위에서부터 <b>내가 되찾은 것 → 내 발자취 → 내 정보 · 설정 → 앱에 바라는 점 → 지원 및 안내 → 관리자</b>가 배치됩니다. 가족·보호자 모드에서는 당사자의 회복성과를 대신 계산하지 않도록 <b>내가 되찾은 것</b>은 표시하지 않습니다.</p>
-      <p style="margin-top:8px">관리자는 일반 사용 기능과 분리되어 있으며 기존 관리자 접근 방식은 그대로 유지됩니다.</p>
+      <p style="margin-top:8px">당사자 모드의 <b>나</b> 화면에는 위에서부터 <b>내가 되찾은 것 → 내 발자취 → 내 정보 · 설정 → 지원 및 안내 → 앱에 바라는 점</b>이 배치됩니다. <b>내가 되찾은 것</b>은 기본적으로 접혀 있어 내 발자취와 설정이 바로 보이며, 필요할 때 눌러 자세히 펼칩니다. 가족·보호자 모드에서는 당사자의 회복성과를 대신 계산하지 않도록 표시하지 않습니다.</p>
     </div></details>
 
     <details class="faq"><summary>3. 홈 — 오늘 상태를 한눈에 보기</summary><div class="faq-a">
@@ -2436,7 +2431,7 @@ addEventListener('appinstalled', function(){
       <p>당사자 모드의 <b>나</b> 화면 상단에는 <b>내가 되찾은 것</b>이 표시됩니다. 회복일은 설정한 회복 시작일에서 계산하고, <b>회복 실천</b>은 내 습관에서 직접 체크해 기록한 회복 행동 횟수를 보여줍니다.</p>
       <p style="margin-top:8px"><b>되찾은 시간</b>과 <b>지킨 비용</b>은 선택 기능입니다. <b>기준 설정</b>에서 회복 전 하루 평균 시간·실제 사용비용을 입력한 경우에만 추정치를 표시합니다. 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p>
       <p style="margin-top:8px"><b>내 발자취</b>에서는 감정·충동·하루·몸·실천기록·자가점검·통계를 다시 보고, <b>내 정보 · 설정</b>에서는 역할·회복영역·화면·앱·추천하기·기록 관리를 관리합니다.</p>
-      <p style="margin-top:8px"><b>앱에 바라는 점 · 지원 및 안내 · 관리자</b>는 <b>내 정보 · 설정</b> 안이 아니라 <b>나</b> 화면에서 바로 이용합니다. 관리자 기능의 기존 접근 방식은 그대로 유지됩니다.</p>
+      <p style="margin-top:8px"><b>지원 및 안내</b>와 <b>앱에 바라는 점</b>은 <b>내 정보 · 설정</b> 안이 아니라 <b>나</b> 화면에서 바로 이용하며, 앱에 바라는 점은 지원 및 안내 아래에 배치됩니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('my')">나 열기</button>
     </div></details>
 
@@ -2483,7 +2478,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD = 'V8.2.68';
+const BUILD='V8.2.69';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -2914,6 +2909,8 @@ const GROUPS = [
    w:'http://aakorea.org/meetingAA.html'},
   {n:'NA 익명의 약물중독자들', d:'약물 · 지역별 모임 일정',
    w:'https://nakr.org/'},
+  {n:'한국 SMART Recovery', d:'CBT 접근과 자기관리 기술을 활용하는 회복 자조모임',
+   w:'https://smartkr.org/'},
   /* 도박 자조모임은 두 단체다. 이름이 비슷하지만 별개 조직이고 모임도 겹치지 않는다. */
   {n:'한국GA 단도박모임', d:'도박 · 서울·부산·대구·경남 중심',
    w:'http://www.dandobak.co.kr/'},
@@ -7393,6 +7390,13 @@ function reclaimHoursText(v){
   return (Number.isInteger(n)?String(n):n.toFixed(1))+'시간';
 }
 function reclaimMoneyText(v){ return Math.round(Number(v||0)).toLocaleString('ko-KR')+'원'; }
+function reclaimToggle(btn){
+  const acc=btn&&btn.closest?btn.closest('.acc'):null;
+  if(!acc) return;
+  const open=!acc.classList.contains('on');
+  acc.classList.toggle('on',open);
+  btn.setAttribute('aria-expanded',open?'true':'false');
+}
 function drawReclaim(){
   const box=$('#rec-reclaim'); if(!box) return;
   if(famMode()){ box.innerHTML=''; return; }
@@ -7408,12 +7412,13 @@ function drawReclaim(){
   const timeDesc=timeReady?'회복 전 하루 평균 시간 기준':'원할 때만 기준을 정해 표시합니다.';
   const costValue=gambling?'계산하지 않음':(costReady?reclaimMoneyText(days*cfg.costPerDay):'설정 안 함');
   const costDesc=gambling?'도박 금액·손실액은 누적 계산하지 않습니다.':(costReady?'회복 전 하루 평균 사용비용 기준':'원할 때만 기준을 정해 표시합니다.');
-  box.innerHTML='<div class="reclaim-wrap"><div class="reclaim-head"><div><b>내가 되찾은 것</b><span>손실이 아니라 회복하면서 내 삶에 다시 남은 것을 봅니다.</span></div><button type="button" class="reclaim-set" id="rec-reclaim-settings">기준 설정</button></div><div class="reclaim-grid">'+
+  const reclaimSummary=(type?('회복 '+dayValue):'회복일 설정 필요')+' · 회복 실천 '+habits+'회';
+  box.innerHTML='<div class="acc reclaim-acc"><button class="acc-h" type="button" aria-expanded="false" onclick="reclaimToggle(this)"><span class="acc-n"><b>내가 되찾은 것</b><span>'+esc(reclaimSummary)+' · 눌러서 자세히 보기</span></span><svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg></button><div class="acc-b"><div class="reclaim-wrap"><div class="reclaim-head"><div><b>회복하면서 되찾은 것</b><span>손실이 아니라 회복하면서 내 삶에 다시 남은 것을 봅니다.</span></div><button type="button" class="reclaim-set" id="rec-reclaim-settings">기준 설정</button></div><div class="reclaim-grid">'+
     card('cal','회복일',dayValue,dayDesc,'',!type)+
     card('clock','되찾은 시간',timeValue,timeDesc,'',!timeReady)+
     card('wallet','지킨 비용',costValue,costDesc,'',gambling||!costReady)+
     card('sprout','회복 실천',habits+'회','내가 실천하고 기록한 회복 행동','habit',false)+
-    '</div></div>';
+    '</div></div></div></div>';
   const b=$('#rec-reclaim-settings'); if(b) b.onclick=openReclaimSettings;
 }
 function openReclaimSettings(){
@@ -10689,8 +10694,10 @@ function adminLogout(){
 
 /* 내 정보의 관리자 카드 */
 function drawAdmin(){
-  const b = $('#me-admin'); b.innerHTML = '';
+  const b = $('#me-admin');
   $('#tab-admin').classList.add('hide');
+  if(!b) return;
+  b.innerHTML = '';
   $('#me-admin-m').textContent = S.admin
     ? '관리자로 들어와 있습니다. 아래 [관리자 화면 열기]에서 자원 목록과 앱에 바라는 점을 관리할 수 있습니다.'
     : '자원 목록과 앱에 바라는 점을 관리하는 분만 들어갑니다.';
@@ -11280,7 +11287,7 @@ function boot(){
     if(!document.hidden){ checkAlarms(); refreshDailyHomeIfNeeded(); }
   });
 
-  /* 관리자 화면은 내 정보에서만 엽니다. 하단 탭에는 표시하지 않습니다. */
+  /* 관리자 엔진은 유지하지만 일반 사용자 메뉴와 하단 탭에는 표시하지 않습니다. */
   $('#tab-admin').classList.add('hide');
 
   if('serviceWorker' in navigator){
