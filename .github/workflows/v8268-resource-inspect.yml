@@ -1,0 +1,35 @@
+name: V8.2.68 resource music inspect
+on:
+  push:
+    branches: [fix-v8.2.68-reminder-music-audit]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch live resource sheet response
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL=$(python3 - <<'PY'
+          import re
+          s=open('index.html',encoding='utf-8').read()
+          m=re.search(r"const SHEET_URL = '([^']+)'",s)
+          if not m: raise SystemExit('SHEET_URL not found')
+          print(m.group(1))
+          PY
+          )
+          curl -fL --retry 3 --connect-timeout 15 --max-time 60 "$URL" -o /tmp/resources.json
+          python3 - <<'PY'
+          import json
+          p='/tmp/resources.json'
+          d=json.load(open(p,encoding='utf-8'))
+          print('top-level keys:', sorted(d.keys()))
+          music=d.get('music',[])
+          print('music rows:',len(music))
+          for i,row in enumerate(music[:100],1):
+              safe={k:v for k,v in row.items() if k.lower() not in {'email','phone','tel','address'}}
+              print(i, json.dumps(safe,ensure_ascii=False,sort_keys=True))
+          PY
