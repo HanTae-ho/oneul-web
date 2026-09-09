@@ -2,20 +2,32 @@
 set -euo pipefail
 
 # V8.2.68: keep the verified V8.2.67 alarm/TTS engines intact.
-# Only add silent apply/clear handling to the existing oneul://reminders bridge.
+# Only add silent apply/clear handling to the existing oneul://reminders bridge,
+# plus one state fix so intentionally disabled outpatient lead alerts stay disabled.
 bash "$GITHUB_WORKSPACE/android-v8.2.67-legal-release.sh"
 
 SRC="$GITHUB_WORKSPACE/android-v8"
 PKG="$SRC/app/src/main/java/io/github/hantae_ho/twa"
 GRADLE="$SRC/app/build.gradle"
 ACT="$PKG/NotificationSettingsActivity.java"
+TRS="$PKG/TreatmentReminderStore.java"
 
 sed -i "s/versionCode 887/versionCode 888/; s/versionName '8.2.67'/versionName '8.2.68'/" "$GRADLE"
 
 python3 - <<'PY'
 from pathlib import Path
 import os
-p=Path(os.environ['GITHUB_WORKSPACE'])/'android-v8/app/src/main/java/io/github/hantae_ho/twa/NotificationSettingsActivity.java'
+root=Path(os.environ['GITHUB_WORKSPACE'])/'android-v8/app/src/main/java/io/github/hantae_ho/twa'
+
+# Preserve the distinction between "never configured" and "configured with no lead alerts".
+p=root/'TreatmentReminderStore.java'
+s=p.read_text(encoding='utf-8')
+old='''    static String alertsPacked(Context c) { return prefs(c).getString(KEY_ALERTS, ""); }\n'''
+new='''    static String alertsPacked(Context c) { return prefs(c).getString(KEY_ALERTS, ""); }\n    static boolean hasAlertsSetting(Context c) { return prefs(c).contains(KEY_ALERTS); }\n'''
+assert s.count(old)==1, 'TreatmentReminderStore alerts anchor'
+p.write_text(s.replace(old,new,1),encoding='utf-8')
+
+p=root/'NotificationSettingsActivity.java'
 s=p.read_text(encoding='utf-8')
 
 old='''        NotificationHelper.ensureChannel(this);\n        loadPendingFromPrefs();\n        importFromIntent(getIntent());\n        buildUi();'''
@@ -26,6 +38,11 @@ s=s.replace(old,new,1)
 old='''        setIntent(i);\n        importFromIntent(i);\n        applyVisitControls();\n        refresh();'''
 new='''        setIntent(i);\n        if (handleSilentSync(i)) return;\n        importFromIntent(i);\n        applyVisitControls();\n        refresh();'''
 assert s.count(old)==1, 'onNewIntent anchor'
+s=s.replace(old,new,1)
+
+old='''        pendingVisitAlerts = TreatmentReminderStore.alertsPacked(this);\n        if (pendingVisitAlerts == null || pendingVisitAlerts.isEmpty()) pendingVisitAlerts = "3,1,0";\n'''
+new='''        pendingVisitAlerts = TreatmentReminderStore.alertsPacked(this);\n        if (!TreatmentReminderStore.hasAlertsSetting(this)) pendingVisitAlerts = "3,1,0";\n'''
+assert s.count(old)==1, 'outpatient alert default anchor'
 s=s.replace(old,new,1)
 
 anchor='''    private void loadPendingFromPrefs() {'''
@@ -42,6 +59,8 @@ grep -q '"1".equals(val(u, "clear"))' "$ACT"
 grep -q '"1".equals(val(u, "apply"))' "$ACT"
 grep -q 'HabitReminderStore.importSchedule(this, "")' "$ACT"
 grep -q 'TreatmentReminderStore.alertsPacked(this)' "$ACT"
+grep -q 'hasAlertsSetting' "$TRS"
+grep -q '!TreatmentReminderStore.hasAlertsSetting(this)' "$ACT"
 
 # Native engines must remain intact.
 grep -q 'setExactAndAllowWhileIdle' "$PKG/ReminderScheduler.java"
