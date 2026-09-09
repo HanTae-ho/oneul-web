@@ -57,5 +57,14 @@ if old3 not in s:
     raise SystemExit('stale night-save test block not found')
 s=s.replace(old3,new3,1)
 
+old4="""  assert((await pg.$eval('#learn-topic-sections', e => e.innerText)).includes('12단계의 기초'), '12단계의 기초가 추가되어야 함');
+  assert((await pg.$$eval('#learn-topic-sections .help .b span', a => a[2].innerText)) === '우리는 알코올에 무력했으며, 우리의 삶을 수습할 수 없게 되었다는 것을 시인했다.', '알코올 영역 1단계 카드에 AA 단계문장 표시');"""
+new4="""  assert((await pg.$eval('#learn-topic-sections', e => e.innerText)).includes('12단계의 기초'), '12단계의 기초가 추가되어야 함');
+  await pg.evaluate(() => { S.role='self'; S.types=['alcohol']; drawLearnTopic(); });
+  assert((await pg.$$eval('#learn-topic-sections .help .b span', a => a[2].innerText)) === '우리는 알코올에 무력했으며, 우리의 삶을 수습할 수 없게 되었다는 것을 시인했다.', '알코올 영역 1단계 카드에 AA 단계문장 표시');"""
+if old4 not in s:
+    raise SystemExit('stale Twelve Step area setup not found')
+s=s.replace(old4,new4,1)
+
 p.write_text(s,encoding='utf-8')
-print('test.js KST date + recovery assertion + night modal PASS')
+print('test.js current browser-regression repairs PASS')
