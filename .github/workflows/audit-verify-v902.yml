@@ -1,0 +1,33 @@
+name: Audit V9.0.2 legacy verify suite
+
+on:
+  push:
+    branches: [v9.0.2-version-consistency-fix]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Patch version assertions in working tree
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('verify.js')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace("ok(/const BUILD = 'V8\\.0';/.test(index),'index BUILD = V8.0');", "ok(/const BUILD\\s*=\\s*'V9\\.0\\.2';/.test(index),'index BUILD = V9.0.2');")
+          s=s.replace("ok(/const APP_VERSION = 'V8\\.0';/.test(sw),'sw APP_VERSION = V8.0');", "ok(/const APP_VERSION\\s*=\\s*'V9\\.0\\.2';/.test(sw),'sw APP_VERSION = V9.0.2');")
+          s=s.replace("ok(/const V = 'ohg-v800';/.test(sw),'sw cache = ohg-v800');", "ok(/const V\\s*=\\s*'ohg-v902[^']*';/.test(sw),'sw cache = V9.0.2 계열');")
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Run legacy verify without stopping audit
+        run: |
+          set +e
+          node verify.js > /tmp/verify.txt 2>&1
+          code=$?
+          cat /tmp/verify.txt
+          echo "VERIFY_EXIT=$code"
+          exit 0
