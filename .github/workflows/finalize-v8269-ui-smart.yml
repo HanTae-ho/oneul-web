@@ -16,21 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Apply minimal V8.2.69 web changes
-        id: patch
-        continue-on-error: true
-        run: python3 .github/scripts/v8269_patch.py > /tmp/v8269-patch.log 2>&1
-      - name: Save patch diagnostic if needed
-        if: steps.patch.outcome == 'failure'
         run: |
-          cp /tmp/v8269-patch.log .github/scripts/v8269_error.txt
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add .github/scripts/v8269_error.txt
-          git commit -m 'chore: capture V8.2.69 patch diagnostic'
-          git push
-          exit 1
+          sed -Ei "s/const[[:space:]]+BUILD[[:space:]]*=[[:space:]]*['\"]V8\.2\.68['\"]/const BUILD='V8.2.69'/" index.html
+          python3 .github/scripts/v8269_patch.py
       - name: Validate V8.2.69 scope and JavaScript
-        if: steps.patch.outcome == 'success'
         run: |
           set -euo pipefail
           grep -F "const BUILD='V8.2.69'" index.html
@@ -63,7 +52,6 @@ jobs:
           node --check music-audio-data.js
           git diff --check
       - name: Commit finalized web candidate
-        if: steps.patch.outcome == 'success'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
