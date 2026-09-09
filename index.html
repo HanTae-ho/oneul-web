@@ -8466,6 +8466,7 @@ function socialApiMessage(e){
   if(code==='DAILY_LIMIT') return '오늘 올릴 수 있는 글 수를 넘었습니다.';
   if(code==='INVALID_TEXT') return '글 내용을 다시 확인해주세요.';
   if(code==='OWNER') return '내가 작성한 글만 수정할 수 있습니다.';
+  if(code==='NICK_TAKEN') return '이미 사용 중인 닉네임입니다.';
   return String(e&&e.message||'소셜 서버에 연결하지 못했습니다.');
 }
 async function socialWrite(action,data){
@@ -8481,11 +8482,8 @@ async function socialWrite(action,data){
   return j;
 }
 async function socialReadFeed(){
-  const base=socialEndpoint(); if(!base) throw new Error('소셜 서버가 아직 연결되지 않았습니다.');
-  const u=new URL(base); u.searchParams.set('action','feed'); u.searchParams.set('sort',socialState.sort); if(SO.profile&&SO.profile.userId) u.searchParams.set('userId',SO.profile.userId);
-  let r; try{r=await fetch(u.href,{cache:'no-store'});}catch(_){throw new Error('소셜 서버에 연결하지 못했습니다.');}
-  if(!r.ok) throw new Error('소셜 피드를 불러오지 못했습니다.');
-  const j=await r.json(); if(!j||!j.ok) throw new Error('소셜 피드를 불러오지 못했습니다.'); return Array.isArray(j.items)?j.items:[];
+  const j=await socialWrite('feed',Object.assign({sort:socialState.sort},socialAuth()));
+  return Array.isArray(j.items)?j.items:[];
 }
 async function socialRegister(){
   const p=SO.profile, url=socialEndpoint(); if(!p||!url) return false;
@@ -8550,7 +8548,7 @@ function socialPostHtml(x){
 function socialProfileModal(){
   const p=SO.profile;
   const blocked=SO.blocks||[];
-  modal('<h2>'+(p?'내 소셜 프로필':'익명 프로필 만들기')+'</h2><p class="muted" style="margin:5px 0 13px">실명 대신 소셜에서만 사용할 닉네임입니다. 회복영역·회복일·충동기록은 프로필에 붙지 않습니다.</p><label class="tiny">닉네임 · 2~12자</label><input id="social-nick" maxlength="12" value="'+esc(p&&p.nickname||'')+'" placeholder="닉네임을 입력하세요"><p class="tiny" style="margin:7px 0 13px">한글·영문·숫자·공백·-·_를 사용할 수 있습니다. 관리자·운영자·오늘한걸음·마음프로와 혼동되는 이름은 사용할 수 없습니다.</p><button class="btn" id="social-profile-save">'+(p?'닉네임 저장':'계속하기')+'</button>'+(p?'<div class="sep"></div><p class="tiny">내부 소셜 ID · …'+esc(String(p.userId||'').slice(-8))+'<br>게시물 소유자 확인에만 사용하며 피드 화면에는 표시하지 않습니다.</p><h3 style="margin-top:15px">차단한 사용자</h3><div id="social-block-list">'+(blocked.length?blocked.map((b,i)=>'<div class="social-block-row"><span>'+esc(b.nickname||'익명')+'</span><button class="btn ghost sm" style="width:auto" data-social-unblock="'+i+'">차단 해제</button></div>').join(''):'<p class="tiny">차단한 사용자가 없습니다.</p>')+'</div>':'')+'<div style="height:9px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
+  modal('<h2>'+(p?'내 소셜 프로필':'익명 프로필 만들기')+'</h2><p class="muted" style="margin:5px 0 13px">실명 대신 소셜에서만 사용할 닉네임입니다. 회복영역·회복일·충동기록은 프로필에 붙지 않습니다.</p><label class="tiny">닉네임 · 2~12자</label><input id="social-nick" maxlength="12" value="'+esc(p&&p.nickname||'')+'" placeholder="닉네임을 입력하세요"><p class="tiny" style="margin:7px 0 13px">한글·영문·숫자·공백·-·_를 사용할 수 있습니다. 관리자·운영자·오늘한걸음·마음프로와 혼동되는 이름은 사용할 수 없습니다.</p><button class="btn" id="social-profile-save">'+(p?'닉네임 저장':'계속하기')+'</button>'+(p?'<div class="sep"></div><p class="tiny">내부 소셜 ID · …'+esc(String(p.userId||'').slice(-8))+'<br>게시물 소유자 확인에만 사용하며 피드 화면에는 표시하지 않습니다.</p><h3 style="margin-top:15px">차단한 사용자</h3><div id="social-block-list">'+(blocked.length?blocked.map((b,i)=>'<div class="social-block-row"><span>'+esc(b.nickname||'익명')+'</span><button class="btn ghost sm" style="width:auto" data-social-unblock="'+i+'">차단 해제</button></div>').join(''):'<p class="tiny">차단한 사용자가 없습니다.</p>')+'</div><button class="btn ghost sm" id="social-profile-delete" style="margin-top:12px;color:var(--bad);border-color:var(--bad)">소셜 프로필 삭제</button>':'')+'<div style="height:9px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
   $('#social-profile-save').onclick=()=>{
     const nick=socialNick($('#social-nick').value);
     if(!nick){toast('닉네임은 2~12자로 다시 확인해주세요.');return;}
@@ -8559,6 +8557,20 @@ function socialProfileModal(){
     socialSave(); closeModal(); socialResetFeed(); drawSocial();
   };
   $$('[data-social-unblock]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.socialUnblock);if(i>=0){SO.blocks.splice(i,1);socialSave();socialProfileModal();if(cur==='social')drawSocial();}});
+  const del=$('#social-profile-delete'); if(del) del.onclick=socialProfileDeleteConfirm;
+}
+function socialProfileDeleteConfirm(){
+  const p=SO.profile; if(!p) return;
+  modal('<h2>소셜 프로필을 삭제할까요?</h2><p class="muted">서버에 등록된 익명 프로필과 내가 작성한 공개 글·응원 관계를 삭제합니다. 이 기기의 차단·숨김 목록도 함께 지웁니다. 되돌릴 수 없습니다.</p><button class="btn danger" id="social-profile-delete-yes">소셜 프로필 삭제</button><button class="btn ghost" onclick="closeModal()" style="margin-top:8px">그만두기</button>');
+  $('#social-profile-delete-yes').onclick=async()=>{
+    try{
+      if(p.registeredUrl){
+        if(!socialEndpoint()){toast('소셜 서버에 연결된 뒤 다시 삭제해주세요.');return;}
+        await socialWrite('profileDelete',socialAuth());
+      }
+      SO=socialBlank(); socialSave(); socialResetFeed(); closeModal(); drawSocial(); toast('소셜 프로필을 삭제했습니다.');
+    }catch(e){toast(socialApiMessage(e));}
+  };
 }
 function socialCompose(post){
   const edit=!!post, text=edit?String(post.text||''):'';

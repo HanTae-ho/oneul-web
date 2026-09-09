@@ -56,7 +56,6 @@ function doGet(e){
   try{
     const a = str_((e && e.parameter && e.parameter.action) || 'health');
     if(a === 'health') return json_({ok:true,version:SOCIAL_VERSION});
-    if(a === 'feed') return json_(feed_(e.parameter || {}));
     return json_({ok:false,error:'UNKNOWN_ACTION'});
   }catch(err){
     return json_({ok:false,error:'SERVER_ERROR',message:String(err && err.message || err)});
@@ -71,7 +70,9 @@ function doPost(e){
     const lock = LockService.getScriptLock();
     lock.waitLock(15000);
     try{
+      if(action === 'feed') return json_(feed_(body));
       if(action === 'profile') return json_(profile_(body));
+      if(action === 'profileDelete') return json_(profileDelete_(body));
       if(action === 'postCreate') return json_(postCreate_(body));
       if(action === 'postEdit') return json_(postEdit_(body));
       if(action === 'postDelete') return json_(postDelete_(body));
@@ -86,7 +87,8 @@ function doPost(e){
 
 function feed_(p){
   SOCIAL_SETUP();
-  const requester = cleanId_(p.userId || '');
+  const me = auth_(p.userId,p.token); if(!me.ok) return me;
+  const requester = me.userId;
   const sort = str_(p.sort) === 'support' ? 'support' : 'latest';
   const posts = rows_(SOCIAL_SHEETS.posts).filter(r => str_(r.status) === 'active');
   const supports = rows_(SOCIAL_SHEETS.supports);
@@ -134,6 +136,40 @@ function profile_(b){
   }
   sh.appendRow([userId,nickname,hash,now,now,'active']);
   return {ok:true,userId:userId,nickname:nickname};
+}
+
+function profileDelete_(b){
+  const me=auth_(b.userId,b.token); if(!me.ok) return me;
+  const now=Date.now();
+  const profiles=rows_(SOCIAL_SHEETS.profiles);
+  const profile=profiles.find(r=>str_(r.userId)===me.userId);
+  if(!profile) return {ok:false,error:'NOT_FOUND'};
+
+  // 작성글은 본문과 표시 닉네임을 비우고 삭제 상태로 전환합니다.
+  const posts=rows_(SOCIAL_SHEETS.posts).filter(r=>str_(r.userId)===me.userId);
+  const postIds=new Set(posts.map(r=>str_(r.postId)));
+  const psh=sheet_(SOCIAL_SHEETS.posts);
+  posts.forEach(r=>{
+    psh.getRange(r._row,3).setValue('');
+    psh.getRange(r._row,4).setValue('');
+    psh.getRange(r._row,6).setValue(now);
+    psh.getRange(r._row,7).setValue('deleted');
+    psh.getRange(r._row,8).setValue(0);
+  });
+
+  // 내가 누른 응원과 내 글에 달린 응원 관계를 함께 정리합니다.
+  const supports=rows_(SOCIAL_SHEETS.supports)
+    .filter(r=>str_(r.userId)===me.userId || postIds.has(str_(r.postId)))
+    .map(r=>r._row).sort((a,b)=>b-a);
+  const ssh=sheet_(SOCIAL_SHEETS.supports);
+  supports.forEach(row=>ssh.deleteRow(row));
+
+  const sh=sheet_(SOCIAL_SHEETS.profiles);
+  sh.getRange(profile._row,2).setValue('');
+  sh.getRange(profile._row,3).setValue('');
+  sh.getRange(profile._row,5).setValue(now);
+  sh.getRange(profile._row,6).setValue('deleted');
+  return {ok:true};
 }
 
 function postCreate_(b){
@@ -193,6 +229,7 @@ function supportToggle_(b){
 }
 
 function report_(b){
+  cleanupReports_();
   const me=auth_(b.userId,b.token); if(!me.ok) return me;
   const id=cleanPostId_(b.postId), reason=str_(b.reason).trim();
   if(!id || REPORT_REASONS.indexOf(reason)<0) return {ok:false,error:'INVALID_REPORT'};
@@ -211,6 +248,15 @@ function auth_(userId,token){
   const p=rows_(SOCIAL_SHEETS.profiles).find(r=>str_(r.userId)===uid && str_(r.status)==='active');
   if(!p || str_(p.tokenHash)!==hash_(tok)) return {ok:false,error:'AUTH'};
   return {ok:true,userId:uid,nickname:str_(p.nickname)};
+}
+
+
+function cleanupReports_(){
+  const cutoff=Date.now()-365*24*60*60*1000;
+  const old=rows_(SOCIAL_SHEETS.reports).filter(r=>num_(r.createdAt)>0 && num_(r.createdAt)<cutoff).map(r=>r._row).sort((a,b)=>b-a);
+  if(!old.length) return;
+  const sh=sheet_(SOCIAL_SHEETS.reports);
+  old.forEach(row=>sh.deleteRow(row));
 }
 
 function validNick_(v){
