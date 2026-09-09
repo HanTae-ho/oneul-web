@@ -967,14 +967,15 @@ addEventListener('appinstalled', function(){
   <button class="btn" id="ur-start">5분만 같이 버텨보기</button>
   <div style="height:9px"></div>
 
-  <button class="btn ghost" id="ur-track-toggle" aria-expanded="false">상황·촉발 기록 (선택) · 눌러서 기록</button>
+  <button class="btn ghost" id="ur-track-toggle" aria-expanded="false">지금 상황 남기기 (선택) · 관계·장소·촉발</button>
   <div id="ur-track" class="hide" style="margin-top:9px">
     <div class="card">
       <h3>어디에 있었나요? <span class="tiny" style="font-weight:400">(선택)</span></h3>
       <p class="muted" style="margin:-4px 0 11px">정확한 위치가 아니라 상황 범주만 저장합니다.</p>
       <div class="opts" id="ur-loc"></div>
       <div class="sep"></div>
-      <h3>누구와 있었나요? <span class="tiny" style="font-weight:400">(선택)</span></h3>
+      <h3>그때 누구와 관련이 있었나요? <span class="tiny" style="font-weight:400">(선택)</span></h3>
+      <p class="muted" style="margin:-4px 0 11px">함께 있지 않았어도 갈등·연락·기억 등으로 관련된 사람을 고를 수 있습니다. 이름은 저장하지 않습니다.</p>
       <div class="opts" id="ur-with"></div>
       <div class="sep"></div>
       <h3>무엇이 촉발했나요? <span class="tiny" style="font-weight:400">(선택)</span></h3>
@@ -1113,6 +1114,12 @@ addEventListener('appinstalled', function(){
   <div class="card">
     <h3>그때 어떤 상태였나요?</h3>
     <div class="halt" id="rl-halt"></div>
+  </div>
+
+  <div class="card">
+    <h3>그때 누구와 관련이 있었나요? <span class="tiny" style="font-weight:400">(선택)</span></h3>
+    <p class="muted" style="margin:-4px 0 11px">함께 있지 않았어도 갈등·연락·기억 등으로 관련된 사람을 고를 수 있습니다. 이름은 저장하지 않습니다.</p>
+    <div class="opts" id="rl-with"></div>
   </div>
 
   <!-- 재발 뒤의 감정. 죄책감과 수치심을 갈라 보는 것이 이 카드의 목적입니다. -->
@@ -2403,7 +2410,7 @@ addEventListener('appinstalled', function(){
     <details class="faq"><summary>8. 내 발자취 — 저장한 기록 다시 보기</summary><div class="faq-a">
       <p>당사자 모드에서는 <b>감정 · 충동 · 하루 · 몸 · 다시 시작 · 실천기록 · 자가점검 · 통계 · 회복 패턴</b>을 한곳에서 돌아봅니다. 가족·보호자 모드에서는 당사자의 충동·재발을 대신 기록하지 않도록 구성이 달라집니다.</p>
       <p style="margin-top:8px">12단계와 회복 실천도구의 저장기록도 실천기록에서 상세 내용을 다시 열 수 있습니다.</p>
-      <p style="margin-top:8px"><b>통계 · 패턴</b>에서는 기존 기록 통계와 <b>내 회복 패턴</b>을 전환해 볼 수 있습니다. 내 회복 패턴은 최근 90일 기기 기록에서 반복된 사실을 설명할 뿐 진단·재발예측이 아니며, 자가점검 점수를 다른 기록과 합쳐 위험점수로 만들지 않습니다.</p>
+      <p style="margin-top:8px"><b>통계 · 패턴</b>에서는 기존 기록 통계와 <b>내 회복 패턴</b>을 전환해 볼 수 있습니다. 내 회복 패턴은 최근 90일 기기 기록에서 시간·HALT·감정·수면·회복 실천·관계처럼 반복된 사실을 설명할 뿐 진단·재발예측이 아니며, 특정 사람을 원인으로 판단하거나 자가점검 점수를 다른 기록과 합쳐 위험점수로 만들지 않습니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('rec')">내 발자취 열기</button>
     </div></details>
 
@@ -2479,7 +2486,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD='V8.3';
+const BUILD='V8.4';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -4010,7 +4017,12 @@ $('#pk-life').onclick = () => modal(
 /* SMART Recovery의 충동일지에서 강조하는 시간·강도·지속·촉발·대처를 기본축으로 두고,
    앱에서는 장소 범주와 동행 상태를 분리했습니다. 정확한 위치정보는 저장하지 않습니다. */
 const URGE_LOCATIONS = ['집','직장·학교','이동 중','모임·약속 중','기타'];
-const URGE_COMPANY = ['혼자','가족과','친구·동료와','회복 동료와','그 밖의 사람과'];
+const URGE_COMPANY = ['혼자','배우자·연인','가족','친구','직장·학교 사람','과거 중독 관련 관계','회복 동료·자조모임 사람','그 밖의 사람'];
+function relationLabel(v){
+  const x=String(v||'');
+  const old={'가족과':'가족','친구·동료와':'친구','회복 동료와':'회복 동료·자조모임 사람','그 밖의 사람과':'그 밖의 사람','사람들과 함께':'그 밖의 사람'};
+  return old[x]||x;
+}
 const URGE_TRIGGERS = ['갈등','외로움','지루함','스트레스','돈 문제','과거 기억','중독 관련 노출','특정 사람'];
 const URGE_FEELS = ['불안','외로움','화','슬픔','압박감','지루함','죄책감·수치심','무기력'];
 /* DEADs의 지연·벗어나기·수용·주의분산·대체를 사용자 언어로 풀고 기존 앱 대처를 함께 둡니다. */
@@ -4083,7 +4095,7 @@ function setUrgeTrackOpen(open){
   if(btn){
     const n=(urge.loc?1:0)+(urge.company?1:0)+urge.triggers.length;
     btn.setAttribute('aria-expanded',urgeTrackOpen?'true':'false');
-    btn.textContent=urgeTrackOpen?'상황·촉발 기록 접기':('상황·촉발 기록 (선택)'+(n?' · '+n+'개 임시저장됨':' · 눌러서 기록'));
+    btn.textContent=urgeTrackOpen?'지금 상황 남기기 접기':('지금 상황 남기기 (선택)'+(n?' · '+n+'개 임시저장됨':' · 관계·장소·촉발'));
   }
   if(urgeTrackOpen) drawUrgeTrack();
 }
@@ -4092,7 +4104,7 @@ function drawUrge(){
   const d=urgeDraftRecent();
   urge=d ? {
     before:Number(d.b==null?5:d.b), after:d.a==null?null:Number(d.a), thoughts:Array.isArray(d.th)?d.th.slice():[],
-    loc:String(d.loc||''), company:String(d.with||''), triggers:Array.isArray(d.trg)?d.trg.slice():[],
+    loc:String(d.loc||''), company:relationLabel(String(d.with||'')), triggers:Array.isArray(d.trg)?d.trg.slice():[],
     copes:Array.isArray(d.cope)?d.cope.slice():[], start:Number(d.start||0), draftT:Number(d.t||Date.now()),
     touched:true, saved:false, type:d.type || S.types[0] || 'etc'
   } : { before:5, after:null, thoughts:[], loc:'', company:'', triggers:[], copes:[], start:0,
@@ -4339,10 +4351,10 @@ $('#ni-save').onclick = () => {
 };
 
 /* ══════════ 다시 시작 ══════════ */
-let rl = { type: null, halt: [], when: 'today' };
+let rl = { type: null, halt: [], with: '', when: 'today' };
 
 function drawRelapse(){
-  rl = { type: S.types[0] || 'etc', halt: [], feel: [], when: 'today' };
+  rl = { type: S.types[0] || 'etc', halt: [], feel: [], with: '', when: 'today' };
   const tb = $('#rl-type'); tb.innerHTML = '';
   (S.types.length ? S.types : ['etc']).forEach(k => {
     const t = typeOf(k);
@@ -4359,6 +4371,12 @@ function drawRelapse(){
       else { rl.halt.splice(i,1); b.classList.remove('on'); }
     };
     hb.appendChild(b);
+  });
+  const rw = $('#rl-with'); rw.innerHTML = '';
+  URGE_COMPANY.forEach(x => {
+    const b = el('button', 'opt' + (rl.with === x ? ' on' : ''), x);
+    b.onclick = () => { rl.with = rl.with === x ? '' : x; [...rw.children].forEach(c => c.classList.remove('on')); if(rl.with) b.classList.add('on'); };
+    rw.appendChild(b);
   });
   drawRlFeel();
 
@@ -4422,7 +4440,7 @@ $('#rl-save').onclick = () => {
      재발 패턴은 사례관리에서 가장 쓸모 있는 정보인데, 예전에는 그냥 버렸습니다. */
   const ran = daysBetween(S.dates[k]);
   S.relapses.push({ t: Date.now(), type: k, halt: rl.halt.slice(),
-                    f: rl.feel.slice(),
+                    f: rl.feel.slice(), with: rl.with || '',
                     n: $('#rl-note').value.trim(),
                     days: ran, reset: rl.when === 'today' ? 1 : 0 });
   if(rl.when === 'today'){
@@ -4824,7 +4842,7 @@ function urgeDiaryDuration(sec){
 }
 function urgeDiaryTags(a){ return (Array.isArray(a)?a:[]).filter(Boolean); }
 function urgeDiaryLoc(u){ return String((u&&u.loc)||urgeLegacyLoc(u)||''); }
-function urgeDiaryWith(u){ return String((u&&u.with)||urgeLegacyWith(u)||''); }
+function urgeDiaryWith(u){ return relationLabel(String((u&&u.with)||urgeLegacyWith(u)||'')); }
 function urgeDiaryRows(){ return (S.urges||[]).slice().sort((a,b)=>Number(b.t||0)-Number(a.t||0)); }
 function urgeDiaryTop(rows,getter){
   const c={}; rows.forEach(r=>{ const a=getter(r)||[]; (Array.isArray(a)?a:[a]).filter(Boolean).forEach(x=>c[x]=(c[x]||0)+1); });
@@ -4833,7 +4851,7 @@ function urgeDiaryTop(rows,getter){
 function urgeDiarySummaryText(r){
   const parts=[];
   const loc=urgeDiaryLoc(r), who=urgeDiaryWith(r), trg=urgeDiaryTags(r.trg);
-  if(loc) parts.push(loc); if(who) parts.push(who); if(trg.length) parts.push(trg.slice(0,2).join('·'));
+  if(who) parts.push(who); if(loc) parts.push(loc); if(trg.length) parts.push(trg.slice(0,2).join('·'));
   if(r.sec) parts.push(urgeDiaryDuration(r.sec));
   return parts.join(' · ') || '상황 기록 없음';
 }
@@ -4880,7 +4898,7 @@ function openUrgeDiaryRecord(r){
   rows.push('<div class="sp" style="padding:5px 0"><span>강도</span><b>'+b+(r.a!=null?' → '+a:'')+'</b></div>');
   if(r.sec) rows.push('<div class="sp" style="padding:5px 0"><span>지속</span><b>'+esc(urgeDiaryDuration(r.sec))+'</b></div>');
   if(loc) rows.push('<div class="sp" style="padding:5px 0"><span>장소</span><b>'+esc(loc)+'</b></div>');
-  if(who) rows.push('<div class="sp" style="padding:5px 0"><span>함께</span><b>'+esc(who)+'</b></div>');
+  if(who) rows.push('<div class="sp" style="padding:5px 0"><span>관계</span><b>'+esc(who)+'</b></div>');
   if(trg.length) rows.push('<div class="sp" style="padding:5px 0"><span>촉발</span><b>'+esc(trg.join(' · '))+'</b></div>');
   if((r.th||[]).length || r.thought) rows.push('<div class="sp" style="padding:5px 0;align-items:flex-start"><span>생각</span><b style="max-width:68%;text-align:right">'+esc(r.thought || (r.th||[]).join(' · '))+'</b></div>');
   if(feel.length) rows.push('<div class="sp" style="padding:5px 0"><span>감정</span><b>'+esc(feel.join(' · '))+'</b></div>');
@@ -4914,7 +4932,7 @@ function openUrgeDiaryEditor(record){
     '<div class="field"><label>충동 강도 <b id="ud-b-n">'+st.b+'</b> / 10</label><input id="ud-b" type="range" min="1" max="10" value="'+st.b+'"></div>'+
     '<div class="field"><label>나중 강도 <span class="tiny">(선택)</span></label><input id="ud-a" type="number" min="0" max="10" placeholder="0~10" value="'+(edit&&record.a!=null?Number(record.a):'')+'"></div>'+
     '<div class="field"><label>얼마나 지속됐나요? <span class="tiny">(선택)</span></label><input id="ud-min" type="number" min="0" max="1440" placeholder="분" value="'+(edit&&record.sec?Math.round(Number(record.sec)/60):'')+'"></div></div>'+
-    '<div class="card"><h3>어디에 있었나요?</h3><div class="opts" id="ud-loc">'+urgeEditorChips(URGE_LOCATIONS,st.loc,'data-ud-loc',false)+'</div><div class="sep"></div><h3>누구와 있었나요?</h3><div class="opts" id="ud-with">'+urgeEditorChips(URGE_COMPANY,st.with,'data-ud-with',false)+'</div><div class="sep"></div><h3>무엇이 촉발했나요?</h3><div class="opts" id="ud-trg">'+urgeEditorChips(URGE_TRIGGERS,st.trg,'data-ud-trg',true)+'</div></div>'+
+    '<div class="card"><h3>어디에 있었나요?</h3><div class="opts" id="ud-loc">'+urgeEditorChips(URGE_LOCATIONS,st.loc,'data-ud-loc',false)+'</div><div class="sep"></div><h3>그때 누구와 관련이 있었나요? <span class="tiny" style="font-weight:400">(선택)</span></h3><p class="muted" style="margin:-4px 0 11px">함께 있지 않았어도 갈등·연락·기억 등으로 관련된 사람을 고를 수 있습니다. 이름은 저장하지 않습니다.</p><div class="opts" id="ud-with">'+urgeEditorChips(URGE_COMPANY,st.with,'data-ud-with',false)+'</div><div class="sep"></div><h3>무엇이 촉발했나요?</h3><div class="opts" id="ud-trg">'+urgeEditorChips(URGE_TRIGGERS,st.trg,'data-ud-trg',true)+'</div></div>'+
     '<div class="card"><h3>그때 어떤 생각이 들었나요? <span class="tiny" style="font-weight:400">(선택)</span></h3><textarea id="ud-thought" maxlength="180" placeholder="예: 오늘은 한 번쯤 괜찮을 것 같았다">'+esc(edit?(record.thought||((record.th||[]).join(' · '))):'')+'</textarea><div class="sep"></div><h3>어떤 감정이 있었나요? <span class="tiny" style="font-weight:400">(여러 개)</span></h3><div class="opts" id="ud-feel">'+urgeEditorChips(URGE_FEELS,st.feel,'data-ud-feel',true)+'</div></div>'+
     '<div class="card"><h3>어떻게 대처했나요? <span class="tiny" style="font-weight:400">(여러 개)</span></h3><div class="opts" id="ud-cope">'+urgeEditorChips(URGE_COPES,st.cope,'data-ud-cope',true)+'</div><p class="tiny" style="margin:9px 0 0">미루기·자리 벗어나기·충동을 지나가게 두기·주의 돌리기·건강한 행동으로 바꾸기 등 SMART Recovery의 DEADs 원리를 앱 언어로 풀었습니다.</p><div class="sep"></div><label>대신 무엇을 했나요? <span class="tiny">(선택)</span></label><textarea id="ud-alt" maxlength="180" placeholder="예: 산책을 하고 회복 동료에게 전화했다">'+esc(edit?(record.alt||''):'')+'</textarea><div class="field" style="margin-top:11px"><label>한 줄 메모 <span class="tiny">(선택)</span></label><textarea id="ud-note" maxlength="300" placeholder="다음에 기억하고 싶은 점">'+esc(edit?(record.note||''):'')+'</textarea></div></div>'+
     '<button class="btn" id="ud-save">'+(edit?'수정 저장':'충동일기에 저장')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
@@ -7745,6 +7763,7 @@ function recUrge(){
              : '<span class="badge w">그대로</span>') +
       (mm ? '<p>' + mm + '분 버팀</p>' : '') +
       (u.th && u.th.length ? '<p>"' + u.th.map(esc).join('", "') + '"</p>' : '') +
+      (urgeDiaryWith(u) ? '<p>관계: ' + esc(urgeDiaryWith(u)) + '</p>' : '') +
       '</div>';
     c.appendChild(i);
   });
@@ -7829,11 +7848,13 @@ function recRelapse(){
   S.relapses.slice().reverse().forEach(r => {
     const hs = (r.halt || []).map(k => (HALT.find(x => x.k === k) || {}).l).filter(Boolean).join(' · ');
     const fs = (r.f || []).map(k => (RFEEL.find(x => x.k === k) || {}).l).filter(Boolean).join(' · ');
+    const rel = relationLabel(r.with);
     const i = el('div', 'item');
     i.innerHTML = '<div class="w">' + esc(when(r.t)).replace('\n','<br>') + '</div>' +
       '<div class="b"><b>' + esc(typeOf(r.type).n) + ' · 다시 시작</b>' +
       (hs ? '<p>그때 상태: ' + esc(hs) + '</p>' : '') +
       (fs ? '<p>그때 마음: ' + esc(fs) + '</p>' : '') +
+      (rel ? '<p>관계: ' + esc(rel) + '</p>' : '') +
       (r.days != null ? '<p>' + r.days + '일 지키신 뒤였습니다</p>' : '') +
       (r.n ? '<p>' + esc(r.n) + '</p>' : '') + '</div>';
     c.appendChild(i);
@@ -7871,6 +7892,7 @@ function recPattern(){
   const moods=(S.moods||[]).filter(timed);
   const sleeps=(S.sleepLog||[]).filter(timed);
   const relapses=(S.relapses||[]).filter(r=>r&&Number.isFinite(+r.t));
+  const recentRelapses=(S.relapses||[]).filter(timed);
   const urgeDays=new Set(urges.map(r=>dayKey(r.t)).filter(Boolean));
   const cards=[];
   const add=(title,text)=>cards.push({title,text});
@@ -7955,6 +7977,63 @@ function recPattern(){
     }
   }
 
+  const urgeRelRows=urges.filter(r=>relationLabel(r.with));
+  if(urgeRelRows.length>=3){
+    const relCounts={};
+    urgeRelRows.forEach(r=>{ const rel=relationLabel(r.with); relCounts[rel]=(relCounts[rel]||0)+1; });
+    const relRank=Object.entries(relCounts).map(([k,n])=>({k,n})).sort((a,b)=>b.n-a.n);
+    if(relRank.length&&relRank[0].n>=2&&relRank[0].n/urgeRelRows.length>=0.4){
+      const top=relRank[0];
+      add('관계 · 충동에서 반복된 맥락', '최근 90일 관계를 기록한 충동 '+urgeRelRows.length+'건 중 '+top.n+'건('+Math.round(top.n/urgeRelRows.length*100)+'%)에서 '+top.k+'을 선택했습니다.');
+    }
+
+    const pairCounts={};
+    urgeRelRows.forEach(r=>{
+      const rel=relationLabel(r.with);
+      new Set(Array.isArray(r.trg)?r.trg:[]).forEach(trg=>{ if(trg) pairCounts[rel+'\u0001'+trg]=(pairCounts[rel+'\u0001'+trg]||0)+1; });
+    });
+    const pairRank=Object.entries(pairCounts).map(([k,n])=>{ const [rel,trg]=k.split('\u0001'); return {rel,trg,n}; }).sort((a,b)=>b.n-a.n);
+    if(pairRank.length&&pairRank[0].n>=2){
+      const top=pairRank[0], total=relCounts[top.rel]||0;
+      if(total>=2&&top.n/total>=0.5) add('관계 · 함께 기록된 촉발', top.rel+'이 선택된 충동 '+total+'건 중 '+top.n+'건에서 '+top.trg+'도 함께 선택했습니다.');
+    }
+
+    const feelCounts={};
+    urgeRelRows.forEach(r=>{
+      const rel=relationLabel(r.with);
+      new Set(Array.isArray(r.feel)?r.feel:[]).forEach(feel=>{ if(feel) feelCounts[rel+'\u0001'+feel]=(feelCounts[rel+'\u0001'+feel]||0)+1; });
+    });
+    const feelRank=Object.entries(feelCounts).map(([k,n])=>{ const [rel,feel]=k.split('\u0001'); return {rel,feel,n}; }).sort((a,b)=>b.n-a.n);
+    if(feelRank.length&&feelRank[0].n>=2){
+      const top=feelRank[0], total=relCounts[top.rel]||0;
+      if(total>=2&&top.n/total>=0.5) add('관계 · 함께 기록된 감정', top.rel+'이 선택된 충동 '+total+'건 중 '+top.n+'건에서 '+top.feel+'도 함께 기록되었습니다.');
+    }
+
+    const haltByDay={};
+    halts.forEach(r=>{ const d=dayKey(r.t); if(!d) return; if(!haltByDay[d]) haltByDay[d]=new Set(); (Array.isArray(r.v)?r.v:[]).forEach(k=>haltByDay[d].add(k)); });
+    const relHaltDays={};
+    urgeRelRows.forEach(r=>{
+      const rel=relationLabel(r.with), d=dayKey(r.t); if(!rel||!d||!haltByDay[d]) return;
+      haltByDay[d].forEach(k=>{ const key=rel+'\u0001'+k; if(!relHaltDays[key]) relHaltDays[key]=new Set(); relHaltDays[key].add(d); });
+    });
+    const haltRank=Object.entries(relHaltDays).map(([k,set])=>{ const [rel,halt]=k.split('\u0001'); return {rel,halt,n:set.size}; }).sort((a,b)=>b.n-a.n);
+    if(haltRank.length&&haltRank[0].n>=2){
+      const top=haltRank[0], meta=HALTS.find(x=>x.k===top.halt);
+      add('관계 · 같은 날 반복된 HALT', top.rel+'이 선택된 충동이 있었던 날 중 '+top.n+'일에서 '+(meta?meta.l:top.halt)+'도 같은 날 기록되었습니다.');
+    }
+  }
+
+  const recentRelCounts={};
+  recentRelapses.forEach(r=>{ const rel=relationLabel(r.with); if(rel) recentRelCounts[rel]=(recentRelCounts[rel]||0)+1; });
+  if(urgeRelRows.length>=2&&Object.keys(recentRelCounts).length){
+    const urgeCounts={}; urgeRelRows.forEach(r=>{ const rel=relationLabel(r.with); urgeCounts[rel]=(urgeCounts[rel]||0)+1; });
+    const shared=Object.keys(urgeCounts).filter(rel=>urgeCounts[rel]>=2&&(recentRelCounts[rel]||0)>=2).sort((a,b)=>(urgeCounts[b]+recentRelCounts[b])-(urgeCounts[a]+recentRelCounts[a]));
+    if(shared.length){
+      const rel=shared[0];
+      add('관계 · 충동과 다시 시작에 함께 나타난 맥락', '최근 90일 기록에서 '+rel+'이 충동 '+urgeCounts[rel]+'건과 다시 시작 '+recentRelCounts[rel]+'회에 모두 반복해서 선택되었습니다. 특정 사람이 원인이라는 뜻은 아닙니다.');
+    }
+  }
+
   const relapseGroups={};
   relapses.forEach(r=>{
     const k=String(r.type||'etc');
@@ -7963,6 +8042,12 @@ function recPattern(){
   });
   Object.entries(relapseGroups).forEach(([type,rows])=>{
     const label=(typeOf(type)||{}).n||'회복';
+    const recentRows=rows.filter(timed), relationRows=recentRows.filter(r=>relationLabel(r.with));
+    if(relationRows.length>=2){
+      const counts={}; relationRows.forEach(r=>{ const rel=relationLabel(r.with); counts[rel]=(counts[rel]||0)+1; });
+      const ranked=Object.entries(counts).map(([k,n])=>({k,n})).sort((a,b)=>b.n-a.n);
+      if(ranked.length&&ranked[0].n>=2){ const top=ranked[0]; add(label+' · 다시 시작 때 반복된 관계', '최근 90일 '+label+' 다시 시작 중 관계를 기록한 '+relationRows.length+'회 가운데 '+top.n+'회에서 '+top.k+'을 선택했습니다.'); }
+    }
     const withDays=rows.filter(r=>Number.isFinite(+r.days)&&+r.days>0);
     if(withDays.length>=2){
       const vals=withDays.map(r=>+r.days);
@@ -7981,7 +8066,7 @@ function recPattern(){
     }
   });
 
-  w.appendChild(el('div','note','<b>내 기록에서 보이는 흐름</b><br>최근 90일의 기기 내 기록을 서로 연결해 반복된 사실만 보여드립니다. 진단·위험도 점수·재발 예측이 아니며, 자가점검 점수는 이 계산에 섞지 않습니다. 다시 시작 전 회복기간은 저장된 전체 다시 시작 기록을 참고합니다.'));
+  w.appendChild(el('div','note','<b>내 기록에서 보이는 흐름</b><br>최근 90일의 기기 내 기록을 서로 연결해 반복된 사실만 보여드립니다. 관계 항목도 함께 기록되었다는 맥락만 보여주며 특정 사람이 원인이라고 판단하지 않습니다. 진단·위험도 점수·재발 예측이 아니며, 자가점검 점수는 이 계산에 섞지 않습니다. 다시 시작 전 회복기간은 저장된 전체 다시 시작 기록을 참고합니다.'));
 
   if(!cards.length){
     w.appendChild(emptyBox('아직 반복되는 흐름을 말하기에 기록이 충분하지 않습니다. 같은 종류의 기록이 2~3번 이상 더 쌓이면 확인할 수 있습니다.'));
