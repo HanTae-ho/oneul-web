@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6f8a">
+<title>오늘 한 걸음 설치 안내</title>
+<style>
+:root{--bg:#f2f7f9;--panel:#fff;--line:#dbe6ea;--tx:#1b262c;--dim:#657781;--acc:#1f6f8a;--accbg:#e2eff4;--warn:#8b5b16;--warnbg:#fdf1e0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;-webkit-font-smoothing:antialiased}main{max-width:620px;margin:0 auto;padding:28px 16px 52px}.brand{width:58px;height:58px;border-radius:18px;background:var(--accbg);display:flex;align-items:center;justify-content:center;color:var(--acc);margin-bottom:15px}.brand svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}h1{font-size:25px;line-height:1.35;margin:0 0 7px}.lead{color:var(--dim);margin:0 0 18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:17px;margin:12px 0}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:var(--accbg);color:var(--acc);font-size:11.5px;font-weight:700;margin-bottom:9px}.btn{display:block;width:100%;padding:13px 14px;border-radius:13px;background:var(--acc);color:#fff;text-align:center;text-decoration:none;font-weight:700;margin-top:12px}.btn.sec{background:var(--panel);color:var(--acc);border:1px solid var(--acc)}.tiny{font-size:12px;color:var(--dim);line-height:1.6}.note{background:var(--warnbg);color:var(--warn);border-radius:13px;padding:12px 14px;margin-top:12px}ol{padding-left:21px;margin:8px 0 0}li+li{margin-top:6px}footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--dim)}
+</style>
+</head>
+<body><main>
+<div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21c4.5-3.2 7-7 7-11.2A5.8 5.8 0 0 0 12 4a5.8 5.8 0 0 0-7 5.8C5 14 7.5 17.8 12 21Z"/><path d="M9 10.5c1.1.1 2.1.7 3 1.8 1-2.1 2.4-3.3 4.2-3.8"/></svg></div>
+<h1>오늘 한 걸음 설치 안내</h1>
+<p class="lead">추천 링크는 이 페이지로 고정됩니다. 설치 버전이나 배포처가 바뀌어도 같은 주소에서 최신 안내를 확인할 수 있습니다.</p>
+<div class="card" id="install-card"></div>
+<div class="card">
+  <b>APK로 설치할 때</b>
+  <ol class="tiny"><li>Android에서 APK 받기를 누릅니다.</li><li>처음 한 번은 브라우저의 ‘알 수 없는 앱 설치’ 허용이 필요할 수 있습니다.</li><li>기존 오늘 한 걸음 앱 위에 설치하면 같은 서명인 경우 기존 기기 기록을 유지한 채 업데이트됩니다.</li></ol>
+  <div class="note tiny">설치 파일은 GitHub의 오늘 한 걸음 릴리즈에서 제공합니다. Google Play 등록 전까지의 설치 방식입니다.</div>
+</div>
+<a class="btn sec" href="./index.html">웹으로 오늘 한 걸음 열기</a>
+<footer>이 페이지에는 개인 회복기록이 포함되지 않으며 설치 안내만 제공합니다.</footer>
+<script>
+/* 배포처 전환점은 여기 한 곳입니다. Google Play 등록 후 mode를 play로 바꾸고 playUrl만 채웁니다. */
+const INSTALL={mode:'apk',verifiedVersion:'V8.5',apkUrl:'https://github.com/HanTae-ho/oneul-web/releases/download/v8.5-test/oneul-v8.5.apk',releaseUrl:'https://github.com/HanTae-ho/oneul-web/releases/tag/v8.5-test',playUrl:''};
+const c=document.getElementById('install-card');
+if(INSTALL.mode==='play'&&INSTALL.playUrl){
+  c.innerHTML='<span class="badge">Google Play</span><h2 style="margin:0 0 6px;font-size:19px">Google Play에서 설치</h2><p class="tiny" style="margin:0">공식 스토어의 최신 버전을 설치합니다.</p><a class="btn" href="'+INSTALL.playUrl+'">Google Play 열기</a>';
+}else{
+  c.innerHTML='<span class="badge">실기기 동작 확인 · '+INSTALL.verifiedVersion+'</span><h2 style="margin:0 0 6px;font-size:19px">현재 확인된 Android 설치 버전</h2><p class="tiny" style="margin:0">새 테스트 빌드가 만들어져도 실기기 확인이 끝나기 전에는 이 추천 대상을 자동으로 바꾸지 않습니다.</p><a class="btn" href="'+INSTALL.apkUrl+'">Android APK '+INSTALL.verifiedVersion+' 받기</a><a class="btn sec" href="'+INSTALL.releaseUrl+'">릴리즈 정보 보기</a>';
+}
+</script>
+</main></body></html>

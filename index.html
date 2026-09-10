@@ -8172,7 +8172,7 @@ function recPattern(){
     });
     const ranked=Object.entries(codeDays).map(([k,set])=>({k,n:set.size})).sort((a,b)=>b.n-a.n);
     if(ranked.length&&ranked[0].n>=2){
-      const top=ranked[0], meta=HALTS.find(x=>x.k===top.k);
+      const top=ranked[0], meta=HALT.find(x=>x.k===top.k);
       add('충동과 같은 날 반복된 HALT', '충동이 기록된 '+urgeDays.size+'일 중 '+top.n+'일에 '+(meta?meta.l:top.k)+'도 같은 날 기록되었습니다.');
     }
   }
@@ -8243,7 +8243,7 @@ function recPattern(){
     });
     const haltRank=Object.entries(relHaltDays).map(([k,set])=>{ const [rel,halt]=k.split('\u0001'); return {rel,halt,n:set.size}; }).sort((a,b)=>b.n-a.n);
     if(haltRank.length&&haltRank[0].n>=2){
-      const top=haltRank[0], meta=HALTS.find(x=>x.k===top.halt);
+      const top=haltRank[0], meta=HALT.find(x=>x.k===top.halt);
       add('관계 · 같은 날 반복된 HALT', top.rel+'이 선택된 충동이 있었던 날 중 '+top.n+'일에서 '+(meta?meta.l:top.halt)+'도 같은 날 기록되었습니다.');
     }
   }
@@ -8285,7 +8285,7 @@ function recPattern(){
       rows.forEach(r=>new Set(Array.isArray(r.halt)?r.halt:[]).forEach(k=>{ if(k) counts[k]=(counts[k]||0)+1; }));
       const ranked=Object.entries(counts).map(([k,n])=>({k,n})).sort((a,b)=>b.n-a.n);
       if(ranked.length&&ranked[0].n>=2){
-        const top=ranked[0], meta=HALTS.find(x=>x.k===top.k);
+        const top=ranked[0], meta=HALT.find(x=>x.k===top.k);
         add(label+' · 다시 시작 때 반복된 상태', label+' 다시 시작 기록 '+rows.length+'회 중 '+top.n+'회에서 '+(meta?meta.l:top.k)+'을 함께 선택했습니다.');
       }
     }
@@ -8454,8 +8454,8 @@ function socialNick(v){
   const n=String(v||'').replace(/\s+/g,' ').trim();
   if(n.length<2||n.length>12) return '';
   if(!/^[가-힣A-Za-z0-9 _-]+$/.test(n)) return '';
-  const compact=n.replace(/\s/g,'');
-  if(['관리자','운영자','오늘한걸음','마음프로'].includes(compact)) return '';
+  const compact=n.replace(/\s/g,'').toLowerCase();
+  if(/관리자|운영자|오늘한걸음|마음프로|admin|official|staff/i.test(compact)) return '';
   return n;
 }
 function socialInitial(n){ const x=String(n||'').trim(); return esc(x?x.slice(0,1):'?'); }
@@ -8476,6 +8476,8 @@ function socialAuth(){ const p=SO.profile||{}; return {userId:p.userId||'',token
 function socialApiMessage(e){
   const code=e&&e.socialCode||'';
   if(code==='AUTH') return '소셜 프로필을 확인하지 못했습니다.';
+  if(code==='INVALID_NICKNAME') return '닉네임은 2~12자의 한글·영문·숫자로 지어주세요. 관리자·운영자·오늘한걸음 같은 말은 사용할 수 없습니다.';
+  if(code==='BUSY') return '지금 소셜 서버가 붐빕니다. 잠시 후 다시 시도해주세요.';
   if(code==='TOO_FAST') return '잠시 후 다시 올려주세요.';
   if(code==='DAILY_LIMIT') return '오늘 올릴 수 있는 글 수를 넘었습니다.';
   if(code==='INVALID_TEXT') return '글 내용을 다시 확인해주세요.';
@@ -8565,7 +8567,7 @@ function socialProfileModal(){
   modal('<h2>'+(p?'내 소셜 프로필':'익명 프로필 만들기')+'</h2><p class="muted" style="margin:5px 0 13px">실명 대신 소셜에서만 사용할 닉네임입니다. 회복영역·회복일·충동기록은 프로필에 붙지 않습니다.</p><label class="tiny">닉네임 · 2~12자</label><input id="social-nick" maxlength="12" value="'+esc(p&&p.nickname||'')+'" placeholder="닉네임을 입력하세요"><p class="tiny" style="margin:7px 0 13px">한글·영문·숫자·공백·-·_를 사용할 수 있습니다. 관리자·운영자·오늘한걸음·마음프로와 혼동되는 이름은 사용할 수 없습니다.</p><button class="btn" id="social-profile-save">'+(p?'닉네임 저장':'계속하기')+'</button>'+(p?'<div class="sep"></div><p class="tiny">내부 소셜 ID · …'+esc(String(p.userId||'').slice(-8))+'<br>게시물 소유자 확인에만 사용하며 피드 화면에는 표시하지 않습니다.</p><h3 style="margin-top:15px">차단한 사용자</h3><div id="social-block-list">'+(blocked.length?blocked.map((b,i)=>'<div class="social-block-row"><span>'+esc(b.nickname||'익명')+'</span><button class="btn ghost sm" style="width:auto" data-social-unblock="'+i+'">차단 해제</button></div>').join(''):'<p class="tiny">차단한 사용자가 없습니다.</p>')+'</div><button class="btn ghost sm" id="social-profile-delete" style="margin-top:12px;color:var(--bad);border-color:var(--bad)">소셜 프로필 삭제</button>':'')+'<div style="height:9px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
   $('#social-profile-save').onclick=()=>{
     const nick=socialNick($('#social-nick').value);
-    if(!nick){toast('닉네임은 2~12자로 다시 확인해주세요.');return;}
+    if(!nick){toast('닉네임은 2~12자로 입력하고 관리자·운영자·오늘한걸음·마음프로·admin·official·staff와 혼동되는 이름은 피해주세요.');return;}
     if(!SO.profile) SO.profile={userId:socialNewId(),token:socialRandHex(32),nickname:nick,registeredUrl:''};
     else {SO.profile.nickname=nick; SO.profile.registeredUrl='';}
     socialSave(); closeModal(); socialResetFeed(); drawSocial();
