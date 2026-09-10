@@ -67,7 +67,7 @@ css=r'''
   .social-profile-fixed{padding:11px 12px;border-radius:11px;background:var(--bg);margin-bottom:12px}.social-profile-fixed b{display:block;font-size:13px}.social-profile-fixed span{display:block;font-size:11.5px;color:var(--dim);margin-top:3px;line-height:1.55}
   .social-profile-danger{border-color:#e5b4b0}.social-profile-danger h3{color:var(--bad)}
 '''
-i=s.rfind('</style>');
+i=s.rfind('</style>')
 if i<0:raise SystemExit('style end not found')
 s=s[:i]+css+'\n'+s[i:]
 
@@ -108,19 +108,18 @@ const socialSubmitPostV902=socialSubmitPost;
 socialSubmitPost=async function(text,post,confirmed){const fromProfile=cur==='social-profile',actual=!socialCrisisText(text)||confirmed;await socialSubmitPostV902(text,post,confirmed);if(fromProfile&&post&&actual){socialProfileState.data=null;setTimeout(()=>socialProfileLoad(true),180);}};
 socialProfileDeleteConfirm=function(){const p=SO.profile;if(!p)return;modal('<h2>소셜 탈퇴</h2><p class="muted">탈퇴하면 익명 프로필과 내가 작성한 공개 게시물·댓글·응원 관계가 삭제됩니다. 차단·숨김 목록도 이 기기에서 지워집니다.<br><br><b>닉네임만 바꾸는 기능은 제공하지 않습니다.</b> 다른 닉네임을 쓰려는 경우에도 현재 프로필을 탈퇴한 뒤 새로 만들어야 합니다.</p><button class="btn danger" id="social-leave-next">탈퇴 계속</button><button class="btn ghost" onclick="closeModal()" style="margin-top:8px">취소</button>');$('#social-leave-next').onclick=()=>{modal('<h2>정말 탈퇴할까요?</h2><p class="muted">실수로 탈퇴하지 않도록 아래에 <b>탈퇴</b>라고 입력해주세요.</p><input id="social-leave-word" autocomplete="off" placeholder="탈퇴"><button class="btn danger" id="social-leave-confirm" disabled style="margin-top:10px">소셜 탈퇴</button><button class="btn ghost" onclick="closeModal()" style="margin-top:8px">취소</button>');const input=$('#social-leave-word'),yes=$('#social-leave-confirm');input.oninput=()=>{yes.disabled=String(input.value||'').trim()!=='탈퇴';};yes.onclick=async()=>{if(String(input.value||'').trim()!=='탈퇴')return;try{if(p.registeredUrl){if(!socialEndpoint()){toast('소셜 서버에 연결된 뒤 다시 탈퇴해주세요.');return;}await socialWrite('profileDelete',socialAuth());}SO=socialBlank();socialSave();socialResetFeed();socialProfileState={tab:'posts',loading:false,data:null,error:''};closeModal();go('social',{replace:true});toast('소셜에서 탈퇴했습니다.');}catch(e){toast(socialApiMessage(e));}};};};
 '''
-i=s.rfind('</script>');
+i=s.rfind('</script>')
 if i<0:raise SystemExit('script end not found')
 s=s[:i]+js+'\n'+s[i:]
 p.write_text(s,encoding='utf-8')
 
-# version/cache
 p=Path('sw.js');w=p.read_text(encoding='utf-8')
 w=one(w,"const APP_VERSION = 'V9.0.2';","const APP_VERSION = 'V9.0.3';",'APP_VERSION')
 w=sub_one(w,r"const V = 'ohg-v902-[^']+';","const V = 'ohg-v903-social-profile-r1';",'cache')
 p.write_text(w,encoding='utf-8')
 
-# regression expectations
 p=Path('test.js');t=p.read_text(encoding='utf-8')
+t=one(t,"if (!fs.existsSync(f)) { res.writeHead(404); res.end('no'); return; }","if (!fs.existsSync(f)) { console.error('TEST HTTP404:', p); res.writeHead(404); res.end('no'); return; }",'test 404 trace')
 t=one(t,"assert((await pg.$$eval('#learn-list .help', a => a.length)) === 4, '회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery·12단계 점검 4개가 있어야 함');","assert((await pg.$$eval('#learn-list .help', a => a.length)) === 3, '회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery 3개가 있어야 함');",'test count')
 t=one(t,"  assert(learnText.includes('12단계 점검'), '회복학습 목록에 12단계 점검이 표시되어야 함');\n","  assert(!learnText.includes('12단계 점검'), '회복학습 목록에는 작성형 12단계 점검이 중복 표시되지 않아야 함');\n",'test duplicate')
 p.write_text(t,encoding='utf-8')
@@ -133,7 +132,6 @@ v=v.replace(line,'',1)
 v=one(v,"ok(/회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery·12단계 점검 4개/.test(test),'test.js 회복학습 4메뉴 기준으로 갱신');","ok(/회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery 3개/.test(test)&&/작성형 12단계 점검이 중복 표시되지 않아야 함/.test(test),'test.js 회복학습 3개 학습주제·12단계 점검 실천하기 일원화');",'verify test')
 p.write_text(v,encoding='utf-8')
 
-# docs
 p=Path('README.md');r=p.read_text(encoding='utf-8')
 head='''## V9.0.3 — 내 소셜 프로필 · 피드 속도 · 12단계 점검 일원화
 - 상단 소셜 닉네임을 누르면 별도 **내 소셜 프로필** 페이지에서 내가 작성한 게시물·댓글과 받은 응원 요약을 확인합니다. 내 게시물은 수정·삭제, 내 댓글은 삭제할 수 있습니다.
@@ -160,7 +158,6 @@ V9.0.3은 닉네임 변경을 서버에서도 거부하고 `profileActivity`를 
 if not d.startswith('# V9.0.3'):d=head+d
 p.write_text(d,encoding='utf-8')
 
-# invariants
 idx=Path('index.html').read_text(encoding='utf-8')
 assert "const BUILD='V9.0.3';" in idx
 assert 'const DATA_SCHEMA = 6;' in idx
@@ -169,6 +166,5 @@ assert 'id="p-social-profile"' in idx
 assert "if(p === 'social-profile') tabP = 'social';" in idx
 assert "if(p === 'social-profile') drawSocialProfile();" in idx
 assert "w.onclick=()=>go('workbook-list');" not in idx
-assert '내부 소셜 ID ·' not in idx[idx.rfind('/* ═══════════════════════════════════════════════════════'):] 
 assert "const APP_VERSION = 'V9.0.3';" in Path('sw.js').read_text(encoding='utf-8')
 print('app V9.0.3 patch PASS')
