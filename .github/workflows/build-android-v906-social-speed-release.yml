@@ -73,6 +73,13 @@ jobs:
           s=s.replace("const V = 'ohg-v906-social-speed-r1';","const V = 'ohg-v907-version-parser-r1';",1)
           p.write_text(s,encoding='utf-8')
 
+          p=Path('verify.js')
+          s=p.read_text(encoding='utf-8')
+          if s.count('V9.0.6') != 4:
+              raise SystemExit('verify V9.0.6 target count='+str(s.count('V9.0.6')))
+          s=s.replace('V9.0.6','V9.0.7')
+          p.write_text(s,encoding='utf-8')
+
           p=Path('install.html')
           s=p.read_text(encoding='utf-8')
           for old,new in [
@@ -90,6 +97,7 @@ jobs:
           grep -F "const V = 'ohg-v907-version-parser-r1';" sw.js
           grep -F "([vV]\\d+(?:\\.\\d+){1,2})" index.html
           ! grep -F "([vV]\\d+(?:\\.\\d+)?)" index.html
+          grep -F "const BUILD='V9.0.7';" verify.js
           grep -F "verifiedVersion:'V9.0.7'" install.html
           grep -F 'v9.0.7-test/oneul-v9.0.7.apk' install.html
           grep -F 'const DATA_SCHEMA = 6;' index.html
@@ -255,11 +263,13 @@ jobs:
 
           put_main_file index.html index.html 'V9.0.7: parse full APP_VERSION'
           put_main_file sw.js sw.js 'V9.0.7: advance service worker version'
+          put_main_file verify.js verify.js 'V9.0.7: align regression version checks'
           put_main_file latest-release.json latest-release.json 'Point latest Android release to V9.0.7'
-          put_main_file install.html install.html 'Promote verified install target to V9.0.7'
+          put_main_file install.html install.html 'Promote install target to V9.0.7'
 
           gh api "repos/$GITHUB_REPOSITORY/contents/index.html?ref=main" --jq .content | tr -d '\n' | base64 -d > /tmp/main-index.html
           gh api "repos/$GITHUB_REPOSITORY/contents/sw.js?ref=main" --jq .content | tr -d '\n' | base64 -d > /tmp/main-sw.js
+          gh api "repos/$GITHUB_REPOSITORY/contents/verify.js?ref=main" --jq .content | tr -d '\n' | base64 -d > /tmp/main-verify.js
           gh api "repos/$GITHUB_REPOSITORY/contents/latest-release.json?ref=main" --jq .content | tr -d '\n' | base64 -d > /tmp/main-latest.json
           gh api "repos/$GITHUB_REPOSITORY/contents/install.html?ref=main" --jq .content | tr -d '\n' | base64 -d > /tmp/main-install.html
           grep -F "const BUILD='V9.0.7';" /tmp/main-index.html
@@ -268,6 +278,7 @@ jobs:
           grep -F "const SOCIAL_KEY = 'ohg.social.v1';" /tmp/main-index.html
           grep -F "const APP_VERSION = 'V9.0.7';" /tmp/main-sw.js
           grep -F "const V = 'ohg-v907-version-parser-r1';" /tmp/main-sw.js
+          grep -F "const BUILD='V9.0.7';" /tmp/main-verify.js
           grep -F '"version": "V9.0.7"' /tmp/main-latest.json
           grep -F '"versionCode": 902' /tmp/main-latest.json
           grep -F "verifiedVersion:'V9.0.7'" /tmp/main-install.html
