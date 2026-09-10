@@ -7,6 +7,10 @@ on:
       - 'index.html'
       - 'sw.js'
       - 'social-apps-script.gs'
+      - 'latest-release.json'
+      - 'install.html'
+      - 'native.html'
+      - 'release-version-check.js'
       - '.github/workflows/check-web-runtime.yml'
   pull_request:
     branches: [main]
@@ -14,6 +18,10 @@ on:
       - 'index.html'
       - 'sw.js'
       - 'social-apps-script.gs'
+      - 'latest-release.json'
+      - 'install.html'
+      - 'native.html'
+      - 'release-version-check.js'
       - '.github/workflows/check-web-runtime.yml'
 
 jobs:
@@ -40,11 +48,15 @@ jobs:
           node --check /tmp/index-all.js
           node --check sw.js
           node --check /tmp/social.js
+          node --check release-version-check.js
       - name: Undefined-reference check
         run: |
           npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
+      - name: Release version coherence
+        run: node release-version-check.js
       - name: Fixed invariants
         run: |
           grep -F "const DATA_SCHEMA = 6;" index.html
+          grep -F "const KEY = 'ohg.v1';" index.html
           grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
           ! grep -F 'HALTS.find' index.html
