@@ -2,7 +2,7 @@ name: Patch V9.0.7 version parser
 
 on:
   push:
-    branches: [v9.0.7-version-parser]
+    branches: [main]
     paths:
       - '.github/workflows/patch-v907-version-parser.yml'
 
@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: v9.0.7-version-parser
+          ref: main
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -86,4 +86,4 @@ jobs:
           git rm .github/workflows/patch-v907-version-parser.yml
           git add index.html sw.js verify.js
           git commit -m 'Fix full semantic APP_VERSION parsing for V9.0.7'
-          git push origin HEAD:v9.0.7-version-parser
+          git push origin HEAD:main
