@@ -1,10 +1,10 @@
-name: Build and publish V9.0.6 Android prerelease
+name: Build and publish V9.0.7 Android prerelease
 
 on:
   push:
-    branches: [android-v9.0.6-social-speed-release]
+    branches: [android-v9.0.7-version-parser-release]
     paths:
-      - 'android-v9.0.6-social-speed-release.sh'
+      - 'android-v9.0.7-version-parser-release.sh'
       - '.github/workflows/build-android-v906-social-speed-release.yml'
   workflow_dispatch:
 
@@ -31,21 +31,86 @@ jobs:
         with:
           gradle-version: '8.11.1'
 
-      - name: Verify exact V9.0.6 web main sync
+      - name: Load exact current main web baseline
         run: |
           set -euo pipefail
           git fetch --depth=1 origin main
-          test "$(git rev-parse FETCH_HEAD)" = "f389d7ce1f8529e715a3deac241d5730f1038384"
-          for f in README.md SOCIAL_SETUP.md icon-180.png icon-192.png icon-32.png icon-512.png index.html install.html latest-release.json learning-data.js legal.html manifest.json music-audio-data.js native.html privacy.html qa-data.js screening-data.js social-apps-script.gs sw.js test.js verify.js workbook-data.js; do
-            git show FETCH_HEAD:"$f" > /tmp/main-file
-            cmp -s "$f" /tmp/main-file || { echo "main sync mismatch: $f"; exit 1; }
+          test "$(git rev-parse FETCH_HEAD)" = "06beee32ac2b001c8a2582b68d0fc5830063549f"
+          for f in index.html sw.js verify.js install.html latest-release.json; do
+            git show FETCH_HEAD:"$f" > "$f"
           done
-          echo 'web main f389d7ce sync PASS'
+          grep -F "const BUILD='V9.0.6';" index.html
+          grep -F "const APP_VERSION = 'V9.0.6';" sw.js
+          grep -F "const DATA_SCHEMA = 6;" index.html
+          grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
+          echo 'main baseline 06beee32 loaded'
 
-      - name: Verify V9.0.6 web and social invariants
+      - name: Apply and verify V9.0.7 version parser fix
         run: |
           set -euo pipefail
-          python - <<'PY'
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old=r"([vV]\d+(?:\.\d+)?)"
+          new=r"([vV]\d+(?:\.\d+){1,2})"
+          if s.count(old) != 1:
+              raise SystemExit('APP_VERSION parser target count='+str(s.count(old)))
+          s=s.replace(old,new,1)
+          if s.count("const BUILD='V9.0.6';") != 1:
+              raise SystemExit('V9.0.6 BUILD target not unique')
+          s=s.replace("const BUILD='V9.0.6';","const BUILD='V9.0.7';",1)
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('sw.js')
+          s=p.read_text(encoding='utf-8')
+          if s.count("const APP_VERSION = 'V9.0.6';") != 1:
+              raise SystemExit('sw APP_VERSION target not unique')
+          s=s.replace("const APP_VERSION = 'V9.0.6';","const APP_VERSION = 'V9.0.7';",1)
+          if s.count("const V = 'ohg-v906-social-speed-r1';") != 1:
+              raise SystemExit('sw cache target not unique')
+          s=s.replace("const V = 'ohg-v906-social-speed-r1';","const V = 'ohg-v907-version-parser-r1';",1)
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('install.html')
+          s=p.read_text(encoding='utf-8')
+          for old,new in [
+              ("verifiedVersion:'V9.0.6'","verifiedVersion:'V9.0.7'"),
+              ('/v9.0.6-test/oneul-v9.0.6.apk','/v9.0.7-test/oneul-v9.0.7.apk'),
+              ('/tag/v9.0.6-test','/tag/v9.0.7-test')]:
+              if old not in s:
+                  raise SystemExit('install target missing: '+old)
+              s=s.replace(old,new)
+          p.write_text(s,encoding='utf-8')
+          PY
+
+          grep -F "const BUILD='V9.0.7';" index.html
+          grep -F "const APP_VERSION = 'V9.0.7';" sw.js
+          grep -F "const V = 'ohg-v907-version-parser-r1';" sw.js
+          grep -F "([vV]\\d+(?:\\.\\d+){1,2})" index.html
+          ! grep -F "([vV]\\d+(?:\\.\\d+)?)" index.html
+          grep -F "verifiedVersion:'V9.0.7'" install.html
+          grep -F 'v9.0.7-test/oneul-v9.0.7.apk' install.html
+          grep -F 'const DATA_SCHEMA = 6;' index.html
+          grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
+          grep -F "const SOCIAL_VERSION = 'V9.0.6-social-1';" social-apps-script.gs
+
+          node - <<'NODE'
+          const rx=/const\s+APP_VERSION\s*=\s*['"]([vV]\d+(?:\.\d+){1,2})['"]/;
+          for(const [src,want] of [
+            ["const APP_VERSION = 'V9.0';",'V9.0'],
+            ["const APP_VERSION = 'V9.0.7';",'V9.0.7'],
+            ["const APP_VERSION = 'V10.2.15';",'V10.2.15']
+          ]){
+            const m=src.match(rx);
+            if(!m || m[1]!==want) throw new Error('version parser failed: '+src);
+          }
+          if("const APP_VERSION = 'V9';".match(rx)) throw new Error('V9 must not be accepted');
+          console.log('APP_VERSION parser semantic tests PASS');
+          NODE
+
+          python3 - <<'PY'
           import re
           from pathlib import Path
           s=Path('index.html').read_text(encoding='utf-8')
@@ -61,24 +126,6 @@ jobs:
           node --check verify.js
           node --check test.js
           npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
-          grep -F "const BUILD='V9.0.6';" index.html
-          grep -F "const APP_VERSION = 'V9.0.6';" sw.js
-          grep -F "const V = 'ohg-v906-social-speed-r1';" sw.js
-          grep -F 'const DATA_SCHEMA = 6;' index.html
-          grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
-          grep -F "const SOCIAL_VERSION = 'V9.0.6-social-1';" social-apps-script.gs
-          grep -F "btn.textContent=show?'초심 접기':'초심 보기';" index.html
-          ! grep -F "btn.textContent=show?'미래의 나에게 접기':'미래의 나에게 바로보기';" index.html
-          grep -F 'id="social-compose-safety"' index.html
-          grep -F 'socialAutoFold' index.html
-          grep -F 'socialRefresh(false,true)' index.html
-          grep -F 'const FEED_CACHE_SECONDS = 30;' social-apps-script.gs
-          grep -F 'lock.waitLock(5000)' social-apps-script.gs
-          grep -F 'id="me-package-update"' index.html
-          grep -F 'latest-release.json' index.html
-          grep -F 'ohg.native.version' native.html
-          grep -F '"version": "V9.0.5"' latest-release.json
-          grep -F '"versionCode": 900' latest-release.json
           node verify.js
 
       - name: Extract Android source
@@ -87,8 +134,8 @@ jobs:
           mkdir android-v8
           unzip -q android-v8-source.zip -d android-v8
 
-      - name: Apply V9.0.6 package revision
-        run: bash android-v9.0.6-social-speed-release.sh
+      - name: Apply V9.0.7 package revision
+        run: bash android-v9.0.7-version-parser-release.sh
 
       - name: Verify preserved reminder and TTS engines
         run: |
@@ -140,56 +187,89 @@ jobs:
           test -s "$AAB"
           AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
           "$AAPT" dump badging "$APK" | tee /tmp/badging.txt
-          grep -F "package: name='io.github.hantae_ho.twa' versionCode='901' versionName='9.0.6'" /tmp/badging.txt
+          grep -F "package: name='io.github.hantae_ho.twa' versionCode='902' versionName='9.0.7'" /tmp/badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/permissions.txt
           grep -F 'android.permission.SCHEDULE_EXACT_ALARM' /tmp/permissions.txt
           grep -F 'android.permission.WAKE_LOCK' /tmp/permissions.txt
           grep -F 'android.permission.POST_NOTIFICATIONS' /tmp/permissions.txt
           grep -F 'android.permission.RECEIVE_BOOT_COMPLETED' /tmp/permissions.txt
           ! grep -Eq 'android.permission.(RECORD_AUDIO|CAMERA|READ_CONTACTS|WRITE_CONTACTS|ACCESS_FINE_LOCATION|ACCESS_COARSE_LOCATION)' /tmp/permissions.txt
-          grep -R -Fq 'https://hantae-ho.github.io/oneul-web/native.html?appv=9.0.6' android-v8/app/src/main
-          cp "$APK" oneul-v9.0.6.apk
-          cp "$AAB" oneul-v9.0.6.aab
-          sha256sum oneul-v9.0.6.apk oneul-v9.0.6.aab | tee SHA256SUMS.txt
+          grep -R -Fq 'https://hantae-ho.github.io/oneul-web/native.html?appv=9.0.7' android-v8/app/src/main
+          cp "$APK" oneul-v9.0.7.apk
+          cp "$AAB" oneul-v9.0.7.aab
+          sha256sum oneul-v9.0.7.apk oneul-v9.0.7.aab | tee SHA256SUMS.txt
 
       - name: Upload release files artifact
         uses: actions/upload-artifact@v4
         with:
-          name: oneul-v9.0.6-release-files
+          name: oneul-v9.0.7-release-files
           path: |
-            oneul-v9.0.6.apk
-            oneul-v9.0.6.aab
+            oneul-v9.0.7.apk
+            oneul-v9.0.7.aab
             SHA256SUMS.txt
 
-      - name: Publish V9.0.6 test prerelease
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release delete v9.0.6-test --yes --cleanup-tag || true
-          gh release create v9.0.6-test oneul-v9.0.6.apk oneul-v9.0.6.aab SHA256SUMS.txt \
-            --target android-v9.0.6-social-speed-release \
-            --title '오늘 한 걸음 V9.0.6 테스트 릴리즈' \
-            --notes 'V9.0.6 테스트 릴리즈입니다. 지금 위험해요 → 충동의 런타임 버튼을 실제 화면에서도 초심 보기/초심 접기로 고쳤습니다. 소셜 이용 안내와 글쓰기 안전안내는 처음 잠깐 펼쳐진 뒤 자동으로 접히며 필요할 때 다시 펼칠 수 있습니다. 글·댓글은 서버 성공 직후 화면에 즉시 반영하고 전체 피드 재조회는 백그라운드로 처리하며, 응원도 즉시 반응 후 서버 결과와 맞춥니다. 피드 갱신 중 기존 글은 유지합니다. 저장소의 소셜 서버 소스는 V9.0.6-social-1이며 피드 캐시 30초, 쓰기 lock 대기 5초, 댓글·응원 중복 시트 읽기 감소를 포함합니다. 이 서버측 속도 개선은 Apps Script에서 V9.0.6-social-1을 새 배포해야 적용됩니다. Android는 기존 검증된 네이티브 알림/TTS 스택을 변경하지 않고 versionCode 901 / versionName 9.0.6만 적용하며 정확알림, 화면 OFF 알림, 부팅 후 재예약, 복약·외래·생활·습관 알림, silent reminder apply/clear, 마음프로 네이티브 음성, 이완 TTS 엔진을 빌드에서 정적 검증합니다. DATA_SCHEMA=6, ohg.v1, ohg.social.v1과 닉네임 30일 보호는 유지합니다. 웹 main SHA: f389d7ce1f8529e715a3deac241d5730f1038384. 실기기 최종 확인 전이므로 prerelease를 유지합니다.' \
-            --prerelease
-
-      - name: Point main to latest Android release
+      - name: Publish V9.0.7 test prerelease
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          cat > /tmp/latest-release.json <<'EOF'
+          gh release delete v9.0.7-test --yes --cleanup-tag || true
+          gh release create v9.0.7-test oneul-v9.0.7.apk oneul-v9.0.7.aab SHA256SUMS.txt \
+            --target android-v9.0.7-version-parser-release \
+            --title '오늘 한 걸음 V9.0.7 테스트 릴리즈' \
+            --notes 'V9.0.7은 서비스워커 APP_VERSION 파서를 Vx.y 및 Vx.y.z 전체 버전을 정확히 읽도록 수정한 최소 유지보수 릴리즈입니다. 앱 기능/UI·DATA_SCHEMA=6·ohg.v1·ohg.social.v1·V9.0.6-social-1 서버 로직은 변경하지 않았습니다. Android는 versionCode 902 / versionName 9.0.7만 올리고 기존 정확알림, 화면 OFF 알림, 부팅 후 재예약, 복약·외래·생활·습관 알림, silent reminder bridge, 마음프로 네이티브 음성, 이완 TTS 엔진을 보존 검증했습니다. prerelease이지만 사용자의 명시적 요청에 따라 최신 설치 안내도 V9.0.7로 연결합니다.' \
+            --prerelease
+
+      - name: Promote V9.0.7 web latest pointer and install on main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          CURRENT=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)
+          test "$CURRENT" = "06beee32ac2b001c8a2582b68d0fc5830063549f"
+
+          cat > latest-release.json <<'EOF'
           {
-            "version": "V9.0.6",
-            "versionCode": 901,
-            "apk": "https://github.com/HanTae-ho/oneul-web/releases/download/v9.0.6-test/oneul-v9.0.6.apk",
-            "release": "https://github.com/HanTae-ho/oneul-web/releases/tag/v9.0.6-test"
+            "version": "V9.0.7",
+            "versionCode": 902,
+            "apk": "https://github.com/HanTae-ho/oneul-web/releases/download/v9.0.7-test/oneul-v9.0.7.apk",
+            "release": "https://github.com/HanTae-ho/oneul-web/releases/tag/v9.0.7-test"
           }
           EOF
-          SHA=$(gh api "repos/$GITHUB_REPOSITORY/contents/latest-release.json?ref=main" --jq .sha)
-          CONTENT=$(base64 -w0 /tmp/latest-release.json)
-          gh api --method PUT "repos/$GITHUB_REPOSITORY/contents/latest-release.json" \
-            -f message='Point latest Android release to V9.0.6' \
-            -f content="$CONTENT" -f sha="$SHA" -f branch='main'
-          gh api "repos/$GITHUB_REPOSITORY/contents/latest-release.json?ref=main" --jq .content | tr -d '\n' | base64 -d | tee /tmp/main-latest.json
-          grep -F '"version": "V9.0.6"' /tmp/main-latest.json
-          grep -F '"versionCode": 901' /tmp/main-latest.json
+
+          put_main_file() {
+            path="$1"
+            file="$2"
+            msg="$3"
+            sha=$(gh api "repos/$GITHUB_REPOSITORY/contents/$path?ref=main" --jq .sha)
+            python3 - "$file" "$sha" "$msg" <<'PY'
+          import base64, json, sys
+          file, sha, msg = sys.argv[1:4]
+          with open(file,'rb') as f:
+              content=base64.b64encode(f.read()).decode('ascii')
+          with open('/tmp/put.json','w',encoding='utf-8') as f:
+              json.dump({'message':msg,'content':content,'sha':sha,'branch':'main'},f,ensure_ascii=False)
+          PY
+            gh api --method PUT "repos/$GITHUB_REPOSITORY/contents/$path" --input /tmp/put.json >/tmp/put-result.json
+          }
+
+          put_main_file index.html index.html 'V9.0.7: parse full APP_VERSION'
+          put_main_file sw.js sw.js 'V9.0.7: advance service worker version'
+          put_main_file latest-release.json latest-release.json 'Point latest Android release to V9.0.7'
+          put_main_file install.html install.html 'Promote verified install target to V9.0.7'
+
+          gh api "repos/$GITHUB_REPOSITORY/contents/index.html?ref=main" --jq .content | tr -d '\n' | base64 -d > /tmp/main-index.html
+          gh api "repos/$GITHUB_REPOSITORY/contents/sw.js?ref=main" --jq .content | tr -d '\n' | base64 -d > /tmp/main-sw.js
+          gh api "repos/$GITHUB_REPOSITORY/contents/latest-release.json?ref=main" --jq .content | tr -d '\n' | base64 -d > /tmp/main-latest.json
+          gh api "repos/$GITHUB_REPOSITORY/contents/install.html?ref=main" --jq .content | tr -d '\n' | base64 -d > /tmp/main-install.html
+          grep -F "const BUILD='V9.0.7';" /tmp/main-index.html
+          grep -F "([vV]\\d+(?:\\.\\d+){1,2})" /tmp/main-index.html
+          grep -F "const DATA_SCHEMA = 6;" /tmp/main-index.html
+          grep -F "const SOCIAL_KEY = 'ohg.social.v1';" /tmp/main-index.html
+          grep -F "const APP_VERSION = 'V9.0.7';" /tmp/main-sw.js
+          grep -F "const V = 'ohg-v907-version-parser-r1';" /tmp/main-sw.js
+          grep -F '"version": "V9.0.7"' /tmp/main-latest.json
+          grep -F '"versionCode": 902' /tmp/main-latest.json
+          grep -F "verifiedVersion:'V9.0.7'" /tmp/main-install.html
+          grep -F 'v9.0.7-test/oneul-v9.0.7.apk' /tmp/main-install.html
+          echo 'V9.0.7 main + latest-release + install promotion PASS'
