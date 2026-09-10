@@ -6,7 +6,7 @@ const srv = http.createServer((req, res) => {
   let p = req.url.split('?')[0];
   if (p === '/') p = '/index.html';
   const f = path.join(__dirname, p);
-  if (!fs.existsSync(f)) { res.writeHead(404); res.end('no'); return; }
+  if (!fs.existsSync(f)) { console.error('TEST HTTP404:', p); res.writeHead(404); res.end('no'); return; }
   res.writeHead(200, { 'Content-Type': MIME[path.extname(f)] || 'text/plain' });
   res.end(fs.readFileSync(f));
 });
@@ -185,12 +185,12 @@ const srv = http.createServer((req, res) => {
   assert(await pg.evaluate(() => Array.isArray(window.LEARNING_TOPICS) && window.LEARNING_TOPICS.length === 3), '회복학습은 3개 독립 주제를 learning-data.js에서 로드해야 함');
   await pg.click('#tool-learn'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-learn', '회복학습 목록 페이지가 열려야 함');
-  assert((await pg.$$eval('#learn-list .help', a => a.length)) === 4, '회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery·12단계 점검 4개가 있어야 함');
+  assert((await pg.$$eval('#learn-list .help', a => a.length)) === 3, '회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery 3개가 있어야 함');
   const learnText = await pg.$eval('#learn-list', e => e.innerText);
   assert(learnText.includes('12단계'), '회복학습 목록에 12단계가 표시되어야 함');
   assert(learnText.includes('회복의 기초 이해'), '회복학습 목록에 심화 주제가 표시되어야 함');
   assert(learnText.includes('SMART Recovery'), '회복학습 목록에 SMART Recovery가 표시되어야 함');
-  assert(learnText.includes('12단계 점검'), '회복학습 목록에 12단계 점검이 표시되어야 함');
+  assert(!learnText.includes('12단계 점검'), '회복학습 목록에는 작성형 12단계 점검이 중복 표시되지 않아야 함');
   await pg.click('#learn-list .help'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-learn-topic', '12단계 선택 시 별도 주제 페이지가 열려야 함');
   assert((await pg.$eval('#learn-topic-title', e => e.innerText)) === '12단계', '주제 페이지 제목은 12단계');
