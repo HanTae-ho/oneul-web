@@ -1,6 +1,8 @@
 # V9.0.2 댓글 확장 배포 메모
 
-현재 저장소의 소셜 서버 기준본은 **V9.0.2-social-3**입니다. 실제 운영 중이던 `V9.0.1-social-2`를 기준으로 댓글 기능만 병합했으며, social-2의 요청 크기 제한·feed/commentList 읽기 lock 분리·Asia/Seoul 기준·Google Sheets 수식주입 방어·내부 오류 비노출을 유지합니다.
+현재 저장소의 소셜 서버 기준본은 **V9.0.2-social-4**입니다. 실제 운영 중이던 `V9.0.1-social-2`를 기준으로 댓글 기능만 병합했으며, social-2의 요청 크기 제한·feed/commentList 읽기 lock 분리·Asia/Seoul 기준·Google Sheets 수식주입 방어·내부 오류 비노출을 유지합니다.
+
+social-4는 탈퇴 후 응원 수 정합성, 글·댓글 삭제를 이용한 작성 제한 우회, 신고 전 인증 순서, 닉네임 갱신 쓰기 횟수, BUSY/닉네임 오류 안내를 보정합니다. 탈퇴로 함께 삭제되는 다른 사용자의 댓글은 그 사용자의 userId를 유지해 작성 제한 집계에서 빠지지 않게 하며, 운영 점검 Logger에는 익명 ID를 남기지 않습니다.
 
 V9.0.2에서는 기존 소셜 전용 스프레드시트에 `Comments`, `CommentReports` 두 시트가 추가됩니다. `social-apps-script.gs`를 교체한 뒤 **SOCIAL_SETUP을 한 번 실행**하면 기존 Profiles/Posts/Supports/Reports는 유지하고 새 시트만 준비합니다. 이어서 **기존 웹 앱 배포를 새 버전으로 갱신**합니다. `/exec` 주소는 바꾸지 않습니다.
 

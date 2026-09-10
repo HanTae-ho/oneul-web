@@ -6,7 +6,7 @@
 const APP_VERSION = 'V9.0.2';
 /* 내부 캐시 리비전. 기존 v46 클라이언트도 새 판을 감지하도록 숫자형 키를 유지합니다.
    V4.6 → 406, V4.7 → 407, V4.10 → 410, V5.0 → 500, V5.1 → 501, V5.2 → 502 */
-const V = 'ohg-v902-social-comments-r2';
+const V = 'ohg-v902-social4-r3';
 const SHELL = ['./', './index.html', './native.html',
   './install.html', './qa-data.js', './learning-data.js', './screening-data.js', './workbook-data.js', './music-audio-data.js', './privacy.html', './legal.html', './manifest.json',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-32.png'];
