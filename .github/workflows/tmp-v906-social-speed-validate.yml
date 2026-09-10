@@ -1,0 +1,68 @@
+name: Validate V9.0.6 social speed UX
+
+on:
+  push:
+    branches: [v9.0.6-social-speed-ux]
+    paths:
+      - 'scripts/apply-v906-social-speed-ux.py'
+      - '.github/workflows/tmp-v906-social-speed-validate.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply V9.0.6 patch
+        run: python scripts/apply-v906-social-speed-ux.py
+      - name: Extract browser scripts
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          Path('/tmp/index-all.js').write_text('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)),encoding='utf-8')
+          Path('/tmp/social.js').write_text(Path('social-apps-script.gs').read_text(encoding='utf-8'),encoding='utf-8')
+          PY
+      - name: Syntax and undefined-reference checks
+        run: |
+          node --check /tmp/index-all.js
+          node --check sw.js
+          node --check /tmp/social.js
+          node --check verify.js
+          node --check test.js
+          npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
+      - name: V9.0.6 invariants
+        run: |
+          set -euo pipefail
+          grep -F "const BUILD='V9.0.6';" index.html
+          grep -F "const APP_VERSION = 'V9.0.6';" sw.js
+          grep -F "const V = 'ohg-v906-social-speed-r1';" sw.js
+          grep -F 'const DATA_SCHEMA = 6;' index.html
+          grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
+          grep -F "btn.textContent=show?'초심 접기':'초심 보기';" index.html
+          ! grep -F "btn.textContent=show?'미래의 나에게 접기':'미래의 나에게 바로보기';" index.html
+          grep -F 'id="social-compose-safety"' index.html
+          grep -F 'socialAutoFold' index.html
+          grep -F 'socialRefresh(false,true)' index.html
+          grep -F "const SOCIAL_VERSION = 'V9.0.6-social-1';" social-apps-script.gs
+          grep -F 'const FEED_CACHE_SECONDS = 30;' social-apps-script.gs
+          grep -F 'lock.waitLock(5000)' social-apps-script.gs
+          grep -F 'const DATA_SCHEMA = 6;' index.html
+          node verify.js
+      - name: Browser regression
+        run: |
+          npm install --no-save playwright@1.55.0
+          CHROMIUM_PATH=/usr/bin/google-chrome node test.js
+      - name: Commit validated product files
+        run: |
+          set -euo pipefail
+          git config user.name 'HanTae-ho'
+          git config user.email '64190685+HanTae-ho@users.noreply.github.com'
+          git add index.html sw.js social-apps-script.gs README.md verify.js
+          git commit -m 'V9.0.6 초심 보기·소셜 반응속도·안내 자동폴딩'
+          git push
