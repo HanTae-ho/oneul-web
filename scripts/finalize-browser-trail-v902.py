@@ -4,5 +4,10 @@ old="""  await rt(6); assert(await pg.evaluate(() => Array.isArray(S.stepWorks) 
 new="""  await rt(6); assert(await pg.evaluate(() => Array.isArray(S.stepWorks) && S.stepWorks.length===7), '내 발자취 진입 후에도 12단계 검토 저장 기록 7건 유지');"""
 if old not in s: raise SystemExit('trail workbook assertion not found')
 s=s.replace(old,new,1)
+old2="""  assert(afterReset.includes('1일째'), '다시 시작한 당일은 새 회복 1일째여야 함');"""
+new2="""  const afterResetCompact = afterReset.replace(/\\s*\\|\\s*/g, '').replace(/\\s+/g, '');
+  assert(afterResetCompact.includes('1일째'), '다시 시작한 당일은 새 회복 1일째여야 함');"""
+if old2 not in s: raise SystemExit('relapse day assertion not found')
+s=s.replace(old2,new2,1)
 p.write_text(s,encoding='utf-8')
-print('browser test trail state check PASS')
+print('browser test trail/restart state check PASS')
