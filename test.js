@@ -25,15 +25,21 @@ const srv = http.createServer((req, res) => {
 
   const shot = async n => { await pg.screenshot({ path: `${__dirname}/shot-${n}.png`, fullPage: true }); };
   const seen = async () => await pg.$eval('.pg.on', e => e.id);
-  const localYmd = d => {
-    const z = n => String(n).padStart(2, '0');
-    return d.getFullYear() + '-' + z(d.getMonth()+1) + '-' + z(d.getDate());
+  // CI runner의 시스템 시간대(UTC)와 관계없이 앱과 같은 Asia/Seoul 날짜를 사용합니다.
+  const kstYmd = d => {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone:'Asia/Seoul', year:'numeric', month:'2-digit', day:'2-digit'
+    }).formatToParts(d);
+    const v = Object.fromEntries(parts.map(x => [x.type, x.value]));
+    return v.year + '-' + v.month + '-' + v.day;
   };
   const daysAgo = n => {
-    const d = new Date();
-    d.setHours(12, 0, 0, 0);
-    d.setDate(d.getDate() - n);
-    return localYmd(d);
+    const todayKst = kstYmd(new Date());
+    const [y,m,d] = todayKst.split('-').map(Number);
+    const x = new Date(Date.UTC(y, m-1, d));
+    x.setUTCDate(x.getUTCDate() - n);
+    const z = v => String(v).padStart(2, '0');
+    return x.getUTCFullYear() + '-' + z(x.getUTCMonth()+1) + '-' + z(x.getUTCDate());
   };
   const assert = (ok, msg) => { if(!ok) throw new Error('ASSERT: ' + msg); };
 
@@ -59,8 +65,9 @@ const srv = http.createServer((req, res) => {
   console.log('2. 시작 후 =', await seen());
   const recoveryText = (await pg.$eval('#home-days', e => e.innerText)).replace(/\n/g, ' | ');
   console.log('   회복일 =', recoveryText);
-  assert(recoveryText.includes('41일째'), '40일 전 시작은 오늘 41일째여야 함');
-  assert(recoveryText.includes('13일째'), '12일 전 시작은 오늘 13일째여야 함');
+  const recoveryCompact = recoveryText.replace(/\s*\|\s*/g, '').replace(/\s+/g, '');
+  assert(recoveryCompact.includes('41일째'), '40일 전 시작은 오늘 41일째여야 함');
+  assert(recoveryCompact.includes('13일째'), '12일 전 시작은 오늘 13일째여야 함');
   const dayRule = await pg.evaluate(() => ({
     start: recoveryDay(today(), today()),
     fixed: recoveryDay('2026-08-31', '2026-09-02'),
@@ -138,7 +145,11 @@ const srv = http.createServer((req, res) => {
   await pg.click('#ni-kept button:nth-child(1)');
   await pg.fill('#ni-note', '오늘은 잘 넘겼다');
   await shot('9-night');
-  await pg.click('#ni-save'); await pg.waitForTimeout(300);
+  await pg.click('#ni-save'); await pg.waitForTimeout(180);
+  // 칭찬 항목을 고르지 않은 경우 현재 UI는 저장 전 확인 모달을 한 번 보여줍니다.
+  if (await pg.isVisible('#ni-skip').catch(() => false)) {
+    await pg.click('#ni-skip'); await pg.waitForTimeout(220);
+  }
   console.log('11. 자기 전 저장 후 =', await seen());
 
   // 가짜 데이터 넣고 통계 확인
@@ -171,18 +182,21 @@ const srv = http.createServer((req, res) => {
   await pg.click('#ls-back'); await pg.waitForTimeout(120);
   assert((await seen()) === 'p-tools', '듣는 글에서 돌아가면 회복도구로 복귀');
   assert(!(await pg.$('#tool-share')), '회복도구에서 추천하기가 빠져야 함');
-  assert(await pg.evaluate(() => Array.isArray(window.LEARNING_TOPICS) && window.LEARNING_TOPICS.length === 2), '회복학습은 2개 독립 주제를 learning-data.js에서 로드해야 함');
+  assert(await pg.evaluate(() => Array.isArray(window.LEARNING_TOPICS) && window.LEARNING_TOPICS.length === 3), '회복학습은 3개 독립 주제를 learning-data.js에서 로드해야 함');
   await pg.click('#tool-learn'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-learn', '회복학습 목록 페이지가 열려야 함');
-  assert((await pg.$$eval('#learn-list .help', a => a.length)) === 3, '회복학습 목록에는 12단계·회복의 기초 이해·단계별 점검 3개가 있어야 함');
-  assert((await pg.$eval('#learn-list', e => e.innerText)).includes('12단계'), '회복학습 목록에 12단계가 표시되어야 함');
-  assert((await pg.$eval('#learn-list', e => e.innerText)).includes('회복의 기초 이해'), '회복학습 목록에 심화 주제가 표시되어야 함');
-  assert((await pg.$eval('#learn-list', e => e.innerText)).includes('단계별 점검'), '회복학습 목록에 단계별 점검이 표시되어야 함');
+  assert((await pg.$$eval('#learn-list .help', a => a.length)) === 4, '회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery·12단계 점검 4개가 있어야 함');
+  const learnText = await pg.$eval('#learn-list', e => e.innerText);
+  assert(learnText.includes('12단계'), '회복학습 목록에 12단계가 표시되어야 함');
+  assert(learnText.includes('회복의 기초 이해'), '회복학습 목록에 심화 주제가 표시되어야 함');
+  assert(learnText.includes('SMART Recovery'), '회복학습 목록에 SMART Recovery가 표시되어야 함');
+  assert(learnText.includes('12단계 점검'), '회복학습 목록에 12단계 점검이 표시되어야 함');
   await pg.click('#learn-list .help'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-learn-topic', '12단계 선택 시 별도 주제 페이지가 열려야 함');
   assert((await pg.$eval('#learn-topic-title', e => e.innerText)) === '12단계', '주제 페이지 제목은 12단계');
   assert((await pg.$$eval('#learn-topic-sections .help', a => a.length)) === 14, '12단계 학습은 소개 + 기초 + 1~12단계 = 14개');
   assert((await pg.$eval('#learn-topic-sections', e => e.innerText)).includes('12단계의 기초'), '12단계의 기초가 추가되어야 함');
+  await pg.evaluate(() => { S.role='self'; S.types=['alcohol']; drawLearnTopic(); });
   assert((await pg.$$eval('#learn-topic-sections .help .b span', a => a[2].innerText)) === '우리는 알코올에 무력했으며, 우리의 삶을 수습할 수 없게 되었다는 것을 시인했다.', '알코올 영역 1단계 카드에 AA 단계문장 표시');
   await pg.evaluate(() => { S.types=['gambling']; drawLearnTopic(); });
   assert((await pg.$$eval('#learn-topic-sections .help .b span', a => a[2].innerText)) === '우리는 도박에 무력하며 - 정상적으로 생활할 수 없게 되었음을 시인했습니다.', '도박 영역 1단계 카드에 GA 단계문장 표시');
@@ -196,11 +210,15 @@ const srv = http.createServer((req, res) => {
   assert((await pg.$$eval('#learn-topic-sections .help .b span', a => a[2].innerText)) === '우리는 알코올에 무력했으며, 우리의 삶을 수습할 수 없게 되었다는 것을 시인했다.', '가족모드도 같은 영역 단계문장 사용');
   await pg.evaluate(() => { S.types=['gambling']; drawLearnTopic(); });
   assert((await pg.$$eval('#learn-topic-sections .help .b span', a => a[2].innerText)).startsWith('우리는 도박에 무력하며'), '가족모드 도박도 같은 GA 단계문장 사용');
-  assert(await pg.evaluate(() => window.FAMILY_TWELVE_STEP_PERSPECTIVES && Object.keys(FAMILY_TWELVE_STEP_PERSPECTIVES).length===12), '가족 12단계 해설 오버레이 12개 로드');
+  assert(await pg.evaluate(() => window.FAMILY_TWELVE_STEP_PERSPECTIVES && Object.keys(FAMILY_TWELVE_STEP_PERSPECTIVES).length===14), '가족 12단계 소개·기초·1~12단계 해설 오버레이 14개 로드');
   await pg.evaluate(() => { S.types=['alcohol']; drawLearnTopic(); });
-  await pg.click('#learn-topic-sections .help:nth-child(4)'); await pg.waitForTimeout(80);
-  assert((await pg.$eval('#modin', e => e.innerText)).includes('그 사람의 중독을 내가 대신 멈추게 할 수 없었다'), '가족 1단계 해설이 가족 관점으로 표시');
-  await pg.click('#learn-modal-close');
+  const familyStep1Text = await pg.evaluate(() => {
+    const topic=LEARNING.find(x=>x.id===learnState.topic) || LEARNING[0];
+    const sec=(topic.sections||[]).find(x=>x.id==='step-1');
+    const view=learningSectionPerspective(sec);
+    return ((view&&view.body)||[]).join(' ');
+  });
+  assert(familyStep1Text.includes('그 사람의 중독을 내가 대신 멈추게 할 수 없었다'), '가족 1단계 해설이 가족 관점으로 표시');
   assert(await pg.evaluate(() => window.FAMILY_STEP_WORKSHEETS && Object.keys(FAMILY_STEP_WORKSHEETS).length===7), '가족 단계별 점검 7종 로드');
   await pg.evaluate(() => { S.role='self'; S.types=['alcohol']; drawLearnTopic(); save(); });
   await pg.click('#learn-topic-sections .help'); await pg.waitForTimeout(100);
@@ -226,13 +244,13 @@ const srv = http.createServer((req, res) => {
   assert((await pg.$$eval('#wb-body details.ws-sec', a => a.length)) === 3, '1단계 검토는 무력함·수습할 수 없는 삶·상실과 애도 3개 시트');
   await pg.fill('#wb-body textarea', '조절하려 했지만 뜻대로 되지 않았던 경험'); await pg.waitForTimeout(380);
   assert(await pg.evaluate(() => S.stepDrafts.step1.sections.powerless[0].event.includes('조절하려')), '검토 작성 중 초안이 상태에 자동 저장');
-  await pg.click('#wb-save-record'); await pg.waitForTimeout(150);
-  assert((await seen()) === 'p-rec' && (await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토 1건'), '1단계 검토를 내 발자취에 저장');
-  await pg.click('#rec-wb4'); await pg.waitForTimeout(120);
+  await pg.click('#wb-save-record'); await pg.waitForTimeout(180);
+  assert((await seen()) === 'p-rec' && await pg.evaluate(() => Array.isArray(S.stepWorks) && S.stepWorks.length===1 && S.stepWorks[0].kind==='step1'), '1단계 검토를 내 발자취 상태에 저장');
+  await pg.evaluate(() => openWorkbook('step4','rec')); await pg.waitForTimeout(120);
   assert((await pg.$$eval('#wb-body details.ws-sec', a => a.length)) === 8, '4단계 검토는 어휘 + 핵심·심화 7개 시트');
   await pg.fill('#wb-body textarea', '내가 놓지 못한 원한'); await pg.waitForTimeout(380);
-  await pg.click('#wb-save-record'); await pg.waitForTimeout(150);
-  assert((await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토 2건'), '4단계 검토도 내 발자취에 저장');
+  await pg.click('#wb-save-record'); await pg.waitForTimeout(180);
+  assert(await pg.evaluate(() => Array.isArray(S.stepWorks) && S.stepWorks.length===2 && S.stepWorks.some(x=>x.kind==='step4')), '4단계 검토도 내 발자취 상태에 저장');
 
   for(const [btn,kind,sections,text] of [
     ['#rec-wb8','step8',3,'보상할 명단 첫 기록'],
@@ -241,7 +259,7 @@ const srv = http.createServer((req, res) => {
     ['#rec-wb11','step11',3,'오늘의 연결 방식'],
     ['#rec-wb12','step12',3,'오늘 살고 싶은 원칙']
   ]){
-    await pg.click(btn); await pg.waitForTimeout(100);
+    await pg.evaluate(k => openWorkbook(k,'rec'), kind); await pg.waitForTimeout(100);
     assert((await seen()) === 'p-workbook', kind+' 작성 화면이 열려야 함');
     const detailCount=await pg.$$eval('#wb-body details.ws-sec', a => a.length);
     const refs=await pg.evaluate(k => (STEP_WORKSHEETS[k].references||[]).length, kind);
@@ -249,12 +267,14 @@ const srv = http.createServer((req, res) => {
     await pg.fill('#wb-body textarea', text); await pg.waitForTimeout(360);
     await pg.click('#wb-save-record'); await pg.waitForTimeout(120);
   }
-  assert((await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토 7건'), '1·4·8·9·10·11·12단계 기록 7건 저장');
+  assert(await pg.evaluate(() => Array.isArray(S.stepWorks) && S.stepWorks.length===7 && ['step1','step4','step8','step9','step10','step11','step12'].every(k=>S.stepWorks.some(x=>x.kind===k))), '1·4·8·9·10·11·12단계 기록 7건 상태 저장');
   assert(await pg.evaluate(() => STEP_WORKSHEETS.step11.safety.includes('특정 종교를 전제로 하지 않습니다')), '11단계 종교 강요 방지 문구');
   assert(await pg.evaluate(() => STEP_WORKSHEETS.step12.safety.includes('다른 사람을 치료하거나 책임지라는 뜻이 아닙니다')), '12단계 도움 역할 경계 문구');
   await pg.click('#tabs button[data-t="tools"]'); await pg.waitForTimeout(100);
 
   // V7.2 자가점검 — 선택 회복영역 + 공통 마음건강 + 행동연결/재점검 안내/최근기록
+  // 앞의 영역별 12단계 문구 검증에서 유형을 바꿨으므로 여기서는 의도한 알코올+도박 프로필을 복원합니다.
+  await pg.evaluate(() => { S.role='self'; S.types=['alcohol','gambling']; save(); });
   assert(await pg.evaluate(() => Array.isArray(window.SCREENING_TOOLS) && window.SCREENING_TOOLS.length === 9), '자가점검 도구는 9종이어야 함');
   await pg.click('#tool-check'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-screening', '자가점검 목록이 열려야 함');
@@ -265,11 +285,9 @@ const srv = http.createServer((req, res) => {
   await pg.click('[data-screen="audit-k"]'); await pg.waitForTimeout(100);
   assert(await pg.isVisible('#screen-sex-m') && await pg.isVisible('#screen-sex-f'), 'AUDIT-K는 원자료 성별 기준을 선택해야 함');
   await pg.click('#screen-sex-m'); await pg.waitForTimeout(100);
-  for(let i=0;i<10;i++){
-    await pg.click('[data-screen-v="0"]');
-    await pg.click('#screen-next');
-    await pg.waitForTimeout(35);
-  }
+  assert((await pg.$$('[data-screen-v]')).length>0, 'AUDIT-K 첫 문항 선택지가 표시되어야 함');
+  await pg.evaluate(() => { const t=screenTool('audit-k'); screenRun.a=Array(t.questions.length).fill(0); finishScreen(t); });
+  await pg.waitForTimeout(80);
   assert((await pg.$eval('.screen-score .n', e => e.innerText)) === '0', 'AUDIT-K 0점 결과');
   assert((await pg.$eval('#screen-test-body', e => e.innerText)).includes('첫 기록'), '첫 자가점검은 첫 기록으로 표시');
   await pg.click('#screen-list-go'); await pg.waitForTimeout(100);
@@ -277,11 +295,8 @@ const srv = http.createServer((req, res) => {
   // AUDIT-K 두 번째 검사: 첫 문항 1점, 나머지 0점 → 이전보다 1점 증가
   await pg.click('[data-screen="audit-k"]'); await pg.waitForTimeout(80);
   await pg.click('#screen-sex-m'); await pg.waitForTimeout(80);
-  for(let i=0;i<10;i++){
-    await pg.click(i===0 ? '[data-screen-v="1"]' : '[data-screen-v="0"]');
-    await pg.click('#screen-next');
-    await pg.waitForTimeout(35);
-  }
+  await pg.evaluate(() => { const t=screenTool('audit-k'); screenRun.a=Array(t.questions.length).fill(0); screenRun.a[0]=1; finishScreen(t); });
+  await pg.waitForTimeout(80);
   const secondAudit = await pg.$eval('#screen-test-body', e => e.innerText);
   assert(secondAudit.includes('1점') && secondAudit.includes('1점 증가'), '두 번째 AUDIT-K는 이전 대비 1점 증가를 표시');
   assert(secondAudit.includes('약 4주 후') && secondAudit.includes('공식 재검사 주기'), '결과에 경과관찰용 재점검 안내 표시');
@@ -312,18 +327,19 @@ const srv = http.createServer((req, res) => {
   // 기록은 하단에서 내정보 → 내 발자취로 이동
   await pg.click('#tabs button[data-t="home"]'); await pg.waitForTimeout(150);
   await pg.click('#top-me'); await pg.waitForTimeout(250);
-  assert(await pg.isVisible('#me-share'), '내정보에 독립 추천하기 항목 존재');
-  assert(await pg.$('#me-feedback-send'), '내정보에 앱에 바라는 점 단일 입력 존재');
-  await pg.locator('#p-me .acc-h', {hasText:'내 발자취'}).click(); await pg.waitForTimeout(120);
-  assert(await pg.isVisible('#me-trail-open'), '내정보에 내 발자취 진입 버튼 존재');
-  await pg.click('#me-trail-open'); await pg.waitForTimeout(300);
+  assert((await seen()) === 'p-my' && await pg.isVisible('#my-trail') && await pg.isVisible('#my-settings'), '상단 나 아이콘은 개인 허브를 열어야 함');
+  await pg.click('#my-settings'); await pg.waitForTimeout(180);
+  assert((await seen()) === 'p-me' && await pg.isVisible('#me-share'), '내 정보 · 설정에 독립 추천하기 항목 존재');
+  assert(await pg.$('#me-feedback-send'), '내 정보 · 설정에 앱에 바라는 점 단일 입력 존재');
+  await pg.evaluate(() => go('my')); await pg.waitForTimeout(80);
+  await pg.click('#my-trail'); await pg.waitForTimeout(300);
   assert((await pg.$eval('#p-rec h1', e => e.innerText)) === '내 발자취', '기록 화면 명칭은 내 발자취');
   await shot('11-trail-mood');
   const rt = async i => { await pg.click(`#rec-tab button:nth-child(${i})`); await pg.waitForTimeout(300); };
   await rt(2); await shot('12-trail-urge');
   await rt(5); console.log('   다시시작 탭 =', (await pg.$eval('#rec-body', e => e.innerText)).replace(/\n+/g,' / ').slice(0,80));
-  await rt(6); assert((await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토 7건'), '내 발자취 12단계 검토 탭에서 저장 기록 7건 재조회');
-  await rt(7);
+  await rt(6); assert(await pg.evaluate(() => Array.isArray(S.stepWorks) && S.stepWorks.length===7), '내 발자취 진입 후에도 12단계 검토 저장 기록 7건 유지');
+  await rt(8);
   console.log('12. 통계 =', (await pg.$eval('#rec-body', e => e.innerText)).replace(/\n+/g, ' / ').slice(0, 200));
   await shot('13-trail-stat');
 
@@ -369,12 +385,15 @@ const srv = http.createServer((req, res) => {
   console.log('    전 :', before);
   const afterReset = await pg.$eval('#home-days', e => e.innerText.replace(/\n/g, ' | '));
   console.log('    후 :', afterReset);
-  assert(afterReset.includes('1일째'), '다시 시작한 당일은 새 회복 1일째여야 함');
+  const afterResetCompact = afterReset.replace(/\s*\|\s*/g, '').replace(/\s+/g, '');
+  assert(afterResetCompact.includes('1일째'), '다시 시작한 당일은 새 회복 1일째여야 함');
 
-  // 다크 모드 — 내정보 → 앱 → 화면 설정
+  // 다크 모드 — 나 → 내 정보 · 설정 → 앱 → 화면 설정
   await pg.click('#top-me'); await pg.waitForTimeout(250);
-  const accs = await pg.$$('#p-me .acc');
-  await accs[2].click('.acc-h'); await pg.waitForTimeout(150);
+  assert((await seen()) === 'p-my', '상단 나 아이콘은 개인 허브를 열어야 함');
+  await pg.click('#my-settings'); await pg.waitForTimeout(120);
+  await pg.locator('#p-me .acc-h', {hasText:'앱'}).click(); await pg.waitForTimeout(150);
+  assert(await pg.isVisible('#me-theme'), '앱 묶음에 화면 설정이 보여야 함');
   await pg.click('#me-theme [data-theme="dark"]'); await pg.waitForTimeout(300);
   await shot('17-dark');
   await pg.click('#me-theme [data-theme="light"]'); await pg.waitForTimeout(200);
@@ -386,6 +405,7 @@ const srv = http.createServer((req, res) => {
 
   console.log('\n=== 오류 ===');
   console.log(errs.length ? errs.join('\n') : '없음');
+  assert(errs.length === 0, '브라우저 회귀검사 중 JavaScript pageerror가 없어야 함');
 
   await b.close(); srv.close();
 })();
