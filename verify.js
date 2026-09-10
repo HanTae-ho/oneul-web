@@ -36,8 +36,7 @@ ok(/id="tool-listen"/.test(index),'회복도구에 듣는 글 메뉴 존재');
 ok(/\$\('#tool-listen'\)\.onclick = \(\) => openListen\('tools'\)/.test(index),'회복도구 듣는 글이 기존 듣는 글 화면으로 연결');
 ok(/p === 'listen' && ls\.back === 'tools'/.test(index),'회복도구에서 듣는 글 진입 시 회복도구 탭 강조 유지');
 ok(/마음 처방전.*회복도구/.test(index),'마음프로 듣는 글 안내가 두 진입경로를 반영');
-ok(/id="p-workbook-list"/.test(index)&&/id="workbook-list"/.test(index),'회복학습 안에 단계별 점검 화면 존재');
-ok(/<b>12단계 점검<\/b>/.test(index)&&/w\.onclick=\(\)=>go\('workbook-list'\)/.test(index),'회복학습 목록에서 12단계 점검 직접 진입');
+ok(/id="p-workbook-list"/.test(index)&&/id="workbook-list"/.test(index),'12단계 점검 작성 화면 존재');
 ok(/const order=\['step1','step4','step8','step9','step10','step11','step12'\]/.test(index),'단계별 점검 1·4·8·9·10·11·12단계 순서');
 ok(!/if\(topic\.sourceNote\) h\+=/.test(index),'회복학습 사용자 화면에서 내부 sourceNote 미표시');
 ok(/#modbox'\); if\(mb\) mb\.scrollTop=0/.test(index),'학습 모달을 새로 열 때 스크롤 맨 위 초기화');
@@ -49,7 +48,7 @@ ok(!/\.toISOString\s*\(/.test(test),'자동테스트에서 toISOString() 미사�
 ok(/timezoneId: 'Asia\/Seoul'/.test(test),'기존 브라우저 회귀테스트 시간대 Asia/Seoul 유지');
 ok(!/\/opt\/pw-browsers\/chromium/.test(test),'자동테스트 Chromium 경로 하드코딩 제거');
 ok(/process\.env\.CHROMIUM_PATH/.test(test),'필요 시 CHROMIUM_PATH 사용자 지정 지원');
-ok(/회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery·12단계 점검 4개/.test(test),'test.js 회복학습 4메뉴 기준으로 갱신');
+ok(/회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery 3개/.test(test)&&/작성형 12단계 점검이 중복 표시되지 않아야 함/.test(test),'test.js 회복학습 3개 학습주제·12단계 점검 실천하기 일원화');
 ok(/알코올 영역 1단계 카드에 AA 단계문장 표시/.test(test)&&/도박 영역 1단계 카드에 GA 단계문장 표시/.test(test)&&/약물 영역 1단계 카드에 NA 단계문장 표시/.test(test),'test.js AA·GA·NA 영역별 단계문장 회귀검사');
 
 let box={window:{}};vm.createContext(box);vm.runInContext(qaSrc,box);const qa=box.window.QA_ITEMS;
