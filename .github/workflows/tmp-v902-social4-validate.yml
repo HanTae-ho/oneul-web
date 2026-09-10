@@ -7,6 +7,7 @@ on:
       - 'scripts/apply-v902-social4-app-fixes.py'
       - 'scripts/finalize-browser-test-v902.py'
       - 'scripts/finalize-browser-nav-v902.py'
+      - 'scripts/finalize-browser-trail-v902.py'
       - '.github/workflows/tmp-v902-social4-validate.yml'
   workflow_dispatch:
 
@@ -36,6 +37,7 @@ jobs:
           python /tmp/patch-test-kst.py
           python scripts/finalize-browser-test-v902.py
           python scripts/finalize-browser-nav-v902.py
+          python scripts/finalize-browser-trail-v902.py
 
       - name: Syntax no-undef and fixed invariants
         run: |
