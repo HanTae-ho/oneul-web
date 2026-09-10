@@ -1,6 +1,6 @@
 /*
- * 오늘 한 걸음 V9.0.2 — 소셜 전용 Apps Script
- * 서버판: V9.0.2-social-4
+ * 오늘 한 걸음 V9.0.3 — 소셜 전용 Apps Script
+ * 서버판: V9.0.3-social-1
  *
  * 목적
  * - 자원시트·개인 회복기록(ohg.v1)과 완전히 분리한 익명 소셜 전용 서버입니다.
@@ -39,13 +39,19 @@
  * - 탈퇴로 함께 삭제되는 타인의 댓글은 userId를 유지해 댓글 제한 우회를 막습니다.
  * - 운영 점검 Logger에는 익명 사용자 ID를 남기지 않습니다.
  *
+ * V9.0.3-social-1
+ * - 가입 뒤 닉네임은 고정합니다. 변경하려면 소셜 탈퇴 후 새 프로필을 만듭니다.
+ * - 내 프로필 페이지용 profileActivity 읽기 API를 추가합니다.
+ * - 피드 공개 스냅샷과 내 응원목록을 짧게 캐시하고, 시트 헤더 검증도 캐시해 반복 읽기를 줄입니다.
+ * - 쓰기 작업 뒤 관련 피드 캐시를 즉시 무효화합니다.
+ *
  * ★ 앱에서 부를 때 주의
  *   Content-Type 은 반드시 'text/plain;charset=utf-8' 이어야 합니다.
  *   'application/json' 으로 보내면 브라우저가 먼저 OPTIONS 를 보내는데
  *   Apps Script 는 그것을 받지 못해 모든 요청이 통째로 실패합니다.
  */
 
-const SOCIAL_VERSION = 'V9.0.2-social-4';
+const SOCIAL_VERSION = 'V9.0.3-social-1';
 const SOCIAL_TIME_ZONE = 'Asia/Seoul';
 const MAX_SOCIAL_REQUEST_CHARS = 8192;
 const MAX_FEED_ITEMS = 60;
@@ -55,6 +61,9 @@ const MAX_COMMENTS_PER_DAY = 60;
 const MIN_POST_INTERVAL_MS = 30000;
 const MIN_COMMENT_INTERVAL_MS = 15000;
 const REPORT_RETENTION_DAYS = 365;
+const FEED_CACHE_SECONDS = 12;
+const SCHEMA_CACHE_SECONDS = 300;
+const MAX_PROFILE_ACTIVITY_ITEMS = 100;
 
 const SOCIAL_SHEETS = {
   profiles: 'Profiles',
@@ -102,6 +111,7 @@ function SOCIAL_SETUP(){
     }
     sh.setFrozenRows(1);
   });
+  try { CacheService.getScriptCache().put(schemaCacheKey_(),'1',SCHEMA_CACHE_SECONDS); } catch(ignore) {}
   return 'SOCIAL_SETUP 완료 · ' + SOCIAL_VERSION;
 }
 
@@ -148,6 +158,9 @@ function SOCIAL_TEST_VALIDATION(){
   if(cellText_('평범한 글') !== '평범한 글') throw new Error('평범한 글까지 손대고 있습니다');
   if(typeof setColumnValues_ !== 'function') throw new Error('setColumnValues_ 없음');
   if(typeof recountSupports_ !== 'function') throw new Error('recountSupports_ 없음');
+  if(typeof feedPublicSnapshot_ !== 'function') throw new Error('feedPublicSnapshot_ 없음');
+  if(typeof profileActivity_ !== 'function') throw new Error('profileActivity_ 없음');
+  if(typeof invalidateFeedCache_ !== 'function') throw new Error('invalidateFeedCache_ 없음');
   Logger.log('SOCIAL_TEST_VALIDATION 정상 · ' + SOCIAL_VERSION);
 }
 
@@ -169,76 +182,114 @@ function doPost(e){
     if(!action) return json_({ok:false,error:'ACTION_REQUIRED'});
     if(action === 'feed') return json_(feed_(body));
     if(action === 'commentList') return json_(commentList_(body));
+    if(action === 'profileActivity') return json_(profileActivity_(body));
     const lock = LockService.getScriptLock();
     try { lock.waitLock(15000); }
     catch(lockErr){ return json_({ok:false,error:'BUSY',message:'지금 서버가 붐빕니다. 잠시 후 다시 시도해주세요.'}); }
     try{
-      if(action === 'profile') return json_(profile_(body));
-      if(action === 'profileDelete') return json_(profileDelete_(body));
-      if(action === 'postCreate') return json_(postCreate_(body));
-      if(action === 'postEdit') return json_(postEdit_(body));
-      if(action === 'postDelete') return json_(postDelete_(body));
-      if(action === 'commentCreate') return json_(commentCreate_(body));
-      if(action === 'commentDelete') return json_(commentDelete_(body));
-      if(action === 'commentReport') return json_(commentReport_(body));
-      if(action === 'supportToggle') return json_(supportToggle_(body));
-      if(action === 'report') return json_(report_(body));
-      return json_({ok:false,error:'UNKNOWN_ACTION'});
+      let result = null;
+      if(action === 'profile') result = profile_(body);
+      else if(action === 'profileDelete') result = profileDelete_(body);
+      else if(action === 'postCreate') result = postCreate_(body);
+      else if(action === 'postEdit') result = postEdit_(body);
+      else if(action === 'postDelete') result = postDelete_(body);
+      else if(action === 'commentCreate') result = commentCreate_(body);
+      else if(action === 'commentDelete') result = commentDelete_(body);
+      else if(action === 'commentReport') result = commentReport_(body);
+      else if(action === 'supportToggle') result = supportToggle_(body);
+      else if(action === 'report') result = report_(body);
+      else return json_({ok:false,error:'UNKNOWN_ACTION'});
+      if(result && result.ok && ['profileDelete','postCreate','postEdit','postDelete','commentCreate','commentDelete','supportToggle'].indexOf(action) >= 0){
+        invalidateFeedCache_(validUserId_(body.userId));
+      }
+      return json_(result);
     } finally { try { if(lock.hasLock()) lock.releaseLock(); } catch(ignore) {} }
   }catch(err){ console.error('social doPost error: ' + safeErrorLog_(err)); return json_({ok:false,error:'SERVER_ERROR'}); }
 }
 
 function feed_(p){
   ensureSheets_();
-  const me = auth_(p.userId,p.token); if(!me.ok) return me;
+  const me = auth_(p.userId,p.token,true);
+  if(!me.ok) return me;
   const requester = me.userId;
   const sort = str_(p.sort) === 'support' ? 'support' : 'latest';
-  const posts = rows_(SOCIAL_SHEETS.posts).filter(function(r){ return str_(r.status) === 'active'; });
-  const comments = rows_(SOCIAL_SHEETS.comments).filter(function(r){ return str_(r.status) === 'active'; });
-  const supports = rows_(SOCIAL_SHEETS.supports);
-  const supported = new Set(supports.filter(function(r){ return str_(r.userId) === requester; }).map(function(r){ return str_(r.postId); }));
-  const commentCounts = {};
-  comments.forEach(function(r){ const id = str_(r.postId); commentCounts[id] = (commentCounts[id] || 0) + 1; });
-  posts.sort(function(a,b){
-    if(sort === 'support') return num_(b.supportCount) - num_(a.supportCount) || num_(b.createdAt) - num_(a.createdAt);
-    return num_(b.createdAt) - num_(a.createdAt);
+  const baseItems = feedPublicSnapshot_(sort);
+  const supported = userSupportSet_(requester);
+  const items = baseItems.map(function(r){
+    return {id:r.id,userId:r.userId,nickname:r.nickname,text:r.text,createdAt:r.createdAt,updatedAt:r.updatedAt,supportCount:r.supportCount,commentCount:r.commentCount,mine:requester && r.userId === requester,supported:supported.has(r.id)};
   });
-  const items = posts.slice(0,MAX_FEED_ITEMS).map(function(r){
-    return {id:str_(r.postId),userId:str_(r.userId),nickname:str_(r.nickname),text:str_(r.text),createdAt:num_(r.createdAt),updatedAt:num_(r.updatedAt),supportCount:num_(r.supportCount),commentCount:num_(commentCounts[str_(r.postId)] || 0),mine:requester && str_(r.userId) === requester,supported:supported.has(str_(r.postId))};
-  });
-  const myPosts = posts.filter(function(r){ return str_(r.userId) === requester; });
-  const myPostIds = new Set(myPosts.map(function(r){ return str_(r.postId); }));
-  const stats = {postCount:myPosts.length,commentCount:comments.filter(function(r){ return str_(r.userId) === requester; }).length,supportReceived:supports.filter(function(r){ return myPostIds.has(str_(r.postId)); }).length};
-  return {ok:true,version:SOCIAL_VERSION,items:items,stats:stats};
+  return {ok:true,version:SOCIAL_VERSION,items:items};
+}
+
+function feedPublicSnapshot_(sort){
+  const key='feed:'+SOCIAL_VERSION+':'+sort;
+  let cache=null,raw='';
+  try{cache=CacheService.getScriptCache();raw=cache.get(key)||'';}catch(ignore){}
+  if(raw){try{const parsed=JSON.parse(raw);if(Array.isArray(parsed))return parsed;}catch(ignore){}}
+  const posts=rows_(SOCIAL_SHEETS.posts).filter(function(r){return str_(r.status)==='active';});
+  const comments=rows_(SOCIAL_SHEETS.comments).filter(function(r){return str_(r.status)==='active';});
+  const counts={};
+  comments.forEach(function(r){const id=str_(r.postId);counts[id]=(counts[id]||0)+1;});
+  posts.sort(function(a,b){return sort==='support'?(num_(b.supportCount)-num_(a.supportCount)||num_(b.createdAt)-num_(a.createdAt)):num_(b.createdAt)-num_(a.createdAt);});
+  const items=posts.slice(0,MAX_FEED_ITEMS).map(function(r){return {id:str_(r.postId),userId:str_(r.userId),nickname:str_(r.nickname),text:str_(r.text),createdAt:num_(r.createdAt),updatedAt:num_(r.updatedAt),supportCount:num_(r.supportCount),commentCount:num_(counts[str_(r.postId)]||0)};});
+  if(cache){try{const text=JSON.stringify(items);if(text.length<95000)cache.put(key,text,FEED_CACHE_SECONDS);}catch(ignore){}}
+  return items;
+}
+
+function userSupportSet_(userId){
+  const key='sup:'+SOCIAL_VERSION+':'+userId;
+  let cache=null,raw='';
+  try{cache=CacheService.getScriptCache();raw=cache.get(key)||'';}catch(ignore){}
+  if(raw){try{const parsed=JSON.parse(raw);if(Array.isArray(parsed))return new Set(parsed);}catch(ignore){}}
+  const ids=rows_(SOCIAL_SHEETS.supports).filter(function(r){return str_(r.userId)===userId;}).map(function(r){return str_(r.postId);});
+  if(cache){try{const text=JSON.stringify(ids);if(text.length<95000)cache.put(key,text,FEED_CACHE_SECONDS);}catch(ignore){}}
+  return new Set(ids);
+}
+
+function invalidateFeedCache_(userId){
+  try{
+    const c=CacheService.getScriptCache();
+    c.remove('feed:'+SOCIAL_VERSION+':latest');
+    c.remove('feed:'+SOCIAL_VERSION+':support');
+    if(userId)c.remove('sup:'+SOCIAL_VERSION+':'+userId);
+  }catch(ignore){}
 }
 
 function profile_(b){
   ensureSheets_();
-  const userId = validUserId_(b.userId);
-  const token = validToken_(b.token);
-  const nickname = validNick_(b.nickname);
-  if(!userId || !token) return {ok:false,error:'INVALID_PROFILE'};
-  if(!nickname) return {ok:false,error:'INVALID_NICKNAME',message:'닉네임은 2~12자의 한글·영문·숫자로 지어주세요. 관리자·운영자·오늘한걸음 같은 말은 쓸 수 없습니다.'};
-  const sh = sheet_(SOCIAL_SHEETS.profiles);
-  const data = rows_(SOCIAL_SHEETS.profiles);
-  const found = data.find(function(r){ return str_(r.userId) === userId; });
-  const sameNick = data.find(function(r){ return str_(r.status) === 'active' && str_(r.userId) !== userId && nickKey_(r.nickname) === nickKey_(nickname); });
-  if(sameNick) return {ok:false,error:'NICK_TAKEN',message:'이미 사용 중인 닉네임입니다.'};
-  const now = Date.now(); const hash = hash_(token);
+  const userId=validUserId_(b.userId),token=validToken_(b.token),nickname=validNick_(b.nickname);
+  if(!userId||!token)return {ok:false,error:'INVALID_PROFILE'};
+  if(!nickname)return {ok:false,error:'INVALID_NICKNAME',message:'닉네임은 2~12자의 한글·영문·숫자로 지어주세요. 관리자·운영자·오늘한걸음 같은 말은 쓸 수 없습니다.'};
+  const sh=sheet_(SOCIAL_SHEETS.profiles),data=rows_(SOCIAL_SHEETS.profiles),found=data.find(function(r){return str_(r.userId)===userId;}),now=Date.now(),hash=hash_(token);
   if(found){
-    if(str_(found.tokenHash) !== hash) return {ok:false,error:'AUTH'};
-    sh.getRange(found._row,2).setValue(cellText_(nickname));
-    sh.getRange(found._row,5,1,2).setValues([[now,'active']]);
-    const pChg = {};
-    rows_(SOCIAL_SHEETS.posts).filter(function(r){ return str_(r.userId) === userId && str_(r.status) === 'active'; }).forEach(function(r){ pChg[r._row] = cellText_(nickname); });
-    setColumnValues_(SOCIAL_SHEETS.posts, 3, pChg);
-    const cChg = {};
-    rows_(SOCIAL_SHEETS.comments).filter(function(r){ return str_(r.userId) === userId && str_(r.status) === 'active'; }).forEach(function(r){ cChg[r._row] = cellText_(nickname); });
-    setColumnValues_(SOCIAL_SHEETS.comments, 4, cChg);
-    return {ok:true,userId:userId,nickname:nickname};
+    if(str_(found.tokenHash)!==hash||str_(found.status)!=='active')return {ok:false,error:'AUTH'};
+    const current=str_(found.nickname);
+    if(current!==nickname)return {ok:false,error:'NICK_LOCKED',message:'가입한 닉네임은 변경할 수 없습니다. 다른 닉네임을 사용하려면 소셜 탈퇴 후 새 프로필을 만들어주세요.'};
+    sh.getRange(found._row,5).setValue(now);
+    return {ok:true,userId:userId,nickname:current,createdAt:num_(found.createdAt)};
   }
+  const same=data.find(function(r){return str_(r.status)==='active'&&nickKey_(r.nickname)===nickKey_(nickname);});
+  if(same)return {ok:false,error:'NICK_TAKEN',message:'이미 사용 중인 닉네임입니다.'};
   sh.appendRow([userId,cellText_(nickname),hash,now,now,'active']);
-  return {ok:true,userId:userId,nickname:nickname};
+  return {ok:true,userId:userId,nickname:nickname,createdAt:now};
+}
+
+function profileActivity_(b){
+  ensureSheets_();
+  const me=auth_(b.userId,b.token,true);if(!me.ok)return me;
+  const profile=rows_(SOCIAL_SHEETS.profiles).find(function(r){return str_(r.userId)===me.userId&&str_(r.status)==='active';});
+  if(!profile)return {ok:false,error:'AUTH'};
+  const allPosts=rows_(SOCIAL_SHEETS.posts).filter(function(r){return str_(r.status)==='active';});
+  const allComments=rows_(SOCIAL_SHEETS.comments).filter(function(r){return str_(r.status)==='active';});
+  const supports=rows_(SOCIAL_SHEETS.supports),counts={};
+  allComments.forEach(function(r){const id=str_(r.postId);counts[id]=(counts[id]||0)+1;});
+  const myPosts=allPosts.filter(function(r){return str_(r.userId)===me.userId;}).sort(function(a,b){return num_(b.createdAt)-num_(a.createdAt);});
+  const myIds=new Set(myPosts.map(function(r){return str_(r.postId);})),postById={};
+  allPosts.forEach(function(r){postById[str_(r.postId)]=r;});
+  const myComments=allComments.filter(function(r){return str_(r.userId)===me.userId;}).sort(function(a,b){return num_(b.createdAt)-num_(a.createdAt);});
+  const posts=myPosts.slice(0,MAX_PROFILE_ACTIVITY_ITEMS).map(function(r){return {id:str_(r.postId),text:str_(r.text),createdAt:num_(r.createdAt),updatedAt:num_(r.updatedAt),supportCount:num_(r.supportCount),commentCount:num_(counts[str_(r.postId)]||0)};});
+  const comments=myComments.slice(0,MAX_PROFILE_ACTIVITY_ITEMS).map(function(r){const post=postById[str_(r.postId)];return {id:str_(r.commentId),postId:str_(r.postId),text:str_(r.text),createdAt:num_(r.createdAt),updatedAt:num_(r.updatedAt),postText:post?str_(post.text).slice(0,160):'',postNickname:post?str_(post.nickname):''};});
+  return {ok:true,version:SOCIAL_VERSION,profile:{nickname:me.nickname,createdAt:num_(profile.createdAt)},stats:{postCount:myPosts.length,commentCount:myComments.length,supportReceived:supports.filter(function(r){return myIds.has(str_(r.postId));}).length},posts:posts,comments:comments};
 }
 
 function profileDelete_(b){
@@ -306,7 +357,7 @@ function postDelete_(b){
 }
 
 function commentList_(b){
-  ensureSheets_(); const me=auth_(b.userId,b.token); if(!me.ok)return me; const postId=cleanPostId_(b.postId); if(!postId)return {ok:false,error:'INVALID_ID'};
+  ensureSheets_(); const me=auth_(b.userId,b.token,true); if(!me.ok)return me; const postId=cleanPostId_(b.postId); if(!postId)return {ok:false,error:'INVALID_ID'};
   const post=rows_(SOCIAL_SHEETS.posts).find(function(r){return str_(r.postId)===postId&&str_(r.status)==='active';}); if(!post)return {ok:false,error:'NOT_FOUND'};
   const all=rows_(SOCIAL_SHEETS.comments).filter(function(r){return str_(r.postId)===postId&&str_(r.status)==='active';}).sort(function(a,b){return num_(a.createdAt)-num_(b.createdAt);});
   const items=all.slice(-MAX_COMMENT_ITEMS).map(function(r){return {id:str_(r.commentId),postId:postId,userId:str_(r.userId),nickname:str_(r.nickname),text:str_(r.text),createdAt:num_(r.createdAt),updatedAt:num_(r.updatedAt),mine:str_(r.userId)===me.userId};}); return {ok:true,version:SOCIAL_VERSION,items:items,commentCount:all.length};
@@ -354,8 +405,8 @@ function report_(b){
   sheet_(SOCIAL_SHEETS.reports).appendRow(['r_'+Utilities.getUuid().replace(/-/g,''),id,me.userId,str_(post.userId),reason,Date.now()]); return {ok:true};
 }
 
-function auth_(userId,token){
-  ensureSheets_(); const uid=validUserId_(userId),tok=validToken_(token); if(!uid||!tok)return {ok:false,error:'AUTH'};
+function auth_(userId,token,skipEnsure){
+  if(!skipEnsure) ensureSheets_(); const uid=validUserId_(userId),tok=validToken_(token); if(!uid||!tok)return {ok:false,error:'AUTH'};
   const p=rows_(SOCIAL_SHEETS.profiles).find(function(r){return str_(r.userId)===uid&&str_(r.status)==='active';}); if(!p||str_(p.tokenHash)!==hash_(tok))return {ok:false,error:'AUTH'};
   return {ok:true,userId:uid,nickname:str_(p.nickname)};
 }
@@ -385,7 +436,8 @@ function num_(v){const n=Number(v);return isFinite(n)?n:0;}
 function hash_(v){return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,str_(v),Utilities.Charset.UTF_8).map(function(b){return ('0'+((b<0?b+256:b).toString(16))).slice(-2);}).join('');}
 function json_(o){return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);}
 function safeErrorLog_(err){const name=err&&err.name?String(err.name):'Error';const msg=err&&err.message?String(err.message):String(err||'');return (name+': '+msg).slice(0,500);}
-function ensureSheets_(){const ss=SpreadsheetApp.getActiveSpreadsheet();if(!ss)throw new Error('NO_SPREADSHEET');Object.keys(SOCIAL_HEADERS).forEach(function(name){const sh=ss.getSheetByName(name);if(!sh)throw new Error('MISSING_SHEET:'+name);const heads=SOCIAL_HEADERS[name];const cur=sh.getRange(1,1,1,heads.length).getValues()[0].map(String);if(cur.join('|')!==heads.join('|'))throw new Error('BAD_HEADER:'+name);});}
+function schemaCacheKey_(){return 'schema:'+SOCIAL_VERSION;}
+function ensureSheets_(){const ss=SpreadsheetApp.getActiveSpreadsheet();if(!ss)throw new Error('NO_SPREADSHEET');let cache=null;try{cache=CacheService.getScriptCache();if(cache.get(schemaCacheKey_())==='1')return;}catch(ignore){cache=null;}Object.keys(SOCIAL_HEADERS).forEach(function(name){const sh=ss.getSheetByName(name);if(!sh)throw new Error('MISSING_SHEET:'+name);const heads=SOCIAL_HEADERS[name];const cur=sh.getRange(1,1,1,heads.length).getValues()[0].map(String);if(cur.join('|')!==heads.join('|'))throw new Error('BAD_HEADER:'+name);});if(cache){try{cache.put(schemaCacheKey_(),'1',SCHEMA_CACHE_SECONDS);}catch(ignore){}}}
 function setColumnValues_(name,col,changes){const keys=Object.keys(changes);if(!keys.length)return;const sh=sheet_(name),last=sh.getLastRow();if(last<2)return;const rng=sh.getRange(2,col,last-1,1),cur=rng.getValues();let touched=false;keys.forEach(function(k){const i=Number(k)-2;if(i>=0&&i<cur.length){cur[i][0]=changes[k];touched=true;}});if(touched)rng.setValues(cur);}
 function recountSupports_(postIds){const ids=[];(postIds||[]).forEach(function(id){if(id&&ids.indexOf(id)<0)ids.push(id);});if(!ids.length)return;const counts={};ids.forEach(function(id){counts[id]=0;});rows_(SOCIAL_SHEETS.supports).forEach(function(r){const id=str_(r.postId);if(counts.hasOwnProperty(id))counts[id]++;});const changes={};rows_(SOCIAL_SHEETS.posts).forEach(function(r){const id=str_(r.postId);if(counts.hasOwnProperty(id))changes[r._row]=counts[id];});setColumnValues_(SOCIAL_SHEETS.posts,8,changes);}
 function sheet_(name){const sh=SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);if(!sh)throw new Error('MISSING_SHEET:'+name);return sh;}
