@@ -1,6 +1,6 @@
 /*
- * 오늘 한 걸음 V9.0.4 — 소셜 전용 Apps Script
- * 서버판: V9.0.4-social-1
+ * 오늘 한 걸음 V9.0.6 — 소셜 전용 Apps Script
+ * 서버판: V9.0.6-social-1
  *
  * 목적
  * - 자원시트·개인 회복기록(ohg.v1)과 완전히 분리한 익명 소셜 전용 서버입니다.
@@ -56,7 +56,7 @@
  *   Apps Script 는 그것을 받지 못해 모든 요청이 통째로 실패합니다.
  */
 
-const SOCIAL_VERSION = 'V9.0.4-social-1';
+const SOCIAL_VERSION = 'V9.0.6-social-1';
 const SOCIAL_TIME_ZONE = 'Asia/Seoul';
 const MAX_SOCIAL_REQUEST_CHARS = 8192;
 const MAX_FEED_ITEMS = 60;
@@ -66,7 +66,7 @@ const MAX_COMMENTS_PER_DAY = 60;
 const MIN_POST_INTERVAL_MS = 30000;
 const MIN_COMMENT_INTERVAL_MS = 15000;
 const REPORT_RETENTION_DAYS = 365;
-const FEED_CACHE_SECONDS = 12;
+const FEED_CACHE_SECONDS = 30;
 const SCHEMA_CACHE_SECONDS = 300;
 const MAX_PROFILE_ACTIVITY_ITEMS = 100;
 const NICK_REUSE_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
@@ -190,7 +190,7 @@ function doPost(e){
     if(action === 'commentList') return json_(commentList_(body));
     if(action === 'profileActivity') return json_(profileActivity_(body));
     const lock = LockService.getScriptLock();
-    try { lock.waitLock(15000); }
+    try { lock.waitLock(5000); }
     catch(lockErr){ return json_({ok:false,error:'BUSY',message:'지금 서버가 붐빕니다. 잠시 후 다시 시도해주세요.'}); }
     try{
       let result = null;
@@ -375,12 +375,12 @@ function commentList_(b){
 function commentCreate_(b){
   const me=auth_(b.userId,b.token); if(!me.ok)return me; const postId=cleanPostId_(b.postId),text=validCommentText_(b.text); if(!postId||!text)return {ok:false,error:'INVALID_COMMENT'};
   const post=rows_(SOCIAL_SHEETS.posts).find(function(r){return str_(r.postId)===postId&&str_(r.status)==='active';}); if(!post)return {ok:false,error:'NOT_FOUND'};
-  const now=Date.now(); const mine=rows_(SOCIAL_SHEETS.comments).filter(function(r){return str_(r.userId)===me.userId;});
+  const now=Date.now(),commentRows=rows_(SOCIAL_SHEETS.comments),mine=commentRows.filter(function(r){return str_(r.userId)===me.userId;});
   if(mine.some(function(r){return now-num_(r.createdAt)<MIN_COMMENT_INTERVAL_MS;}))return {ok:false,error:'COMMENT_TOO_FAST',message:'댓글은 잠시 후 다시 남겨주세요.'};
   const day=Utilities.formatDate(new Date(now),SOCIAL_TIME_ZONE,'yyyy-MM-dd'); const todayCount=mine.filter(function(r){const ts=num_(r.createdAt);return ts>0&&Utilities.formatDate(new Date(ts),SOCIAL_TIME_ZONE,'yyyy-MM-dd')===day;}).length;
   if(todayCount>=MAX_COMMENTS_PER_DAY)return {ok:false,error:'COMMENT_DAILY_LIMIT',message:'오늘 남길 수 있는 댓글 수를 넘었습니다.'};
-  const id='c_'+Utilities.getUuid().replace(/-/g,''); sheet_(SOCIAL_SHEETS.comments).appendRow([id,postId,me.userId,cellText_(me.nickname),cellText_(text),now,now,'active']);
-  const count=rows_(SOCIAL_SHEETS.comments).filter(function(r){return str_(r.postId)===postId&&str_(r.status)==='active';}).length; return {ok:true,id:id,commentCount:count};
+  const id='c_'+Utilities.getUuid().replace(/-/g,''),count=commentRows.filter(function(r){return str_(r.postId)===postId&&str_(r.status)==='active';}).length+1; sheet_(SOCIAL_SHEETS.comments).appendRow([id,postId,me.userId,cellText_(me.nickname),cellText_(text),now,now,'active']);
+  return {ok:true,id:id,commentCount:count};
 }
 
 function commentDelete_(b){
@@ -401,9 +401,9 @@ function commentReport_(b){
 function supportToggle_(b){
   const me=auth_(b.userId,b.token); if(!me.ok)return me; const id=cleanPostId_(b.postId); if(!id)return {ok:false,error:'INVALID_ID'};
   const post=rows_(SOCIAL_SHEETS.posts).find(function(x){return str_(x.postId)===id&&str_(x.status)==='active';}); if(!post)return {ok:false,error:'NOT_FOUND'}; if(str_(post.userId)===me.userId)return {ok:false,error:'OWN_SUPPORT'};
-  const sh=sheet_(SOCIAL_SHEETS.supports),supportRows=rows_(SOCIAL_SHEETS.supports),old=supportRows.find(function(r){return str_(r.postId)===id&&str_(r.userId)===me.userId;}); let on=true;
-  if(old){sh.deleteRow(old._row);on=false;}else sh.appendRow([id,me.userId,Date.now()]);
-  const count=rows_(SOCIAL_SHEETS.supports).filter(function(r){return str_(r.postId)===id;}).length; sheet_(SOCIAL_SHEETS.posts).getRange(post._row,8).setValue(count); return {ok:true,supported:on,supportCount:count};
+  const sh=sheet_(SOCIAL_SHEETS.supports),supportRows=rows_(SOCIAL_SHEETS.supports),old=supportRows.find(function(r){return str_(r.postId)===id&&str_(r.userId)===me.userId;}),before=supportRows.filter(function(r){return str_(r.postId)===id;}).length; let on=true,count=before+1;
+  if(old){sh.deleteRow(old._row);on=false;count=Math.max(0,before-1);}else sh.appendRow([id,me.userId,Date.now()]);
+  sheet_(SOCIAL_SHEETS.posts).getRange(post._row,8).setValue(count); return {ok:true,supported:on,supportCount:count};
 }
 
 function report_(b){
