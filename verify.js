@@ -16,6 +16,11 @@ const expectedCachePrefix='ohg-v'+build.replace(/^V/,'').replace(/\./g,'');
 ok(/^V\d+\.\d+(?:\.\d+)?$/.test(build),'index BUILD 형식 정상: '+build);
 ok(appVersion===build,'sw APP_VERSION = index BUILD ('+build+')');
 ok(!!build && cacheVersion.startsWith(expectedCachePrefix),'sw cache = '+expectedCachePrefix+' 계열');
+ok(/id="social-profile-manage"/.test(index)&&/function socialProfileManageMenu\(\)/.test(index),'내 소셜 프로필 제목 오른쪽 관리 메뉴 존재');
+ok(!/social-profile-fixed><b>닉네임은 가입 후 고정됩니다/.test(index),'프로필 본문 닉네임 고정 안내 제거');
+ok(!/card social-profile-danger/.test(index),'프로필 본문 큰 탈퇴 카드 제거');
+ok(/NICK_REUSE_COOLDOWN_MS\s*=\s*30 \* 24 \* 60 \* 60 \* 1000/.test(read('social-apps-script.gs')),'탈퇴 닉네임 30일 보호');
+ok(/NICK_COOLDOWN/.test(index)&&/NICK_COOLDOWN/.test(read('social-apps-script.gs')),'앱·서버 닉네임 보호 오류 계약 일치');
 ['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
   ok(index.includes('<script src="./'+f+'"></script>'),'index가 '+f+' 로드');
