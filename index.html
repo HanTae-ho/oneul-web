@@ -708,7 +708,7 @@ addEventListener('appinstalled', function(){
   .social-post{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;margin-bottom:10px}.social-post-head{display:flex;align-items:center;gap:9px}.social-post-head .who{flex:1;min-width:0}.social-post-head .who b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.social-post-head .who span{display:block;font-size:11.5px;color:var(--faint);margin-top:1px}.social-more{width:34px;height:34px;border-radius:50%;color:var(--dim);display:flex;align-items:center;justify-content:center}.social-more:active{background:var(--accbg)}
   .social-more svg,.social-act svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .social-text{margin:13px 0 12px;white-space:pre-wrap;word-break:break-word;font-size:15px;line-height:1.72}.social-actions{display:flex;align-items:center;gap:7px;border-top:1px solid var(--line);padding-top:9px}.social-act{display:flex;align-items:center;gap:5px;padding:7px 10px;border-radius:10px;color:var(--dim);font-size:12.5px}.social-act.on{color:var(--acc);background:var(--accbg);font-weight:700}.social-act[disabled]{opacity:.5}
-  .social-status{font-size:12px;color:var(--dim);margin:7px 0 11px}.social-rule{font-size:12px;line-height:1.65;color:var(--dim)}.social-rule b{color:var(--tx)}
+  .social-status{font-size:12px;color:var(--dim);margin:7px 0 11px}.social-rule{font-size:12px;line-height:1.65;color:var(--dim)}.social-rule b{color:var(--tx)}.social-fold summary{cursor:pointer;list-style:none;font-weight:700;color:var(--tx);outline:none}.social-fold summary::-webkit-details-marker{display:none}.social-fold summary::after{content:'⌄';float:right;color:var(--faint);font-size:16px;line-height:1.2}.social-fold[open] summary::after{content:'⌃'}.social-fold-body{margin-top:7px}.social-safety-fold:not([open]){background:var(--panel);color:var(--dim);border:1px solid var(--line)}
   .social-block-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--line)}.social-block-row:last-child{border-bottom:0}.social-block-row span{flex:1;font-size:13px}
   .social-char{font-size:11px;color:var(--faint);text-align:right;margin-top:5px}.social-error{background:var(--warnbg);color:var(--warn);border-radius:12px;padding:11px 12px;font-size:12.5px;line-height:1.6;margin-bottom:10px}
 
@@ -2621,7 +2621,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD='V9.0.5';
+const BUILD='V9.0.6';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -8549,15 +8549,30 @@ function socialVisibleItems(){
   const hidden=new Set((SO.hidden||[]).map(String));
   return (socialState.items||[]).filter(x=>x&&!blocked.has(String(x.userId||''))&&!hidden.has(String(x.id||'')));
 }
-async function socialRefresh(force){
+async function socialRefresh(force,quiet){
   if(!SO.profile||socialState.loading) return;
   if(!socialEndpoint()){ socialState.error=''; socialState.items=[]; socialState.loaded=true; drawSocial(); return; }
-  socialState.loading=true; socialState.error=''; if(force) socialState.loaded=false; drawSocial();
+  socialState.loading=true; if(!quiet) socialState.error=''; if(force&&!socialState.items.length) socialState.loaded=false; drawSocial();
   try{ await socialRegister(); socialState.items=await socialReadFeed(); socialState.loaded=true; }
-  catch(e){ socialState.error=socialApiMessage(e); socialState.loaded=true; }
+  catch(e){ if(!quiet) socialState.error=socialApiMessage(e); socialState.loaded=true; }
   finally{ socialState.loading=false; drawSocial(); }
 }
 function socialResetFeed(){ socialState.items=[]; socialState.loaded=false; socialState.error=''; }
+let socialGuideAutoUntil=0;
+function socialGuideAutoOpen(){
+  if(socialGuideAutoUntil>Date.now()) return true;
+  try{
+    if(!sessionStorage.getItem('ohg.social.guide.v1')){
+      sessionStorage.setItem('ohg.social.guide.v1','1');
+      socialGuideAutoUntil=Date.now()+2800;
+      return true;
+    }
+  }catch(_){ }
+  return false;
+}
+function socialAutoFold(id,delay){
+  setTimeout(()=>{const x=$('#'+id);if(x&&x.open)x.open=false;},Number(delay||2400));
+}
 
 function drawSocial(){
   const body=$('#social-body'), me=$('#social-me'); if(!body||!me) return;
@@ -8568,20 +8583,22 @@ function drawSocial(){
     body.innerHTML='<div class="card social-welcome"><div class="hero"><svg viewBox="0 0 24 24"><circle cx="8" cy="8.3" r="3"/><circle cx="16.5" cy="9" r="2.4"/><path d="M3 19a5.2 5.2 0 0 1 10.2 0M13.4 17.8a4.4 4.4 0 0 1 7.5 1.2"/><path d="M10.2 12.6l1.8 1.8 3.2-3.4"/></svg></div><h2>함께 회복하는 공간</h2><p>익명 닉네임으로 오늘의 한 걸음과 회복 경험을 나눌 수 있습니다.<br><b>충동·HALT·복약·자가점검 같은 내 회복기록은 소셜에 자동 공개되지 않습니다.</b></p><button class="btn" id="social-start" style="margin-top:17px">익명 프로필 만들기</button><button class="btn ghost sm" id="social-later" style="margin-top:8px">나중에 하기</button></div>';
     $('#social-start').onclick=socialProfileModal; $('#social-later').onclick=()=>go('home'); return;
   }
-  const endpoint=socialEndpoint();
+  const endpoint=socialEndpoint(),guideOpen=socialGuideAutoOpen();
   let html='<button class="card social-compose" id="social-compose" type="button"><span class="social-avatar">'+socialInitial(p.nickname)+'</span><span class="b"><b>오늘의 한 걸음 나누기</b><span>오늘 한 회복 행동이나 마음을 짧게 남겨보세요</span></span><span class="social-plus">+</span></button>';
-  html+='<div class="card tight social-rule"><b>소셜 이용 안내</b><br>실명·전화번호·주소·병원명처럼 나를 알아볼 수 있는 정보는 적지 않는 것을 권합니다. 개인 회복기록은 자동으로 붙지 않습니다. 생명이나 신체가 위급한 상황은 소셜보다 109·112·119 같은 즉시 도움을 먼저 이용하세요.</div>';
+  html+='<details class="card tight social-rule social-fold" id="social-rule-fold" '+(guideOpen?'open':'')+'><summary>소셜 이용 안내</summary><div class="social-fold-body">실명·전화번호·주소·병원명처럼 나를 알아볼 수 있는 정보는 적지 않는 것을 권합니다. 개인 회복기록은 자동으로 붙지 않습니다. 생명이나 신체가 위급한 상황은 소셜보다 109·112·119 같은 즉시 도움을 먼저 이용하세요.</div></details>';
   if(!endpoint) html+='<div class="social-error"><b>소셜 서버 연결 준비 중</b><br>익명 프로필은 이 기기에 만들어졌습니다. 전용 SOCIAL_URL이 연결되면 같은 프로필로 공개 피드를 사용할 수 있습니다.</div>';
   else html+='<div class="social-sort"><button data-social-sort="latest" class="'+(socialState.sort==='latest'?'on':'')+'">최신</button><button data-social-sort="support" class="'+(socialState.sort==='support'?'on':'')+'">응원 많은 글</button><button id="social-refresh" style="margin-left:auto">새로고침</button></div>';
   if(socialState.error) html+='<div class="social-error">'+esc(socialState.error)+'</div>';
   if(endpoint){
-    if(socialState.loading) html+='<div class="empty">소셜 피드를 불러오는 중입니다.</div>';
-    else if(socialState.loaded){
+    if(socialState.loaded){
       const rows=socialVisibleItems();
       html+=rows.length?'<div id="social-feed">'+rows.map(socialPostHtml).join('')+'</div>':'<div class="empty">아직 올라온 글이 없습니다.<br>첫 번째 오늘의 한 걸음을 남겨보세요.</div>';
-    }else html+='<div class="empty">피드를 불러올 준비를 하고 있습니다.</div>';
+      if(socialState.loading) html+='<div class="social-status cen">새 글을 확인하는 중입니다.</div>';
+    }else if(socialState.loading) html+='<div class="empty">소셜 피드를 불러오는 중입니다.</div>';
+    else html+='<div class="empty">피드를 불러올 준비를 하고 있습니다.</div>';
   }
   body.innerHTML=html;
+  if(guideOpen) socialAutoFold('social-rule-fold',2800);
   $('#social-compose').onclick=()=>endpoint?socialCompose():toast('소셜 서버 연결 후 글을 올릴 수 있습니다.');
   $$('[data-social-sort]').forEach(b=>b.onclick=()=>{socialState.sort=b.dataset.socialSort;socialResetFeed();socialRefresh(true);});
   const rf=$('#social-refresh'); if(rf) rf.onclick=()=>socialRefresh(true);
@@ -8623,7 +8640,8 @@ function socialProfileDeleteConfirm(){
 }
 function socialCompose(post){
   const edit=!!post, text=edit?String(post.text||''):'';
-  modal('<h2>'+(edit?'내 글 수정':'오늘의 한 걸음 나누기')+'</h2><p class="muted" style="margin:5px 0 11px">오늘 내가 한 회복 행동이나 지금의 마음을 나눠보세요. 개인 회복기록은 자동으로 가져오지 않습니다.</p><textarea id="social-post-text" maxlength="500" rows="6" placeholder="예: 오늘 모임에 다녀왔습니다. 가기 싫었지만 한 걸음은 했습니다.">'+esc(text)+'</textarea><div class="social-char" id="social-char">'+text.length+' / 500</div><div class="note w" style="margin-top:11px">실명·연락처·주소 같은 개인정보, 다른 사람을 알아볼 수 있는 정보, 술·약물 구매나 도박 실행을 돕는 정보는 올리지 마세요. 급하게 죽고 싶은 마음이나 신체 위험이 있다면 게시글보다 즉시 도움 연결이 먼저입니다.</div><button class="btn" id="social-post-send" style="margin-top:12px">'+(edit?'수정 저장':'게시하기')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">그만두기</button>');
+  modal('<h2>'+(edit?'내 글 수정':'오늘의 한 걸음 나누기')+'</h2><p class="muted" style="margin:5px 0 11px">오늘 내가 한 회복 행동이나 지금의 마음을 나눠보세요. 개인 회복기록은 자동으로 가져오지 않습니다.</p><textarea id="social-post-text" maxlength="500" rows="6" placeholder="예: 오늘 모임에 다녀왔습니다. 가기 싫었지만 한 걸음은 했습니다.">'+esc(text)+'</textarea><div class="social-char" id="social-char">'+text.length+' / 500</div><details class="note w social-fold social-safety-fold" id="social-compose-safety" style="margin-top:11px" open><summary>안전하게 나누기</summary><div class="social-fold-body">실명·연락처·주소 같은 개인정보, 다른 사람을 알아볼 수 있는 정보, 술·약물 구매나 도박 실행을 돕는 정보는 올리지 마세요. 급하게 죽고 싶은 마음이나 신체 위험이 있다면 게시글보다 즉시 도움 연결이 먼저입니다.</div></details><button class="btn" id="social-post-send" style="margin-top:12px">'+(edit?'수정 저장':'게시하기')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">그만두기</button>');
+  socialAutoFold('social-compose-safety',2200);
   const ta=$('#social-post-text'), ch=$('#social-char'); ta.oninput=()=>ch.textContent=ta.value.length+' / 500';
   $('#social-post-send').onclick=()=>socialSubmitPost(String(ta.value||'').trim(),edit?post:null,false);
 }
@@ -8635,11 +8653,15 @@ async function socialSubmitPost(text,post,confirmed){
     $('#social-crisis-help').onclick=()=>{closeModal();go('panic');};
     $('#social-crisis-post').onclick=()=>socialSubmitPost(text,post,true); return;
   }
+  const send=$('#social-post-send');
+  if(send){send.disabled=true;send.textContent=post?'저장 중…':'게시 중…';}
   try{
-    const a=socialAuth();
-    await socialWrite(post?'postEdit':'postCreate',Object.assign({},a,post?{postId:post.id,text:text}:{text:text}));
-    closeModal(); socialResetFeed(); toast(post?'글을 수정했습니다.':'오늘의 한 걸음을 나눴습니다.'); socialRefresh(true);
-  }catch(e){toast(socialApiMessage(e));}
+    const a=socialAuth(),r=await socialWrite(post?'postEdit':'postCreate',Object.assign({},a,post?{postId:post.id,text:text}:{text:text}));
+    const now=Date.now();
+    if(post){const x=socialFind(post.id);if(x){x.text=text;x.updatedAt=now;}}
+    else if(r&&r.id){socialState.items.unshift({id:r.id,userId:a.userId,nickname:(SO.profile&&SO.profile.nickname)||'익명',text:text,createdAt:now,updatedAt:now,supportCount:0,commentCount:0,mine:true,supported:false});}
+    socialState.loaded=true;socialState.error='';closeModal();drawSocial();toast(post?'글을 수정했습니다.':'오늘의 한 걸음을 나눴습니다.');setTimeout(()=>socialRefresh(false,true),250);
+  }catch(e){if(send){send.disabled=false;send.textContent=post?'수정 저장':'게시하기';}toast(socialApiMessage(e));}
 }
 function socialFind(id){ return (socialState.items||[]).find(x=>String(x.id)===String(id)); }
 function socialMenu(id){
@@ -8666,10 +8688,11 @@ function socialReport(x){
 }
 async function socialSupport(id){
   const x=socialFind(id); if(!x||x.mine)return;
+  const was=!!x.supported,oldCount=Number(x.supportCount||0);x.supported=!was;x.supportCount=Math.max(0,oldCount+(x.supported?1:-1));drawSocial();
   try{
     const r=await socialWrite('supportToggle',Object.assign({},socialAuth(),{postId:id}));
     x.supported=!!r.supported; x.supportCount=Number(r.supportCount||0); drawSocial();
-  }catch(e){toast(socialApiMessage(e));}
+  }catch(e){x.supported=was;x.supportCount=oldCount;drawSocial();toast(socialApiMessage(e));}
 }
 
 
@@ -10744,7 +10767,7 @@ function drawUrgeCapsuleInline(open){
   if(!btn||!box) return;
   const show=!!open;
   btn.setAttribute('aria-expanded',show?'true':'false');
-  btn.textContent=show?'미래의 나에게 접기':'미래의 나에게 바로보기';
+  btn.textContent=show?'초심 접기':'초심 보기';
   if(!show){ box.classList.add('hide'); box.innerHTML=''; return; }
   const c=capsuleData(), text=String(c.text||'').trim();
   box.classList.remove('hide');
@@ -12281,13 +12304,13 @@ async function socialComments(postId){
   const send=$('#social-comment-send'); if(send)send.onclick=()=>socialCommentSubmit(postId,String(ta&&ta.value||'').trim(),false);
   await socialCommentsRefresh(postId);
 }
-async function socialCommentsRefresh(postId){
+async function socialCommentsRefresh(postId,quiet){
   try{
     const r=await socialWrite('commentList',Object.assign({},socialAuth(),{postId:postId}));
     socialCommentState.items=Array.isArray(r.items)?r.items:[]; socialCommentState.loading=false; socialCommentState.error='';
     const x=socialFind(postId); if(x)x.commentCount=Number(r.commentCount||socialCommentState.items.length);
     socialRenderComments(); drawSocial();
-  }catch(e){socialCommentState.loading=false;socialCommentState.error=socialCommentApiMessage(e);socialRenderComments();}
+  }catch(e){socialCommentState.loading=false;if(!quiet){socialCommentState.error=socialCommentApiMessage(e);socialRenderComments();}}
 }
 function socialRenderComments(){
   const box=$('#social-comment-list'); if(!box)return;
@@ -12303,9 +12326,10 @@ async function socialCommentSubmit(postId,text,confirmed){
     $('#social-comment-crisis-send').onclick=()=>socialCommentSubmit(postId,text,true); return;
   }
   try{
-    const r=await socialWrite('commentCreate',Object.assign({},socialAuth(),{postId:postId,text:text}));
+    const a=socialAuth(),r=await socialWrite('commentCreate',Object.assign({},a,{postId:postId,text:text}));
     const x=socialFind(postId); if(x)x.commentCount=Number(r.commentCount||Number(x.commentCount||0)+1);
-    toast('댓글을 남겼습니다.'); await socialComments(postId);
+    socialCommentState.items.push({id:r.id||('local_'+Date.now()),postId:String(postId),userId:a.userId,nickname:(SO.profile&&SO.profile.nickname)||'익명',text:text,createdAt:Date.now(),updatedAt:Date.now(),mine:true});
+    socialCommentState.loading=false;socialCommentState.error='';const ta=$('#social-comment-text');if(ta)ta.value='';const ch=$('#social-comment-char');if(ch)ch.textContent='0 / 300';socialRenderComments();drawSocial();toast('댓글을 남겼습니다.');setTimeout(()=>socialCommentsRefresh(postId,true),250);
   }catch(e){toast(socialCommentApiMessage(e));}
 }
 function socialCommentMenu(id){

@@ -208,3 +208,8 @@ ok(index.indexOf('if(isSamsung){') < index.indexOf('} else if(isIOS){'),'Samsung
 ok(manifest.includes('\"id\": \"./index.html\"'),'manifest 안정적 app id');
 
 console.log('\n'+build+' 웹 회귀검증 통과');
+
+if(!index.includes("btn.textContent=show?'초심 접기':'초심 보기';")) throw new Error('V9.0.6 초심 보기 런타임 문구 누락');
+if(!index.includes('id=\"social-compose-safety\"')) throw new Error('V9.0.6 소셜 안전안내 폴딩 누락');
+if(!index.includes("socialRefresh(false,true)")) throw new Error('V9.0.6 소셜 백그라운드 동기화 누락');
+if(!index.includes("const BUILD='V9.0.6';")) throw new Error('V9.0.6 BUILD 불일치');
