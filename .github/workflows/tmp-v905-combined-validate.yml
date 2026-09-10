@@ -12,6 +12,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -69,7 +71,9 @@ jobs:
       - name: Browser regression
         env:
           CHROMIUM_PATH: /usr/bin/google-chrome
-        run: node test.js
+        run: |
+          npm install --no-save playwright@1.55.0
+          node test.js
       - name: Commit validated product files
         run: |
           set -euo pipefail
