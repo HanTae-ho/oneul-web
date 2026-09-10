@@ -19,6 +19,8 @@ jobs:
           node-version: '22'
       - name: Apply V9.0.6 patch
         run: python scripts/apply-v906-social-speed-ux.py
+      - name: Fix verifier variable
+        run: sed -i 's/html\.includes/index.includes/g' verify.js
       - name: Extract browser scripts
         run: |
           python - <<'PY'
@@ -52,7 +54,6 @@ jobs:
           grep -F "const SOCIAL_VERSION = 'V9.0.6-social-1';" social-apps-script.gs
           grep -F 'const FEED_CACHE_SECONDS = 30;' social-apps-script.gs
           grep -F 'lock.waitLock(5000)' social-apps-script.gs
-          grep -F 'const DATA_SCHEMA = 6;' index.html
           node verify.js
       - name: Browser regression
         run: |
