@@ -9,7 +9,12 @@
 <body>
 <script>
 (function(){
-  try { sessionStorage.setItem('ohg.native.app', '1'); } catch(e) {}
+  try {
+    sessionStorage.setItem('ohg.native.app', '1');
+    const q=new URLSearchParams(location.search||'');
+    const raw=String(q.get('appv')||'').trim();
+    if(/^\d+\.\d+\.\d+$/.test(raw)) sessionStorage.setItem('ohg.native.version','V'+raw);
+  } catch(e) {}
   location.replace('./index.html?native=1');
 })();
 </script>

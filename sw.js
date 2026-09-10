@@ -3,10 +3,10 @@
 
    ★ 배포할 때 APP_VERSION · 내부 캐시 V · index.html 의 BUILD 를 함께 갱신하세요. */
 /* 사용자에게 보이는 앱 버전. index.html 의 BUILD 와 반드시 맞춥니다. */
-const APP_VERSION = 'V9.0.4';
+const APP_VERSION = 'V9.0.5';
 /* 내부 캐시 리비전. 기존 v46 클라이언트도 새 판을 감지하도록 숫자형 키를 유지합니다.
    V4.6 → 406, V4.7 → 407, V4.10 → 410, V5.0 → 500, V5.1 → 501, V5.2 → 502 */
-const V = 'ohg-v904-social-manage-r1';
+const V = 'ohg-v905-update-flow-r1';
 const SHELL = ['./', './index.html', './native.html',
   './install.html', './qa-data.js', './learning-data.js', './screening-data.js', './workbook-data.js', './music-audio-data.js', './privacy.html', './legal.html', './manifest.json',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-32.png'];
@@ -27,6 +27,9 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const u = new URL(e.request.url);
+
+  /* 릴리즈 정보와 자원 목록은 서비스워커 캐시를 사용하지 않습니다 */
+  if (u.pathname.endsWith('/latest-release.json')) return;
 
   /* 자원 목록(Apps Script)은 절대 캐시하지 않습니다 */
   if (u.hostname.endsWith('google.com') ||
