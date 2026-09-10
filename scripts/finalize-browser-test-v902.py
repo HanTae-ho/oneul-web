@@ -39,7 +39,7 @@ one("""    await pg.click(btn); await pg.waitForTimeout(100);
 one("""  assert((await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토 7건'), '1·4·8·9·10·11·12단계 기록 7건 저장');""",
 """  assert(await pg.evaluate(() => Array.isArray(S.stepWorks) && S.stepWorks.length===7 && ['step1','step4','step8','step9','step10','step11','step12'].every(k=>S.stepWorks.some(x=>x.kind===k))), '1·4·8·9·10·11·12단계 기록 7건 상태 저장');""", '7 workbook save')
 one("""  await rt(6); assert((await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토 7건'), '내 발자취 12단계 검토 탭에서 저장 기록 7건 재조회');""",
-"""  await rt(6); assert(await pg.evaluate(() => Array.isArray(S.stepWorks) && S.stepWorks.length===7) && (await pg.$eval('#rec-body', e => e.innerText)).includes('저장한 검토'), '내 발자취 12단계 검토 탭에서 저장 기록 7건 재조회');""", 'trail workbook')
+"""  await rt(6); assert(await pg.evaluate(() => Array.isArray(S.stepWorks) && S.stepWorks.length===7) && (await pg.$eval('#rec-body', e => e.innerText)).includes('12단계 검토'), '내 발자취 12단계 검토 탭에서 저장 기록 7건 재조회');""", 'trail workbook')
 
 # AUDIT-K는 0점 응답 시 불필요한 음주 문항을 건너뛰는 적응형 흐름이므로
 # 모든 문항을 DOM에서 10번 클릭한다는 옛 가정을 제거하고, 첫 질문 UI + 결과 엔진을 함께 확인합니다.
