@@ -1,6 +1,6 @@
 /*
- * 오늘 한 걸음 V9.0.3 — 소셜 전용 Apps Script
- * 서버판: V9.0.3-social-1
+ * 오늘 한 걸음 V9.0.4 — 소셜 전용 Apps Script
+ * 서버판: V9.0.4-social-1
  *
  * 목적
  * - 자원시트·개인 회복기록(ohg.v1)과 완전히 분리한 익명 소셜 전용 서버입니다.
@@ -45,13 +45,18 @@
  * - 피드 공개 스냅샷과 내 응원목록을 짧게 캐시하고, 시트 헤더 검증도 캐시해 반복 읽기를 줄입니다.
  * - 쓰기 작업 뒤 관련 피드 캐시를 즉시 무효화합니다.
  *
+ * V9.0.4-social-1
+ * - 탈퇴한 닉네임은 30일 동안 누구도 다시 사용할 수 없도록 보호합니다.
+ * - 탈퇴 시 익명 ID와 인증 토큰은 즉시 비우고 닉네임만 보호기간 판정을 위해 보관합니다.
+ * - 보호기간이 지난 같은 닉네임이 다시 가입되면 이전 삭제행의 닉네임을 비웁니다.
+ *
  * ★ 앱에서 부를 때 주의
  *   Content-Type 은 반드시 'text/plain;charset=utf-8' 이어야 합니다.
  *   'application/json' 으로 보내면 브라우저가 먼저 OPTIONS 를 보내는데
  *   Apps Script 는 그것을 받지 못해 모든 요청이 통째로 실패합니다.
  */
 
-const SOCIAL_VERSION = 'V9.0.3-social-1';
+const SOCIAL_VERSION = 'V9.0.4-social-1';
 const SOCIAL_TIME_ZONE = 'Asia/Seoul';
 const MAX_SOCIAL_REQUEST_CHARS = 8192;
 const MAX_FEED_ITEMS = 60;
@@ -64,6 +69,7 @@ const REPORT_RETENTION_DAYS = 365;
 const FEED_CACHE_SECONDS = 12;
 const SCHEMA_CACHE_SECONDS = 300;
 const MAX_PROFILE_ACTIVITY_ITEMS = 100;
+const NICK_REUSE_COOLDOWN_MS = 30 * 24 * 60 * 60 * 1000;
 
 const SOCIAL_SHEETS = {
   profiles: 'Profiles',
@@ -270,6 +276,9 @@ function profile_(b){
   }
   const same=data.find(function(r){return str_(r.status)==='active'&&nickKey_(r.nickname)===nickKey_(nickname);});
   if(same)return {ok:false,error:'NICK_TAKEN',message:'이미 사용 중인 닉네임입니다.'};
+  const reserved=data.find(function(r){return str_(r.status)==='deleted'&&nickKey_(r.nickname)===nickKey_(nickname)&&now-num_(r.updatedAt)<NICK_REUSE_COOLDOWN_MS;});
+  if(reserved)return {ok:false,error:'NICK_COOLDOWN',message:'최근 탈퇴한 닉네임입니다. 탈퇴 후 30일이 지나면 다시 사용할 수 있습니다.',availableAt:num_(reserved.updatedAt)+NICK_REUSE_COOLDOWN_MS};
+  data.filter(function(r){return str_(r.status)==='deleted'&&nickKey_(r.nickname)===nickKey_(nickname)&&now-num_(r.updatedAt)>=NICK_REUSE_COOLDOWN_MS;}).forEach(function(r){sh.getRange(r._row,2).setValue('');});
   sh.appendRow([userId,cellText_(nickname),hash,now,now,'active']);
   return {ok:true,userId:userId,nickname:nickname,createdAt:now};
 }
@@ -321,7 +330,7 @@ function profileDelete_(b){
   const commentReports=rows_(SOCIAL_SHEETS.commentReports); const crsh=sheet_(SOCIAL_SHEETS.commentReports);
   commentReports.forEach(function(r){ let changed=false; if(str_(r.reporterId)===me.userId){r.reporterId='';changed=true;} if(str_(r.reportedUserId)===me.userId){r.reportedUserId='';changed=true;} if(changed) crsh.getRange(r._row,1,1,SOCIAL_HEADERS.CommentReports.length).setValues([[r.reportId,r.commentId,r.postId,r.reporterId,r.reportedUserId,r.reason,r.createdAt,r.status,r.reviewedAt,r.reviewNote]]); });
   const sh=sheet_(SOCIAL_SHEETS.profiles);
-  sh.getRange(profile._row,1).setValue(''); sh.getRange(profile._row,2).setValue(''); sh.getRange(profile._row,3).setValue(''); sh.getRange(profile._row,5).setValue(now); sh.getRange(profile._row,6).setValue('deleted');
+  sh.getRange(profile._row,1).setValue(''); sh.getRange(profile._row,2).setValue(cellText_(me.nickname)); sh.getRange(profile._row,3).setValue(''); sh.getRange(profile._row,5).setValue(now); sh.getRange(profile._row,6).setValue('deleted');
   return {ok:true};
 }
 
