@@ -75,9 +75,11 @@ jobs:
 
           p=Path('verify.js')
           s=p.read_text(encoding='utf-8')
-          if s.count('V9.0.6') != 4:
-              raise SystemExit('verify V9.0.6 target count='+str(s.count('V9.0.6')))
-          s=s.replace('V9.0.6','V9.0.7')
+          old="const BUILD='V9.0.6';"
+          new="const BUILD='V9.0.7';"
+          if s.count(old) != 1:
+              raise SystemExit('verify BUILD target count='+str(s.count(old)))
+          s=s.replace(old,new,1)
           p.write_text(s,encoding='utf-8')
 
           p=Path('install.html')
@@ -263,7 +265,7 @@ jobs:
 
           put_main_file index.html index.html 'V9.0.7: parse full APP_VERSION'
           put_main_file sw.js sw.js 'V9.0.7: advance service worker version'
-          put_main_file verify.js verify.js 'V9.0.7: align regression version checks'
+          put_main_file verify.js verify.js 'V9.0.7: align regression version check'
           put_main_file latest-release.json latest-release.json 'Point latest Android release to V9.0.7'
           put_main_file install.html install.html 'Promote install target to V9.0.7'
 
