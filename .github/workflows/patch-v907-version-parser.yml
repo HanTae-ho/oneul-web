@@ -1,0 +1,89 @@
+name: Patch V9.0.7 version parser
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/patch-v907-version-parser.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply minimal V9.0.7 parser fix
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          old=r'''const m = txt.match(/const\s+APP_VERSION\s*=\s*['"]([vV]\d+(?:\.\d+)?)['"]/);'''
+          new=r'''const m = txt.match(/const\s+APP_VERSION\s*=\s*['"]([vV]\d+(?:\.\d+){1,2})['"]/);'''
+          if s.count(old) != 1:
+              raise SystemExit(f'APP_VERSION parser target count={s.count(old)}')
+          s=s.replace(old,new,1)
+          if s.count("const BUILD='V9.0.6';") != 1:
+              raise SystemExit('V9.0.6 BUILD target not unique')
+          s=s.replace("const BUILD='V9.0.6';","const BUILD='V9.0.7';",1)
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('sw.js')
+          s=p.read_text(encoding='utf-8')
+          if s.count("const APP_VERSION = 'V9.0.6';") != 1:
+              raise SystemExit('sw APP_VERSION target not unique')
+          s=s.replace("const APP_VERSION = 'V9.0.6';","const APP_VERSION = 'V9.0.7';",1)
+          if s.count("const V = 'ohg-v906-social-speed-r1';") != 1:
+              raise SystemExit('sw cache target not unique')
+          s=s.replace("const V = 'ohg-v906-social-speed-r1';","const V = 'ohg-v907-version-parser-r1';",1)
+          p.write_text(s,encoding='utf-8')
+
+          p=Path('verify.js')
+          s=p.read_text(encoding='utf-8')
+          anchor="ok(/^V\\d+\\.\\d+(?:\\.\\d+)?$/.test(build),'index BUILD 형식 정상: '+build);\n"
+          add=r'''ok(index.includes("([vV]\\d+(?:\\.\\d+){1,2})"),'sw APP_VERSION 파서가 2·3단계 버전 전체 인식');
+'''
+          if add not in s:
+              if anchor not in s:
+                  raise SystemExit('verify version-format anchor not found')
+              s=s.replace(anchor,anchor+add,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+
+          grep -F "const BUILD='V9.0.7';" index.html
+          grep -F "const APP_VERSION = 'V9.0.7';" sw.js
+          grep -F "const V = 'ohg-v907-version-parser-r1';" sw.js
+          grep -F "([vV]\\d+(?:\\.\\d+){1,2})" index.html
+          ! grep -F "([vV]\\d+(?:\\.\\d+)?)" index.html
+          grep -F 'const DATA_SCHEMA = 6;' index.html
+          grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
+
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          Path('/tmp/index-all.js').write_text('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)),encoding='utf-8')
+          PY
+          node --check /tmp/index-all.js
+          node --check sw.js
+          node --check verify.js
+          node verify.js
+
+      - name: Commit product changes and remove one-shot workflow
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/patch-v907-version-parser.yml
+          git add index.html sw.js verify.js
+          git commit -m 'Fix full semantic APP_VERSION parsing for V9.0.7'
+          git push origin HEAD:main
