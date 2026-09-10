@@ -1,0 +1,86 @@
+name: Validate V9.0.2 social-4 app fixes
+
+on:
+  push:
+    branches: [v9.0.2-social4-app-fixes]
+    paths:
+      - 'scripts/apply-v902-social4-app-fixes.py'
+      - 'scripts/finalize-browser-test-v902.py'
+      - '.github/workflows/tmp-v902-social4-validate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Apply app and documentation patch
+        run: python scripts/apply-v902-social4-app-fixes.py
+
+      - name: Bring verification suite to current V9.0.2 structure
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin v9.0.2-version-consistency-fix
+          git show FETCH_HEAD:verify.js > verify.js
+          git show FETCH_HEAD:test.js > test.js
+          git show FETCH_HEAD:scripts/patch-test-kst.py > /tmp/patch-test-kst.py
+          python /tmp/patch-test-kst.py
+          python scripts/finalize-browser-test-v902.py
+
+      - name: Syntax no-undef and fixed invariants
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          Path('/tmp/index-all.js').write_text('\n'.join(blocks),encoding='utf-8')
+          Path('/tmp/social.js').write_text(Path('social-apps-script.gs').read_text(encoding='utf-8'),encoding='utf-8')
+          PY
+          node --check /tmp/index-all.js
+          node --check sw.js
+          node --check /tmp/social.js
+          node --check verify.js
+          node --check test.js
+          npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
+          grep -F "const BUILD='V9.0.2';" index.html
+          grep -F "const APP_VERSION = 'V9.0.2';" sw.js
+          grep -F "const V = 'ohg-v902-social4-r3';" sw.js
+          grep -F 'const DATA_SCHEMA = 6;' index.html
+          grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
+          ! grep -F 'HALTS.find' index.html
+          grep -F "const SOCIAL_VERSION = 'V9.0.2-social-4';" social-apps-script.gs
+          grep -F 'recountSupports_(othersSupported);' social-apps-script.gs
+          grep -F "if(code==='INVALID_NICKNAME')" index.html
+          grep -F "if(code==='BUSY')" index.html
+          grep -F '/관리자|운영자|오늘한걸음|마음프로|admin|official|staff/i.test(compact)' index.html
+
+      - name: Full repository verifier
+        run: node verify.js
+
+      - name: Browser regression
+        env:
+          CHROMIUM_PATH: /usr/bin/google-chrome
+        run: |
+          npm install --no-save playwright@1.55.0
+          test -x "$CHROMIUM_PATH"
+          node test.js
+
+      - name: Commit validated product and verification files
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js README.md SOCIAL_SETUP.md verify.js test.js
+          git diff --cached --stat
+          git commit -m 'V9.0.2 social-4 앱·검증기 안정화'
+          git push
