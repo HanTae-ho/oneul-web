@@ -2621,7 +2621,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD='V9.0.6';
+const BUILD='V9.0.7';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -11737,7 +11737,7 @@ async function checkUpdate(){
     const r = await fetch('sw.js?_=' + Date.now(), { cache: 'no-store' });
     if(!r.ok) return '';
     const txt = await r.text();
-    const m = txt.match(/const\s+APP_VERSION\s*=\s*['"]([vV]\d+(?:\.\d+)?)['"]/);
+    const m = txt.match(/const\s+APP_VERSION\s*=\s*['"]([vV]\d+(?:\.\d+){1,2})['"]/);
     return m ? m[1].toUpperCase() : '';
   }catch(e){ return ''; }        /* file:// 이나 오프라인이면 못 봅니다 — 조용히 넘어갑니다 */
 }
