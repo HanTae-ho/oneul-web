@@ -1,0 +1,74 @@
+name: Apply V9.0.5 social leave and risk label
+
+on:
+  push:
+    branches: [v9.0.5-social-leave-risk-label]
+    paths:
+      - 'scripts/apply-v905-social-leave-risk-label.py'
+      - '.github/workflows/apply-v905-social-leave-risk-label.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply V9.0.5 patch
+        run: python scripts/apply-v905-social-leave-risk-label.py
+      - name: Extract browser scripts
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          Path('/tmp/index-all.js').write_text('\n'.join(blocks),encoding='utf-8')
+          Path('/tmp/social.js').write_text(Path('social-apps-script.gs').read_text(encoding='utf-8'),encoding='utf-8')
+          PY
+      - name: Syntax and undefined-reference checks
+        run: |
+          node --check /tmp/index-all.js
+          node --check sw.js
+          node --check /tmp/social.js
+          node --check verify.js
+          node --check test.js
+          npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
+      - name: V9.0.5 invariants
+        run: |
+          set -euo pipefail
+          grep -F "const BUILD='V9.0.5';" index.html
+          grep -F "const APP_VERSION = 'V9.0.5';" sw.js
+          grep -F "const V = 'ohg-v905-social-leave-r1';" sw.js
+          grep -F 'const DATA_SCHEMA = 6;' index.html
+          grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
+          grep -F "const SOCIAL_VERSION = 'V9.0.4-social-1';" social-apps-script.gs
+          grep -F 'id="ur-capsule-toggle" aria-expanded="false">초심 보기</button>' index.html
+          grep -F 'id="social-leave-confirm"' index.html
+          ! grep -F 'social-leave-word' index.html
+          ! grep -F 'social-leave-next' index.html
+          ! grep -F '정말 탈퇴할까요?' index.html
+          ! grep -F '탈퇴 계속' index.html
+          ! grep -F 'HALTS.find' index.html
+          node verify.js
+      - name: Browser regression
+        run: |
+          npm install --no-save playwright@1.55.0
+          test -x /usr/bin/google-chrome
+          CHROMIUM_PATH=/usr/bin/google-chrome node test.js
+      - name: Commit product changes
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js README.md verify.js
+          git diff --cached --check
+          git commit -m 'V9.0.5 소셜 탈퇴 단순화·충동 초심 보기' \
+            -m '소셜 탈퇴를 확인 1회 후 바로 처리하도록 단순화하고 충동 화면의 미래의 나에게 바로보기 문구를 초심 보기로 정리합니다. 소셜 서버 V9.0.4-social-1의 30일 닉네임 보호와 DATA_SCHEMA=6, ohg.v1, ohg.social.v1은 유지합니다.'
+          git push origin HEAD:v9.0.5-social-leave-risk-label
