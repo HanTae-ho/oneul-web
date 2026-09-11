@@ -53,6 +53,14 @@ jobs:
           PY
           export SOCIAL_GZ_B64="$(cat /tmp/social-gs.b64)"
           bash /tmp/apply-v908.sh
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('verify.js');s=p.read_text(encoding='utf-8')
+          old='if(!index.includes("const BUILD=\'V9.0.7\';")) throw new Error(\'V9.0.6 BUILD 불일치\');'
+          new='if(!index.includes("const BUILD=\'V9.0.8\';")) throw new Error(\'V9.0.8 BUILD 불일치\');'
+          if old not in s: raise SystemExit('fixed BUILD regression target not found')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
           bash /tmp/verify-v908.sh
       - name: Commit verified sources
         run: |
