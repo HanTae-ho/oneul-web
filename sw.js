@@ -8,7 +8,7 @@ const APP_VERSION = 'V9.0.11';
    V4.6 → 406, V4.7 → 407, V4.10 → 410, V5.0 → 500, V5.1 → 501, V5.2 → 502 */
 const V = 'ohg-v9011-meaning-r1';
 const SHELL = ['./', './index.html', './native.html',
-  './install.html', './qa-data.js', './learning-data.js', './screening-data.js', './workbook-data.js', './meaning-data.js', './music-audio-data.js', './privacy.html', './legal.html', './manifest.json',
+  './install.html', './qa-data.js', './learning-data.js', './screening-data.js', './workbook-data.js', './meaning-data.js', './meaning-feature.js', './music-audio-data.js', './privacy.html', './legal.html', './manifest.json',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-32.png'];
 
 self.addEventListener('install', e => {
