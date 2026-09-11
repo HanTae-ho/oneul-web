@@ -351,11 +351,17 @@ addEventListener('appinstalled', function(){
   .mn-empty button.on{border-color:var(--acc);background:var(--accbg);color:var(--acc);font-weight:700}
   .mn-line-opt{display:block;width:100%;text-align:left;padding:11px 12px;border:1px solid var(--line);border-radius:11px;margin-top:8px;line-height:1.55}
   .mn-line-opt.on{border-color:var(--acc);background:var(--accbg);color:var(--acc)}
-  .mn-day{display:flex;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+  .mn-day{display:block;padding:14px 0;border-top:1px solid var(--line)}
   .mn-day:first-child{border-top:none}
-  .mn-day .d{flex:0 0 128px;font-size:12px;color:var(--dim);line-height:1.6;white-space:nowrap}
-  .mn-day .c{flex:1;min-width:0;font-size:13.5px;line-height:1.6;word-break:break-word}
-  .mn-day .c em{font-style:normal;color:var(--faint);font-size:12px;margin-right:4px}
+  .mn-day .d{display:block;font-size:13px;color:var(--dim);font-weight:600;line-height:1.45;margin-bottom:9px;white-space:normal}
+  .mn-day .c{display:block;min-width:0}
+  .mn-record-row{display:grid;grid-template-columns:88px minmax(0,1fr);gap:8px;align-items:start;margin:5px 0}
+  .mn-record-label{font-size:12px;line-height:1.6;color:var(--faint)}
+  .mn-record-value{min-width:0;font-size:13.5px;line-height:1.6;word-break:break-word}
+  .mn-record-line{margin-top:10px;padding:10px 12px;border-radius:11px;background:var(--bg)}
+  .mn-record-line .mn-record-label{display:block;margin-bottom:4px}
+  .mn-record-line .mn-record-value{display:block}
+  @media(max-width:380px){.mn-record-row{grid-template-columns:80px minmax(0,1fr)}}
 
   /* 강도 슬라이더 */
   .lv{margin:6px 0 2px}
@@ -2681,7 +2687,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD='V9.0.13';
+const BUILD='V9.0.14';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 커뮤니티의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 커뮤니티 데이터는 포함되지 않습니다. */
