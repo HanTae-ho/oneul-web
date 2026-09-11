@@ -25,12 +25,12 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import textwrap
           t=Path('.github/workflows/tmp-v910-pattern-summary-autofold.yml').read_text(encoding='utf-8')
           mark="          python3 - <<'PY'\n"
           start=t.index(mark)+len(mark)
           end=t.index("\n          PY",start)
-          code=textwrap.dedent(t[start:end])
+          lines=t[start:end].splitlines()
+          code='\n'.join(line[10:] if line.startswith('          ') else line for line in lines)
           exec(compile(code,'v910-patch.py','exec'))
           PY
       - name: Verify V9.0.10 web runtime
