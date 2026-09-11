@@ -38,27 +38,29 @@ ok(/night\.kept === 0 && niAfter !== 'meaning'/.test(index),'당사자가 의미
 ok(/if\(famMode\(\)\)\{go\('tools',\{replace:true\}\);return;\}/.test(feature),'의미 화면 자체 가족모드 이중 차단');
 ok(/function wbAllowedLines\(\)/.test(feature)&&/areas\.length===1/.test(feature)&&/scopes\.includes\('all'\)/.test(feature),'단일영역 추가문장·복수영역 공통문장 필터');
 
-ok(/function wbTodayUrges\(d\)/.test(feature)&&/Array\.isArray\(S\.urges\)/.test(feature)&&/ymd\(Number\(x\.t\)\)===d/.test(feature),'오늘 충동기록만 로컬 날짜 기준 참고 조회');
+ok(/function wbUrgesForDate\(d\)/.test(feature)&&/function wbTodayUrges\(d\)\{return wbUrgesForDate\(d\);\}/.test(feature)&&/Array\.isArray\(S\.urges\)/.test(feature)&&/ymd\(Number\(x\.t\)\)===d/.test(feature),'날짜별 충동기록을 로컬 날짜 기준 동적 조회');
 ok(/오늘 기록된 충동/.test(feature)&&/참고용/.test(feature)&&/의미기록에 복사 저장하지 않습니다/.test(feature)&&/go\('urge-diary'\)/.test(feature),'의미 화면에서 오늘 충동 요약·충동일기 이동');
 const collected=(feature.match(/function meaningCollected\(\)\{([\s\S]*?)return \{any:/)||[])[1]||'';
 ok(collected.includes("rec={hard:mnDraft.hard.slice(),strength:mnDraft.strength.slice(),action:mnDraft.action.slice(),ts:Date.now()}")&&!/rec\.urges|rec\.urge|urges\s*:|urge\s*:/.test(collected),'충동기록을 wbDays 의미기록에 중복 저장하지 않음');
 
-ok(/function showMeaningExistingChoice\(d,r\)/.test(feature)&&/기존 기록 수정하기/.test(feature)&&/처음부터 다시 작성/.test(feature),'오늘 기존 의미기록 진입 시 수정·처음부터 다시 작성 선택');
+ok(/function showMeaningExistingChoice\(d,r\)/.test(feature)&&/오늘 기록 보기/.test(feature)&&/기존 기록 수정하기/.test(feature)&&/처음부터 다시 작성/.test(feature),'오늘 기존 의미기록 진입 시 보기·수정·처음부터 다시 작성 선택');
 ok(/mnReplaceExisting=true/.test(feature)&&/renderMeaningDraft\(d,null,true\)/.test(feature),'처음부터 다시 작성은 빈 초안으로 시작');
 ok(/새 내용을 저장하기 전까지 기존 기록은 지워지지 않습니다/.test(feature)&&/새로 작성할 내용이 없습니다\. 기존 기록은 그대로 유지됩니다/.test(feature),'처음부터 다시 작성 중 기존 기록 선삭제 방지');
 ok(/기존 오늘 기록을 바꿀까요/.test(feature)&&/saveMeaningRecord\(true\)/.test(feature),'새 내용 저장 직전에 기존 오늘 기록 교체 확인');
 
-ok(/function drawMeaningHistorySummary\(\)/.test(feature)&&/자주 보인 힘/.test(feature)&&/자주 지킨 가치/.test(feature),'2단계 기록 다시보기: 힘·가치 흐름');
+ok(/function drawMeaningHistorySummary\(\)/.test(feature)&&/기록에서 보인 힘/.test(feature)&&/기록에서 지킨 가치/.test(feature)&&!/자주 보인 힘/.test(feature)&&!/자주 지킨 가치/.test(feature),'2단계 기록 다시보기: 중립적 힘·가치 제목');
 ok(/strengthCount/.test(feature)&&/valueCount/.test(feature)&&/a\.value/.test(feature),'2단계 집계는 선택형 힘·행동 가치 키 기반');
 ok(/직접 적은 글은 분류하거나 점수화하지 않습니다/.test(feature),'2단계 자유입력 비분류 원칙 표시');
 ok(!/남긴 기록 ['"+]?\+?[^\n]{0,30}일/.test(index+feature)&&!/(지난 기록 모두 보기 ·|지난 기록 보기 ·)/.test(index+feature),'기록일수 전면 표시 없음');
 ok(!/streak|연속\s*\d+\s*일|Day\s*\d+/i.test(feature),'2단계 streak·Day 숫자 없음');
 ok(/getFullYear\(\)\+'년 '/.test(feature),'지난 기록 날짜에 연도 표시');
 ok(index.includes('.mn-day{display:block')&&index.includes('.mn-record-row{display:grid')&&feature.includes('mn-record-line')&&feature.includes('<div class=\"d\">'),'지난 기록 모바일: 날짜 상단·내용 전체폭·오늘의 문장 별도 블록');
+ok(/function showMeaningUrgesForDate\(d\)/.test(feature)&&/이날의 충동기록/.test(feature)&&/mn-day-urge-btn/.test(feature)&&/data-mn-day/.test(feature),'지난 의미기록에 같은 날짜 충동기록 동적 연결');
+ok(/function openMeaningHistoryDay\(d\)/.test(feature)&&/mn-view-existing/.test(feature)&&/setMeaningView\('history'\)/.test(feature),'오늘 기록 보기에서 지난 기록의 오늘 카드로 이동');
 
 ok(/function meaningCollected\(\)/.test(feature)&&/if\(!x\.any\)/.test(feature),'빈 기록 저장 방지');
 ok(/st\[d\]=x\.rec;save\(\)/.test(feature),'같은 날짜 키에 upsert 저장');
 ok(!/toISOString\(/.test(feature)&&/function wbToday\(\)\{return ymd\(new Date\(\)\);\}/.test(feature),'로컬 ymd 날짜 사용·UTC 날짜 변환 없음');
 ok(/hardNote/.test(feature)&&/strengthNote/.test(feature)&&/actionNote/.test(feature)&&/request/.test(feature),'직접입력은 별도 원문 필드로 저장');
 
-console.log('\nV9.0.14 의미 돌아보기·기록 다시보기 회귀검증 통과');
+console.log('\nV9.0.15 의미 돌아보기·기록 다시보기 회귀검증 통과');
