@@ -12,8 +12,10 @@ on:
       - 'native.html'
       - 'release-version-check.js'
       - 'meaning-data.js'
+      - 'meaning-feature.js'
       - 'workbook-data.js'
       - 'verify.js'
+      - 'verify-meaning.js'
       - '.github/workflows/check-web-runtime.yml'
   pull_request:
     branches: [main]
@@ -26,8 +28,10 @@ on:
       - 'native.html'
       - 'release-version-check.js'
       - 'meaning-data.js'
+      - 'meaning-feature.js'
       - 'workbook-data.js'
       - 'verify.js'
+      - 'verify-meaning.js'
       - '.github/workflows/check-web-runtime.yml'
 
 jobs:
@@ -45,6 +49,7 @@ jobs:
           from pathlib import Path
           s=Path('index.html').read_text(encoding='utf-8')
           blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          blocks.append(Path('meaning-feature.js').read_text(encoding='utf-8'))
           Path('/tmp/index-all.js').write_text('\n'.join(blocks),encoding='utf-8')
           Path('/tmp/social.js').write_text(Path('social-apps-script.gs').read_text(encoding='utf-8'),encoding='utf-8')
           print('script blocks:',len(blocks),'lines:',len(Path('/tmp/index-all.js').read_text(encoding='utf-8').splitlines()))
@@ -56,8 +61,10 @@ jobs:
           node --check /tmp/social.js
           node --check release-version-check.js
           node --check meaning-data.js
+          node --check meaning-feature.js
           node --check workbook-data.js
           node --check verify.js
+          node --check verify-meaning.js
       - name: Undefined-reference check
         run: |
           npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
