@@ -717,7 +717,7 @@ addEventListener('appinstalled', function(){
   .social-profile-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:0 0 13px}
   .social-profile-stats>div{border:1px solid var(--line);border-radius:12px;padding:9px 6px;text-align:center;background:var(--bg)}
   .social-profile-stats b{display:block;font-size:17px;color:var(--tx);line-height:1.2}.social-profile-stats span{display:block;margin-top:4px;font-size:10.5px;color:var(--dim)}
-  .social-comments-head{margin-bottom:10px}.social-comments-post{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);margin-bottom:11px}
+  .social-comments-head{margin-bottom:10px}.social-comments-post{padding:11px 12px;border:2px solid var(--acc2);border-radius:12px;background:var(--accbg);margin-bottom:13px;box-shadow:0 1px 0 #00000008}.social-comments-label{display:inline-block;margin-bottom:5px;padding:2px 7px;border-radius:999px;background:var(--panel);border:1px solid var(--acc2);color:var(--acc);font-size:10.5px;font-weight:700;line-height:1.4}
   .social-comments-post b{font-size:12.5px}.social-comments-post p{margin:4px 0 0;white-space:pre-wrap;word-break:break-word;font-size:13.5px;line-height:1.55;color:var(--tx)}
   .social-comment{display:flex;gap:9px;padding:11px 0;border-bottom:1px solid var(--line)}.social-comment:last-child{border-bottom:0}
   .social-comment-main{flex:1;min-width:0}.social-comment-head{display:flex;align-items:center;gap:7px}.social-comment-head b{font-size:12.5px;max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.social-comment-head span{font-size:10.5px;color:var(--faint)}
@@ -2621,7 +2621,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD='V9.0.7';
+const BUILD='V9.0.8';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -8465,6 +8465,27 @@ function recStatCore(){
    ═══════════════════════════════════════════════════════ */
 const SOCIAL_REPORT_REASONS=['개인정보 노출','비난·괴롭힘','광고·홍보','위험한 사용·도박 정보','기타'];
 let socialState={sort:'latest',items:[],loading:false,loaded:false,error:'',registering:false};
+const SOCIAL_FEED_CACHE_KEY='ohg.social.feed.v1';
+function socialFeedCacheLoad(sort){
+  try{
+    const p=SO.profile;if(!p)return [];
+    const raw=localStorage.getItem(SOCIAL_FEED_CACHE_KEY);if(!raw)return [];
+    const c=JSON.parse(raw);if(!c||String(c.userId)!==String(p.userId))return [];
+    const slot=c.bySort&&c.bySort[sort];return slot&&Array.isArray(slot.items)?slot.items:[];
+  }catch(_){return [];}
+}
+function socialFeedCacheSave(sort,items){
+  try{
+    const p=SO.profile;if(!p)return;
+    let c={userId:p.userId,bySort:{}};
+    const raw=localStorage.getItem(SOCIAL_FEED_CACHE_KEY);
+    if(raw){try{const old=JSON.parse(raw);if(old&&String(old.userId)===String(p.userId)&&old.bySort)c=old;}catch(_){} }
+    c.userId=p.userId;c.bySort=c.bySort||{};c.bySort[sort]={t:Date.now(),items:(Array.isArray(items)?items:[]).slice(0,60)};
+    localStorage.setItem(SOCIAL_FEED_CACHE_KEY,JSON.stringify(c));
+  }catch(_){}
+}
+function socialFeedCacheClear(){try{localStorage.removeItem(SOCIAL_FEED_CACHE_KEY);}catch(_){}}
+
 
 function socialEndpoint(){
   const c=S.res&&S.res.config;
@@ -8551,11 +8572,22 @@ function socialVisibleItems(){
 }
 async function socialRefresh(force,quiet){
   if(!SO.profile||socialState.loading) return;
-  if(!socialEndpoint()){ socialState.error=''; socialState.items=[]; socialState.loaded=true; drawSocial(); return; }
-  socialState.loading=true; if(!quiet) socialState.error=''; if(force&&!socialState.items.length) socialState.loaded=false; drawSocial();
-  try{ await socialRegister(); socialState.items=await socialReadFeed(); socialState.loaded=true; }
-  catch(e){ if(!quiet) socialState.error=socialApiMessage(e); socialState.loaded=true; }
-  finally{ socialState.loading=false; drawSocial(); }
+  const endpoint=socialEndpoint();
+  if(!endpoint){ socialState.error=''; socialState.items=[]; socialState.loaded=true; drawSocial(); return; }
+  if(!socialState.items.length){
+    const cached=socialFeedCacheLoad(socialState.sort);
+    if(cached.length){socialState.items=cached;socialState.loaded=true;socialState.cacheShown=true;drawSocial();}
+  }
+  socialState.loading=true;if(!quiet)socialState.error='';if(force&&!socialState.items.length)socialState.loaded=false;drawSocial();
+  try{
+    if(SO.profile&&SO.profile.registeredUrl===endpoint){
+      const pair=await Promise.all([socialRegister(),socialReadFeed()]);socialState.items=pair[1];
+    }else{
+      await socialRegister();socialState.items=await socialReadFeed();
+    }
+    socialState.loaded=true;socialState.cacheShown=false;socialFeedCacheSave(socialState.sort,socialState.items);
+  }catch(e){if(!quiet)socialState.error=socialApiMessage(e);socialState.loaded=true;}
+  finally{socialState.loading=false;drawSocial();}
 }
 function socialResetFeed(){ socialState.items=[]; socialState.loaded=false; socialState.error=''; }
 let socialGuideAutoUntil=0;
@@ -8593,7 +8625,7 @@ function drawSocial(){
     if(socialState.loaded){
       const rows=socialVisibleItems();
       html+=rows.length?'<div id="social-feed">'+rows.map(socialPostHtml).join('')+'</div>':'<div class="empty">아직 올라온 글이 없습니다.<br>첫 번째 오늘의 한 걸음을 남겨보세요.</div>';
-      if(socialState.loading) html+='<div class="social-status cen">새 글을 확인하는 중입니다.</div>';
+      if(socialState.loading) html+='<div class="social-status cen">'+(socialState.cacheShown?'마지막 글을 먼저 보여드렸습니다 · 새 글 확인 중':'새 글을 확인하는 중입니다.')+'</div>';
     }else if(socialState.loading) html+='<div class="empty">소셜 피드를 불러오는 중입니다.</div>';
     else html+='<div class="empty">피드를 불러올 준비를 하고 있습니다.</div>';
   }
@@ -8687,12 +8719,12 @@ function socialReport(x){
   $$('[data-social-report-reason]').forEach(b=>b.onclick=async()=>{const reason=SOCIAL_REPORT_REASONS[Number(b.dataset.socialReportReason)];try{await socialWrite('report',Object.assign({},socialAuth(),{postId:x.id,reason:reason}));if(!SO.hidden.includes(x.id))SO.hidden.push(x.id);socialSave();closeModal();drawSocial();toast('신고했습니다. 이 글을 숨겼습니다.');}catch(e){toast(socialApiMessage(e));}});
 }
 async function socialSupport(id){
-  const x=socialFind(id); if(!x||x.mine)return;
-  const was=!!x.supported,oldCount=Number(x.supportCount||0);x.supported=!was;x.supportCount=Math.max(0,oldCount+(x.supported?1:-1));drawSocial();
+  const x=socialFind(id);if(!x||x.mine)return;
+  const was=!!x.supported,oldCount=Number(x.supportCount||0);x.supported=!was;x.supportCount=Math.max(0,oldCount+(x.supported?1:-1));drawSocial();socialFeedCacheSave(socialState.sort,socialState.items);
   try{
     const r=await socialWrite('supportToggle',Object.assign({},socialAuth(),{postId:id}));
-    x.supported=!!r.supported; x.supportCount=Number(r.supportCount||0); drawSocial();
-  }catch(e){x.supported=was;x.supportCount=oldCount;drawSocial();toast(socialApiMessage(e));}
+    x.supported=!!r.supported;x.supportCount=Number(r.supportCount||0);drawSocial();socialFeedCacheSave(socialState.sort,socialState.items);
+  }catch(e){x.supported=was;x.supportCount=oldCount;drawSocial();socialFeedCacheSave(socialState.sort,socialState.items);toast(socialApiMessage(e));}
 }
 
 
@@ -12292,24 +12324,24 @@ function socialCommentVisible(){
 }
 function socialCommentHtml(c){
   const mine=!!c.mine||!!(SO.profile&&String(c.userId)===String(SO.profile.userId));
-  return '<div class="social-comment"><span class="social-avatar" style="width:30px;height:30px;font-size:12px">'+socialInitial(c.nickname)+'</span><div class="social-comment-main"><div class="social-comment-head"><b>'+esc(c.nickname||'익명')+'</b><span>'+esc(socialTime(c.createdAt))+'</span>'+(mine?'<span>· 내 댓글</span>':'')+'<button class="social-comment-more" type="button" data-social-comment-menu="'+esc(c.id)+'" aria-label="댓글 메뉴">'+socialSvg('more')+'</button></div><div class="social-comment-text">'+esc(c.text||'')+'</div></div></div>';
+  return '<div class="social-comment"><span class="social-avatar" style="width:30px;height:30px;font-size:12px">'+socialInitial(c.nickname)+'</span><div class="social-comment-main"><div class="social-comment-head"><b>'+esc(c.nickname||'익명')+'</b><span>'+esc(socialTime(c.createdAt))+'</span>'+(mine?'<span>· 내 댓글</span>':'')+(c.pending?'<span>· 보내는 중</span>':'')+'<button class="social-comment-more" type="button" data-social-comment-menu="'+esc(c.id)+'" aria-label="댓글 메뉴">'+socialSvg('more')+'</button></div><div class="social-comment-text">'+esc(c.text||'')+'</div></div></div>';
 }
 function socialCommentFind(id){return (socialCommentState.items||[]).find(x=>String(x.id)===String(id));}
 
 async function socialComments(postId){
-  const x=socialFind(postId); if(!x)return;
+  const x=socialFind(postId);if(!x)return;
   socialCommentState={postId:String(postId),items:[],loading:true,error:''};
-  modal('<h2>댓글</h2><div class="social-comments-post"><b>'+esc(x.nickname||'익명')+'</b><p>'+esc(x.text||'')+'</p></div><div id="social-comment-list"><div class="empty">댓글을 불러오는 중입니다.</div></div><div class="social-comment-compose"><textarea id="social-comment-text" maxlength="300" rows="3" placeholder="회복을 돕는 말을 남겨보세요."></textarea><div class="social-char" id="social-comment-char">0 / 300</div><button class="btn" id="social-comment-send">댓글 남기기</button><button class="btn ghost" onclick="closeModal()" style="margin-top:8px">닫기</button></div>');
-  const ta=$('#social-comment-text'), ch=$('#social-comment-char'); if(ta)ta.oninput=()=>ch.textContent=ta.value.length+' / 300';
-  const send=$('#social-comment-send'); if(send)send.onclick=()=>socialCommentSubmit(postId,String(ta&&ta.value||'').trim(),false);
-  await socialCommentsRefresh(postId);
+  modal('<h2>댓글</h2><div class="social-comments-post"><span class="social-comments-label">원글</span><b>'+esc(x.nickname||'익명')+'</b><p>'+esc(x.text||'')+'</p></div><div id="social-comment-list"><div class="empty">댓글을 불러오는 중입니다.</div></div><div class="social-comment-compose"><textarea id="social-comment-text" maxlength="300" rows="3" placeholder="회복을 돕는 말을 남겨보세요."></textarea><div class="social-char" id="social-comment-char">0 / 300</div><button class="btn" id="social-comment-send">댓글 남기기</button><button class="btn ghost" onclick="closeModal()" style="margin-top:8px">닫기</button></div>');
+  const ta=$('#social-comment-text'),ch=$('#social-comment-char');if(ta)ta.oninput=()=>ch.textContent=ta.value.length+' / 300';
+  const send=$('#social-comment-send');if(send){send.disabled=true;send.onclick=()=>socialCommentSubmit(postId,String(ta&&ta.value||'').trim(),false);}
+  await socialCommentsRefresh(postId);if(send)send.disabled=false;
 }
 async function socialCommentsRefresh(postId,quiet){
   try{
     const r=await socialWrite('commentList',Object.assign({},socialAuth(),{postId:postId}));
     socialCommentState.items=Array.isArray(r.items)?r.items:[]; socialCommentState.loading=false; socialCommentState.error='';
-    const x=socialFind(postId); if(x)x.commentCount=Number(r.commentCount||socialCommentState.items.length);
-    socialRenderComments(); drawSocial();
+    const x=socialFind(postId); if(x)x.commentCount=Number(r.commentCount!=null?r.commentCount:socialCommentState.items.length);
+    socialRenderComments(); drawSocial(); socialFeedCacheSave(socialState.sort,socialState.items);
   }catch(e){socialCommentState.loading=false;if(!quiet){socialCommentState.error=socialCommentApiMessage(e);socialRenderComments();}}
 }
 function socialRenderComments(){
@@ -12323,14 +12355,20 @@ async function socialCommentSubmit(postId,text,confirmed){
   if(socialCrisisText(text)&&!confirmed){
     modal('<h2>지금 안전이 먼저입니다</h2><div class="note b">댓글에 죽고 싶은 마음과 관련된 표현이 있습니다. 지금 당장 위험하다면 댓글의 답을 기다리지 말고 <b>109</b>, <b>112</b>, <b>119</b> 또는 가까운 응급의료기관에 바로 연결하세요.</div><a class="btn danger" href="tel:109">109 자살예방상담전화</a><button class="btn sec" id="social-comment-crisis-help" style="margin-top:8px">지금 위험해요 열기</button><button class="btn ghost" id="social-comment-crisis-send" style="margin-top:8px">그래도 댓글 남기기</button><button class="btn ghost" onclick="closeModal()" style="margin-top:8px">그만두기</button>');
     $('#social-comment-crisis-help').onclick=()=>{closeModal();go('panic');};
-    $('#social-comment-crisis-send').onclick=()=>socialCommentSubmit(postId,text,true); return;
+    $('#social-comment-crisis-send').onclick=()=>socialCommentSubmit(postId,text,true);return;
   }
+  const a=socialAuth(),x=socialFind(postId),oldCount=x?Number(x.commentCount||0):0,localId='local_'+Date.now();
+  const local={id:localId,postId:String(postId),userId:a.userId,nickname:(SO.profile&&SO.profile.nickname)||'익명',text:text,createdAt:Date.now(),updatedAt:Date.now(),mine:true,pending:true};
+  socialCommentState.items.push(local);if(x)x.commentCount=oldCount+1;
+  const ta=$('#social-comment-text'),ch=$('#social-comment-char'),send=$('#social-comment-send');if(ta)ta.value='';if(ch)ch.textContent='0 / 300';if(send){send.disabled=true;send.textContent='남기는 중…';}
+  socialCommentState.loading=false;socialCommentState.error='';socialRenderComments();drawSocial();socialFeedCacheSave(socialState.sort,socialState.items);
   try{
-    const a=socialAuth(),r=await socialWrite('commentCreate',Object.assign({},a,{postId:postId,text:text}));
-    const x=socialFind(postId); if(x)x.commentCount=Number(r.commentCount||Number(x.commentCount||0)+1);
-    socialCommentState.items.push({id:r.id||('local_'+Date.now()),postId:String(postId),userId:a.userId,nickname:(SO.profile&&SO.profile.nickname)||'익명',text:text,createdAt:Date.now(),updatedAt:Date.now(),mine:true});
-    socialCommentState.loading=false;socialCommentState.error='';const ta=$('#social-comment-text');if(ta)ta.value='';const ch=$('#social-comment-char');if(ch)ch.textContent='0 / 300';socialRenderComments();drawSocial();toast('댓글을 남겼습니다.');setTimeout(()=>socialCommentsRefresh(postId,true),250);
-  }catch(e){toast(socialCommentApiMessage(e));}
+    const r=await socialWrite('commentCreate',Object.assign({},a,{postId:postId,text:text}));
+    local.id=r.id||local.id;local.pending=false;if(x)x.commentCount=Number(r.commentCount!=null?r.commentCount:oldCount+1);
+    socialProfileState.data=null;if(send){send.disabled=false;send.textContent='댓글 남기기';}socialRenderComments();drawSocial();socialFeedCacheSave(socialState.sort,socialState.items);toast('댓글을 남겼습니다.');setTimeout(()=>socialCommentsRefresh(postId,true),250);
+  }catch(e){
+    socialCommentState.items=socialCommentState.items.filter(c=>c!==local&&String(c.id)!==localId);if(x)x.commentCount=oldCount;if(ta)ta.value=text;if(ch)ch.textContent=text.length+' / 300';if(send){send.disabled=false;send.textContent='댓글 남기기';}socialRenderComments();drawSocial();socialFeedCacheSave(socialState.sort,socialState.items);toast(socialCommentApiMessage(e));
+  }
 }
 function socialCommentMenu(id){
   const c=socialCommentFind(id); if(!c)return;
@@ -12344,7 +12382,7 @@ function socialCommentMenu(id){
 }
 async function socialCommentDelete(c){
   const postId=socialCommentState.postId;
-  try{const r=await socialWrite('commentDelete',Object.assign({},socialAuth(),{commentId:c.id}));const x=socialFind(postId);if(x)x.commentCount=Number(r.commentCount||Math.max(0,Number(x.commentCount||1)-1));toast('댓글을 삭제했습니다.');await socialComments(postId);}catch(e){toast(socialCommentApiMessage(e));}
+  try{const r=await socialWrite('commentDelete',Object.assign({},socialAuth(),{commentId:c.id}));const x=socialFind(postId);if(x)x.commentCount=Number(r.commentCount!=null?r.commentCount:Math.max(0,Number(x.commentCount||1)-1));socialProfileState.data=null;socialFeedCacheSave(socialState.sort,socialState.items);toast('댓글을 삭제했습니다.');await socialComments(postId);}catch(e){toast(socialCommentApiMessage(e));}
 }
 function socialCommentReport(c){
   const postId=socialCommentState.postId;
@@ -12404,7 +12442,7 @@ function socialProfileDeletePost(x){modal('<h2>이 게시물을 삭제할까요?
 function socialProfileDeleteComment(x){modal('<h2>이 댓글을 삭제할까요?</h2><p class="muted">삭제한 댓글은 되돌릴 수 없습니다.</p><button class="btn danger" id="social-profile-comment-delete-yes">댓글 삭제</button><button class="btn ghost" onclick="closeModal()" style="margin-top:8px">그만두기</button>');$('#social-profile-comment-delete-yes').onclick=async()=>{try{await socialWrite('commentDelete',Object.assign({},socialAuth(),{commentId:x.id}));closeModal();socialResetFeed();socialProfileState.data=null;toast('댓글을 삭제했습니다.');socialProfileLoad(true);}catch(e){toast(socialCommentApiMessage(e));}};}
 const socialSubmitPostV902=socialSubmitPost;
 socialSubmitPost=async function(text,post,confirmed){const fromProfile=cur==='social-profile',actual=!socialCrisisText(text)||confirmed;await socialSubmitPostV902(text,post,confirmed);if(fromProfile&&post&&actual){socialProfileState.data=null;setTimeout(()=>socialProfileLoad(true),180);}};
-socialProfileDeleteConfirm=function(){const p=SO.profile;if(!p)return;modal('<h2>소셜 탈퇴</h2><p class="muted">탈퇴하면 익명 프로필과 내가 작성한 공개 게시물·댓글·응원 관계가 삭제됩니다. 차단·숨김 목록도 이 기기에서 지워집니다.<br><br>사용하던 닉네임은 탈퇴 시점부터 <b>30일 동안 누구도 사용할 수 없으며</b>, 30일이 지난 뒤 다시 사용할 수 있습니다. <b>개인 회복기록은 삭제되지 않습니다.</b></p><button class="btn danger" id="social-leave-confirm">소셜 탈퇴</button><button class="btn ghost" onclick="closeModal()" style="margin-top:8px">취소</button>');$('#social-leave-confirm').onclick=async()=>{try{if(p.registeredUrl){if(!socialEndpoint()){toast('소셜 서버에 연결된 뒤 다시 탈퇴해주세요.');return;}await socialWrite('profileDelete',socialAuth());}SO=socialBlank();socialSave();socialResetFeed();socialProfileState={tab:'posts',loading:false,data:null,error:''};closeModal();go('social',{replace:true});toast('소셜에서 탈퇴했습니다. 닉네임은 30일 동안 보호됩니다.');}catch(e){toast(socialApiMessage(e));}};};
+socialProfileDeleteConfirm=function(){const p=SO.profile;if(!p)return;modal('<h2>소셜 탈퇴</h2><p class="muted">탈퇴하면 익명 프로필과 내가 작성한 공개 게시물·댓글·응원 관계가 삭제됩니다. 차단·숨김 목록도 이 기기에서 지워집니다.<br><br>사용하던 닉네임은 탈퇴 시점부터 <b>30일 동안 누구도 사용할 수 없으며</b>, 30일이 지난 뒤 다시 사용할 수 있습니다. <b>개인 회복기록은 삭제되지 않습니다.</b></p><button class="btn danger" id="social-leave-confirm">소셜 탈퇴</button><button class="btn ghost" onclick="closeModal()" style="margin-top:8px">취소</button>');$('#social-leave-confirm').onclick=async()=>{try{if(p.registeredUrl){if(!socialEndpoint()){toast('소셜 서버에 연결된 뒤 다시 탈퇴해주세요.');return;}await socialWrite('profileDelete',socialAuth());}SO=socialBlank();socialSave();socialFeedCacheClear();socialResetFeed();socialProfileState={tab:'posts',loading:false,data:null,error:''};closeModal();go('social',{replace:true});toast('소셜에서 탈퇴했습니다. 닉네임은 30일 동안 보호됩니다.');}catch(e){toast(socialApiMessage(e));}};};
 
 </script>
 </body>
