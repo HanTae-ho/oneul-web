@@ -5,9 +5,9 @@ const fail=m=>{throw new Error('VERIFY-MEANING: '+m)};
 const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
 let box={window:{}};vm.createContext(box);vm.runInContext(dataSrc,box);const md=box.window.MEANING_DATA;
-ok(md&&md.ver===2,'의미 돌아보기 데이터 버전');
+ok(md&&md.ver===3,'의미 돌아보기 데이터 버전');
 ok(Array.isArray(md.hard)&&md.hard.length===8,'오늘 아팠던 것 8개 칩');
-ok(Array.isArray(md.strength)&&md.strength.length>=3,'남아 있던 힘 선택지');
+ok(Array.isArray(md.strength)&&md.strength.length===8&&['hold','recoveryWill','hope','selfProtect','family','help','learning','restart'].every(k=>md.strength.some(x=>x.k===k)),'남아 있던 힘 8개 선택지·기존 키 보존');
 ok(Array.isArray(md.action)&&md.action.length===8&&md.action.every(x=>x.value),'선택·행동 8개와 가치 매핑');
 ok(md.values&&md.values.create==='창조'&&md.values.exp==='경험'&&md.values.att==='태도','창조·경험·태도 가치 매핑');
 ok(Array.isArray(md.lines)&&md.lines.length===22&&md.lines.every(x=>x.id&&x.text&&Array.isArray(x.scope)&&x.scope.length),'오늘의 문장 22개·scope 계약');
@@ -25,6 +25,8 @@ ok(index.includes('<script src="./meaning-data.js"></script>')&&index.includes('
 ok(sw.includes("'./meaning-data.js'")&&sw.includes("'./meaning-feature.js'"),'의미 파일 오프라인 캐시');
 
 ok(index.includes('id="p-meaning"')&&index.includes('id="tool-meaning"')&&index.includes('id="ni-meaning"'),'회복도구·하루마무리 두 진입점');
+ok(index.includes('id="mn-view-tabs"')&&index.includes('data-mn-view="today"')&&index.includes('data-mn-view="history"')&&index.includes('id="mn-view-history" class="hide"'),'의미 돌아보기 오늘·지난 기록 2탭');
+ok(/function setMeaningView\(v\)/.test(feature)&&/setMeaningView\('today'\)/.test(feature),'의미 돌아보기 기본 오늘 탭·탭 전환 로직');
 ok(index.includes('id="mn-hard"')&&index.includes('id="mn-strength"')&&index.includes('id="mn-action"')&&index.includes('id="mn-request"')&&index.includes('id="mn-lines"'),'의미 문항 구조 통일');
 ok(feature.includes('[0,1,2,3,4].forEach')&&!index.includes('id="mn-empty-r"'),'공허감 0~4 다섯 단계·슬라이더 없음');
 ok(index.includes('컷오프나 판정은 없습니다.'),'공허감 컷오프·판정 없음 안내');
@@ -43,4 +45,4 @@ ok(/st\[d\]=rec;save\(\)/.test(feature),'같은 날짜 키에 upsert 저장');
 ok(!/toISOString\(/.test(feature)&&/function wbToday\(\)\{return ymd\(new Date\(\)\);\}/.test(feature),'로컬 ymd 날짜 사용·UTC 날짜 변환 없음');
 ok(/hardNote/.test(feature)&&/strengthNote/.test(feature)&&/actionNote/.test(feature)&&/request/.test(feature),'직접입력은 별도 원문 필드로 저장');
 
-console.log('\nV9.0.11 의미 돌아보기 회귀검증 통과');
+console.log('\nV9.0.12 의미 돌아보기 회귀검증 통과');

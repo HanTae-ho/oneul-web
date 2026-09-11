@@ -1,8 +1,8 @@
-/* 오늘 한 걸음 V9.0.11 — 의미 돌아보기 기본 자료
+/* 오늘 한 걸음 V9.0.12 — 의미 돌아보기 기본 자료
    사람의 기록은 들어 있지 않습니다. 선택지와 문장 목록만 정의합니다.
    실제 기록은 index.html의 S.wbDays에 기기 로컬로만 저장됩니다. */
 window.MEANING_DATA = {
-  ver: 2,
+  ver: 3,
   hard: [
     {k:'lonely', l:'외로움'},
     {k:'anxious', l:'불안'},
@@ -15,8 +15,13 @@ window.MEANING_DATA = {
   ],
   strength: [
     {k:'hold', l:'버티기'},
+    {k:'recoveryWill', l:'회복하려는 마음'},
+    {k:'hope', l:'희망'},
+    {k:'selfProtect', l:'나를 지키려는 마음'},
     {k:'family', l:'가족'},
-    {k:'help', l:'도움요청'}
+    {k:'help', l:'도움받을 사람'},
+    {k:'learning', l:'회복에서 배운 것'},
+    {k:'restart', l:'다시 시작할 마음'}
   ],
   action: [
     {k:'promise', l:'약속 지킴', value:'create'},
