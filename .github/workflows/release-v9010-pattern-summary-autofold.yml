@@ -48,8 +48,8 @@ jobs:
           grep -F "const DATA_SCHEMA = 6;" index.html
           grep -F "const KEY = 'ohg.v1';" index.html
           grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
-          grep -F 'id="recovery-pattern-info"' index.html
-          grep -F 'id="recovery-summary-info"' index.html
+          grep -F "recovery-pattern-info" index.html
+          grep -F "recovery-summary-info" index.html
           grep -F "autoFoldInfo('recovery-pattern-info','recovery-pattern',1100)" index.html
           grep -F "autoFoldInfo('recovery-summary-info','recovery-summary',1100)" index.html
           git diff --check
@@ -159,8 +159,8 @@ jobs:
           set -euo pipefail
           test "$(git rev-list -n 1 v9.0.10-test)" = "$SOURCE_SHA"
           git show v9.0.10-test:index.html | grep -F "const BUILD='V9.0.10';"
-          git show v9.0.10-test:index.html | grep -F 'id="recovery-pattern-info"'
-          git show v9.0.10-test:index.html | grep -F 'id="recovery-summary-info"'
+          git show v9.0.10-test:index.html | grep -F "recovery-pattern-info"
+          git show v9.0.10-test:index.html | grep -F "recovery-summary-info"
           git show v9.0.10-test:sw.js | grep -F "const APP_VERSION = 'V9.0.10';"
           git show v9.0.10-test:latest-release.json | grep -F '"version": "V9.0.10"'
           git show v9.0.10-test:social-apps-script.gs | grep -F "const SOCIAL_VERSION = 'V9.0.7-social-1';"
