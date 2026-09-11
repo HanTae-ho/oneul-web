@@ -38,10 +38,11 @@ jobs:
           from pathlib import Path
           s=Path('index.html').read_text(encoding='utf-8')
           Path('/tmp/index-all.js').write_text('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)),encoding='utf-8')
+          Path('/tmp/social-apps-script.js').write_text(Path('social-apps-script.gs').read_text(encoding='utf-8'),encoding='utf-8')
           PY
           node --check /tmp/index-all.js
           node --check sw.js
-          node --check social-apps-script.gs
+          node --check /tmp/social-apps-script.js
           node verify.js
           EXPECTED_APP_VERSION=V9.0.8 node release-version-check.js
           grep -F "const DATA_SCHEMA = 6;" index.html
