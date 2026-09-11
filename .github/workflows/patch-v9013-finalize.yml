@@ -29,7 +29,7 @@ jobs:
           if s.count(old)!=1: raise SystemExit(f'index BUILD anchor count={s.count(old)}')
           p.write_text(s.replace(old,new,1),encoding='utf-8')
           p=Path('verify.js'); s=p.read_text(encoding='utf-8')
-          old="if(!index.includes(\"const BUILD='V9.0.12';\")) throw new Error('V9.0.12 BUILD 불일치');"
+          old="if(!index.includes(\"const BUILD='V9.0.12';\")) throw new Error('V9.0.11 BUILD 불일치');"
           new="if(!index.includes(\"const BUILD='V9.0.13';\")) throw new Error('V9.0.13 BUILD 불일치');"
           if s.count(old)!=1: raise SystemExit(f'verify BUILD anchor count={s.count(old)}')
           p.write_text(s.replace(old,new,1),encoding='utf-8')
