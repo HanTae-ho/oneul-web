@@ -75,3 +75,5 @@ jobs:
           git add index.html verify.js
           git commit -m 'Finalize V9.0.13 version references'
           git push origin HEAD:v9.0.13-meaning-urge-entry
+
+# validation rerun after regression assertion fix
