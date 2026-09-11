@@ -9,7 +9,7 @@ ok(md&&md.ver===3,'의미 돌아보기 데이터 버전');
 ok(Array.isArray(md.hard)&&md.hard.length===8,'오늘 아팠던 것 8개 칩');
 ok(Array.isArray(md.strength)&&md.strength.length===8&&['hold','recoveryWill','hope','selfProtect','family','help','learning','restart'].every(k=>md.strength.some(x=>x.k===k)),'남아 있던 힘 8개 선택지·기존 키 보존');
 ok(Array.isArray(md.action)&&md.action.length===8&&md.action.every(x=>x.value),'선택·행동 8개와 가치 매핑');
-ok(md.values&&md.values.create==='창조'&&md.values.exp==='경험'&&md.values.att==='태도','창조·경험·태도 가치 매핑');
+ok(md.values&&md.values.create==='기여·해냄'&&md.values.exp==='관계·경험'&&md.values.att==='태도·선택','사용자용 가치명: 기여·해냄·관계·경험·태도·선택');
 ok(Array.isArray(md.lines)&&md.lines.length===22&&md.lines.every(x=>x.id&&x.text&&Array.isArray(x.scope)&&x.scope.length),'오늘의 문장 22개·scope 계약');
 const common=md.lines.filter(x=>x.scope.includes('all'));
 ok(!common.some(x=>/(술|알코올|단주)/.test(x.text)),'공통 문장에 알코올 전용 표현 없음');
@@ -54,10 +54,11 @@ ok(/직접 적은 글은 분류하거나 점수화하지 않습니다/.test(feat
 ok(!/남긴 기록 ['"+]?\+?[^\n]{0,30}일/.test(index+feature)&&!/(지난 기록 모두 보기 ·|지난 기록 보기 ·)/.test(index+feature),'기록일수 전면 표시 없음');
 ok(!/streak|연속\s*\d+\s*일|Day\s*\d+/i.test(feature),'2단계 streak·Day 숫자 없음');
 ok(/getFullYear\(\)\+'년 '/.test(feature),'지난 기록 날짜에 연도 표시');
+ok(index.includes('.mn-day{display:block')&&index.includes('.mn-record-row{display:grid')&&feature.includes('mn-record-line')&&feature.includes('<div class=\"d\">'),'지난 기록 모바일: 날짜 상단·내용 전체폭·오늘의 문장 별도 블록');
 
 ok(/function meaningCollected\(\)/.test(feature)&&/if\(!x\.any\)/.test(feature),'빈 기록 저장 방지');
 ok(/st\[d\]=x\.rec;save\(\)/.test(feature),'같은 날짜 키에 upsert 저장');
 ok(!/toISOString\(/.test(feature)&&/function wbToday\(\)\{return ymd\(new Date\(\)\);\}/.test(feature),'로컬 ymd 날짜 사용·UTC 날짜 변환 없음');
 ok(/hardNote/.test(feature)&&/strengthNote/.test(feature)&&/actionNote/.test(feature)&&/request/.test(feature),'직접입력은 별도 원문 필드로 저장');
 
-console.log('\nV9.0.13 의미 돌아보기·기록 다시보기 회귀검증 통과');
+console.log('\nV9.0.14 의미 돌아보기·기록 다시보기 회귀검증 통과');
