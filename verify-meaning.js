@@ -40,7 +40,8 @@ ok(/function wbAllowedLines\(\)/.test(feature)&&/areas\.length===1/.test(feature
 
 ok(/function wbTodayUrges\(d\)/.test(feature)&&/Array\.isArray\(S\.urges\)/.test(feature)&&/ymd\(Number\(x\.t\)\)===d/.test(feature),'오늘 충동기록만 로컬 날짜 기준 참고 조회');
 ok(/오늘 기록된 충동/.test(feature)&&/참고용/.test(feature)&&/의미기록에 복사 저장하지 않습니다/.test(feature)&&/go\('urge-diary'\)/.test(feature),'의미 화면에서 오늘 충동 요약·충동일기 이동');
-ok(/const rec=\{hard:mnDraft\.hard\.slice\(\),strength:mnDraft\.strength\.slice\(\),action:mnDraft\.action\.slice\(\),ts:Date\.now\(\)\}/.test(feature)&&!/rec\.urges|urges:.*rec/.test(feature),'충동기록을 wbDays 의미기록에 중복 저장하지 않음');
+const collected=(feature.match(/function meaningCollected\(\)\{([\s\S]*?)return \{any:/)||[])[1]||'';
+ok(collected.includes("rec={hard:mnDraft.hard.slice(),strength:mnDraft.strength.slice(),action:mnDraft.action.slice(),ts:Date.now()}")&&!/rec\.urges|rec\.urge|urges\s*:|urge\s*:/.test(collected),'충동기록을 wbDays 의미기록에 중복 저장하지 않음');
 
 ok(/function showMeaningExistingChoice\(d,r\)/.test(feature)&&/기존 기록 수정하기/.test(feature)&&/처음부터 다시 작성/.test(feature),'오늘 기존 의미기록 진입 시 수정·처음부터 다시 작성 선택');
 ok(/mnReplaceExisting=true/.test(feature)&&/renderMeaningDraft\(d,null,true\)/.test(feature),'처음부터 다시 작성은 빈 초안으로 시작');
