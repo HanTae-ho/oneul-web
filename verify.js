@@ -31,6 +31,10 @@ ok(/social-comments-label/.test(index)&&/border:2px solid var\(--acc2\)/.test(in
 ok(/pending:true/.test(index)&&/남기는 중/.test(index)&&/socialProfileState\.data=null/.test(index),'댓글 optimistic UI 및 프로필 캐시 무효화');
 ok(/AUTH_CACHE_SECONDS\s*=\s*120/.test(read('social-apps-script.gs'))&&/FEED_TAIL_ROWS\s*=\s*400/.test(read('social-apps-script.gs'))&&/SUPPORT_CACHE_SECONDS\s*=\s*600/.test(read('social-apps-script.gs')),'소셜 서버 V9.0.7 캐시/끝행 최적화');
 ok(/function authCacheKey_\(/.test(read('social-apps-script.gs'))&&/function commentCounts_\(/.test(read('social-apps-script.gs'))&&/function profileActivity_\(b\)/.test(read('social-apps-script.gs')),'소셜 서버 인증·댓글수·프로필 캐시 경로');
+ok(/id="qa-general-info"/.test(index)&&/id="screening-general-info"/.test(index)&&/id="me-general-info"/.test(index)&&/id="family-general-info"/.test(index),'일반 안내 자동 폴딩 대상 4곳');
+ok(index.includes('function autoFoldInfo(')&&index.includes('function autoFoldInfoPage(')&&index.includes('ohg.infofold.'),'세션 최초 안내 자동 폴딩 로직');
+ok(index.includes('emptyChecked')&&index.includes('소셜 피드를 확인하는 중입니다.')&&index.includes('await new Promise(resolve=>setTimeout(resolve,1000));'),'소셜 첫 빈 응답 1초 재확인');
+ok(/id="p-help"[\s\S]*?<div class="note b"/.test(index)&&index.includes("const safety = x.urgent ? '<div class=\"note b\""),'응급·긴급 경고는 자동 폴딩하지 않음');
 ['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
   ok(index.includes('<script src="./'+f+'"></script>'),'index가 '+f+' 로드');
@@ -217,4 +221,4 @@ console.log('\n'+build+' 웹 회귀검증 통과');
 if(!index.includes("btn.textContent=show?'초심 접기':'초심 보기';")) throw new Error('V9.0.6 초심 보기 런타임 문구 누락');
 if(!index.includes('id=\"social-compose-safety\"')) throw new Error('V9.0.6 소셜 안전안내 폴딩 누락');
 if(!index.includes("socialRefresh(false,true)")) throw new Error('V9.0.6 소셜 백그라운드 동기화 누락');
-if(!index.includes("const BUILD='V9.0.8';")) throw new Error('V9.0.8 BUILD 불일치');
+if(!index.includes("const BUILD='V9.0.9';")) throw new Error('V9.0.8 BUILD 불일치');

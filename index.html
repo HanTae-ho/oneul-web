@@ -487,6 +487,14 @@ addEventListener('appinstalled', function(){
     font-size:13.5px;line-height:1.65;color:var(--acc)}
   .note.w{background:var(--warnbg);color:var(--warn)}
   .note.b{background:var(--badbg);color:var(--bad)}
+  /* 일반 안내는 처음 잠깐 보여주고 접습니다. 현재 위험을 알리는 경고에는 쓰지 않습니다. */
+  .info-fold{padding:0;overflow:hidden}
+  .info-fold summary{cursor:pointer;list-style:none;padding:11px 13px;font-weight:700;color:inherit;outline:none}
+  .info-fold summary::-webkit-details-marker{display:none}
+  .info-fold summary::after{content:'⌄';float:right;color:currentColor;opacity:.65;font-size:16px;line-height:1.2}
+  .info-fold[open] summary::after{content:'⌃'}
+  .info-fold-body{padding:0 13px 12px;line-height:1.65}
+  .info-fold:not([open]){background:var(--panel);color:var(--dim);border:1px solid var(--line)}
   .quote{background:var(--bg2);border-radius:13px;padding:15px 16px;
     font-size:15px;line-height:1.7;text-align:center;color:var(--tx)}
   .sep{height:1px;background:var(--line);margin:16px 0}
@@ -1865,7 +1873,7 @@ addEventListener('appinstalled', function(){
     <h1 style="margin:0">자가점검</h1>
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('tools')">← 회복도구</button>
   </div>
-  <div class="note w" style="margin-bottom:13px">자가점검은 진단이 아닙니다. 점수는 현재 상태를 살펴보고 상담이나 전문 평가가 필요한지 확인하는 참고자료입니다. 결과는 이 기기에만 저장됩니다.</div>
+  <details class="note w info-fold" id="screening-general-info" style="margin-bottom:13px"><summary>자가점검 안내</summary><div class="info-fold-body">자가점검은 진단이 아닙니다. 점수는 현재 상태를 살펴보고 상담이나 전문 평가가 필요한지 확인하는 참고자료입니다. 결과는 이 기기에만 저장됩니다.</div></details>
   <div id="screening-list"></div>
 </section>
 
@@ -1883,10 +1891,10 @@ addEventListener('appinstalled', function(){
     <h1 style="margin:0">중독 Q&A</h1>
     <button class="tiny" style="color:var(--acc);font-weight:600" id="qa-back">← 회복도구</button>
   </div>
-  <div class="note w" style="margin-bottom:12px">
-    일반적인 회복정보입니다. 개인의 진단과 치료를 대신하지 않습니다. 경련·환각·의식저하·호흡곤란 또는
-    급한 자해·자살·타해 위험이 있으면 Q&A보다 119·109·112 등 즉시 도움 연결이 먼저입니다.
-  </div>
+  <details class="note w info-fold" id="qa-general-info" style="margin-bottom:12px">
+    <summary>일반적인 회복정보 안내</summary>
+    <div class="info-fold-body">일반적인 회복정보입니다. 개인의 진단과 치료를 대신하지 않습니다. 경련·환각·의식저하·호흡곤란 또는 급한 자해·자살·타해 위험이 있으면 Q&A보다 119·109·112 등 즉시 도움 연결이 먼저입니다.</div>
+  </details>
   <div id="qa-list-view">
     <div class="qasearch">
       <input id="qa-search" type="search" placeholder="무엇이 궁금한가요? 예: 갈망, 재발, 도박 빚, 가족">
@@ -2426,10 +2434,10 @@ addEventListener('appinstalled', function(){
       <button class="btn ghost sm" id="me-wipe" style="color:var(--bad);border-color:var(--bad)">전체 지우기</button>
     </div>
   </div>
-<div class="note w" style="margin-top:16px">
-    이 앱은 치료를 대신하지 않습니다. 회복을 돕는 도구입니다.
-    필요할 때는 반드시 전문가와 연결되세요.
-  </div>
+<details class="note w info-fold" id="me-general-info" style="margin-top:16px">
+    <summary>앱 이용 안내</summary>
+    <div class="info-fold-body">이 앱은 치료를 대신하지 않습니다. 회복을 돕는 도구입니다. 필요할 때는 반드시 전문가와 연결되세요.</div>
+  </details>
   <p class="tiny cen" style="margin-top:14px" id="me-ver"></p>
 </section>
 
@@ -2621,7 +2629,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD='V9.0.8';
+const BUILD='V9.0.9';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 소셜의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 소셜 데이터는 포함되지 않습니다. */
@@ -3542,6 +3550,7 @@ function go(p,opt){
   if(p === 'panic')   drawPanic();
   if(p === 'fam')     drawFam();
   if(p === 'admin')   drawAdminPage();
+  autoFoldInfoPage(p);
 }
 window.addEventListener('popstate', e => {
   /* 같은 페이지 안의 '상세 화면'도 한 단계로 취급합니다. */
@@ -4043,9 +4052,9 @@ function drawFam(){
       '<div style="height:9px"></div>' +
       '<button class="btn ghost" id="fam-center">센터 찾아보기</button>';
   }
-  f += '<div class="note w" style="margin-top:16px">' +
+  f += '<details class="note w info-fold" id="family-general-info" style="margin-top:16px"><summary>가족 안내</summary><div class="info-fold-body">' +
     '여기 적힌 것은 일반적인 안내입니다. 사정은 집집마다 다르니, ' +
-    '결정이 필요한 일은 센터나 병원에서 상담을 받아보세요.</div>';
+    '결정이 필요한 일은 센터나 병원에서 상담을 받아보세요.</div></details>';
   $('#fam-foot').innerHTML = f;
 
   const m = $('#fam-meet');
@@ -8580,11 +8589,23 @@ async function socialRefresh(force,quiet){
   }
   socialState.loading=true;if(!quiet)socialState.error='';if(force&&!socialState.items.length)socialState.loaded=false;drawSocial();
   try{
+    let fresh=[];
     if(SO.profile&&SO.profile.registeredUrl===endpoint){
-      const pair=await Promise.all([socialRegister(),socialReadFeed()]);socialState.items=pair[1];
+      const pair=await Promise.all([socialRegister(),socialReadFeed()]);fresh=pair[1];
     }else{
-      await socialRegister();socialState.items=await socialReadFeed();
+      await socialRegister();fresh=await socialReadFeed();
     }
+    /* 첫 빈 응답은 바로 '글 없음'으로 단정하지 않습니다. 새 배포/콜드스타트 때
+       실제 글이 있는데 순간적으로 빈 결과가 보이는 것을 막기 위해 1초 뒤 한 번만 확인합니다. */
+    const emptyChecked=socialState.emptyChecked||(socialState.emptyChecked={});
+    if(!fresh.length&&!emptyChecked[socialState.sort]){
+      emptyChecked[socialState.sort]=true;
+      if(!socialState.items.length) socialState.loaded=false;
+      drawSocial();
+      await new Promise(resolve=>setTimeout(resolve,1000));
+      fresh=await socialReadFeed();
+    }
+    socialState.items=fresh;
     socialState.loaded=true;socialState.cacheShown=false;socialFeedCacheSave(socialState.sort,socialState.items);
   }catch(e){if(!quiet)socialState.error=socialApiMessage(e);socialState.loaded=true;}
   finally{socialState.loading=false;drawSocial();}
@@ -8604,6 +8625,22 @@ function socialGuideAutoOpen(){
 }
 function socialAutoFold(id,delay){
   setTimeout(()=>{const x=$('#'+id);if(x&&x.open)x.open=false;},Number(delay||2400));
+}
+
+/* 상시 일반 안내만 세션 최초 진입 때 잠깐 펼쳤다가 접습니다.
+   현재 위험·응급·상태경고는 이 함수의 대상에 넣지 않습니다. */
+function autoFoldInfo(id,key,delay){
+  const x=$('#'+id);if(!x)return;
+  let seen=false;
+  try{seen=sessionStorage.getItem('ohg.infofold.'+key)==='1';}catch(_){}
+  if(seen){x.open=false;return;}
+  x.open=true;
+  try{sessionStorage.setItem('ohg.infofold.'+key,'1');}catch(_){}
+  setTimeout(()=>{const y=$('#'+id);if(y&&y.open)y.open=false;},Number(delay||1100));
+}
+function autoFoldInfoPage(p){
+  const map={qa:['qa-general-info','qa'],screening:['screening-general-info','screening'],me:['me-general-info','me'],fam:['family-general-info','family']};
+  const v=map[p];if(v)autoFoldInfo(v[0],v[1],1100);
 }
 
 function drawSocial(){
@@ -8626,7 +8663,7 @@ function drawSocial(){
       const rows=socialVisibleItems();
       html+=rows.length?'<div id="social-feed">'+rows.map(socialPostHtml).join('')+'</div>':'<div class="empty">아직 올라온 글이 없습니다.<br>첫 번째 오늘의 한 걸음을 남겨보세요.</div>';
       if(socialState.loading) html+='<div class="social-status cen">'+(socialState.cacheShown?'마지막 글을 먼저 보여드렸습니다 · 새 글 확인 중':'새 글을 확인하는 중입니다.')+'</div>';
-    }else if(socialState.loading) html+='<div class="empty">소셜 피드를 불러오는 중입니다.</div>';
+    }else if(socialState.loading) html+='<div class="empty">소셜 피드를 확인하는 중입니다.</div>';
     else html+='<div class="empty">피드를 불러올 준비를 하고 있습니다.</div>';
   }
   body.innerHTML=html;
