@@ -1,0 +1,57 @@
+name: Apply V9.0.8 social patch cleanly
+
+on:
+  push:
+    branches: [v9.0.8-social-ui]
+    paths:
+      - '.github/workflows/patch-v908-social-clean.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v9.0.8-social-ui
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reuse reviewed patch payload
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          src=Path('.github/workflows/patch-v908-social.yml').read_text(encoding='utf-8')
+          def body(name):
+              marker='      - name: '+name+'\n'
+              i=src.index(marker)
+              r=src.index('        run: |\n',i)+len('        run: |\n')
+              n=src.find('\n      - name: ',r)
+              if n<0: n=len(src)
+              lines=src[r:n].splitlines()
+              return '\n'.join((x[10:] if x.startswith('          ') else x) for x in lines)+'\n'
+          b64=''
+          for line in src.splitlines():
+              if line.strip().startswith('SOCIAL_GZ_B64:'):
+                  b64=line.split(':',1)[1].strip();break
+          if not b64: raise SystemExit('embedded social GS payload not found')
+          Path('/tmp/social-gs.b64').write_text(b64,encoding='utf-8')
+          Path('/tmp/apply-v908.sh').write_text(body('Apply minimal social patch'),encoding='utf-8')
+          Path('/tmp/verify-v908.sh').write_text(body('Verify patched sources'),encoding='utf-8')
+          PY
+          export SOCIAL_GZ_B64="$(cat /tmp/social-gs.b64)"
+          bash /tmp/apply-v908.sh
+          bash /tmp/verify-v908.sh
+      - name: Commit verified app and server patch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html sw.js latest-release.json social-apps-script.gs verify.js
+          git diff --cached --check
+          git commit -m '[v908-social-patched] Improve social response and counters'
+          git push origin HEAD:v9.0.8-social-ui
