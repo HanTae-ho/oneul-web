@@ -11,6 +11,9 @@ on:
       - 'install.html'
       - 'native.html'
       - 'release-version-check.js'
+      - 'meaning-data.js'
+      - 'workbook-data.js'
+      - 'verify.js'
       - '.github/workflows/check-web-runtime.yml'
   pull_request:
     branches: [main]
@@ -22,6 +25,9 @@ on:
       - 'install.html'
       - 'native.html'
       - 'release-version-check.js'
+      - 'meaning-data.js'
+      - 'workbook-data.js'
+      - 'verify.js'
       - '.github/workflows/check-web-runtime.yml'
 
 jobs:
@@ -49,11 +55,16 @@ jobs:
           node --check sw.js
           node --check /tmp/social.js
           node --check release-version-check.js
+          node --check meaning-data.js
+          node --check workbook-data.js
+          node --check verify.js
       - name: Undefined-reference check
         run: |
           npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
       - name: Release version coherence
         run: node release-version-check.js
+      - name: Full regression invariants
+        run: node verify.js
       - name: Fixed invariants
         run: |
           grep -F "const DATA_SCHEMA = 6;" index.html
