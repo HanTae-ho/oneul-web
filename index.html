@@ -2554,7 +2554,7 @@ addEventListener('appinstalled', function(){
     <details class="faq"><summary>4. 회복도구 — 계획 · 배우기 · 실천 · 자가점검</summary><div class="faq-a">
       <p><b>내 계획</b> — 일정·알림에서 습관·생활·치료 일정을 관리합니다.</p>
       <p style="margin-top:8px"><b>배우기</b> — 회복학습, 중독 Q&amp;A, 듣는 글을 이용합니다. 회복학습에는 12단계와 SMART Recovery 등 앱에 정리된 학습 콘텐츠가 포함됩니다.</p>
-      <p style="margin-top:8px"><b>실천하기</b> — 12단계 점검, 회복 실천도구, 충동일기, 미래의 나에게 등을 사용합니다. 가족·보호자 모드에서는 가족을 위한 도구 중심으로 구성이 달라집니다.</p>
+      <p style="margin-top:8px"><b>실천하기</b> — 의미 돌아보기, 12단계 점검, 회복 실천도구, 충동일기, 미래의 나에게 등을 사용합니다. 가족·보호자 모드에서는 가족을 위한 도구 중심으로 구성이 달라집니다.</p>
       <p style="margin-top:8px"><b>자가점검</b> — 현재 상태를 선별도구로 살펴보고 저장된 결과의 변화를 확인합니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('tools')">회복도구 열기</button>
     </div></details>
@@ -4563,7 +4563,7 @@ $('#ni-save').onclick = () => {
       '<button class="btn" onclick="closeModal();famTab=\'self\';famI=0;go(\'fam\')">나를 돌보기 읽어보기</button>' +
       '<div style="height:9px"></div>' +
       '<button class="btn ghost" onclick="closeModal();go(\'home\')">닫기</button>');
-  } else if(night.kept === 0){
+  } else if(night.kept === 0 && niAfter !== 'meaning'){
     modal('<h2>오늘은 힘든 날이었군요</h2>' +
       '<p class="muted" style="margin:6px 0 14px">실수는 회복 과정의 일부입니다. ' +
       '당신은 실패한 사람이 아닙니다. 무슨 일이 있었는지 같이 살펴볼까요?</p>' +

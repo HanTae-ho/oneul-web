@@ -32,6 +32,7 @@ ok(index.includes('직접 적은 글은 앱이 자동 분류하거나 점수화�
 
 ok(/p==='meaning' && famMode\(\)/.test(index),'라우터 가족모드 직접 진입 차단');
 ok(/\$\('#ni-meaning'\)\.style\.display = fam \? 'none' : ''/.test(index),'가족모드 하루마무리 우회 버튼 숨김');
+ok(/night\.kept === 0 && niAfter !== 'meaning'/.test(index),'당사자가 의미 돌아보기를 선택하면 재발 안내보다 해당 진입을 우선');
 ok(/if\(famMode\(\)\)\{go\('tools',\{replace:true\}\);return;\}/.test(feature),'의미 화면 자체 가족모드 이중 차단');
 ok(/function wbAllowedLines\(\)/.test(feature)&&/areas\.length===1/.test(feature)&&/scopes\.includes\('all'\)/.test(feature),'단일영역 추가문장·복수영역 공통문장 필터');
 
