@@ -25,81 +25,55 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import re, json
+          import json
 
           p=Path('index.html')
           s=p.read_text(encoding='utf-8')
-
           def one(old,new,label):
               global s
               n=s.count(old)
-              if n!=1:
-                  raise SystemExit(f'{label}: expected 1 match, got {n}')
+              if n!=1: raise SystemExit(f'{label}: expected 1 match, got {n}')
               s=s.replace(old,new,1)
 
           one("const BUILD='V9.0.8';","const BUILD='V9.0.9';",'BUILD')
+          one("""  .note.b{background:var(--badbg);color:var(--bad)}\n  .quote{background:var(--bg2);border-radius:13px;padding:15px 16px;\n""","""  .note.b{background:var(--badbg);color:var(--bad)}\n  /* 일반 안내는 처음 잠깐 보여주고 접습니다. 현재 위험을 알리는 경고에는 쓰지 않습니다. */\n  .info-fold{padding:0;overflow:hidden}\n  .info-fold summary{cursor:pointer;list-style:none;padding:11px 13px;font-weight:700;color:inherit;outline:none}\n  .info-fold summary::-webkit-details-marker{display:none}\n  .info-fold summary::after{content:'⌄';float:right;color:currentColor;opacity:.65;font-size:16px;line-height:1.2}\n  .info-fold[open] summary::after{content:'⌃'}\n  .info-fold-body{padding:0 13px 12px;line-height:1.65}\n  .info-fold:not([open]){background:var(--panel);color:var(--dim);border:1px solid var(--line)}\n  .quote{background:var(--bg2);border-radius:13px;padding:15px 16px;\n""",'info-fold CSS')
 
-          css_old="""  .note.b{background:var(--badbg);color:var(--bad)}\n  .quote{background:var(--bg2);border-radius:13px;padding:15px 16px;\n"""
-          css_new="""  .note.b{background:var(--badbg);color:var(--bad)}\n  /* 일반 안내는 처음 잠깐 보여주고 접습니다. 현재 위험을 알리는 경고에는 쓰지 않습니다. */\n  .info-fold{padding:0;overflow:hidden}\n  .info-fold summary{cursor:pointer;list-style:none;padding:11px 13px;font-weight:700;color:inherit;outline:none}\n  .info-fold summary::-webkit-details-marker{display:none}\n  .info-fold summary::after{content:'⌄';float:right;color:currentColor;opacity:.65;font-size:16px;line-height:1.2}\n  .info-fold[open] summary::after{content:'⌃'}\n  .info-fold-body{padding:0 13px 12px;line-height:1.65}\n  .info-fold:not([open]){background:var(--panel);color:var(--dim);border:1px solid var(--line)}\n  .quote{background:var(--bg2);border-radius:13px;padding:15px 16px;\n"""
-          one(css_old,css_new,'info-fold CSS')
+          one("""  <div class=\"note w\" style=\"margin-bottom:12px\">\n    일반적인 회복정보입니다. 개인의 진단과 치료를 대신하지 않습니다. 경련·환각·의식저하·호흡곤란 또는\n    급한 자해·자살·타해 위험이 있으면 Q&A보다 119·109·112 등 즉시 도움 연결이 먼저입니다.\n  </div>\n""","""  <details class=\"note w info-fold\" id=\"qa-general-info\" style=\"margin-bottom:12px\">\n    <summary>일반적인 회복정보 안내</summary>\n    <div class=\"info-fold-body\">일반적인 회복정보입니다. 개인의 진단과 치료를 대신하지 않습니다. 경련·환각·의식저하·호흡곤란 또는 급한 자해·자살·타해 위험이 있으면 Q&A보다 119·109·112 등 즉시 도움 연결이 먼저입니다.</div>\n  </details>\n""",'Q&A notice')
 
-          qa_old="""  <div class=\"note w\" style=\"margin-bottom:12px\">\n    일반적인 회복정보입니다. 개인의 진단과 치료를 대신하지 않습니다. 경련·환각·의식저하·호흡곤란 또는\n    급한 자해·자살·타해 위험이 있으면 Q&A보다 119·109·112 등 즉시 도움 연결이 먼저입니다.\n  </div>\n"""
-          qa_new="""  <details class=\"note w info-fold\" id=\"qa-general-info\" style=\"margin-bottom:12px\">\n    <summary>일반적인 회복정보 안내</summary>\n    <div class=\"info-fold-body\">일반적인 회복정보입니다. 개인의 진단과 치료를 대신하지 않습니다. 경련·환각·의식저하·호흡곤란 또는 급한 자해·자살·타해 위험이 있으면 Q&A보다 119·109·112 등 즉시 도움 연결이 먼저입니다.</div>\n  </details>\n"""
-          one(qa_old,qa_new,'Q&A notice')
+          one('<div class="note w" style="margin-bottom:13px">자가점검은 진단이 아닙니다. 점수는 현재 상태를 살펴보고 상담이나 전문 평가가 필요한지 확인하는 참고자료입니다. 결과는 이 기기에만 저장됩니다.</div>','<details class="note w info-fold" id="screening-general-info" style="margin-bottom:13px"><summary>자가점검 안내</summary><div class="info-fold-body">자가점검은 진단이 아닙니다. 점수는 현재 상태를 살펴보고 상담이나 전문 평가가 필요한지 확인하는 참고자료입니다. 결과는 이 기기에만 저장됩니다.</div></details>','screening notice')
 
-          screening_old='<div class="note w" style="margin-bottom:13px">자가점검은 진단이 아닙니다. 점수는 현재 상태를 살펴보고 상담이나 전문 평가가 필요한지 확인하는 참고자료입니다. 결과는 이 기기에만 저장됩니다.</div>'
-          screening_new='<details class="note w info-fold" id="screening-general-info" style="margin-bottom:13px"><summary>자가점검 안내</summary><div class="info-fold-body">자가점검은 진단이 아닙니다. 점수는 현재 상태를 살펴보고 상담이나 전문 평가가 필요한지 확인하는 참고자료입니다. 결과는 이 기기에만 저장됩니다.</div></details>'
-          one(screening_old,screening_new,'screening notice')
+          one("""<div class=\"note w\" style=\"margin-top:16px\">\n    이 앱은 치료를 대신하지 않습니다. 회복을 돕는 도구입니다.\n    필요할 때는 반드시 전문가와 연결되세요.\n  </div>\n""","""<details class=\"note w info-fold\" id=\"me-general-info\" style=\"margin-top:16px\">\n    <summary>앱 이용 안내</summary>\n    <div class=\"info-fold-body\">이 앱은 치료를 대신하지 않습니다. 회복을 돕는 도구입니다. 필요할 때는 반드시 전문가와 연결되세요.</div>\n  </details>\n""",'me notice')
 
-          me_old="""<div class=\"note w\" style=\"margin-top:16px\">\n    이 앱은 치료를 대신하지 않습니다. 회복을 돕는 도구입니다.\n    필요할 때는 반드시 전문가와 연결되세요.\n  </div>\n"""
-          me_new="""<details class=\"note w info-fold\" id=\"me-general-info\" style=\"margin-top:16px\">\n    <summary>앱 이용 안내</summary>\n    <div class=\"info-fold-body\">이 앱은 치료를 대신하지 않습니다. 회복을 돕는 도구입니다. 필요할 때는 반드시 전문가와 연결되세요.</div>\n  </details>\n"""
-          one(me_old,me_new,'me notice')
+          one("""  f += '<div class=\"note w\" style=\"margin-top:16px\">' +\n    '여기 적힌 것은 일반적인 안내입니다. 사정은 집집마다 다르니, ' +\n    '결정이 필요한 일은 센터나 병원에서 상담을 받아보세요.</div>';\n""","""  f += '<details class=\"note w info-fold\" id=\"family-general-info\" style=\"margin-top:16px\"><summary>가족 안내</summary><div class=\"info-fold-body\">' +\n    '여기 적힌 것은 일반적인 안내입니다. 사정은 집집마다 다르니, ' +\n    '결정이 필요한 일은 센터나 병원에서 상담을 받아보세요.</div></details>';\n""",'family notice')
 
-          fam_old="""  f += '<div class=\"note w\" style=\"margin-top:16px\">' +\n    '여기 적힌 것은 일반적인 안내입니다. 사정은 집집마다 다르니, ' +\n    '결정이 필요한 일은 센터나 병원에서 상담을 받아보세요.</div>';\n"""
-          fam_new="""  f += '<details class=\"note w info-fold\" id=\"family-general-info\" style=\"margin-top:16px\"><summary>가족 안내</summary><div class=\"info-fold-body\">' +\n    '여기 적힌 것은 일반적인 안내입니다. 사정은 집집마다 다르니, ' +\n    '결정이 필요한 일은 센터나 병원에서 상담을 받아보세요.</div></details>';\n"""
-          one(fam_old,fam_new,'family notice')
-
-          social_old="""async function socialRefresh(force,quiet){\n  if(!SO.profile||socialState.loading) return;\n  const endpoint=socialEndpoint();\n  if(!endpoint){ socialState.error=''; socialState.items=[]; socialState.loaded=true; drawSocial(); return; }\n  if(!socialState.items.length){\n    const cached=socialFeedCacheLoad(socialState.sort);\n    if(cached.length){socialState.items=cached;socialState.loaded=true;socialState.cacheShown=true;drawSocial();}\n  }\n  socialState.loading=true;if(!quiet)socialState.error='';if(force&&!socialState.items.length)socialState.loaded=false;drawSocial();\n  try{\n    if(SO.profile&&SO.profile.registeredUrl===endpoint){\n      const pair=await Promise.all([socialRegister(),socialReadFeed()]);socialState.items=pair[1];\n    }else{\n      await socialRegister();socialState.items=await socialReadFeed();\n    }\n    socialState.loaded=true;socialState.cacheShown=false;socialFeedCacheSave(socialState.sort,socialState.items);\n  }catch(e){if(!quiet)socialState.error=socialApiMessage(e);socialState.loaded=true;}\n  finally{socialState.loading=false;drawSocial();}\n}\n"""
-          social_new="""async function socialRefresh(force,quiet){\n  if(!SO.profile||socialState.loading) return;\n  const endpoint=socialEndpoint();\n  if(!endpoint){ socialState.error=''; socialState.items=[]; socialState.loaded=true; drawSocial(); return; }\n  if(!socialState.items.length){\n    const cached=socialFeedCacheLoad(socialState.sort);\n    if(cached.length){socialState.items=cached;socialState.loaded=true;socialState.cacheShown=true;drawSocial();}\n  }\n  socialState.loading=true;if(!quiet)socialState.error='';if(force&&!socialState.items.length)socialState.loaded=false;drawSocial();\n  try{\n    let fresh=[];\n    if(SO.profile&&SO.profile.registeredUrl===endpoint){\n      const pair=await Promise.all([socialRegister(),socialReadFeed()]);fresh=pair[1];\n    }else{\n      await socialRegister();fresh=await socialReadFeed();\n    }\n    /* 첫 빈 응답은 바로 '글 없음'으로 단정하지 않습니다. 새 배포/콜드스타트 때\n       실제 글이 있는데 순간적으로 빈 결과가 보이는 것을 막기 위해 1초 뒤 한 번만 확인합니다. */\n    const emptyChecked=socialState.emptyChecked||(socialState.emptyChecked={});\n    if(!fresh.length&&!emptyChecked[socialState.sort]){\n      emptyChecked[socialState.sort]=true;\n      if(!socialState.items.length) socialState.loaded=false;\n      drawSocial();\n      await new Promise(resolve=>setTimeout(resolve,1000));\n      fresh=await socialReadFeed();\n    }\n    socialState.items=fresh;\n    socialState.loaded=true;socialState.cacheShown=false;socialFeedCacheSave(socialState.sort,socialState.items);\n  }catch(e){if(!quiet)socialState.error=socialApiMessage(e);socialState.loaded=true;}\n  finally{socialState.loading=false;drawSocial();}\n}\n"""
-          one(social_old,social_new,'social empty timing')
+          one("""async function socialRefresh(force,quiet){\n  if(!SO.profile||socialState.loading) return;\n  const endpoint=socialEndpoint();\n  if(!endpoint){ socialState.error=''; socialState.items=[]; socialState.loaded=true; drawSocial(); return; }\n  if(!socialState.items.length){\n    const cached=socialFeedCacheLoad(socialState.sort);\n    if(cached.length){socialState.items=cached;socialState.loaded=true;socialState.cacheShown=true;drawSocial();}\n  }\n  socialState.loading=true;if(!quiet)socialState.error='';if(force&&!socialState.items.length)socialState.loaded=false;drawSocial();\n  try{\n    if(SO.profile&&SO.profile.registeredUrl===endpoint){\n      const pair=await Promise.all([socialRegister(),socialReadFeed()]);socialState.items=pair[1];\n    }else{\n      await socialRegister();socialState.items=await socialReadFeed();\n    }\n    socialState.loaded=true;socialState.cacheShown=false;socialFeedCacheSave(socialState.sort,socialState.items);\n  }catch(e){if(!quiet)socialState.error=socialApiMessage(e);socialState.loaded=true;}\n  finally{socialState.loading=false;drawSocial();}\n}\n""","""async function socialRefresh(force,quiet){\n  if(!SO.profile||socialState.loading) return;\n  const endpoint=socialEndpoint();\n  if(!endpoint){ socialState.error=''; socialState.items=[]; socialState.loaded=true; drawSocial(); return; }\n  if(!socialState.items.length){\n    const cached=socialFeedCacheLoad(socialState.sort);\n    if(cached.length){socialState.items=cached;socialState.loaded=true;socialState.cacheShown=true;drawSocial();}\n  }\n  socialState.loading=true;if(!quiet)socialState.error='';if(force&&!socialState.items.length)socialState.loaded=false;drawSocial();\n  try{\n    let fresh=[];\n    if(SO.profile&&SO.profile.registeredUrl===endpoint){\n      const pair=await Promise.all([socialRegister(),socialReadFeed()]);fresh=pair[1];\n    }else{\n      await socialRegister();fresh=await socialReadFeed();\n    }\n    /* 첫 빈 응답은 바로 '글 없음'으로 단정하지 않습니다. 새 배포/콜드스타트 때\n       실제 글이 있는데 순간적으로 빈 결과가 보이는 것을 막기 위해 1초 뒤 한 번만 확인합니다. */\n    const emptyChecked=socialState.emptyChecked||(socialState.emptyChecked={});\n    if(!fresh.length&&!emptyChecked[socialState.sort]){\n      emptyChecked[socialState.sort]=true;\n      if(!socialState.items.length) socialState.loaded=false;\n      drawSocial();\n      await new Promise(resolve=>setTimeout(resolve,1000));\n      fresh=await socialReadFeed();\n    }\n    socialState.items=fresh;\n    socialState.loaded=true;socialState.cacheShown=false;socialFeedCacheSave(socialState.sort,socialState.items);\n  }catch(e){if(!quiet)socialState.error=socialApiMessage(e);socialState.loaded=true;}\n  finally{socialState.loading=false;drawSocial();}\n}\n""",'social empty timing')
 
           one("else if(socialState.loading) html+='<div class=\"empty\">소셜 피드를 불러오는 중입니다.</div>';","else if(socialState.loading) html+='<div class=\"empty\">소셜 피드를 확인하는 중입니다.</div>';",'social loading wording')
 
-          dispatch_old="""  if(p === 'panic')   drawPanic();\n  if(p === 'fam')     drawFam();\n  if(p === 'admin')   drawAdminPage();\n}\n"""
-          dispatch_new="""  if(p === 'panic')   drawPanic();\n  if(p === 'fam')     drawFam();\n  if(p === 'admin')   drawAdminPage();\n  autoFoldInfoPage(p);\n}\n"""
-          one(dispatch_old,dispatch_new,'go auto-fold dispatch')
+          one("""  if(p === 'panic')   drawPanic();\n  if(p === 'fam')     drawFam();\n  if(p === 'admin')   drawAdminPage();\n}\n""","""  if(p === 'panic')   drawPanic();\n  if(p === 'fam')     drawFam();\n  if(p === 'admin')   drawAdminPage();\n  autoFoldInfoPage(p);\n}\n""",'go auto-fold dispatch')
 
-          helper_anchor="""function socialAutoFold(id,delay){\n  setTimeout(()=>{const x=$('#'+id);if(x&&x.open)x.open=false;},Number(delay||2400));\n}\n\n"""
-          helper_new=helper_anchor+"""/* 상시 일반 안내만 세션 최초 진입 때 잠깐 펼쳤다가 접습니다.\n   현재 위험·응급·상태경고는 이 함수의 대상에 넣지 않습니다. */\nfunction autoFoldInfo(id,key,delay){\n  const x=$('#'+id);if(!x)return;\n  let seen=false;\n  try{seen=sessionStorage.getItem('ohg.infofold.'+key)==='1';}catch(_){}\n  if(seen){x.open=false;return;}\n  x.open=true;\n  try{sessionStorage.setItem('ohg.infofold.'+key,'1');}catch(_){}\n  setTimeout(()=>{const y=$('#'+id);if(y&&y.open)y.open=false;},Number(delay||1100));\n}\nfunction autoFoldInfoPage(p){\n  const map={\n    qa:['qa-general-info','qa'],\n    screening:['screening-general-info','screening'],\n    me:['me-general-info','me'],\n    fam:['family-general-info','family']\n  };\n  const v=map[p];if(v)autoFoldInfo(v[0],v[1],1100);\n}\n\n"""
-          one(helper_anchor,helper_new,'auto-fold helper')
-
+          anchor="""function socialAutoFold(id,delay){\n  setTimeout(()=>{const x=$('#'+id);if(x&&x.open)x.open=false;},Number(delay||2400));\n}\n\n"""
+          one(anchor,anchor+"""/* 상시 일반 안내만 세션 최초 진입 때 잠깐 펼쳤다가 접습니다.\n   현재 위험·응급·상태경고는 이 함수의 대상에 넣지 않습니다. */\nfunction autoFoldInfo(id,key,delay){\n  const x=$('#'+id);if(!x)return;\n  let seen=false;\n  try{seen=sessionStorage.getItem('ohg.infofold.'+key)==='1';}catch(_){}\n  if(seen){x.open=false;return;}\n  x.open=true;\n  try{sessionStorage.setItem('ohg.infofold.'+key,'1');}catch(_){}\n  setTimeout(()=>{const y=$('#'+id);if(y&&y.open)y.open=false;},Number(delay||1100));\n}\nfunction autoFoldInfoPage(p){\n  const map={qa:['qa-general-info','qa'],screening:['screening-general-info','screening'],me:['me-general-info','me'],fam:['family-general-info','family']};\n  const v=map[p];if(v)autoFoldInfo(v[0],v[1],1100);\n}\n\n""",'auto-fold helper')
           p.write_text(s,encoding='utf-8')
 
-          sw=Path('sw.js')
-          t=sw.read_text(encoding='utf-8')
+          sw=Path('sw.js');t=sw.read_text(encoding='utf-8')
           if t.count("const APP_VERSION = 'V9.0.8';")!=1: raise SystemExit('sw APP_VERSION match')
           t=t.replace("const APP_VERSION = 'V9.0.8';","const APP_VERSION = 'V9.0.9';",1)
           if t.count("const V = 'ohg-v908-social-ui-r1';")!=1: raise SystemExit('sw cache match')
           t=t.replace("const V = 'ohg-v908-social-ui-r1';","const V = 'ohg-v909-info-autofold-r1';",1)
           sw.write_text(t,encoding='utf-8')
 
-          rel=Path('latest-release.json')
-          j=json.loads(rel.read_text(encoding='utf-8'))
+          rel=Path('latest-release.json');j=json.loads(rel.read_text(encoding='utf-8'))
           if j.get('version')!='V9.0.8' or j.get('versionCode')!=903: raise SystemExit('latest-release baseline mismatch')
-          j['version']='V9.0.9';j['versionCode']=904
-          j['apk']='https://github.com/HanTae-ho/oneul-web/releases/download/v9.0.9-test/oneul-v9.0.9.apk'
-          j['release']='https://github.com/HanTae-ho/oneul-web/releases/tag/v9.0.9-test'
+          j.update(version='V9.0.9',versionCode=904,apk='https://github.com/HanTae-ho/oneul-web/releases/download/v9.0.9-test/oneul-v9.0.9.apk',release='https://github.com/HanTae-ho/oneul-web/releases/tag/v9.0.9-test')
           rel.write_text(json.dumps(j,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 
-          v=Path('verify.js')
-          z=v.read_text(encoding='utf-8')
+          v=Path('verify.js');z=v.read_text(encoding='utf-8')
           if "const BUILD='V9.0.8';" not in z: raise SystemExit('verify BUILD baseline missing')
           z=z.replace("const BUILD='V9.0.8';","const BUILD='V9.0.9';",1)
-          insert="""\nok(/id=\\\"qa-general-info\\\"/.test(index)&&/id=\\\"screening-general-info\\\"/.test(index)&&/id=\\\"me-general-info\\\"/.test(index)&&/id=\\\"family-general-info\\\"/.test(index),'일반 안내 자동 폴딩 대상 4곳');\nok(/function autoFoldInfo\\(/.test(index)&&/function autoFoldInfoPage\\(/.test(index)&&/ohg\\.infofold\\./.test(index),'세션 최초 안내 자동 폴딩 로직');\nok(/emptyChecked/.test(index)&&/setTimeout\\(resolve=>setTimeout/.test('')===false,'placeholder');\n"""
-          # 마지막 검사는 실제 코드 문자열 존재만 확인하도록 별도 추가
           marker="ok(/function authCacheKey_\\(/.test(read('social-apps-script.gs'))&&/function commentCounts_\\(/.test(read('social-apps-script.gs'))&&/function profileActivity_\\(b\\)/.test(read('social-apps-script.gs')),'소셜 서버 인증·댓글수·프로필 캐시 경로');"
           if marker not in z: raise SystemExit('verify marker missing')
-          add="""\nok(/id=\\\"qa-general-info\\\"/.test(index)&&/id=\\\"screening-general-info\\\"/.test(index)&&/id=\\\"me-general-info\\\"/.test(index)&&/id=\\\"family-general-info\\\"/.test(index),'일반 안내 자동 폴딩 대상 4곳');\nok(/function autoFoldInfo\\(/.test(index)&&/function autoFoldInfoPage\\(/.test(index)&&/ohg\\.infofold\\./.test(index),'세션 최초 안내 자동 폴딩 로직');\nok(/emptyChecked/.test(index)&&/소셜 피드를 확인하는 중입니다/.test(index)&&/setTimeout\\(resolve=>setTimeout\\(resolve,1000\\)\\)/.test(index),'소셜 첫 빈 응답 1초 재확인');\nok(/id=\\\"p-help\\\"[\\s\\S]*?<div class=\\\"note b\\\"/.test(index)&&/const safety = x\\.urgent \\? '<div class=\\\"note b\\\"/.test(index),'응급·긴급 경고는 자동 폴딩하지 않음');"""
+          add="""\nok(/id=\"qa-general-info\"/.test(index)&&/id=\"screening-general-info\"/.test(index)&&/id=\"me-general-info\"/.test(index)&&/id=\"family-general-info\"/.test(index),'일반 안내 자동 폴딩 대상 4곳');\nok(index.includes('function autoFoldInfo(')&&index.includes('function autoFoldInfoPage(')&&index.includes('ohg.infofold.'),'세션 최초 안내 자동 폴딩 로직');\nok(index.includes('emptyChecked')&&index.includes('소셜 피드를 확인하는 중입니다.')&&index.includes('await new Promise(resolve=>setTimeout(resolve,1000));'),'소셜 첫 빈 응답 1초 재확인');\nok(/id=\"p-help\"[\\s\\S]*?<div class=\"note b\"/.test(index)&&index.includes("const safety = x.urgent ? '<div class=\\\"note b\\\""),'응급·긴급 경고는 자동 폴딩하지 않음');"""
           z=z.replace(marker,marker+add,1)
           v.write_text(z,encoding='utf-8')
           PY
