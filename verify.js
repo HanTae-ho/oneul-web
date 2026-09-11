@@ -34,6 +34,8 @@ ok(/function authCacheKey_\(/.test(read('social-apps-script.gs'))&&/function com
 ok(/id="qa-general-info"/.test(index)&&/id="screening-general-info"/.test(index)&&/id="me-general-info"/.test(index)&&/id="family-general-info"/.test(index),'일반 안내 자동 폴딩 대상 4곳');
 ok(index.includes('function autoFoldInfo(')&&index.includes('function autoFoldInfoPage(')&&index.includes('ohg.infofold.'),'세션 최초 안내 자동 폴딩 로직');
 ok(index.includes('emptyChecked')&&index.includes('소셜 피드를 확인하는 중입니다.')&&index.includes('await new Promise(resolve=>setTimeout(resolve,1000));'),'소셜 첫 빈 응답 1초 재확인');
+ok(index.includes('recovery-pattern-info')&&index.includes("autoFoldInfo('recovery-pattern-info','recovery-pattern',1100)"),'내 회복패턴 안내 자동 폴딩');
+ok(index.includes('recovery-summary-info')&&index.includes("autoFoldInfo('recovery-summary-info','recovery-summary',1100)"),'내 회복요약 안내 자동 폴딩');
 ok(/id="p-help"[\s\S]*?<div class="note b"/.test(index)&&index.includes("const safety = x.urgent ? '<div class=\"note b\""),'응급·긴급 경고는 자동 폴딩하지 않음');
 ['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
@@ -221,4 +223,4 @@ console.log('\n'+build+' 웹 회귀검증 통과');
 if(!index.includes("btn.textContent=show?'초심 접기':'초심 보기';")) throw new Error('V9.0.6 초심 보기 런타임 문구 누락');
 if(!index.includes('id=\"social-compose-safety\"')) throw new Error('V9.0.6 소셜 안전안내 폴딩 누락');
 if(!index.includes("socialRefresh(false,true)")) throw new Error('V9.0.6 소셜 백그라운드 동기화 누락');
-if(!index.includes("const BUILD='V9.0.9';")) throw new Error('V9.0.8 BUILD 불일치');
+if(!index.includes("const BUILD='V9.0.10';")) throw new Error('V9.0.8 BUILD 불일치');
