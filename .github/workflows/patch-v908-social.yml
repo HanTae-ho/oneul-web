@@ -41,8 +41,14 @@ jobs:
               if line.strip().startswith('SOCIAL_GZ_B64:'):
                   b64=line.split(':',1)[1].strip();break
           if not b64: raise SystemExit('embedded social GS payload not found')
+          apply=body('Apply minimal social patch')
+          for name in ['socialRefresh','socialSupport','socialComments','socialCommentSubmit','socialCommentDelete']:
+              old="s=replace_func(s,'"+name+"',\"\"\"async function "+name
+              new="s=replace_func(s,'"+name+"',\"\"\"function "+name
+              if old not in apply: raise SystemExit('async patch target missing: '+name)
+              apply=apply.replace(old,new,1)
           Path('/tmp/social-gs.b64').write_text(b64,encoding='utf-8')
-          Path('/tmp/apply-v908.sh').write_text(body('Apply minimal social patch'),encoding='utf-8')
+          Path('/tmp/apply-v908.sh').write_text(apply,encoding='utf-8')
           Path('/tmp/verify-v908.sh').write_text(body('Verify patched sources'),encoding='utf-8')
           PY
           export SOCIAL_GZ_B64="$(cat /tmp/social-gs.b64)"
