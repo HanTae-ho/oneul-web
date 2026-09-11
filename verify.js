@@ -26,6 +26,11 @@ ok(!/social-profile-fixed><b>닉네임은 가입 후 고정됩니다/.test(index
 ok(!/card social-profile-danger/.test(index),'프로필 본문 큰 탈퇴 카드 제거');
 ok(/NICK_REUSE_COOLDOWN_MS\s*=\s*30 \* 24 \* 60 \* 60 \* 1000/.test(read('social-apps-script.gs')),'탈퇴 닉네임 30일 보호');
 ok(/NICK_COOLDOWN/.test(index)&&/NICK_COOLDOWN/.test(read('social-apps-script.gs')),'앱·서버 닉네임 보호 오류 계약 일치');
+ok(/SOCIAL_FEED_CACHE_KEY='ohg\.social\.feed\.v1'/.test(index)&&/function socialFeedCacheLoad\(sort\)/.test(index)&&/function socialFeedCacheSave\(sort,items\)/.test(index),'소셜 피드 기기 캐시 선표시');
+ok(/social-comments-label/.test(index)&&/border:2px solid var\(--acc2\)/.test(index),'댓글 화면 원글 시각 구분');
+ok(/pending:true/.test(index)&&/남기는 중/.test(index)&&/socialProfileState\.data=null/.test(index),'댓글 optimistic UI 및 프로필 캐시 무효화');
+ok(/AUTH_CACHE_SECONDS\s*=\s*120/.test(read('social-apps-script.gs'))&&/FEED_TAIL_ROWS\s*=\s*400/.test(read('social-apps-script.gs'))&&/SUPPORT_CACHE_SECONDS\s*=\s*600/.test(read('social-apps-script.gs')),'소셜 서버 V9.0.7 캐시/끝행 최적화');
+ok(/function authCacheKey_\(/.test(read('social-apps-script.gs'))&&/function commentCounts_\(/.test(read('social-apps-script.gs'))&&/function profileActivity_\(b\)/.test(read('social-apps-script.gs')),'소셜 서버 인증·댓글수·프로필 캐시 경로');
 ['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
   ok(index.includes('<script src="./'+f+'"></script>'),'index가 '+f+' 로드');
@@ -212,4 +217,4 @@ console.log('\n'+build+' 웹 회귀검증 통과');
 if(!index.includes("btn.textContent=show?'초심 접기':'초심 보기';")) throw new Error('V9.0.6 초심 보기 런타임 문구 누락');
 if(!index.includes('id=\"social-compose-safety\"')) throw new Error('V9.0.6 소셜 안전안내 폴딩 누락');
 if(!index.includes("socialRefresh(false,true)")) throw new Error('V9.0.6 소셜 백그라운드 동기화 누락');
-if(!index.includes("const BUILD='V9.0.7';")) throw new Error('V9.0.6 BUILD 불일치');
+if(!index.includes("const BUILD='V9.0.8';")) throw new Error('V9.0.8 BUILD 불일치');
