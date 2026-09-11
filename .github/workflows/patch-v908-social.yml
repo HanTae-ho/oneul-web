@@ -12,7 +12,6 @@ permissions:
 
 jobs:
   patch:
-    if: ${{ !contains(github.event.head_commit.message, '[v908-social-patched]') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,193 +21,39 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply minimal social patch
-        env:
-          SOCIAL_GZ_B64: H4sIAG9Go2oC/919a3cUR5bgd35F0mcPWWmlSg8wjVUuM7IQttYgsZJwt1ut0SlJCSojVWnqIWCQ5ggQXtnIY2iQEbZEy2PZgEfekUEGsUNPn+Of4o/KrP+w9954ZERm1EOA1+ul3ZCVGXEj4saN+4obN1pe22e9ZgUrG/4nK1ZledXa/WEnWFuy3n8j2Zr8vfXz/G0r+GgpuLZqBesLwRcPrc7p6aI1MFbITpeo5sKq/2ihsnSjg1dpLubHspnJ5jb4igX87x4G65fxqdkK7t0IvrwRXF+tfLLz09PdrdVgbceqfLHkP/5xd2fL/2otkZ84m5xpc3YfP7eCuwvQZOXeouU/WfC/3cTOBWs/+t9di/SIdSG4d82/vuhf30jyttbng3vfWP7SfHD1coeo6V/Z9p/MWz3HXMu//rG/sBHcW3Ct3UdL0KndnXl4u3SL/g3WbkJX4d/r67uP1znM3a0bwfryT0+DJw/9z+7+9PTdzhODPz2FNqE2lFwN7t2En49/DJb/BoXu3djdmg/Wb+w+mrf8Wz9YhvEGa/Bp68vg/rwVLH8SfPJjOASG3I3g2Qo+tTmRQfvPFq138vmzk541MF3wMuPFCc8r+d8A3q4u+l+tWv79Jf/W9wpK2h2rcncZcVK5vQAldp/u+PceWD9/9Bd1ToM7NwCfMPxtq7K0FKw9pwYfbSNk/8nd4M6mv/C11lHroGMN9HX1dJ4YGegePH0q4QRrC0RK/qNFwMpG5fOPK8sPlQqHHBj0VuWzTWoc+qv9/PIZ4OIHLAd/mjkAK7iyCcMGnHbAHK6EX5e/ChZ2gk82rN0nS9AmfP3ugX9rPSyPRV/HBmF+P/ZvrFot3gVvzAq+fg4IJXzFaF8lU2sIJ2F9eThYWxHDPN1/AtBkASKANHhXtDoKPvmMWEihgMjV5zQ3NFwNKQiGFlCbWEDtlv94GxcBYBPnamkeqwar60AtOj6brTOeN94ylp+a8nKlE9liyQq+2kI6++Q2Td+d763g1haQnDWZHzsHzX8upvnRCq0sHdqpvoFBmIcb/iZQ6+VNrBesrwKCYKUA5W6tEs6+WbGCH1cBiZW7t12rs5jNtAx4+fKkBeWDjXkgHey5ub9ywcFyoQWHq4gvRyS9tNvkNrv/YNGIaV1Vlrf9zxYkySOxF61gcSW4voYV/BsrfBEBaERcZWXHjN92gd+DVvDkNqxQ1qMuhryi1SIe+73pfAEboTmleaTy0bGwAQAB3AwWfoBlT5iH8VzZlp+ufA/4E0PlLIUA3p8HNEcBVm4/92+tEoXxCosrLnIuvnAry4DWL24Dk8EyDJX+5nMFlcBRgLEwFoa1qa31VZi8aFucovu73+/p/sNI17vdXe8lHMS6nKEWrddWZWWhcvchzewX28HKZcblLMbmKsvr2BzgYlFnEc1EFF9tR0kcF1WwvIg0eu8bYHXB3Xka5F+3AOXBnduAB1EzM1bK5nMtBa84nc8VPaDEBcSAmcTis30IKqwHzx5wFF9drPzPbZIoVzb9e0tEQlceAD6JfBaX/L9uAg1zFOJXLAcUvb6DVAjLEbo1T72XSEY0hOsUoPmfrgAar9L6xbYjSyAkfhoEkMIXW/5DmOTlFf/rB3zFoSA82BpsL4L0WNh99JC/5iTvf7YULC9Aw0pT/v2Po7jnU4c08+h76jQs33sryAyZGLLwPeeGazvBt2uW/5cNWnsr/2v32WWd3MN1Co1t3d79O4iw5SV1PERy95cql58ri8e/eQNmE7iN0lcuJJCMg9t6M0yoI079Jzf8Z0vUxkB3//vd/SPd/f19/STZr69bb58e+IDxieUlf30j2PjU3F1g7lvB+iIJBiAYbHJ5kRbp5s7uj5tCvkW0CEYoCL6y/GD3P1f4WkbcA2+tXJ1HfAFGxUTOW+WiV+gZJ1Ryugz5AM0dzAPxZmzQMFe0qvh6sk7kz571CtBZ4uRc+RGSDbQYAnLlAS6RKioErYKDqlJGegzoRtdwktXpnCcyXV8OVxIw0vndR39DilzfQNrkOgjDilX5coFkm2RLjP4iekdzhHVV/nUFyJfo/aE1XcifyU56nbC4Z7KlizDGv6G46TzVU53hMv4oRdEnG/7Va8HVp7hUsCW2IkHtJP0KV9Z9XNTB/ybpvLwCg3Q5XVqVOxv+p7eBHOeB6HFli1IwZ1sroKbxDlFnNuI6JhOqyPrvMHTubs/76w9EFxk0qvztx6gj+pvblS8egMA0c6tDkXkK2ZQ2TcAQQC8DDRQoGJjVApIv9F3ooUQfkhXf+Qi+4Ro3CEXZhEUVGX31HEMuzPlA5aP1yuUtkiZ8BM9A/dxCdiK7BDPOgQMygE2B4ohqMmPNC4TLx9uAmJjgVOoQi70/71+Bed26S2qxqg/woTG6xcWHtAhEtL7AFySoiLQMNeYEXf3ysgHNv4+gmY919xGM63mCLeCWUv6cl3s3U5xoyWXHzuUyU56DE9nWTtxYpSYNhwxLlc9uwLiiA0Z1CTgWIw5c0f7lNetQayt0HnGIpIa0qTBRKDOdL5agO8VSplQuIheFKd3mxaPMIyR/S9D/fLTK59tWWytYVOEQ/Idbshatd3UkZoqFtqIrl2GPaF0wKP/xAjFmFVfxJQP6O7DyypUNYmYoUG6rAioCFsCYWF2oYZj1BDIojcYjMxNRyj8juquiTfy8cg3NEq43gw1JvQWZhIbEGjdIuvK5EmiOzYMXpz2L2XYrqMoBHu2Sd6HUMj2ZyeZSYxOZQtErpculM81HbCLkz7eD5eeWjmPLsjPT05PZsQyN6MNiPgeFuQXxeBtNWVgG/s4SKiZfgHCbJ3H5ALSUeavv1GBPX++ARd1khT+57X+6xQArBoqFRAZ6i1AfmDXqf/eftHC5McU1B2DjH/0Y3N9havlGZemB1uOWffvGAOcloVWCrB6ATlhpy46sOzullxzsOdk98qe+3m4sG5oSstjJzj+OSFX1f5zuHhgEXbWzfwCKH2l7o10tdry7+9hIz2D3Sfx4uFX91NV38mR376D82taqfUazZ2DkFCgYxzo/gM/tpspqAQV6Ty9VH+npHQQdBbpJDRxsbW3VysgeaMXaXleK9Xef6usfhGEOQkHAHrZFsA6/LorQELs6QVsHi7urr/cYa0viFD6c7DQUkCU6Tw++G/sOnC1l0Z+W1yzmHyB3xd1l/EdZh0ye+rc2aD0rqj5SgNLDwc4emK6+PyBw4HIcOG+A8cJgcVVhh1woA1cMvRBMj4zyu7ClgdOnCF/R0RxmDeJQjEzxyjYtlsUFvo5JiG3d9ufXoi0QafT3He850T3S2TXY837P4AcmEurt6XoPpu30QDdMc9+JY31/6BVUgN6XQ/DX4VbxVxvNuL4IBt7t7h7ECpf2WYK9Fjss+xR/tF18D+KAXuK/9Iab/fhSGLH0vlieJgMW3g/wR3pf8MRrbuGqUPrlR90KtvfNRbv7bnfnse5+0d9Tsr9DNpOgtmsLyQmPUpzC81jBy5S88c4SPJenx+Uzk3H2MPbnFBvnkM3kH5Y0QQWmWh8gPDAEdOXLuRKD3yWxNmTzsRPwV9AcwR+Q2DcNIYRAhSXWh2w2O3pX2Dtelf8YP12ULzIoGWJAuyIzqsE2DnnP7SgYLngzWe88f8t+9OZLnj2sEI5kbZ0DKJrS1hB002ZuUVAYQUxZ/rWd4MkqUaQN+hvogz893d0GA+z7yr0V9np3+yYwnp+eVu5+CjXYO9Qz76xwex7EOliioPRuLVsMLK8IGtnVeXvfsNIhsiiPjeDaDTsEOvy3m6C/wEikkwOfyVGIRjm5CeUbxXUI7/z7i/DAzB3W1plyjnSSiJf0Eq067EaxCE0rXlyQzsmz8A+qVp7yPuGkoE72TGJ/sehYpYlC/ryV885b3YVCvpCwdcUm7hwmm/fOFnByVKwMPl/uqt1GlWZhB4R+0qYWS4WL1iXoZRKUFgXeYHbK+1M+5yWiQtxJWXMWaC1jEwnPsS7NAYi+0Q+9sVLynHexmND5h5M8ky90Z6CswFOClG1Ej2VNeoCeCUAPtA4oIb/f2xd7oQArlaJShJIJR5bMguJXYIXVYgzbE9h/RLjWjSEsNyzBFSewuROZYqk/fz7hWOl02mrlfQLWSl/7M7mzXqLNxf8R0OSklztbmnAQT+9nJsteMTFEH4Z5B+YsbxJUUgGG9WesXMBe1wF5VoJ0hlqHk1OZ6cRAqZDNneWgqdcAKvlhPptL2LO2Y+2HPjMg8l2canDYVpNlC+Hbhs52ZhaTX29lMbh62aqsLAfX18jCvr7hfyusYFuMax/HCgz8eCH/z14OsFZMtNHnOYWGumCevQGvMJMd82g+if7obcJJTpdLiSI8TmXozXvexZGE49pttmtSaRQqy57N5QuC1ApeqVzIgdBTVhtuJvlfL1k/PYWRNkX009S+ufgi5a5QnCp92aZecNmyOvlyCQVm/lxHqVD23BmvUIRGO/QOucWwcgcjfKJ4xy3xJdcRXXIuFS521Fhnc9gL5lBKTubPJv47MOFkkWgoe+ZiAnrmUEc5/gyfjYjSXceILy9XLBc85qIfUQePgkZ41dMW0CF81nSfJNdNlDq6XlKlml5IbdHLjcMApHM/HYGXBJ0FBF7Iegp8jfMZxskCHIwkCkkm6ZwkYGQKBiXQtB/KzM5SSVhuNm/QDglfm3eCXWfyqYyCqg7lmbMDl/dRE/CRkakldTRIuDpytBqTwPlOVelDEUxSL9Hc3urAfOEgkDJlrTqNmCojrmoTZ70Fo6ILUJ1UfrsRNOFn/ZVrRg/BMX2Ze6F1MohGK5h8Pcc60axjSwUF10xmMsu1rJGEXR5paz946PXDvz/yRmtmdGzcO2Pi2lyTtKhuppQvcHPclhoCfRlEpRuAZmxcWaC1JQ4fckzgSDuvB60XFGEAxvavQzXIBE/ozNVBqhAjilWof5lAFzwY+ow3bu2tDf8KetP2CrpYHmVT21gjwCPOnGH4abQBrFEP8bgQB8H0kKhCvww6OXGLEOTxtfng7u3QHWZsGldEvXY4mYumyGYOHTxGsHwl1YA8Nullcl3C3AC4YyMoghWaPNju1ABdlcoZYx1HjamQLyNvt9M9J9HC+OPJE4nfTZRK08WOlhbvQmZqetLDNf8793ctLRd+59iKDAeoMB8gF7zJSTZwCVEMQZQB/h62BjwfFrisxMownSsEEB8UiWkL7UjrbDlTGI+iK4RoVz772H90m2yLnXmuzsVexhrQCuw+WyJn6Uc3/KX5qLdGtlm6OO3lz1igu3XlJ8tTOaZnjrAGBRsztRWrEdz5iDiCDrjgjaHdLSziBgDHapgBY9TDqfIoSJSBXGa6OJEvNQDbVMkMPuLhbgB2rIYZcDbHKdo7Dp0hXbcB4MZa5gZKmewkauANQA2LmkHxVUiek0bgRcqbgWbKpQmp4teHqRc3gxwtT00jXt4BgVcfola6CnFlc8R4ATmNUJVauiYmEdnH84XGUSkrmMFy1xaWOpEtNUJIsRoqYEUHs82aC/pU0CY02lIR3Wc8/w7YP8yYBwtQ1a3ZPo3QrxOedeCA5SWnMwUQi6CSR34mWXEH+a4NRu1kacIOjX8BC0cuPgr9DLdNRuopkHMcVqzOmQwY7K6HiOuwT/e+14teXfQC9/XarNIcd3QUwHSgoeVB2Hgc07TdwbBgMSCEs2LmjEeTAdgeoaqhQVGlbTX0AVsGm1tHNFKfGdOFzHlAs0AwFDuWKWWsoxbzHyTCdyAjaf+KpJsNKITe2qGHBeA4dXrJMEN7ND393cfsuXCOoDa3MKy3qu7n1IMvCg/29Y2c6Ox/p1u2gI6i0fz4xRT3NOAzjJq082ncbsMOKC4DetdNk1a7ybc7j4k+crxXo2FqEpCM/wp6FeaiRKKg4xfGo0rrKMuilI7vWF8ccyUlTDBaV/lUE0REzkXBRMWgBophjuIQ08Btxs7F3EH4UqCMTSaWTp7PZNkn3C0LJ4JmEws0NJmnBz6w3SmvWMyc9TpsUI52dxajsUbLIvoluLdOm/lfhrEV11f9zxZ0F2lIFHLdMXIEbb88iWZ/rjw5qXjpDJgkDPLS/BXHmqhHjkNz5WMetGYCwT40AggYQBd59TUo8m2DILrHs6UoAHzXYHXDOOTbBkAIzSM2Du1D44Di3dE+NA6IuQ0MgNiHBgBxiT0IslmnFe1DA4AKsa4UqvbhBWShYPUMOLBC9pTMn8MfQxGCdVW6c0MKclVqcCPz6kamx40gZzgJmph3oU+M27HeUj33llH5Tmg+GOLfzMHiyGHN8X81rLDhSec+KIGZyUlkWIxtASqIc01kioynOYyTFaDrmaLH+ZzBi02tNaRYoNT/ZTULJk+ma3t2pzwgJVTToSRHnTudJK+Si2qX9AZMeUAMUlxMeSGIgvdPYEOi5peG9xyIYqjDFAtBO53EX462NmxQaMJnQMYkzDBIuBDCKKC8p+RNoafAYAQmCKbSIINFzgHsDDdGB7wSzjvvq1I+y0HLZmiPJuZY5iO/lB3vKCSz4y4bJzxzrAnPELwRjy66C+A3/uPKzVd4IZ9duQuNgMSzq+56wwf1p6vaaQhK+elOZXPQvpwPXMe8e4Ry+cWVOOqQT0jsCRwZ22+YU12l9by4hMIO+nuO7IgWHndFEWKJs16OQvAqVzb48Qs1BMxiJx14pOy2/1cMantOcYX3FoM7SpTKz/O32WL++ea69TaKfR6CgsEtFOmEoU9K2D+LSWXnEETNrygIHHeboYVOiv3mgdwrm/63m+RsCaM/Mc5/XlT9N9aoDUAwMgt6xGO2MMJlbd4GEF9aSvwqgREjXltCMBhn/tdNDP/qxLBHanqbB4rzuNBgecHf3GYR7RTZirGij7fVEFaLY5Y0H4x9WaK4SqX1efolEH7lQYBHDwgwgYT+RmPxMG5G4x1oYiekWSJIofZGILxI2DDdHXZTxLycnbVbbaZvaUxTAuaf58JOqLa+0pH6W5HGHrjcagJ7yUvmcG/YcdvbDkuNVO9VnJUauU4YCnDOu5gmtT7WcJMNr0KE0k+sjOsLtc0x7HkaVU0XLJ00M9xwpOxDzeGmsAaVI9RDJxDRdmouOhphyTmXCDLbY0NLajwdtbSgYGehkLmYzBbpX2ZxgUTlE8V+xprANsSyFyFiRIeR2DBDBCz+yUzjlk1//jxGsFGZpVvIDf6DDmXQQTKAt7BKC/bxfUuyUP5eXx4WO5axLRZYsHAvuLNJDGX1OZSzDrfubrEV/gOGRfvrFBPnL3wM/+HJRRbcS3GV2zpgW4Sk3f9XGt7iqk3/ri/g+UR/+waLB13hPVcOlgDXCJeaurVaTBM1AYuWgpArLUeNu6ZUx+FFOkKnoamYq0f0sVqOafuUT6++a4p9ytC+OBAViATZ7/OZHKA/fYmEBbUUDwcBoKzYEAfKApac4XRrak7bKkafY1r3QCZYVSeEjzgKgWfc0bDPEewdTeTKU6APapLTaaaXGf3l7CwvKglKlgvfOB0NFNKGRLIwzftNO6etrh7k6sTUDEXD0PEldA3+lmu4ocbB38twd6Z38Lf47CjaB/VbUUEcRQfh3+QLR9dE+GcNf7o+QiXYdEbnfHa2FTSLOblfgkxL5UbYz3RkT5awSBwJv3Iv1JtvkB+BcT1k98D1aMRuPLzWMbIpjmiCLtQVHlcq9s5oF4ZLU1r4xNekniI2OBRlQwZYJ0A2Y9y+Q2xO0V+Syqm0gy6MAVkQyO038Dl4thNlYRYezPmCbQlhjPc8P1Lw01Ou04kDAn9HkP7ac+ug/2QB1Yp20o3ufMkUoGBlXue2NBam44AyQMoHjySjAwYiUv2TFf/bv4Vd31aUC1tDF7FJGZBry4jcJTplS3+QDS4vRcxeAhpRti7LBvnpn3tfkS61th2srlOTdz7SkarqLVF9ny+ViJiGXpildGi7/BYFM+4UwKjFawPphzbSRJo2NKMiQ4QeOy5GhKQjwXRudryYHhrmKxhLvJVu1+JuZtJqOFy720Zwmtvcdi0QLgxXZxSNWxIRmgYaIilpWSBWEjgdWZAa2TdnOBdIZZuaHOwGV+tmhrLDQ23DKLD4pFvQW+APxYmEut+rFm8ddpifYG4vPGl8DxzJGORekymJSaRmNCXU6P9QCFw6MXW9WYne1/5gKD+YCMyQUO0GPJ21qhoLaJNEQviVIMg660B4oXlHx5IFbyo/4yXqLUJ1i8aslIfu1touDgYvrXuKpBAlV0daDboZZe6PUL6mlUiR0VDKCs8IgzQ7u59VU0xmzVvT00s7ceJEgj0n6kuA9WpirHNv58luxQ+unS5s/5e2dsxmsEaBzXSsN1i57G/uwL+L/47HuvD0DzDZzxUvuCUja6CUiJnGilpkjzzbd/8G0citHXFGUYlemUvV5S/icITjAh1n0kblVhY5A3rEeBoLJnGXtoayyidTrn1QM1ww8dKhredOZKBP+NdIgs0TRz81wnkYhYwAQHqXlAcfnP1pqjk7q3zl+vH+UD+uOn94aIchR4kcLoDOlFbgaWQlYoKxELRQl0LoBMuJvq73uo8pxMEOXcYOoYqjwevxKaSgpG929NOY8vjeHo8Sb2h0JhCgygc28hGgAvf1MPY6AROm7+pK9xPXg6MeN46pqJLLwIeK7pxg9ZxGcWk3Ql1xU+jAAWybwpwVtTvNZopeh9MpNd5i3Rkc7Hyvu1fd5UL7d4dPgBVs3MTzXOHcSHVRXXkiUm2vIxsnr/z4XoYGRfPnm2M2w5vm81QhIkQXayNDVFXx8ePq7tPnxsPVEhcqXdJxa3lAmc4em49aq1kvbDczAwZ1ZnTSkxYR77AyyCbzIGkiOOYbN7BfHe7fSldFvtE8V1djga3EdmUl2ragXygoPTSJIb4AQ60qND2RUSLvpf+L9TJsdCZXWc3Se64s5/z5uZRJ+Cs71fX2OdJsl0NIfndU2+UItzgMOxwZshpgLA359rQ9kHhER7q+BxXb0+IvHDVkWbEITCqSdCwxDNWWsY0LVjmqAwdqe4iYUsNbqCcTmR7KBBVfq8LohVV7BzMYoSWgCZe4Lircjqy8PI9KVvmXN+mY9KOrqLuQc39jgZIwbD30Hy0Tc1Al4D5ueIf5ZVb0hC/Socmya6F7vbL2EEXd+g4xEngCQ9qm1BksPcDu4wdonDNj3GaHczYq9xZBnmKEJwYlRC10SyRJCU/vKge4+bH8h+G2CEv7dfc2sDhKB8J2OHh+nGjCmltbuz9sAT9kPtId7RAtmuzsSIAw2Y3Ri+Rf4HlVNKtd8WxmJifpLGi6ugvzhd2QShvigEK6xvmSV9CSsIzT0SC8BLrAyH/JfKFKl4wsl/sHx9O6fyzFvWbZ8eF0InxGr1lTm9aTqYsMrQK/9YdmWMUoEKr7U/fq7Zy62DNeTAvTlXewmn8zMu45x6FTIG8DjBCFp6p6lEXZmE+5EOmSJAxtRn51XDGHv8CR6hs2n1Xfi5/4/3W/r3YyDJEQOV20NzyE+ExXI4pUHFfydAIju55fEInT/PgHHcI6yiIg4IlBlUNuO9zqdNg2le4VSlCkhtSvoKCOzHy5lK57yIoJ445LUscC2japWTgCXli1m1zkjcUOWnpsvgX58pNnGi0os8o/C5bpjXnAV2XMQXw1ZscldRNLoZiELDEJDmvOZXkU2N6WzKAgHuaki7aq/47OeRn9d/U3ljN7deyFWi80a9RgZUya4qRWgnKi6qqTqhONA6oyVA4dH6moQljtKKbUCWM1wrjEYlxftIzsk8JNQgZqxRVDq6rx1zc4crzvdO8x1aql6a7W8aqqxF76FrbTQ4fMpTPdKMossyyz+AlDDoydajf6wajPtbdOsX7cOnPb3IPaOfUhYB303zBYWcY6h+N1yDgTZqfbSlVNLLr2sd0XxzrGqXNc0xrX8RjtTHU8yo6klHwqRmwqRhhGSYXHg81UIYwvLOtgD2JYPVh7JvbJcExT5UNum2poy8qypqnS7+OVtHnklSP6sdyqNE+l3PFRREppAuTIgBJGx/Z8FGBmghX+02qTfuCAtb/GrDvRltnuTU3aULRx5JlqD38xyqzKDdg8URGDvihKjTZnImOoTt/h7KgjNWA/f97BRB8TSUYM6KXBdykZx6efy0tEMO2oDsSGzvmL0tX7rqYEKHg1yIb2WieQ0sfTJApSCiWFqW00nRz0BOUT7s0KCKgIpebiEPjeTzUo/LMZEn/j4HBjyxJTfugZG5L6UX59yYoWQaYLsnLVsbjRLtELzODjKopnNY7NW043kmxB1CxU260xZmfQszD8xudzrMEJ7TKlaKgxr9LIeJk5doVTgr6KLE3yB2ZpipFB3Y037syVYxbqPht5xPdbvaTqJQ7dwIpZ4dSqfbDhdmL7QtWLHlaBCplI4215TaQDRt8gT4+5tRKsXEbfm5a+kTvXKLCWR82ymEHM7yz3HURy1W150ugjJUE3c4I1EKvKt8K1U7KJkJhxaqvaE8Lmi/rF1aM/mkmRfkGDgmyoSDaDUWbCsqr0aNXbvB7s/uOgqtHr27OK3wYUrvSrUPM1D05ogCB8kM5TnsmlouyphObvm6Yckei2qjpmPOR4vHNgUN26ip9IW9nErNeRDVKRG+Fi+nQpO5ktZT1islMZPOcJSwCsEvYAa8GN5RKyL8Kf5pMnm8fH1VQLpTwAJOM8TcM34JAXLKZjwxculFLxrdYDB2r3CgOHancKZgX6Etrz4ki07OFb6VhGz+qIPtbZc+KDkRM9J3s0XLNUGxTPvy02+GgXgCfnxTi1hRUtikzFfhakxvSI3RSOFVbu6XJ2nJbs9GRmzEu0NLecdW2bs9OqFp66aZYddyVBumaeqbxmnqfoRhqYasattOx4R3bcwAr4Ib49MwIDHwCsUEaQUyTOsL7qMKvJIbIUHYO/98olCrVZgeqLuKB7ci+I7gHFZcWm1YXam1YFpxGnRNzM2a+qINVA9P2ht7u/oRgZ5huwTGajUeoSZs0VVJmoHHxINSBFzI6pV008gkDqUkbPsV+BLn4FqoiELb0AkRys4VuwXtg9ZLK40zUdCjExU9RnoqjNRCpqVyulmVldcxcGjeo5adLwPlAcQPrlDWsVXNTANm5s7M1nNqbjZcxEoWPVKFS6yNJ1HGQ13GPQAc3fNFbfSWUq34h/aq4u79FTGRijOhqM6TCyJM3RW5Mp8R97Y0y0G6XmlEnEYPIwQtrX2UMUodEvnpmcTEeyzYgGX3DHu95OZya20zla+wwMdFHkDoylcm9kbzO+X8cN6l/vUAwds61ubcyZqLyBo7P6Nhrije95GRfIi1t5e1sMinqnpZnTNDxWtlEtj9NAbN00LNOrBRPALLCnOkFKss97W20R2awsvNocnwhGXacvGobwcjas4Q4DNGOroUAUN1izSjBUzK7FW40ePfgl7drfrFUbvYmiLupr2rd0fdSOat8q9880YOKONWjisvCmvZHv3tYjx1pTW6rOLl/EnOaC4KWt6ho2tc6TCRNmdvwqzKWIsaTk3hxVxOArNZlUrbSm1RS2/9s2nBSFeI/7staLb8kqx5z3aBvUsF71pVZ7QgRfihF5o+QtMx69FHkjVZen9c0ULUy7Dum7bJOEDX2Ub5mEmb2Fr0m/rkLmFeLF32ytu3IYAJW6xv6vr56xva2eMZPKUGv1GAaZnxxvZOOwnjJmHmzVrT8xYmjdiZLneJldo+UJS9GyGtmpVOWEPVZoVNABu9ctcEW06EjmhOgqDEdmkOcxIHUN3WgKsFcnOF6Vl21vSvlLO9oaVsgl0ZMNvVe656F7jbhiw+PQDXu9XFxEmkupUctFWSlm7d8d9UA99SLQG9bEmI9NCALcpAdOyoUACiYGHZQwprzicrykBZTAG5J6Tgoqso19VvNkpjQBlvyFRCvvYnObk5qj4Cf93JC2BRKuneG62yjhji/OOIneI6ovnEKS49ItTHMFa1ULaTaJusIrlHG1hFvcxP7VxNr/nyu8cclWaFCkGVfpLyjPCiZBthc5FhFcKhrjsquqrNIOVlFMRPRaSX6ykjZXd/zvHuo5TOj27BV2Db1M8UZ1KUMSVLxPJ5jEHXSmdCqxLCqU/kwebjrY2up/dw1Pyj7cttrcI5RJxWX5VZQPR0SOFTqdvOE/WownoWJRHRbGhFxfxat0tYty47cnsqgQOmtFR7voUFTYbXbv+P2bpjwleshHGePeZR40/FYlM0IWIxn26WBEDgiWycAtnstOd5O/XN5ToryqkSUhG0mRoCRI0NIjaKfn95ezPPNBA6ffw8RR4UF8llJKz7ain5tsINdK5IBlmHYljmb9WGXkPq+04XwlT5URRvz49+8REbFDc2H2Gv8//q4cpK9cx6wKdFw+vEidcoPJfKaWrQDFs3c38JiijXd12WGoEb6ii+h/3PSfLBhPLIuEHCxrwIEDY8kJ4EeIZ6fqmdvseMRTPpbMOXPhpWCRwCN1diwlj8z0qzpeWs42erBUbJ/o+RlotPVIMJ7lRWZsiVOKG73JaKIDG3FzHbx96V8CzSx+L2vNJC/1p0MFHzHIowpGqKyMlUv5M2cUL0iz8U7a19oPvXa4Ff+jy0wbF5HVVM2YdxV9qnEfNOteaq7qrk9hDxu9SAuokPJQTPY1VUefD6OXsWqVzd4J0xbvXGwCYl6MX3ge4kb4b346YgHJe5+VcFqUJD0zylxwrXpGUZP+XGxCRcmyNRU7Jw6Dtc/Oiue32toFU7FtNsiWfxwCOd9cufd1Z/OfMs3/3Nr8hjXSPNz031qSmLY4kXOUGmEvzik5HFh7+hWmke2cUNOW1S5QIohzyo4N71KLzOAzKxP4zEby98yql5vOZsansrlZmPwsJqOepausWrK8/+c0+KIX2gqQfZrRGboByYjj/In8ea/QlcEb41JzkRkLQ8ZmxH5N0TBlZbyQWwBkkyZaBrkhpi79emvr0WIH5lmLNKNtXb6Klg5Wa0noT/FGBJyWfyyPDEnqaR6+1HYY9NY5QUFFxwyY61+14ALU45nmMwB1+NKhI3iytBZUzRitBXZa6e7wpfbWOr2NenBrgR7bI2i5k1MTDemmPzf/w3AIxv5zub219W27qdhRVMGpieGqAywmxyYyhc5SopV0Eg7rqDi03OboQHltsTJm0qQ2HbXtDpF7TlsFxJhl47l0b3lqFPh62Hy2eDyby+KGpHM019Gq1mVqdNhWaB0CawW1xjuWPYsoCN+zF52TZ/OFbGliKjnwbudI++uHXd5pNyzZNYF6cCl5evD4yJGIjAj5f8JutZsSidE3W4+ONgGgjlFc8HygbYcdx5EXR9IpXnahra1hgKW3z0uYXewyG6HuM5GFk9RXLqGuFj3Q65An6GR2yhu8OO0lItXF+yRW09qNp9wXk4CZoeD3gQPwVxJ/HRVX7vDfTodNNe0UdxMVz4YV+EatWoe/cjrCd5gOUs4x3eYLNp5lNwGo8Gz465ieWu1y9JJdgTObfYnZjWrliO0nyL2YbuwqXH59dexWqt6+kYFT/d2dx0iqw5gi1lyjGTOFak6WW2ygtPTaRHhUVLlWmpt7gRurQzWlymXV/J7q2NhP9gwM9PS+wxQaQD4rrVxXnTZeVi2zwKVf4vbo6LXRmKUucml0rL94JxLriuzsXIj5qFG0lyudY9aOSrWR6wYTLO9AftJlB7GKYgZwztLq/InvNAH4JqJgRvVLtt9vyl2a4hlL32zX6xZyZyM5S7FfPGtpm+PiJEEZLXspEngpXwa0iANu1LUYcZ2T2V4EVz/nNLdjT7JvpUEnz76JE8hHdAmeWVLSNB/10LnhlGiGnV1jc8XfOditcOcZqmusInbkk59qDTPQUC5X8Xp2dmjYsD7QM4X9Besc06kKnzO8frPVkQlWWYqGFHNUm+cozJGDJYztKBlwKD94nejiPeTWQQIn4Hikt+987lQhP+0VSpjM1XHCZpuasFneXzYH2OFa/vFX1gk+5czmAhKQncIuxRaQKdH7EbmagAwwu2sk8b6V4/moNMcnz2PFr8sw3gqBsHieZ5GCWqToDd2gwbV5s2cqut+pJE669JL5iJVExHJZ87PqQnUzZyNu0xirrttkpEw1pA3OUM7gmO0ZZuAnzpYzjqw6b3JriIrqQxT34GYKyg5cOxtirqnNqYIGqiBQQT+aagidCG7crJZJIZ++hOTawcBkuf+QAYstjQn3Q7E4ZtKZoQ+HU/mhieE0vw1zhvL3E5bto7pe3jGTilzzmBd5Dnju9jDuDZPF8QRy6+ijtfzHO5QBV/ryxdW6BmLHJuSN87hXwYg90Y7Z3HFDgHkmE0cou7uSqTq8I0KjePOFBvWpPgwcrUb1UZ5qohL2Vd1+LEYkXbt5PajEFa1ypHoVPU93KAcoU7dMsMsXUhGZG2XgVmPf8RrLbK7sqR59YKSGhQjgRQZv6dFn+D1wYD97MPN6vYEaKdd4rtgIMhnBIbWxDSzK5ndlmx8UBprBDTGkiMeUC9+iNElWfEPLRHoiuz+jMpW+Kl/eDD6nfIKW/2ixssJuN9r6L0zWRxtQlLBwYyHO3bVLfQzHEi41eBytcf4rdnCqEV1bIxQUUk9zWwqVpVS2udm5VCOVOUsNy6978f9C9x6F172wF3j7zJP5ysKW2DHBvOQ1aUsGsEa2ioDppbNN7SntpZ78vkomATVvVlS918EJ5lqg5KfsixFYLU57IT0T5bQXqnHaC07HhVR4H6DKa/mmkJKmnmaZrQZ+WwamymSc2HjFj644CIpe3vavP7Poqh3QHR6tBGtL/wIaC2537W6xdJ/ry7DUcM8VCZ29Z2x+FRcDzXO0LZ6tXOsUpb7GK7PoMlACjjdabFEWTsrbKRsFbebfLldZRFVO27wsUzeqACLtRLGuFrAn3o5LbDKfhm8TWfi7cd5de63sl2tF57J0mSJYC9BkNmVBk1nlygX6UlWtmcw3gT2G+8XZZnhuq6PSQMnfqCaz94j6mA6qapmhQ6Mh186r8HnIadFsUKkTqz6Wl1GHTaugtq6/F4LQaQEY/FzqlyEBOftzaKz9HyilbCfLpQAA
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import os,base64,gzip,json
-
-          def replace_once(s, old, new, label):
-              if old not in s: raise SystemExit('missing '+label)
-              if s.count(old)!=1: raise SystemExit('non-unique '+label+': '+str(s.count(old)))
-              return s.replace(old,new,1)
-
-          def replace_func(s,name,new):
-              sig='function '+name+'('
-              i=s.find(sig)
-              if i<0: raise SystemExit('missing function '+name)
-              b=s.find('{',i)
-              depth=0; quote=None; esc=False; j=b
-              while j<len(s):
-                  c=s[j]
-                  if esc: esc=False
-                  elif quote:
-                      if c=='\\': esc=True
-                      elif c==quote: quote=None
-                  else:
-                      if c in "'\"`": quote=c
-                      elif c=='{': depth+=1
-                      elif c=='}':
-                          depth-=1
-                          if depth==0: return s[:i]+new+s[j+1:]
-                  j+=1
-              raise SystemExit('unterminated function '+name)
-
-          # Exact user-supplied V9.0.7-social-1 server file, gzip+base64 encoded.
-          Path('social-apps-script.gs').write_bytes(gzip.decompress(base64.b64decode(os.environ['SOCIAL_GZ_B64'])))
-
-          p=Path('index.html'); s=p.read_text(encoding='utf-8')
-          s=replace_once(s,"const BUILD='V9.0.7';","const BUILD='V9.0.8';",'BUILD')
-          old_css='.social-comments-head{margin-bottom:10px}.social-comments-post{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);margin-bottom:11px}'
-          new_css='.social-comments-head{margin-bottom:10px}.social-comments-post{padding:11px 12px;border:2px solid var(--acc2);border-radius:12px;background:var(--accbg);margin-bottom:13px;box-shadow:0 1px 0 #00000008}.social-comments-label{display:inline-block;margin-bottom:5px;padding:2px 7px;border-radius:999px;background:var(--panel);border:1px solid var(--acc2);color:var(--acc);font-size:10.5px;font-weight:700;line-height:1.4}'
-          s=replace_once(s,old_css,new_css,'comment original-post visual')
-
-          anchor="let socialState={sort:'latest',items:[],loading:false,loaded:false,error:'',registering:false};"
-          helpers="""let socialState={sort:'latest',items:[],loading:false,loaded:false,error:'',registering:false};
-const SOCIAL_FEED_CACHE_KEY='ohg.social.feed.v1';
-function socialFeedCacheLoad(sort){
-  try{
-    const p=SO.profile;if(!p)return [];
-    const raw=localStorage.getItem(SOCIAL_FEED_CACHE_KEY);if(!raw)return [];
-    const c=JSON.parse(raw);if(!c||String(c.userId)!==String(p.userId))return [];
-    const slot=c.bySort&&c.bySort[sort];return slot&&Array.isArray(slot.items)?slot.items:[];
-  }catch(_){return [];}
-}
-function socialFeedCacheSave(sort,items){
-  try{
-    const p=SO.profile;if(!p)return;
-    let c={userId:p.userId,bySort:{}};
-    const raw=localStorage.getItem(SOCIAL_FEED_CACHE_KEY);
-    if(raw){try{const old=JSON.parse(raw);if(old&&String(old.userId)===String(p.userId)&&old.bySort)c=old;}catch(_){} }
-    c.userId=p.userId;c.bySort=c.bySort||{};c.bySort[sort]={t:Date.now(),items:(Array.isArray(items)?items:[]).slice(0,60)};
-    localStorage.setItem(SOCIAL_FEED_CACHE_KEY,JSON.stringify(c));
-  }catch(_){}
-}
-function socialFeedCacheClear(){try{localStorage.removeItem(SOCIAL_FEED_CACHE_KEY);}catch(_){}}
-"""
-          s=replace_once(s,anchor,helpers,'social feed cache helpers')
-
-          s=replace_func(s,'socialRefresh',"""async function socialRefresh(force,quiet){
-  if(!SO.profile||socialState.loading) return;
-  const endpoint=socialEndpoint();
-  if(!endpoint){ socialState.error=''; socialState.items=[]; socialState.loaded=true; drawSocial(); return; }
-  if(!socialState.items.length){
-    const cached=socialFeedCacheLoad(socialState.sort);
-    if(cached.length){socialState.items=cached;socialState.loaded=true;socialState.cacheShown=true;drawSocial();}
-  }
-  socialState.loading=true;if(!quiet)socialState.error='';if(force&&!socialState.items.length)socialState.loaded=false;drawSocial();
-  try{
-    if(SO.profile&&SO.profile.registeredUrl===endpoint){
-      const pair=await Promise.all([socialRegister(),socialReadFeed()]);socialState.items=pair[1];
-    }else{
-      await socialRegister();socialState.items=await socialReadFeed();
-    }
-    socialState.loaded=true;socialState.cacheShown=false;socialFeedCacheSave(socialState.sort,socialState.items);
-  }catch(e){if(!quiet)socialState.error=socialApiMessage(e);socialState.loaded=true;}
-  finally{socialState.loading=false;drawSocial();}
-}""")
-
-          s=replace_once(s,"if(socialState.loading) html+='<div class=\"social-status cen\">새 글을 확인하는 중입니다.</div>';","if(socialState.loading) html+='<div class=\"social-status cen\">'+(socialState.cacheShown?'마지막 글을 먼저 보여드렸습니다 · 새 글 확인 중':'새 글을 확인하는 중입니다.')+'</div>';",'cached feed status')
-
-          s=replace_func(s,'socialSupport',"""async function socialSupport(id){
-  const x=socialFind(id);if(!x||x.mine)return;
-  const was=!!x.supported,oldCount=Number(x.supportCount||0);x.supported=!was;x.supportCount=Math.max(0,oldCount+(x.supported?1:-1));drawSocial();socialFeedCacheSave(socialState.sort,socialState.items);
-  try{
-    const r=await socialWrite('supportToggle',Object.assign({},socialAuth(),{postId:id}));
-    x.supported=!!r.supported;x.supportCount=Number(r.supportCount||0);drawSocial();socialFeedCacheSave(socialState.sort,socialState.items);
-  }catch(e){x.supported=was;x.supportCount=oldCount;drawSocial();socialFeedCacheSave(socialState.sort,socialState.items);toast(socialApiMessage(e));}
-}""")
-
-          s=replace_func(s,'socialCommentHtml',"""function socialCommentHtml(c){
-  const mine=!!c.mine||!!(SO.profile&&String(c.userId)===String(SO.profile.userId));
-  return '<div class=\"social-comment\"><span class=\"social-avatar\" style=\"width:30px;height:30px;font-size:12px\">'+socialInitial(c.nickname)+'</span><div class=\"social-comment-main\"><div class=\"social-comment-head\"><b>'+esc(c.nickname||'익명')+'</b><span>'+esc(socialTime(c.createdAt))+'</span>'+(mine?'<span>· 내 댓글</span>':'')+(c.pending?'<span>· 보내는 중</span>':'')+'<button class=\"social-comment-more\" type=\"button\" data-social-comment-menu=\"'+esc(c.id)+'\" aria-label=\"댓글 메뉴\">'+socialSvg('more')+'</button></div><div class=\"social-comment-text\">'+esc(c.text||'')+'</div></div></div>';
-}""")
-
-          s=replace_func(s,'socialComments',"""async function socialComments(postId){
-  const x=socialFind(postId);if(!x)return;
-  socialCommentState={postId:String(postId),items:[],loading:true,error:''};
-  modal('<h2>댓글</h2><div class=\"social-comments-post\"><span class=\"social-comments-label\">원글</span><b>'+esc(x.nickname||'익명')+'</b><p>'+esc(x.text||'')+'</p></div><div id=\"social-comment-list\"><div class=\"empty\">댓글을 불러오는 중입니다.</div></div><div class=\"social-comment-compose\"><textarea id=\"social-comment-text\" maxlength=\"300\" rows=\"3\" placeholder=\"회복을 돕는 말을 남겨보세요.\"></textarea><div class=\"social-char\" id=\"social-comment-char\">0 / 300</div><button class=\"btn\" id=\"social-comment-send\">댓글 남기기</button><button class=\"btn ghost\" onclick=\"closeModal()\" style=\"margin-top:8px\">닫기</button></div>');
-  const ta=$('#social-comment-text'),ch=$('#social-comment-char');if(ta)ta.oninput=()=>ch.textContent=ta.value.length+' / 300';
-  const send=$('#social-comment-send');if(send){send.disabled=true;send.onclick=()=>socialCommentSubmit(postId,String(ta&&ta.value||'').trim(),false);}
-  await socialCommentsRefresh(postId);if(send)send.disabled=false;
-}""")
-
-          s=replace_func(s,'socialCommentSubmit',"""async function socialCommentSubmit(postId,text,confirmed){
-  if(!text||text.length>300){toast('댓글은 1~300자로 작성해주세요.');return;}
-  if(socialCrisisText(text)&&!confirmed){
-    modal('<h2>지금 안전이 먼저입니다</h2><div class=\"note b\">댓글에 죽고 싶은 마음과 관련된 표현이 있습니다. 지금 당장 위험하다면 댓글의 답을 기다리지 말고 <b>109</b>, <b>112</b>, <b>119</b> 또는 가까운 응급의료기관에 바로 연결하세요.</div><a class=\"btn danger\" href=\"tel:109\">109 자살예방상담전화</a><button class=\"btn sec\" id=\"social-comment-crisis-help\" style=\"margin-top:8px\">지금 위험해요 열기</button><button class=\"btn ghost\" id=\"social-comment-crisis-send\" style=\"margin-top:8px\">그래도 댓글 남기기</button><button class=\"btn ghost\" onclick=\"closeModal()\" style=\"margin-top:8px\">그만두기</button>');
-    $('#social-comment-crisis-help').onclick=()=>{closeModal();go('panic');};
-    $('#social-comment-crisis-send').onclick=()=>socialCommentSubmit(postId,text,true);return;
-  }
-  const a=socialAuth(),x=socialFind(postId),oldCount=x?Number(x.commentCount||0):0,localId='local_'+Date.now();
-  const local={id:localId,postId:String(postId),userId:a.userId,nickname:(SO.profile&&SO.profile.nickname)||'익명',text:text,createdAt:Date.now(),updatedAt:Date.now(),mine:true,pending:true};
-  socialCommentState.items.push(local);if(x)x.commentCount=oldCount+1;
-  const ta=$('#social-comment-text'),ch=$('#social-comment-char'),send=$('#social-comment-send');if(ta)ta.value='';if(ch)ch.textContent='0 / 300';if(send){send.disabled=true;send.textContent='남기는 중…';}
-  socialCommentState.loading=false;socialCommentState.error='';socialRenderComments();drawSocial();socialFeedCacheSave(socialState.sort,socialState.items);
-  try{
-    const r=await socialWrite('commentCreate',Object.assign({},a,{postId:postId,text:text}));
-    local.id=r.id||local.id;local.pending=false;if(x)x.commentCount=Number(r.commentCount!=null?r.commentCount:oldCount+1);
-    socialProfileState.data=null;if(send){send.disabled=false;send.textContent='댓글 남기기';}socialRenderComments();drawSocial();socialFeedCacheSave(socialState.sort,socialState.items);toast('댓글을 남겼습니다.');setTimeout(()=>socialCommentsRefresh(postId,true),250);
-  }catch(e){
-    socialCommentState.items=socialCommentState.items.filter(c=>c!==local&&String(c.id)!==localId);if(x)x.commentCount=oldCount;if(ta)ta.value=text;if(ch)ch.textContent=text.length+' / 300';if(send){send.disabled=false;send.textContent='댓글 남기기';}socialRenderComments();drawSocial();socialFeedCacheSave(socialState.sort,socialState.items);toast(socialCommentApiMessage(e));
-  }
-}""")
-
-          s=replace_func(s,'socialCommentDelete',"""async function socialCommentDelete(c){
-  const postId=socialCommentState.postId;
-  try{const r=await socialWrite('commentDelete',Object.assign({},socialAuth(),{commentId:c.id}));const x=socialFind(postId);if(x)x.commentCount=Number(r.commentCount!=null?r.commentCount:Math.max(0,Number(x.commentCount||1)-1));socialProfileState.data=null;socialFeedCacheSave(socialState.sort,socialState.items);toast('댓글을 삭제했습니다.');await socialComments(postId);}catch(e){toast(socialCommentApiMessage(e));}
-}""")
-
-          s=replace_once(s,"const x=socialFind(postId); if(x)x.commentCount=Number(r.commentCount||socialCommentState.items.length);\n    socialRenderComments(); drawSocial();","const x=socialFind(postId); if(x)x.commentCount=Number(r.commentCount!=null?r.commentCount:socialCommentState.items.length);\n    socialRenderComments(); drawSocial(); socialFeedCacheSave(socialState.sort,socialState.items);",'comment refresh cache')
-          s=replace_once(s,"SO=socialBlank();socialSave();socialResetFeed();socialProfileState={tab:'posts',loading:false,data:null,error:''};","SO=socialBlank();socialSave();socialFeedCacheClear();socialResetFeed();socialProfileState={tab:'posts',loading:false,data:null,error:''};",'leave clears social feed cache')
-          p.write_text(s,encoding='utf-8')
-
-          sw=Path('sw.js').read_text(encoding='utf-8')
-          sw=replace_once(sw,"const APP_VERSION = 'V9.0.7';","const APP_VERSION = 'V9.0.8';",'sw APP_VERSION')
-          sw=replace_once(sw,"const V = 'ohg-v907-version-parser-r1';","const V = 'ohg-v908-social-ui-r1';",'sw cache')
-          Path('sw.js').write_text(sw,encoding='utf-8')
-
-          Path('latest-release.json').write_text(json.dumps({
-            'version':'V9.0.8','versionCode':903,
-            'apk':'https://github.com/HanTae-ho/oneul-web/releases/download/v9.0.8-test/oneul-v9.0.8.apk',
-            'release':'https://github.com/HanTae-ho/oneul-web/releases/tag/v9.0.8-test'
-          },ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
-
-          v=Path('verify.js').read_text(encoding='utf-8')
-          anchor="ok(/NICK_COOLDOWN/.test(index)&&/NICK_COOLDOWN/.test(read('social-apps-script.gs')),'앱·서버 닉네임 보호 오류 계약 일치');"
-          extra=anchor+"\nok(/SOCIAL_FEED_CACHE_KEY='ohg\\.social\\.feed\\.v1'/.test(index)&&/function socialFeedCacheLoad\\(sort\\)/.test(index)&&/function socialFeedCacheSave\\(sort,items\\)/.test(index),'소셜 피드 기기 캐시 선표시');\nok(/social-comments-label/.test(index)&&/border:2px solid var\\(--acc2\\)/.test(index),'댓글 화면 원글 시각 구분');\nok(/pending:true/.test(index)&&/남기는 중/.test(index)&&/socialProfileState\\.data=null/.test(index),'댓글 optimistic UI 및 프로필 캐시 무효화');\nok(/AUTH_CACHE_SECONDS\\s*=\\s*120/.test(read('social-apps-script.gs'))&&/FEED_TAIL_ROWS\\s*=\\s*400/.test(read('social-apps-script.gs'))&&/SUPPORT_CACHE_SECONDS\\s*=\\s*600/.test(read('social-apps-script.gs')),'소셜 서버 V9.0.7 캐시/끝행 최적화');\nok(/function authCacheKey_\\(/.test(read('social-apps-script.gs'))&&/function commentCounts_\\(/.test(read('social-apps-script.gs'))&&/function profileActivity_\\(b\\)/.test(read('social-apps-script.gs')),'소셜 서버 인증·댓글수·프로필 캐시 경로');"
-          v=replace_once(v,anchor,extra,'verify social checks')
-          Path('verify.js').write_text(v,encoding='utf-8')
-          PY
-      - name: Verify patched sources
+      - name: Recover reviewed patch from original commit
         run: |
           set -euo pipefail
+          git show c9f409b4a4872587427f3ef790a1402e63a5493e:.github/workflows/patch-v908-social.yml > /tmp/original-v908.yml
           python3 - <<'PY'
-          import re
           from pathlib import Path
-          s=Path('index.html').read_text(encoding='utf-8')
-          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
-          Path('/tmp/index-all.js').write_text('\n'.join(blocks),encoding='utf-8')
-          Path('/tmp/social.js').write_text(Path('social-apps-script.gs').read_text(encoding='utf-8'),encoding='utf-8')
+          src=Path('/tmp/original-v908.yml').read_text(encoding='utf-8')
+          def body(name):
+              marker='      - name: '+name+'\n'
+              i=src.index(marker)
+              r=src.index('        run: |\n',i)+len('        run: |\n')
+              n=src.find('\n      - name: ',r)
+              if n<0: n=len(src)
+              lines=src[r:n].splitlines()
+              return '\n'.join((x[10:] if x.startswith('          ') else x) for x in lines)+'\n'
+          b64=''
+          for line in src.splitlines():
+              if line.strip().startswith('SOCIAL_GZ_B64:'):
+                  b64=line.split(':',1)[1].strip();break
+          if not b64: raise SystemExit('embedded social GS payload not found')
+          Path('/tmp/social-gs.b64').write_text(b64,encoding='utf-8')
+          Path('/tmp/apply-v908.sh').write_text(body('Apply minimal social patch'),encoding='utf-8')
+          Path('/tmp/verify-v908.sh').write_text(body('Verify patched sources'),encoding='utf-8')
           PY
-          node --check /tmp/index-all.js
-          node --check /tmp/social.js
-          node --check sw.js
-          node verify.js
-          EXPECTED_APP_VERSION=V9.0.8 node release-version-check.js
-          npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
-          grep -F "const DATA_SCHEMA = 6;" index.html
-          grep -F "const KEY = 'ohg.v1';" index.html
-          grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
-          grep -F "const SOCIAL_VERSION = 'V9.0.7-social-1';" social-apps-script.gs
-          git diff --check
-      - name: Commit patch
+          export SOCIAL_GZ_B64="$(cat /tmp/social-gs.b64)"
+          bash /tmp/apply-v908.sh
+          bash /tmp/verify-v908.sh
+      - name: Commit verified sources
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add index.html sw.js latest-release.json social-apps-script.gs verify.js
+          git diff --cached --check
           git commit -m '[v908-social-patched] Improve social response and counters'
           git push origin HEAD:v9.0.8-social-ui
