@@ -19,6 +19,7 @@ jobs:
       - name: Apply and verify V9.0.16
         run: |
           python3 .github/scripts/patch-v9016.py
+          sed -i "s/const BUILD='V9.0.15';/const BUILD='V9.0.16';/g; s/V9.0.15 BUILD 불일치/V9.0.16 BUILD 불일치/g" verify.js
           node --check meaning-feature.js
           node --check meaning-check-feature.js
           node verify-meaning.js
