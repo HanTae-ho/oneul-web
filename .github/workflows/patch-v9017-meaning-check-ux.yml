@@ -25,6 +25,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 .github/scripts/patch-v9017.py
+          python3 .github/scripts/fix-v9017-copy.py
           python3 - <<'PY'
           import re
           from pathlib import Path
@@ -51,11 +52,12 @@ jobs:
           grep -F 'function openMeaningCheckDirect()' meaning-check-feature.js
           grep -F '점검 기록' meaning-check-feature.js
           grep -F '결과 저장 완료' meaning-check-feature.js
+          grep -F '진단검사가 아닙니다' meaning-check-feature.js
           git diff --check
       - name: Commit final patch and remove temporary files
         run: |
           set -euo pipefail
-          rm -f .github/scripts/patch-v9017.py .github/workflows/patch-v9017-meaning-check-ux.yml
+          rm -f .github/scripts/patch-v9017.py .github/scripts/fix-v9017-copy.py .github/workflows/patch-v9017-meaning-check-ux.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
