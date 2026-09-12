@@ -231,8 +231,8 @@ ok((practiceSection.match(/class="minitool/g)||[]).length===7,'실천하기 7개
 ok(!/class="toolcard/.test(practiceSection)&&!/class="go"/.test(practiceSection),'실천하기 목록형·열기 텍스트 제거');
 const learnSection=(index.match(/<h2>배우기<\/h2>([\s\S]*?)<div class="toolsec">/)||[])[1]||'';
 ok(!/<span(?! class="ic")/.test(learnSection+practiceSection),'배우기·실천하기 3열 카드 설명글 제거');
-ok(/<b>의미점검 보기<\/b>/.test(practiceSection)&&/<b>필요한 도구<\/b>/.test(practiceSection),'실천하기 압축 제목 반영');
+ok(/<b>의미점검 보기<\/b>/.test(practiceSection)&&/<b>회복 실천도구<\/b>/.test(practiceSection),'실천하기 압축 제목 반영');
 ok(/\.learnmini \.minitool\{min-height:100px/.test(index),'배우기·실천하기 카드 높이 축소');
-if(!index.includes("const BUILD='V9.0.19';")) throw new Error('V9.0.19 BUILD 불일치');
+if(!index.includes("const BUILD='V9.0.20';")) throw new Error('V9.0.20 BUILD 불일치');
 
 require('./verify-meaning.js');
