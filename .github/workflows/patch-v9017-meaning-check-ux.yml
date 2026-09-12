@@ -1,0 +1,63 @@
+name: Patch V9.0.17 meaning check UX
+
+on:
+  push:
+    branches: [v9.0.17-meaning-check-ux]
+    paths:
+      - '.github/workflows/patch-v9017-meaning-check-ux.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v9.0.17-meaning-check-ux
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply and verify V9.0.17
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/patch-v9017.py
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          blocks += [Path('meaning-feature.js').read_text(encoding='utf-8'),Path('meaning-check-feature.js').read_text(encoding='utf-8')]
+          Path('/tmp/index-all.js').write_text('\n'.join(blocks),encoding='utf-8')
+          PY
+          node --check /tmp/index-all.js
+          node --check meaning-check-feature.js
+          node --check meaning-feature.js
+          node --check sw.js
+          node --check verify-meaning.js
+          npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
+          node verify-meaning.js
+          node verify.js
+          EXPECTED_APP_VERSION=V9.0.17 node release-version-check.js
+          grep -F "const DATA_SCHEMA = 6;" index.html
+          grep -F "const KEY = 'ohg.v1';" index.html
+          grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
+          grep -F "const SOCIAL_VERSION = 'V9.0.7-social-1';" social-apps-script.gs
+          grep -F "verifiedVersion:'V9.0.15'" install.html
+          grep -F 'id="tool-meaning-check-direct"' index.html
+          grep -F 'function openMeaningCheckDirect()' meaning-check-feature.js
+          grep -F '점검 기록' meaning-check-feature.js
+          grep -F '결과 저장 완료' meaning-check-feature.js
+          git diff --check
+      - name: Commit final patch and remove temporary files
+        run: |
+          set -euo pipefail
+          rm -f .github/scripts/patch-v9017.py .github/workflows/patch-v9017-meaning-check-ux.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'V9.0.17 simplify meaning check access and history'
+          git push origin HEAD:v9.0.17-meaning-check-ux
