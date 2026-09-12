@@ -1,0 +1,62 @@
+name: Patch V9.0.19 compact grid
+
+on:
+  push:
+    branches: [v9.0.19-compact-grid]
+    paths:
+      - '.github/workflows/patch-v9019-compact-grid.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v9.0.19-compact-grid
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply and verify V9.0.19
+        run: |
+          set -euo pipefail
+          python3 .github/scripts/patch_v9019.py
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          blocks.append(Path('meaning-feature.js').read_text(encoding='utf-8'))
+          blocks.append(Path('meaning-check-feature.js').read_text(encoding='utf-8'))
+          Path('/tmp/index-all.js').write_text('\n'.join(blocks),encoding='utf-8')
+          PY
+          node --check /tmp/index-all.js
+          node --check sw.js
+          node --check verify.js
+          node --check verify-meaning.js
+          npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
+          node verify.js
+          node verify-meaning.js
+          EXPECTED_APP_VERSION=V9.0.19 node release-version-check.js
+          grep -F "const DATA_SCHEMA = 6;" index.html
+          grep -F "const KEY = 'ohg.v1';" index.html
+          grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
+          grep -F '<b>의미점검 보기</b>' index.html
+          grep -F '<b>필요한 도구</b>' index.html
+          grep -F '.learnmini .minitool{min-height:100px' index.html
+          grep -F "verifiedVersion:'V9.0.15'" install.html
+          git diff --check
+      - name: Commit final patch and remove temporary files
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -f .github/scripts/patch_v9019.py .github/workflows/patch-v9019-compact-grid.yml
+          git add -A
+          git commit -m 'V9.0.19 compact learning and practice cards'
+          git push origin HEAD:v9.0.19-compact-grid
