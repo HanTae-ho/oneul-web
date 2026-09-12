@@ -1,0 +1,26 @@
+name: Promote V9.0.15 stable release
+
+on:
+  push:
+    branches: [v9.0.15-release-promotion]
+    paths:
+      - '.github/workflows/promote-v9015-stable.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Promote release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release edit v9.0.15-test \
+            --title '오늘 한 걸음 V9.0.15' \
+            --prerelease=false \
+            --notes 'V9.0.15는 실기기 검증을 완료한 현재 권장 Android 설치 버전입니다. 지난 의미기록과 같은 날짜의 충동일기를 동적으로 연결하고, 오늘 의미기록이 있을 때 오늘 기록 보기 / 기존 기록 수정하기 / 처음부터 다시 작성 세 선택지를 제공합니다. 요약 제목은 기록에서 보인 힘 / 기록에서 지킨 가치로 표시합니다. 충동기록은 wbDays에 복사하지 않고 S.urges 원본을 날짜로 조회합니다. DATA_SCHEMA=6, ohg.v1, ohg.social.v1, 소셜 Apps Script 및 Android 정확알림·화면 OFF 알림·부팅 재예약·치료/습관 알림·마음프로 음성·이완 TTS 엔진은 유지됩니다. Android versionCode 910 / versionName 9.0.15입니다.'
+          gh release view v9.0.15-test --json isPrerelease,name --jq '.isPrerelease == false and .name == "오늘 한 걸음 V9.0.15"' | grep -F true
