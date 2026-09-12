@@ -1,6 +1,6 @@
 const fs=require('fs'),path=require('path'),vm=require('vm');
 const root=__dirname,read=f=>fs.readFileSync(path.join(root,f),'utf8');
-const index=read('index.html'),feature=read('meaning-feature.js'),dataSrc=read('meaning-data.js'),workbook=read('workbook-data.js'),sw=read('sw.js');
+const index=read('index.html'),feature=read('meaning-feature.js'),checkFeature=read('meaning-check-feature.js'),dataSrc=read('meaning-data.js'),workbook=read('workbook-data.js'),sw=read('sw.js');
 const fail=m=>{throw new Error('VERIFY-MEANING: '+m)};
 const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
@@ -22,10 +22,10 @@ ok(index.includes("const DATA_SCHEMA = 6;")&&index.includes("const KEY = 'ohg.v1
 ok(/wbDays: \{\}/.test(index)&&/if\(!s\.wbDays \|\| typeof s\.wbDays !== 'object'/.test(index),'wbDays 기본값·마이그레이션');
 ok(!/window\.WB_BASE/.test(workbook),'12단계 workbook-data와 의미 데이터 분리');
 ok(index.includes('<script src="./meaning-data.js"></script>')&&index.includes('<script src="./meaning-feature.js"></script>'),'의미 데이터·실행 로직 로드');
-ok(sw.includes("'./meaning-data.js'")&&sw.includes("'./meaning-feature.js'"),'의미 파일 오프라인 캐시');
+ok(sw.includes("'./meaning-data.js'")&&sw.includes("'./meaning-feature.js'")&&sw.includes("'./meaning-check-feature.js'"),'의미 파일·간편점검 오프라인 캐시');
 
 ok(index.includes('id="p-meaning"')&&index.includes('id="tool-meaning"')&&index.includes('id="ni-meaning"'),'회복도구·하루마무리 두 진입점');
-ok(index.includes('id="mn-view-tabs"')&&index.includes('data-mn-view="today"')&&index.includes('data-mn-view="history"')&&index.includes('id="mn-view-history" class="hide"'),'의미 돌아보기 오늘·지난 기록 2탭');
+ok(index.includes('id="mn-view-tabs"')&&index.includes('data-mn-view="today"')&&index.includes('data-mn-view="history"')&&index.includes('data-mn-view="check"')&&index.includes('id="mn-view-check" class="hide"'),'의미 돌아보기 오늘·지난 기록·의미점검 3탭');
 ok(/function setMeaningView\(v\)/.test(feature)&&/setMeaningView\('today'\)/.test(feature),'의미 돌아보기 기본 오늘 탭·탭 전환 로직');
 ok(index.includes('id="mn-hard"')&&index.includes('id="mn-strength"')&&index.includes('id="mn-action"')&&index.includes('id="mn-request"')&&index.includes('id="mn-lines"'),'의미 문항 구조 통일');
 ok(feature.includes('[0,1,2,3,4].forEach')&&!index.includes('id="mn-empty-r"'),'공허감 0~4 다섯 단계·슬라이더 없음');
@@ -63,4 +63,17 @@ ok(/st\[d\]=x\.rec;save\(\)/.test(feature),'같은 날짜 키에 upsert 저장')
 ok(!/toISOString\(/.test(feature)&&/function wbToday\(\)\{return ymd\(new Date\(\)\);\}/.test(feature),'로컬 ymd 날짜 사용·UTC 날짜 변환 없음');
 ok(/hardNote/.test(feature)&&/strengthNote/.test(feature)&&/actionNote/.test(feature)&&/request/.test(feature),'직접입력은 별도 원문 필드로 저장');
 
-console.log('\nV9.0.15 의미 돌아보기·기록 다시보기 회귀검증 통과');
+ok(/meaningChecks: \[\], meaningCheckDraft: null/.test(index)&&/if\(!Array\.isArray\(s\.meaningChecks\)\)/.test(index),'3단계 완료기록·중간저장 기본값/정규화');
+ok((checkFeature.match(/\{id:'q\d+'/g)||[]).length===10,'3단계 독자 의미회복 간편점검 10문항');
+ok(/MIL-II의 8개 구성개념을 참고/.test(checkFeature)&&/원문항·원채점체계를 복제하지 않은/.test(checkFeature),'MIL-II 구성개념 참고·원문항 비복제 명시');
+ok(['자기인식','희망','책임','사랑','자기초월','관계','자기만족','헌신'].every(x=>index.includes(x)||checkFeature.includes(x)),'MIL-II 8개 구성개념 안내 반영');
+ok(/\[0,1,2,3,4\]\.forEach/.test(checkFeature)&&/10문항, 약 1~2분/.test(checkFeature),'0~4 응답·1~2분 간편점검');
+ok(/meaningCheckDraft/.test(checkFeature)&&/답할 때마다 이 기기에 자동 저장됩니다/.test(checkFeature)&&/save\(\)/.test(checkFeature),'중간답변 자동 저장·이어쓰기');
+ok(/findIndex\(x=>x&&x\.d===rec\.d\)/.test(checkFeature)&&/s\.meaningChecks\[idx\]=rec/.test(checkFeature),'완료 결과 날짜별 1개 upsert');
+ok(/function mcComparison\(rec\)/.test(checkFeature)&&/이전 .*이번/.test(checkFeature),'이전 나와 변화 비교');
+ok(/정상·위험 기준은 없습니다/.test(checkFeature)&&/진단검사가 아닙니다/.test(checkFeature),'진단·위험 컷오프 금지');
+ok(/나를 보는 힘/.test(checkFeature)&&/앞으로 향하는 힘/.test(checkFeature)&&/책임·선택/.test(checkFeature)&&/관계·넘어섬/.test(checkFeature),'앱용 4개 결과 묶음');
+ok(index.includes('의미회복 간편점검은 MIL 검사인가요?')&&index.includes('원 MIL-II 문항이나 원채점체계를 사용하지 않으며'),'사용설명서에 3단계 성격·한계 반영');
+ok(index.includes('의미 돌아보기(오늘 돌아보기 · 지난 기록 · 의미회복 간편점검)'),'전체 사용설명서 회복도구 항목 현행화');
+
+console.log('\\nV9.0.16 의미 돌아보기·기록 다시보기·의미회복 간편점검 회귀검증 통과');
