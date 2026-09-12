@@ -1329,27 +1329,29 @@ addEventListener('appinstalled', function(){
 
   <div class="toolsec">
     <h2>실천하기</h2>
-    <button class="toolcard" id="tool-meaning">
-      <span class="ic" data-ico="sprout"></span><span class="b"><b>의미 돌아보기</b><span id="tool-meaning-s">오늘의 경험에서 나에게 중요한 것을 돌아보기</span></span><span class="go">열기</span>
-    </button>
-    <button class="toolcard" id="tool-meaning-check-direct" style="margin-top:9px" onclick="openMeaningCheckDirect()">
-      <span class="ic" data-ico="check"></span><span class="b"><b>의미점검 바로하기</b><span id="tool-meaning-check-s">10문항으로 내 의미의 흐름을 짧게 점검하기</span></span><span class="go">열기</span>
-    </button>
-    <button class="toolcard hide" id="tool-family-tools">
-      <span class="ic" data-ico="family"></span><span class="b"><b>가족을 위한 도구</b><span>경계 · 대화 · 대응계획과 내 삶을 돌보는 연습</span></span><span class="go">열기</span>
-    </button>
-    <button class="toolcard" id="tool-workbook" style="margin-top:9px">
-      <span class="ic" data-ico="check"></span><span class="b"><b>12단계 점검</b><span>1·4·8·9·10·11·12단계 기록</span></span><span class="go">열기</span>
-    </button>
-    <button class="toolcard" id="tool-smart-tools" style="margin-top:9px">
-      <span class="ic" data-ico="check"></span><span class="b"><b>회복 실천도구</b><span id="tool-smart-tools-s">4개 영역에서 지금 필요한 도구만 펼쳐보기</span></span><span class="go">열기</span>
-    </button>
-    <button class="toolcard" id="tool-urge-diary" style="margin-top:9px">
-      <span class="ic" data-ico="wave"></span><span class="b"><b>충동일기</b><span id="tool-urge-diary-s">언제·무엇 때문에 힘들었는지 돌아보기</span></span><span class="go">열기</span>
-    </button>
-    <button class="toolcard" id="tool-capsule" style="margin-top:9px">
-      <span class="ic" data-ico="speak"></span><span class="b"><b>미래의 나에게</b><span id="tool-capsule-s">회복을 시작한 마음을 남겨두기</span></span><span class="go">열기</span>
-    </button>
+    <div class="learnmini practice-mini">
+      <button class="minitool" id="tool-meaning">
+        <span class="ic" data-ico="sprout"></span><b>의미 돌아보기</b><span id="tool-meaning-s">오늘 의미 돌아보기</span>
+      </button>
+      <button class="minitool" id="tool-meaning-check-direct" onclick="openMeaningCheckDirect()">
+        <span class="ic" data-ico="check"></span><b>의미점검 바로하기</b><span id="tool-meaning-check-s">10문항 · 의미 흐름 점검</span>
+      </button>
+      <button class="minitool hide" id="tool-family-tools">
+        <span class="ic" data-ico="family"></span><b>가족을 위한 도구</b><span>경계 · 대화 · 대응계획</span>
+      </button>
+      <button class="minitool" id="tool-workbook">
+        <span class="ic" data-ico="check"></span><b>12단계 점검</b><span>1·4·8·9·10·11·12</span>
+      </button>
+      <button class="minitool" id="tool-smart-tools">
+        <span class="ic" data-ico="check"></span><b>회복 실천도구</b><span id="tool-smart-tools-s">4개 영역 · 필요한 도구</span>
+      </button>
+      <button class="minitool" id="tool-urge-diary">
+        <span class="ic" data-ico="wave"></span><b>충동일기</b><span id="tool-urge-diary-s">충동 기록하기</span>
+      </button>
+      <button class="minitool" id="tool-capsule">
+        <span class="ic" data-ico="speak"></span><b>미래의 나에게</b><span id="tool-capsule-s">회복 마음 남기기</span>
+      </button>
+    </div>
   </div>
 
   <div class="toolsec">
@@ -2693,7 +2695,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD='V9.0.17';
+const BUILD='V9.0.18';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 커뮤니티의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 커뮤니티 데이터는 포함되지 않습니다. */
@@ -5070,23 +5072,23 @@ function drawTools(){
   if(m) m.textContent = '회복 Q&A · 총 ' + n + '문답';
   const cap=$('#tool-capsule'), caps=$('#tool-capsule-s');
   if(cap) cap.style.display=famMode()?'none':'flex';
-  if(caps) caps.textContent=capsuleHas()?'내가 남긴 메시지가 있습니다 · 힘들 때 다시 보기':'회복을 시작한 마음을 남겨두기';
+  if(caps) caps.textContent=capsuleHas()?'메시지 있음 · 다시 보기':'회복 마음 남기기';
   const uds=$('#tool-urge-diary-s'), ud=$('#tool-urge-diary');
   if(ud) ud.style.display=famMode()?'none':'flex';
-  if(uds) uds.textContent=(S.urges||[]).length ? ('저장된 충동 기록 '+S.urges.length+'건'+(S.urgeDraft?' · 작성 중 1건':'')) : (S.urgeDraft?'작성 중인 기록이 있습니다':'언제·무엇 때문에 힘들었는지 돌아보기');
+  if(uds) uds.textContent=(S.urges||[]).length ? ('충동 기록 '+S.urges.length+'건'+(S.urgeDraft?' · 작성 중':'')) : (S.urgeDraft?'작성 중 · 이어서':'충동 기록하기');
   /* 의미 돌아보기 — 당사자 개인기록. 기록일수는 앞세우지 않고 오늘 상태만 짧게 알립니다. */
   const mnb=$('#tool-meaning'), mns=$('#tool-meaning-s');
   if(mnb) mnb.style.display=famMode()?'none':'flex';
   if(mns && !famMode()){
     const todayMeaning=(S.wbDays&&typeof S.wbDays==='object')?S.wbDays[ymd(new Date())]:null;
-    mns.textContent=todayMeaning?'오늘 기록이 있습니다 · 다시 돌아보기':'오늘의 경험에서 나에게 중요한 것을 돌아보기';
+    mns.textContent=todayMeaning?'오늘 기록 있음 · 다시 보기':'오늘 의미 돌아보기';
   }
   const mcb=$('#tool-meaning-check-direct'), mcs=$('#tool-meaning-check-s');
   if(mcb) mcb.style.display=famMode()?'none':'flex';
   if(mcs && !famMode()){
     const d=ymd(new Date()), checks=Array.isArray(S.meaningChecks)?S.meaningChecks:[], todayCheck=checks.find(x=>x&&x.d===d), draft=S.meaningCheckDraft&&Array.isArray(S.meaningCheckDraft.answers)?S.meaningCheckDraft:null;
     const done=draft?draft.answers.filter(v=>Number.isInteger(v)&&v>=0&&v<=4).length:0;
-    mcs.textContent=draft?('작성 중 '+done+'/10문항 · 이어서 하기'):(todayCheck?('오늘 결과 '+Number(todayCheck.total||0)+'/40 · 결과 보기'):(checks.length?'10문항 점검 · 이전 결과와 비교':'10문항으로 내 의미의 흐름을 짧게 점검하기'));
+    mcs.textContent=draft?('작성 중 '+done+'/10 · 이어서'):(todayCheck?('오늘 '+Number(todayCheck.total||0)+'/40 · 결과 보기'):(checks.length?'10문항 · 이전과 비교':'10문항 · 의미 흐름 점검'));
   }
   const ss = $('#tool-schedule-s');
   if(ss){
