@@ -1,0 +1,108 @@
+name: Patch V9.0.16 meaning check
+on:
+  push:
+    branches: [v9.0.16-meaning-check]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v9.0.16-meaning-check
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Patch V9.0.16
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, json
+
+          p=Path('index.html'); s=p.read_text()
+          def once(old,new,label):
+              global s
+              if s.count(old)!=1:
+                  raise SystemExit(f'{label}: expected 1 occurrence, got {s.count(old)}')
+              s=s.replace(old,new,1)
+
+          once("const BUILD='V9.0.15';","const BUILD='V9.0.16';",'BUILD')
+          once('<!-- ══════════ 의미 돌아보기 V9.0.11 · 하루 한 장 ══════════','<!-- ══════════ 의미 돌아보기 V9.0.16 · 하루 한 장 + 기록 다시보기 + 의미회복 간편점검 ══════════','meaning comment')
+          once('<button type="button" data-mn-view="history">지난 기록</button>','<button type="button" data-mn-view="history">지난 기록</button>\n    <button type="button" data-mn-view="check">의미점검</button>','meaning check tab')
+          once('  <div id="mn-view-history" class="hide">\n    <div class="card" style="padding-top:4px;padding-bottom:4px"><div id="mn-list"></div></div><button class="btn ghost sm" id="mn-more" style="display:none"></button>\n  </div>\n  <p class="tiny" style="margin:12px 0 0">이 기록은 이 기기 안에만 남습니다. 서버나 마음프로로 자동 전송하지 않습니다.</p>',
+               '  <div id="mn-view-history" class="hide">\n    <div class="card" style="padding-top:4px;padding-bottom:4px"><div id="mn-list"></div></div><button class="btn ghost sm" id="mn-more" style="display:none"></button>\n  </div>\n  <div id="mn-view-check" class="hide"></div>\n  <p class="tiny" style="margin:12px 0 0">이 기록과 의미회복 간편점검은 이 기기 안에만 남습니다. 서버나 마음프로로 자동 전송하지 않습니다.</p>',
+               'meaning check view')
+          once('<script src="./meaning-feature.js"></script>','<script src="./meaning-feature.js"></script>\n<script src="./meaning-check-feature.js"></script>','meaning check script')
+          once('  wbDays: {},                                 /* 의미 돌아보기 — 날짜(YYYY-MM-DD)가 열쇠. 하루 한 장 */',
+               '  wbDays: {},                                 /* 의미 돌아보기 — 날짜(YYYY-MM-DD)가 열쇠. 하루 한 장 */\n  meaningChecks: [], meaningCheckDraft: null,   /* 의미회복 간편점검 — 완료기록·중간저장, ohg.v1 안에서만 사용 */',
+               'meaning check state defaults')
+          once("  if(!s.wbDays || typeof s.wbDays !== 'object' || Array.isArray(s.wbDays)) s.wbDays = {};",
+               "  if(!s.wbDays || typeof s.wbDays !== 'object' || Array.isArray(s.wbDays)) s.wbDays = {};\n  if(!Array.isArray(s.meaningChecks)) s.meaningChecks = [];\n  if(s.meaningCheckDraft && (typeof s.meaningCheckDraft !== 'object' || Array.isArray(s.meaningCheckDraft))) s.meaningCheckDraft = null;",
+               'meaning check normalization')
+
+          pat=r'<details class="faq"><summary>의미 돌아보기는 무엇인가요\?</summary><div class="faq-a">.*?</div></details>'
+          repl='''<details class="faq"><summary>의미 돌아보기는 무엇인가요?</summary><div class="faq-a"><p><b>회복도구 → 실천하기 → 의미 돌아보기</b>에서 세 가지를 사용할 수 있습니다. <b>오늘 돌아보기</b>는 공허감·아팠던 것·남아 있던 힘·내가 선택하거나 지킨 것을 짧게 기록하고, <b>지난 기록</b>은 기록에서 보인 힘과 지킨 가치, 같은 날짜의 충동기록을 함께 돌아봅니다. <b>의미점검</b>은 10문항의 의미회복 간편점검으로 이전의 나와 변화를 확인합니다. 직접 적은 글은 자동 분류하지 않으며 모든 기록은 현재 기기에만 저장됩니다. 이 기능은 당사자 모드에서만 사용합니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('meaning')">의미 돌아보기 열기</button></div></details>
+    <details class="faq"><summary>의미회복 간편점검은 MIL 검사인가요?</summary><div class="faq-a"><p>아닙니다. <b>MIL-II의 자기인식·수용, 희망, 책임, 사랑, 자기초월, 관계, 자기만족, 헌신이라는 구성개념을 참고</b>해 오늘 한 걸음에서 새로 만든 10문항 자기점검입니다. 원 MIL-II 문항이나 원채점체계를 사용하지 않으며 진단·위험판정도 하지 않습니다. 0~4로 답한 결과는 같은 방식으로 응답한 <b>내 이전 기록과의 변화</b>를 볼 때만 참고하세요.</p></div></details>'''
+          s2,n=re.subn(pat,repl,s,count=1,flags=re.S)
+          if n!=1: raise SystemExit(f'FAQ replacement expected 1, got {n}')
+          s=s2
+          once('<p style="margin-top:8px"><b>실천하기</b> — 의미 돌아보기, 12단계 점검, 회복 실천도구, 충동일기, 미래의 나에게 등을 사용합니다. 가족·보호자 모드에서는 가족을 위한 도구 중심으로 구성이 달라집니다.</p>',
+               '<p style="margin-top:8px"><b>실천하기</b> — 의미 돌아보기(오늘 돌아보기 · 지난 기록 · 의미회복 간편점검), 12단계 점검, 회복 실천도구, 충동일기, 미래의 나에게 등을 사용합니다. 가족·보호자 모드에서는 가족을 위한 도구 중심으로 구성이 달라집니다.</p>',
+               'manual tools section')
+          p.write_text(s)
+
+          p=Path('sw.js'); s=p.read_text()
+          s=s.replace("const APP_VERSION = 'V9.0.15';","const APP_VERSION = 'V9.0.16';")
+          s=s.replace("const V = 'ohg-v9015-meaning-linked-urge-view-r1';","const V = 'ohg-v9016-meaning-quick-check-r1';")
+          s=s.replace("'./meaning-data.js', './meaning-feature.js',","'./meaning-data.js', './meaning-feature.js', './meaning-check-feature.js',")
+          p.write_text(s)
+
+          Path('latest-release.json').write_text(json.dumps({
+            'version':'V9.0.16','versionCode':911,
+            'apk':'https://github.com/HanTae-ho/oneul-web/releases/download/v9.0.16-test/oneul-v9.0.16.apk',
+            'release':'https://github.com/HanTae-ho/oneul-web/releases/tag/v9.0.16-test'
+          },ensure_ascii=False,indent=2)+'\n')
+
+          p=Path('verify-meaning.js'); s=p.read_text()
+          s=s.replace("const index=read('index.html'),feature=read('meaning-feature.js'),dataSrc=read('meaning-data.js'),workbook=read('workbook-data.js'),sw=read('sw.js');",
+                      "const index=read('index.html'),feature=read('meaning-feature.js'),checkFeature=read('meaning-check-feature.js'),dataSrc=read('meaning-data.js'),workbook=read('workbook-data.js'),sw=read('sw.js');")
+          anchor="ok(sw.includes(\"'./meaning-data.js'\")&&sw.includes(\"'./meaning-feature.js'\"),'의미 파일 오프라인 캐시');"
+          add="""ok(sw.includes("'./meaning-data.js'")&&sw.includes("'./meaning-feature.js'")&&sw.includes("'./meaning-check-feature.js'"),'의미 파일·간편점검 오프라인 캐시');"""
+          if anchor not in s: raise SystemExit('verify cache anchor missing')
+          s=s.replace(anchor,add,1)
+          s=s.replace("ok(index.includes('id=\"mn-view-tabs\"')&&index.includes('data-mn-view=\"today\"')&&index.includes('data-mn-view=\"history\"')&&index.includes('id=\"mn-view-history\" class=\"hide\"'),'의미 돌아보기 오늘·지난 기록 2탭');",
+                      "ok(index.includes('id=\"mn-view-tabs\"')&&index.includes('data-mn-view=\"today\"')&&index.includes('data-mn-view=\"history\"')&&index.includes('data-mn-view=\"check\"')&&index.includes('id=\"mn-view-check\" class=\"hide\"'),'의미 돌아보기 오늘·지난 기록·의미점검 3탭');")
+          marker="console.log('\\nV9.0.15 의미 돌아보기·기록 다시보기 회귀검증 통과');"
+          checks=r'''ok(/meaningChecks: \[\], meaningCheckDraft: null/.test(index)&&/if\(!Array\.isArray\(s\.meaningChecks\)\)/.test(index),'3단계 완료기록·중간저장 기본값/정규화');
+ok((checkFeature.match(/\{id:'q\d+'/g)||[]).length===10,'3단계 독자 의미회복 간편점검 10문항');
+ok(/MIL-II의 8개 구성개념을 참고/.test(checkFeature)&&/원문항·원채점체계를 복제하지 않은/.test(checkFeature),'MIL-II 구성개념 참고·원문항 비복제 명시');
+ok(['자기인식','희망','책임','사랑','자기초월','관계','자기만족','헌신'].every(x=>index.includes(x)||checkFeature.includes(x)),'MIL-II 8개 구성개념 안내 반영');
+ok(/\[0,1,2,3,4\]\.forEach/.test(checkFeature)&&/10문항, 약 1~2분/.test(checkFeature),'0~4 응답·1~2분 간편점검');
+ok(/meaningCheckDraft/.test(checkFeature)&&/답할 때마다 이 기기에 자동 저장됩니다/.test(checkFeature)&&/save\(\)/.test(checkFeature),'중간답변 자동 저장·이어쓰기');
+ok(/findIndex\(x=>x&&x\.d===rec\.d\)/.test(checkFeature)&&/s\.meaningChecks\[idx\]=rec/.test(checkFeature),'완료 결과 날짜별 1개 upsert');
+ok(/function mcComparison\(rec\)/.test(checkFeature)&&/이전 .*이번/.test(checkFeature),'이전 나와 변화 비교');
+ok(/정상·위험 기준은 없습니다/.test(checkFeature)&&/진단검사가 아닙니다/.test(checkFeature),'진단·위험 컷오프 금지');
+ok(/나를 보는 힘/.test(checkFeature)&&/앞으로 향하는 힘/.test(checkFeature)&&/책임·선택/.test(checkFeature)&&/관계·넘어섬/.test(checkFeature),'앱용 4개 결과 묶음');
+ok(index.includes('의미회복 간편점검은 MIL 검사인가요?')&&index.includes('원 MIL-II 문항이나 원채점체계를 사용하지 않으며'),'사용설명서에 3단계 성격·한계 반영');
+ok(index.includes('의미 돌아보기(오늘 돌아보기 · 지난 기록 · 의미회복 간편점검)'),'전체 사용설명서 회복도구 항목 현행화');
+
+console.log('\\nV9.0.16 의미 돌아보기·기록 다시보기·의미회복 간편점검 회귀검증 통과');'''
+          if marker not in s: raise SystemExit('verify final marker missing')
+          s=s.replace(marker,checks,1)
+          p.write_text(s)
+          PY
+          node --check meaning-feature.js
+          node --check meaning-check-feature.js
+          node verify-meaning.js
+          node verify.js
+          git diff --check
+          rm .github/workflows/patch-v9016-meaning-check.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "V9.0.16 add meaning recovery quick check"
+          git push origin HEAD:v9.0.16-meaning-check
