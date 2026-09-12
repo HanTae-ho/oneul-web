@@ -225,6 +225,10 @@ console.log('\n'+build+' 웹 회귀검증 통과');
 if(!index.includes("btn.textContent=show?'초심 접기':'초심 보기';")) throw new Error('V9.0.6 초심 보기 런타임 문구 누락');
 if(!index.includes('id=\"social-compose-safety\"')) throw new Error('V9.0.6 커뮤니티 안전안내 폴딩 누락');
 if(!index.includes("socialRefresh(false,true)")) throw new Error('V9.0.6 커뮤니티 백그라운드 동기화 누락');
-if(!index.includes("const BUILD='V9.0.17';")) throw new Error('V9.0.17 BUILD 불일치');
+const practiceSection=(index.match(/<h2>실천하기<\/h2>([\s\S]*?)<div class="toolsec">/)||[])[1]||'';
+ok(/learnmini practice-mini/.test(practiceSection),'실천하기 배우기형 3열 그리드');
+ok((practiceSection.match(/class="minitool/g)||[]).length===7,'실천하기 7개 카드 압축형');
+ok(!/class="toolcard/.test(practiceSection)&&!/class="go"/.test(practiceSection),'실천하기 목록형·열기 텍스트 제거');
+if(!index.includes("const BUILD='V9.0.18';")) throw new Error('V9.0.18 BUILD 불일치');
 
 require('./verify-meaning.js');
