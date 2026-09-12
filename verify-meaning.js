@@ -81,4 +81,4 @@ ok(/data-mc-result-date/.test(checkFeature)&&/function mcShowResult\(d\)/.test(c
 ok(/결과 저장 완료/.test(checkFeature)&&/저장된 결과/.test(checkFeature),'결과 저장 완료 상태 명확화');
 ok(/오늘 저장된 결과가 이미 있습니다/.test(checkFeature)&&/새 결과로 교체/.test(checkFeature)&&/function mcBeginRecheck\(\)/.test(checkFeature),'같은 날 재점검 교체 규칙 안내');
 
-console.log('\\nV9.0.17 의미 돌아보기·기록 다시보기·의미회복 간편점검 UX 회귀검증 통과');
+console.log('\\nV9.0.18 의미 돌아보기·기록 다시보기·의미회복 간편점검 UX 회귀검증 통과');
