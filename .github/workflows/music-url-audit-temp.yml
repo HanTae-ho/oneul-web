@@ -1,0 +1,59 @@
+name: Music URL audit temp
+
+on:
+  push:
+    branches: [music-stability-v9.0.20]
+    paths:
+      - '.github/workflows/music-url-audit-temp.yml'
+      - 'music-audio-data.js'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check every direct-audio candidate
+        run: |
+          node <<'NODE'
+          global.window=global;
+          require('./music-audio-data.js');
+          const items=global.MUSIC_AUDIO_AUDITED||{};
+          const rows=[];
+          for(const [id,item] of Object.entries(items)){
+            for(let i=0;i<(item.candidates||[]).length;i++) rows.push({id,title:item.title,n:i+1,url:item.candidates[i].u});
+          }
+          if(Object.keys(items).length!==30) throw new Error('Expected 30 songs, got '+Object.keys(items).length);
+          async function probe(r){
+            const opts={redirect:'follow',signal:AbortSignal.timeout(15000),headers:{'User-Agent':'oneul-web-music-audit/1.0'}};
+            let res;
+            try{ res=await fetch(r.url,{...opts,method:'HEAD'}); }
+            catch(e){ res=null; }
+            if(!res || !res.ok){
+              try{ res=await fetch(r.url,{...opts,method:'GET',headers:{...opts.headers,Range:'bytes=0-1023'}}); }
+              catch(e){ return {...r,ok:false,error:String(e)}; }
+            }
+            const ct=(res.headers.get('content-type')||'').toLowerCase();
+            const ok=res.ok && (ct.startsWith('audio/') || ct.includes('ogg') || ct.includes('mpeg') || ct.includes('flac') || ct.includes('octet-stream'));
+            try{ if(res.body) await res.body.cancel(); }catch{}
+            return {...r,ok,status:res.status,ct,finalUrl:res.url};
+          }
+          (async()=>{
+            const out=[];
+            for(const r of rows){
+              const x=await probe(r); out.push(x);
+              console.log(`${x.ok?'OK':'FAIL'} #${x.id}.${x.n} ${x.status||''} ${x.ct||''} ${x.url}${x.error?' :: '+x.error:''}`);
+            }
+            const bad=out.filter(x=>!x.ok);
+            const counts=Object.fromEntries(Object.entries(items).map(([id,x])=>[id,(x.candidates||[]).length]));
+            console.log('CANDIDATE_COUNTS='+JSON.stringify(counts));
+            console.log(`SUMMARY songs=${Object.keys(items).length} urls=${rows.length} failed=${bad.length}`);
+            if(bad.length) process.exit(1);
+          })();
+          NODE
