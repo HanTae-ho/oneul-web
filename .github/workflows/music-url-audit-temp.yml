@@ -5,55 +5,92 @@ on:
     branches: [music-stability-v9.0.20]
     paths:
       - '.github/workflows/music-url-audit-temp.yml'
-      - 'music-audio-data.js'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  audit:
+  audit-and-patch:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: music-stability-v9.0.20
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check every direct-audio candidate
+      - name: Add 15번 resilient backups only
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          p=Path('music-audio-data.js')
+          s=p.read_text(encoding='utf-8')
+          old='"15":{"title":"엘가 — 위풍당당 행진곡 1번 Op.39","credit":"—","candidates":[{"u":"https://upload.wikimedia.org/wikipedia/commons/8/8a/Pomp_and_Circumstance%2C_Op._39_-_No._1_-_United_States_Army_Band.mp3","l":"Public domain (미 연방정부 저작물) · MP3","s":"https://commons.wikimedia.org/wiki/File:Pomp_and_Circumstance%2C_Op._39_-_No._1_-_United_States_Army_Band.mp3"}]}'
+          new='"15":{"title":"엘가 — 위풍당당 행진곡 1번 Op.39","credit":"—","candidates":[{"u":"https://upload.wikimedia.org/wikipedia/commons/8/8a/Pomp_and_Circumstance%2C_Op._39_-_No._1_-_United_States_Army_Band.mp3","l":"Public domain (미 연방정부 저작물) · MP3","s":"https://commons.wikimedia.org/wiki/File:Pomp_and_Circumstance%2C_Op._39_-_No._1_-_United_States_Army_Band.mp3"},{"u":"https://www.marineband.marines.mil/Portals/175/Docs/Audio/Web_Exclusives/web_exclusives/pomp-and-circumstance1988.mp3?ver=2020-05-28-080627-740","l":"Public domain (미 연방정부 저작물) · US Marine Band 원본","s":"https://commons.wikimedia.org/wiki/File:ELGAR_Pomp_and_Circumstance_in_D%2C_Opus_39%2C_No._1_-_United_States_Marine_Band.mp3"},{"u":"https://upload.wikimedia.org/wikipedia/commons/2/28/ELGAR_Pomp_and_Circumstance_in_D%2C_Opus_39%2C_No._1_-_United_States_Marine_Band.mp3","l":"Public domain (미 연방정부 저작물) · Wikimedia mirror","s":"https://commons.wikimedia.org/wiki/File:ELGAR_Pomp_and_Circumstance_in_D%2C_Opus_39%2C_No._1_-_United_States_Marine_Band.mp3"}]}'
+          if old not in s:
+              raise SystemExit('15번 기존 후보 블록을 찾지 못했습니다. 기준본 변경 여부를 확인하세요.')
+          p.write_text(s.replace(old,new,1),encoding='utf-8')
+          PY
+      - name: Syntax and candidate invariants
+        run: |
+          node --check music-audio-data.js
+          node <<'NODE'
+          global.window=global;
+          require('./music-audio-data.js');
+          const m=global.MUSIC_AUDIO_AUDITED||{};
+          if(Object.keys(m).length!==30) throw new Error('30곡이 아닙니다');
+          for(const [id,x] of Object.entries(m)){
+            const c=x.candidates||[];
+            if(id==='15' && c.length!==3) throw new Error('15번은 3후보여야 합니다');
+            if(id!=='15' && c.length<2) throw new Error(`${id}번 후보 부족`);
+            if(c.some(v=>!/^https:\/\//.test(String(v.u||'')))) throw new Error(`${id}번 HTTPS 위반`);
+            if(new Set(c.map(v=>v.u)).size!==c.length) throw new Error(`${id}번 중복 URL`);
+          }
+          console.log('CANDIDATE_INVARIANTS_OK 30 songs; #15=3; others>=2');
+          NODE
+      - name: Verify all Wikimedia source files through Commons API
         run: |
           node <<'NODE'
           global.window=global;
           require('./music-audio-data.js');
-          const items=global.MUSIC_AUDIO_AUDITED||{};
-          const rows=[];
-          for(const [id,item] of Object.entries(items)){
-            for(let i=0;i<(item.candidates||[]).length;i++) rows.push({id,title:item.title,n:i+1,url:item.candidates[i].u});
+          const m=global.MUSIC_AUDIO_AUDITED||{};
+          const names=[];
+          for(const x of Object.values(m)) for(const c of (x.candidates||[])){
+            const s=String(c.s||'');
+            if(!s.includes('commons.wikimedia.org/wiki/File:')) continue;
+            const u=new URL(s);
+            const raw=u.pathname.split('/wiki/File:')[1];
+            if(raw){ const n=decodeURIComponent(raw); if(!names.includes(n)) names.push(n); }
           }
-          if(Object.keys(items).length!==30) throw new Error('Expected 30 songs, got '+Object.keys(items).length);
-          async function probe(r){
-            const opts={redirect:'follow',signal:AbortSignal.timeout(15000),headers:{'User-Agent':'oneul-web-music-audit/1.0'}};
-            let res;
-            try{ res=await fetch(r.url,{...opts,method:'HEAD'}); }
-            catch(e){ res=null; }
-            if(!res || !res.ok){
-              try{ res=await fetch(r.url,{...opts,method:'GET',headers:{...opts.headers,Range:'bytes=0-1023'}}); }
-              catch(e){ return {...r,ok:false,error:String(e)}; }
+          async function batch(list){
+            const q=new URL('https://commons.wikimedia.org/w/api.php');
+            q.search=new URLSearchParams({action:'query',format:'json',prop:'imageinfo',iiprop:'url|mime|size',titles:list.map(n=>'File:'+n).join('|')});
+            const r=await fetch(q,{headers:{'User-Agent':'oneul-web/9.0.20 music-source-audit contact=github.com/HanTae-ho/oneul-web'},signal:AbortSignal.timeout(20000)});
+            if(!r.ok) throw new Error('Commons API '+r.status);
+            const j=await r.json();
+            const pages=Object.values(j.query?.pages||{});
+            for(const p of pages){
+              if('missing' in p || !p.imageinfo?.[0]?.url) throw new Error('Missing Commons file: '+p.title);
+              const mime=String(p.imageinfo[0].mime||'');
+              if(!(mime.startsWith('audio/') || mime==='application/ogg')) throw new Error(`Non-audio source ${p.title}: ${mime}`);
+              console.log('OK',p.title,mime,p.imageinfo[0].size);
             }
-            const ct=(res.headers.get('content-type')||'').toLowerCase();
-            const ok=res.ok && (ct.startsWith('audio/') || ct.includes('ogg') || ct.includes('mpeg') || ct.includes('flac') || ct.includes('octet-stream'));
-            try{ if(res.body) await res.body.cancel(); }catch{}
-            return {...r,ok,status:res.status,ct,finalUrl:res.url};
+            return pages.length;
           }
           (async()=>{
-            const out=[];
-            for(const r of rows){
-              const x=await probe(r); out.push(x);
-              console.log(`${x.ok?'OK':'FAIL'} #${x.id}.${x.n} ${x.status||''} ${x.ct||''} ${x.url}${x.error?' :: '+x.error:''}`);
-            }
-            const bad=out.filter(x=>!x.ok);
-            const counts=Object.fromEntries(Object.entries(items).map(([id,x])=>[id,(x.candidates||[]).length]));
-            console.log('CANDIDATE_COUNTS='+JSON.stringify(counts));
-            console.log(`SUMMARY songs=${Object.keys(items).length} urls=${rows.length} failed=${bad.length}`);
-            if(bad.length) process.exit(1);
-          })();
+            let checked=0;
+            for(let i=0;i<names.length;i+=20) checked+=await batch(names.slice(i,i+20));
+            if(checked!==names.length) throw new Error(`Source count mismatch ${checked}/${names.length}`);
+            console.log(`COMMONS_SOURCE_AUDIT_OK unique_sources=${checked}`);
+          })().catch(e=>{console.error(e);process.exit(1)});
           NODE
+      - name: Diff guard and commit branch change
+        run: |
+          git diff --check
+          git diff -- music-audio-data.js
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add music-audio-data.js
+          git commit -m 'fix: add resilient backups for Elgar Pomp and Circumstance'
+          git push origin HEAD:music-stability-v9.0.20
