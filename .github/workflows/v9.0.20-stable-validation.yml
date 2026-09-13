@@ -1,0 +1,21 @@
+name: V9.0.20 stable browser validation
+
+on:
+  push:
+    branches: [release-v9.0.20-stable]
+
+jobs:
+  browser-simulation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run full mobile browser simulation
+        run: node test.js
