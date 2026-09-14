@@ -42,6 +42,7 @@ jobs:
           s=Path('index.html').read_text(encoding='utf-8')
           blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
           blocks.append(Path('meaning-feature.js').read_text(encoding='utf-8'))
+          blocks.append(Path('meaning-check-feature.js').read_text(encoding='utf-8'))
           Path('/tmp/index-all.js').write_text('\n'.join(blocks),encoding='utf-8')
           Path('/tmp/social.js').write_text(Path('social-apps-script.gs').read_text(encoding='utf-8'),encoding='utf-8')
           print('script blocks:',len(blocks),'lines:',len(Path('/tmp/index-all.js').read_text(encoding='utf-8').splitlines()))
