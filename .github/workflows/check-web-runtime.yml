@@ -8,6 +8,7 @@ on:
       - '*.js'
       - '*.json'
       - '*.gs'
+      - 'README.md'
       - 'icon-*.png'
       - '.github/workflows/check-web-runtime.yml'
   pull_request:
@@ -17,6 +18,7 @@ on:
       - '*.js'
       - '*.json'
       - '*.gs'
+      - 'README.md'
       - 'icon-*.png'
       - '.github/workflows/check-web-runtime.yml'
   workflow_dispatch:
@@ -114,6 +116,7 @@ jobs:
           grep -F "const KEY = 'ohg.v1';" index.html
           grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
           ! grep -F 'HALTS.find' index.html
+          for v in {7..20}; do grep -F "## V9.0.$v " README.md; done
 
       - name: Install Playwright Chromium
         run: |
