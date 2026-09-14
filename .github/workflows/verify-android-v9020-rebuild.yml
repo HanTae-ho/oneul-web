@@ -1,0 +1,141 @@
+name: Verify Android V9.0.20 reproducible build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [android-v9.0.20-reproducibility]
+    paths:
+      - '.github/workflows/verify-android-v9020-rebuild.yml'
+      - 'ANDROID_REPRODUCIBILITY.md'
+
+permissions:
+  contents: read
+
+jobs:
+  rebuild-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Restore pinned V9.0.20 Android source chain
+        env:
+          ARCHIVE_SHA: c79a2957e47818550444abeb83e1fafafd9bd572
+        run: |
+          set -euo pipefail
+          git fetch origin "$ARCHIVE_SHA"
+          test "$(git rev-parse FETCH_HEAD)" = "$ARCHIVE_SHA"
+          git show "$ARCHIVE_SHA:android-v8-source.zip" > android-v8-source.zip
+          for f in $(git ls-tree -r --name-only "$ARCHIVE_SHA" | grep '^android-v.*\.sh$'); do
+            git show "$ARCHIVE_SHA:$f" > "$f"
+            chmod +x "$f"
+          done
+          for f in index.html sw.js latest-release.json social-apps-script.gs native.html install.html release-version-check.js; do
+            git show "$ARCHIVE_SHA:$f" > "$f"
+          done
+          test "$(git rev-parse "$ARCHIVE_SHA:android-v8-source.zip")" = "627c56a3a557cc2fc1be2e3d00b693b7e0aa99ab"
+          test "$(git rev-parse "$ARCHIVE_SHA:android-v9.0.20-restore-practice-label-release.sh")" = "d611514a0c4bf784c64a3155fa81a925621ccc33"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Install pinned Android SDK
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Reconstruct V9.0.20 Android project
+        run: |
+          set -euo pipefail
+          rm -rf android-v8
+          mkdir android-v8
+          unzip -q android-v8-source.zip -d android-v8
+          bash android-v9.0.20-restore-practice-label-release.sh
+
+      - name: Restore existing release signing key
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          test -n "$KEYSTORE_B64"
+          echo "$KEYSTORE_B64" | base64 --decode > "$GITHUB_WORKSPACE/android-v8/signing.keystore"
+          test -s "$GITHUB_WORKSPACE/android-v8/signing.keystore"
+
+      - name: Create release signing properties
+        env:
+          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          test -n "$STORE_PASSWORD"; test -n "$KEY_ALIAS"; test -n "$KEY_PASSWORD"
+          cat > android-v8/keystore.properties <<EOF
+          storeFile=$GITHUB_WORKSPACE/android-v8/signing.keystore
+          storePassword=$STORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Build signed release APK and AAB
+        run: gradle -p android-v8 :app:assembleRelease :app:bundleRelease
+
+      - name: Verify package, permissions and preserved native engines
+        run: |
+          set -euo pipefail
+          APK=$(find android-v8/app/build/outputs/apk/release -name '*.apk' -type f | head -1)
+          AAB=$(find android-v8/app/build/outputs/bundle/release -name '*.aab' -type f | head -1)
+          test -s "$APK"; test -s "$AAB"
+          echo "BUILT_APK=$APK" >> "$GITHUB_ENV"
+          echo "BUILT_AAB=$AAB" >> "$GITHUB_ENV"
+
+          AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          "$AAPT" dump badging "$APK" | tee /tmp/badging.txt
+          grep -F "package: name='io.github.hantae_ho.twa' versionCode='915' versionName='9.0.20'" /tmp/badging.txt
+
+          "$AAPT" dump permissions "$APK" | tee /tmp/permissions.txt
+          grep -F 'android.permission.SCHEDULE_EXACT_ALARM' /tmp/permissions.txt
+          grep -F 'android.permission.WAKE_LOCK' /tmp/permissions.txt
+          grep -F 'android.permission.POST_NOTIFICATIONS' /tmp/permissions.txt
+          grep -F 'android.permission.RECEIVE_BOOT_COMPLETED' /tmp/permissions.txt
+          ! grep -Eq 'android.permission.(RECORD_AUDIO|CAMERA|READ_CONTACTS|WRITE_CONTACTS|ACCESS_FINE_LOCATION|ACCESS_COARSE_LOCATION)' /tmp/permissions.txt
+
+          PKG=android-v8/app/src/main/java/io/github/hantae_ho/twa
+          grep -F 'handleSilentSync(getIntent())' "$PKG/NotificationSettingsActivity.java"
+          grep -F '"1".equals(val(u, "clear"))' "$PKG/NotificationSettingsActivity.java"
+          grep -F '"1".equals(val(u, "apply"))' "$PKG/NotificationSettingsActivity.java"
+          grep -F 'setExactAndAllowWhileIdle' "$PKG/ReminderScheduler.java"
+          grep -F 'setExactAndAllowWhileIdle' "$PKG/HabitReminderScheduler.java"
+          grep -F 'setExactAndAllowWhileIdle' "$PKG/TreatmentReminderScheduler.java"
+          grep -F 'scheduleNextForOffset' "$PKG/TreatmentAlarmReceiver.java"
+          grep -F 'PowerManager.PARTIAL_WAKE_LOCK' "$PKG/RelaxTtsActivity.java"
+          grep -F 'TextToSpeech.QUEUE_FLUSH' "$PKG/MindProVoiceService.java"
+
+      - name: Compare signer with published V9.0.20 APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p published
+          gh release download v9.0.20-test --pattern 'oneul-v9.0.20.apk' --dir published
+          PUBLISHED=published/oneul-v9.0.20.apk
+          test -s "$PUBLISHED"
+          echo '711b68a3da5c5ac82f588b6756a6b8a2b214b1a7914790ee48645a4994a5f821  published/oneul-v9.0.20.apk' | sha256sum -c -
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          "$APKSIGNER" verify --print-certs "$BUILT_APK" | tee /tmp/built-certs.txt
+          "$APKSIGNER" verify --print-certs "$PUBLISHED" | tee /tmp/published-certs.txt
+          grep 'Signer #1 certificate SHA-256 digest:' /tmp/built-certs.txt | sed 's/.*digest: //' > /tmp/built-cert.sha256
+          grep 'Signer #1 certificate SHA-256 digest:' /tmp/published-certs.txt | sed 's/.*digest: //' > /tmp/published-cert.sha256
+          diff -u /tmp/published-cert.sha256 /tmp/built-cert.sha256
+          echo 'ANDROID_V9_0_20_REPRODUCIBLE_BUILD_PASS'
