@@ -1,0 +1,114 @@
+from pathlib import Path
+
+p=Path('index.html')
+s=p.read_text(encoding='utf-8')
+
+# 1) Distinguish meaning check from screening history.
+if '의미점검 보기' not in s:
+    raise SystemExit('expected meaning label not found')
+s=s.replace('의미점검 보기','의미점검')
+old='<b>점검 보기</b><span>지난 점검 결과와 변화 확인</span>'
+new='<b>자가점검 기록</b><span>지난 점검 결과와 변화 확인</span>'
+if s.count(old)!=1:
+    raise SystemExit(f'expected screening label once, found {s.count(old)}')
+s=s.replace(old,new,1)
+
+# 2) Read existing meaning records into My Trail > practice records without copying/migrating data.
+marker="  const rows=[];\n  workbookRecordStore(scope).forEach(r=>{\n"
+if s.count(marker)!=1:
+    raise SystemExit(f'practice rows marker count={s.count(marker)}')
+insert="""  const rows=[];
+  /* V9.1 — 의미 기록도 기존 원본(S.wbDays / S.meaningChecks)을 복사하지 않고 내 발자취에서 함께 읽습니다. */
+  if(scope==='self'){
+    const meaningDays=(S.wbDays&&typeof S.wbDays==='object'&&!Array.isArray(S.wbDays))?S.wbDays:{};
+    Object.keys(meaningDays).forEach(d=>{
+      const r=meaningDays[d]; if(!r||typeof r!=='object'||Array.isArray(r))return;
+      const line=(typeof wbLineById==='function'&&r.line)?wbLineById(r.line):null;
+      const raw=(line&&line.text)||r.request||r.actionNote||r.strengthNote||r.hardNote||r.note||(typeof r.empty==='number'?('공허감 '+Number(r.empty)+'/4'):'의미 돌아보기 기록');
+      const dt=(typeof ymdDate==='function')?ymdDate(d):null;
+      rows.push({
+        group:'meaning',ts:Number(r.ts||(dt?dt.getTime():0)),title:'의미 돌아보기',summary:cleanText(raw),record:{kind:'meaning-day',d:d},
+        open:()=>{go('meaning');setTimeout(()=>openMeaningHistoryDay(d),80);}
+      });
+    });
+    (Array.isArray(S.meaningChecks)?S.meaningChecks:[]).forEach(r=>{
+      if(!r||!r.d||!Array.isArray(r.answers))return;
+      const axes=(r.domains&&typeof r.domains==='object')?r.domains:(typeof mcAxes==='function'?mcAxes(r.answers):{});
+      const axisText=['나를 보는 힘 '+Number(axes.self||0).toFixed(1)+'/4','앞으로 향하는 힘 '+Number(axes.future||0).toFixed(1)+'/4','책임·선택 '+Number(axes.choice||0).toFixed(1)+'/4','관계·넘어섬 '+Number(axes.relation||0).toFixed(1)+'/4'].join(' · ');
+      const dt=(typeof ymdDate==='function')?ymdDate(r.d):null;
+      rows.push({
+        group:'meaning',ts:Number(r.ts||(dt?dt.getTime():0)),title:'의미회복 간편점검',summary:Number(r.total||0)+'/40 · '+axisText,record:{kind:'meaning-check',d:r.d},
+        open:()=>{if(typeof mcShowResult==='function')mcShowResult(r.d);}
+      });
+    });
+  }
+  workbookRecordStore(scope).forEach(r=>{
+"""
+s=s.replace(marker,insert,1)
+
+old_filters="""  const filters=scope==='family'
+    ? [{v:'all',l:'전체'},{v:'step',l:'12단계'},{v:'smart',l:'실천도구'},{v:'family',l:'가족도구'}]
+    : [{v:'all',l:'전체'},{v:'step',l:'12단계'},{v:'smart',l:'실천도구'}];
+"""
+new_filters="""  const filters=scope==='family'
+    ? [{v:'all',l:'전체'},{v:'step',l:'12단계'},{v:'smart',l:'실천도구'},{v:'family',l:'가족도구'}]
+    : [{v:'all',l:'전체'},{v:'meaning',l:'의미'},{v:'step',l:'12단계'},{v:'smart',l:'실천도구'}];
+"""
+if s.count(old_filters)!=1:
+    raise SystemExit(f'filter marker count={s.count(old_filters)}')
+s=s.replace(old_filters,new_filters,1)
+
+old_empty="const empty={all:'저장된 실천 기록이 없습니다.',step:'저장된 12단계 기록이 없습니다.',smart:'저장된 실천도구 기록이 없습니다.',family:'저장된 가족도구 기록이 없습니다.'};"
+new_empty="const empty={all:'저장된 실천 기록이 없습니다.',meaning:'저장된 의미 기록이 없습니다.',step:'저장된 12단계 기록이 없습니다.',smart:'저장된 실천도구 기록이 없습니다.',family:'저장된 가족도구 기록이 없습니다.'};"
+if s.count(old_empty)!=1:
+    raise SystemExit(f'empty marker count={s.count(old_empty)}')
+s=s.replace(old_empty,new_empty,1)
+
+old_title="c.appendChild(el('h3','', '저장한 실천 기록 '+shown.length+'건'));"
+new_title="c.appendChild(el('h3','', (recPracticeFilter==='meaning'?'저장한 의미 기록 ':'저장한 실천 기록 ')+shown.length+'건'));"
+if s.count(old_title)!=1:
+    raise SystemExit(f'title marker count={s.count(old_title)}')
+s=s.replace(old_title,new_title,1)
+
+old_badge="const badge=row.group==='step'?'12':row.group==='family'?'가':'S';"
+new_badge="const badge=row.group==='meaning'?'의':row.group==='step'?'12':row.group==='family'?'가':'S';"
+if s.count(old_badge)!=1:
+    raise SystemExit(f'badge marker count={s.count(old_badge)}')
+s=s.replace(old_badge,new_badge,1)
+p.write_text(s,encoding='utf-8')
+
+# 3) Extend permanent browser regression.
+tp=Path('test.js')
+t=tp.read_text(encoding='utf-8')
+tmarker="  assert(await pg.isVisible('#tool-listen'), '회복도구에 듣는 글 메뉴가 보여야 함');\n"
+if t.count(tmarker)!=1:
+    raise SystemExit(f'test insertion marker count={t.count(tmarker)}')
+test_add="""  assert(await pg.isVisible('#tool-listen'), '회복도구에 듣는 글 메뉴가 보여야 함');
+  assert((await pg.$eval('#tool-meaning-check-direct b', e => e.textContent.trim())) === '의미점검', '의미점검 메뉴 이름이 자가점검 기록과 구분되어야 함');
+  assert((await pg.$eval('#tool-check-view b', e => e.textContent.trim())) === '자가점검 기록', '자가점검 결과 조회 메뉴 이름이 명확해야 함');
+
+  const meaningDay = daysAgo(1), meaningCheckDay = daysAgo(2);
+  await pg.evaluate(({meaningDay,meaningCheckDay}) => {
+    S.wbDays = S.wbDays && typeof S.wbDays === 'object' && !Array.isArray(S.wbDays) ? S.wbDays : {};
+    S.wbDays[meaningDay] = { hard:[], strength:[], action:[], request:'내가 지킬 한 걸음', ts:Date.now()-86400000 };
+    S.meaningChecks = [{ d:meaningCheckDay, ts:Date.now()-172800000, answers:Array(10).fill(2), total:20, domains:{self:2,future:2,choice:2,relation:2} }];
+    save(); recTab='work'; recPracticeFilter='meaning'; go('rec');
+  }, {meaningDay,meaningCheckDay});
+  await pg.waitForTimeout(180);
+  const meaningTrailText = await pg.$eval('#rec-body', e => e.innerText);
+  assert(meaningTrailText.includes('저장한 의미 기록 2건'), '내 발자취 의미 필터에 두 종류 의미 기록이 함께 보여야 함');
+  assert(meaningTrailText.includes('의미 돌아보기') && meaningTrailText.includes('내가 지킬 한 걸음'), '의미 돌아보기 기존 기록을 내 발자취에서 읽어야 함');
+  assert(meaningTrailText.includes('의미회복 간편점검') && meaningTrailText.includes('20/40'), '의미회복 간편점검 기존 결과를 내 발자취에서 읽어야 함');
+  await pg.locator('#rec-body button.toolcard').filter({hasText:'의미회복 간편점검'}).click();
+  await pg.waitForTimeout(100);
+  assert((await pg.$eval('#modin h2', e => e.textContent.trim())) === '의미점검 결과', '내 발자취의 의미점검 기록은 기존 결과 상세를 재사용해야 함');
+  await pg.evaluate(() => closeModal());
+  await pg.evaluate(() => { S.role='family'; save(); recTab='work'; recPracticeFilter='all'; go('rec'); });
+  await pg.waitForTimeout(150);
+  const familyTrailText = await pg.$eval('#rec-body', e => e.innerText);
+  assert(!familyTrailText.includes('의미 돌아보기') && !familyTrailText.includes('의미회복 간편점검'), '가족모드 내 발자취에는 당사자 의미기록이 노출되면 안 됨');
+  await pg.evaluate(() => { S.role='self'; save(); go('tools'); });
+  await pg.waitForTimeout(150);
+"""
+t=t.replace(tmarker,test_add,1)
+tp.write_text(t,encoding='utf-8')
