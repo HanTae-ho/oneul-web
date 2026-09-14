@@ -1,9 +1,51 @@
 # 오늘 한 걸음 V9.1.0 — Google Play 제출 준비서
 
 기준일: 2026-09-14  
-대상: 개인 Google Play 개발자 계정으로 `오늘 한 걸음` Android 앱을 최초 등록할 때의 사전 점검 및 Play Console 입력 준비
+대상: `오늘 한 걸음` Android 앱을 Google Play에 최초 등록하기 위한 사전 점검 및 Play Console 입력 준비
 
 > 이 문서는 Play Console 제출을 돕기 위한 운영 체크리스트입니다. Google Play 정책과 Play Console 질문은 변경될 수 있으므로 실제 제출 화면의 최신 문구를 최종 기준으로 사용합니다.
+
+---
+
+## 0. 가장 먼저 확인할 사항 — 개인 계정이 아니라 조직 계정 경로
+
+`오늘 한 걸음`은 중독 회복·정신건강 지원, 복약/치료 일정, 이완·스트레스 관리 등 **건강 관련 기능을 제공하는 앱**입니다.
+
+Google Play의 현재 계정유형 정책은 건강 앱을 제공하는 개발자는 **Organization(조직) 개발자 계정**을 선택해야 한다고 안내합니다. 따라서 이 앱을 Google Play에 정식 배포할 목적이라면 **신규 Personal(개인) 계정을 기준으로 출시 준비를 진행하지 않습니다.**
+
+### 조직 계정에서 준비할 것
+
+- 조직/사업체의 공식 정보
+- **D-U-N-S 번호**
+- 공식 조직 웹사이트 및 웹사이트 확인 절차
+- 조직 전화번호
+- Google 연락용 이메일/전화번호
+- Google Play에 공개되는 개발자 이메일/전화번호
+- Google Payments 조직 프로필 및 필요한 신원/조직 확인
+
+Google의 계정유형 안내에 따르면 조직 계정 생성에는 D-U-N-S 번호가 필요합니다.
+
+공식 계정유형 정책: <https://support.google.com/googleplay/android-developer/answer/13634885>  
+Play Console 요구사항: <https://support.google.com/googleplay/android-developer/answer/10788890>
+
+### 이미 개인 개발자 계정을 만든 경우
+
+2026년 현재 Google은 Personal → Organization 전환 절차를 제공합니다.
+
+대략적인 순서:
+
+1. Play Console `Developer account → About you`로 이동
+2. 공식 조직 웹사이트를 제공하고 확인
+3. `Change account type` 선택
+4. D-U-N-S 번호가 포함된 조직용 Google Payments 프로필 생성/선택
+5. 조직 정보·연락처 제공 및 확인
+6. 필요한 신원/조직 확인 완료
+7. 검증된 Payments 프로필을 개발자 계정에 연결
+8. 전환 완료 후 Google 시스템 동기화를 위해 공식 안내에 따라 최소 72시간을 두고 새 앱 제출
+
+공식 전환 안내: <https://support.google.com/googleplay/android-developer/answer/16260648>
+
+> **중요:** 신규 개인계정에 적용되는 `12명·14일 closed test` 규칙은 Personal 계정용 요건입니다. 오늘 한 걸음의 권장/정책상 경로는 건강 앱에 맞는 Organization 계정이므로, 이를 출시 계획의 기본 일정으로 잡지 않습니다. 이미 개인계정에서 작업을 시작했다면 먼저 계정유형을 바로잡은 뒤 Play Console이 실제로 제시하는 테스트 요구사항을 확인합니다.
 
 ---
 
@@ -40,7 +82,7 @@ Google Play 신규 앱은 기본적으로 Play App Signing에 등록됩니다. �
 
 ### 권장 절차
 
-1. Play Console에서 앱을 만든다.
+1. 올바른 Organization 개발자 계정에서 앱을 만든다.
 2. AAB를 공개 트랙에 배포하기 전에 `Play App Signing` 설정으로 이동한다.
 3. **현재 사용 중인 기존 app signing key의 사본을 Google Play에 제공하는 방식**을 선택한다.
 4. 기존 키를 Play App Signing에 안전하게 이전한다(Play Console 안내/PEPK 절차 준수).
@@ -155,18 +197,27 @@ Google Play Data Safety는 **기기에만 남는 정보**와 **기기 밖으로 
 
 ---
 
-## 7. 개인 개발자 계정의 테스트 요건
+## 7. 개발자 계정·본인/조직 확인
 
-개인 개발자 계정이 **2023-11-13 이후 생성된 계정**이라면 프로덕션 접근 신청 전:
+### 권장 계정
 
-- closed test 진행
-- 최소 **12명**의 테스터
-- 해당 12명이 **연속 14일 이상** opted-in 상태 유지
-- 조건 충족 후 Play Console에서 production access 신청
+- 계정 유형: **Organization**
+- 이유: 건강 앱 제공
+- 필수 핵심: **D-U-N-S 번호**
+- 조직 웹사이트 확인 필요
+- 조직/연락처 정보 검증 필요
 
-내부 테스트는 선택 사항이지만 closed test 전 먼저 사용하는 것을 권장합니다.
+조직 계정에서는 조직의 법적 이름·주소, 개발자 이메일과 전화번호 등 일부 정보가 Google Play에 공개될 수 있으므로 스토어에 공개해도 되는 전용 연락처를 준비하는 것이 좋습니다.
+
+공식 계정 정보 요구사항: <https://support.google.com/googleplay/android-developer/answer/13628312>
+
+### 12명·14일 테스트 규칙에 대한 정리
+
+Google의 `12명·14일 closed test` 요건은 **2023-11-13 이후 생성된 새 Personal 개발자 계정**에 적용됩니다.
 
 공식 안내: <https://support.google.com/googleplay/android-developer/answer/14151465>
+
+그러나 오늘 한 걸음은 건강 앱이므로 Organization 계정을 사용해야 하는 것이 현재 공식 정책상의 기본 경로입니다. 따라서 **12명·14일 요건을 피하기 위해 조직 계정을 선택하는 것이 아니라, 앱 성격 때문에 올바른 계정유형을 Organization으로 선택하는 것**입니다. Play Console이 조직 계정에도 별도의 테스트나 검토를 요구하면 실제 Console 표시를 따릅니다.
 
 ---
 
@@ -197,7 +248,7 @@ Play Console에서 별도로 준비/입력해야 할 항목:
 
 ---
 
-## 9. Closed test에서 반드시 다시 확인할 기능
+## 9. Play 테스트 설치본에서 반드시 다시 확인할 기능
 
 GitHub APK의 실기기 확인과 별개로, Google Play에 올린 AAB에서 생성된 설치본을 실제 기기에 설치하여 아래를 다시 확인합니다.
 
@@ -234,19 +285,22 @@ GitHub APK의 실기기 확인과 별개로, Google Play에 올린 AAB에서 생
 - Google Play용 외부 커뮤니티 계정·데이터 삭제 요청 페이지 준비
 - 네이티브 알림/TTS 정상 계보 유지
 
-### Play Console에서 아직 해야 하는 일
+### 현재 가장 먼저 해결할 외부 준비사항
 
-1. 개인 개발자 계정 생성/본인·기기 확인(미완료인 경우)
-2. 앱 생성 및 package `io.github.hantae_ho.twa` 확정
-3. **기존 app signing key를 Play App Signing에 제공하여 서명 계보 유지**
-4. V9.1.0 AAB 업로드
-5. Privacy / Data Safety / Health apps declaration 입력
-6. 스토어 설명에 건강·의료 고지 반영
-7. Content rating / Target audience / Ads / App access 작성
-8. 스크린샷·Feature graphic 등 스토어 자산 준비
-9. 해당되는 개인 계정이면 12명·14일 closed test
-10. Play 설치본 실기기 회귀검증
-11. 조건 충족 후 production access 및 정식 출시
+1. **개인 계정이 아닌 Organization 계정으로 출시 경로 확정**
+2. 조직의 **D-U-N-S 번호** 준비
+3. 조직 공식 웹사이트 및 공개 연락처 준비/확인
+4. 이미 Personal Play 계정을 만들었다면 Organization 전환 완료
+5. 올바른 조직 계정에서 앱 생성 및 package `io.github.hantae_ho.twa` 확정
+6. **기존 app signing key를 Play App Signing에 제공하여 서명 계보 유지**
+7. V9.1.0 AAB 업로드
+8. Privacy / Data Safety / Health apps declaration 입력
+9. 스토어 설명에 건강·의료 고지 반영
+10. Content rating / Target audience / Ads / App access 작성
+11. 스크린샷·Feature graphic 등 스토어 자산 준비
+12. Play가 해당 계정에 요구하는 테스트 트랙 진행
+13. Play 설치본 실기기 회귀검증
+14. 조건 충족 후 정식 출시
 
 ---
 
