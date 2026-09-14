@@ -13,7 +13,7 @@
 - V9.0.20 패치 Git blob: `android-v9.0.20-restore-practice-label-release.sh` = `d611514a0c4bf784c64a3155fa81a925621ccc33`
 - 당시 릴리스 워크플로 Git blob: `.github/workflows/release-v9020-practice-label.yml` = `da122d09a68a00cdc6976a06d20d2dec144af74b`
 
-재빌드 검증은 브랜치의 최신 상태가 아니라 위 **커밋 SHA를 직접 고정**해 사용한다.
+재빌드 검증은 브랜치의 최신 상태가 아니라 위 **커밋 SHA를 직접 고정**해 사용한다. 누적 패치가 과거 overlay 디렉터리를 참조하므로 일부 파일만 복사하지 않고 해당 커밋의 전체 저장소 트리를 체크아웃한다.
 
 ## 빌드 환경
 
@@ -24,7 +24,7 @@
 - Android platform 36
 - Android build-tools 36.0.0
 - Gradle 8.11.1
-- `android-v8-source.zip` 압축 해제 후 V9.0.20 패치 스크립트 적용
+- `android-v8-source.zip` 압축 해제 후 V9.0.20 누적 패치 체인 적용
 - release APK + AAB 빌드
 
 ## 서명
@@ -37,6 +37,10 @@
 - `ANDROID_KEY_PASSWORD`
 
 재빌드 검증은 새 APK를 배포하지 않으며, 공개된 V9.0.20 APK와 **서명 인증서 SHA-256 지문이 동일한지** 비교한다.
+
+현재 V9.0.20 공개 APK의 signer certificate SHA-256 지문:
+
+`1953afbfd5492594f807991d0e5cd34b2ab781e56ba4611ec34dfea1242d8829`
 
 ## 반드시 보존할 네이티브 기능
 
@@ -65,15 +69,32 @@
 
 빌드 도구가 생성하는 ZIP/APK 내부 타임스탬프 등으로 인해 새 산출물의 파일 SHA-256이 과거 산출물과 반드시 같아야 하는 것은 아니다. 재현성 판정은 **동일 고정 소스 + 동일 서명자 + 동일 패키지/버전 + 동일 핵심 권한/네이티브 엔진 + 성공적인 release APK/AAB 생성**을 기준으로 한다.
 
+## 실제 재현 검증 기록
+
+2026-09-14 GitHub Actions run `34795004848`에서 고정 커밋 `c79a2957e47818550444abeb83e1fafafd9bd572`를 전체 체크아웃하여 검증했다.
+
+확인 결과:
+
+- V8.0.5부터 V9.0.20까지 누적 Android 패치 체인 적용 성공
+- `V9.0.20 release source + Android 915 + native engine checks PASS`
+- signed release APK/AAB 빌드 성공 (`BUILD SUCCESSFUL`)
+- package `io.github.hantae_ho.twa` 확인
+- versionCode `915`, versionName `9.0.20` 확인
+- exact alarm / boot / notification / wake lock 권한 확인
+- 일반·습관·치료 exact alarm, 치료 다음 일정, silent sync, Relax TTS, MindPro Voice TTS 보존 확인
+- 공개 APK SHA-256 대조 성공
+- 재빌드 APK와 공개 V9.0.20 APK의 signer certificate SHA-256 지문 일치
+- 최종 `ANDROID_V9_0_20_REPRODUCIBLE_BUILD_PASS`
+
 ## 검증 방법
 
 `Verify Android V9.0.20 reproducible build` GitHub Actions를 수동 실행한다. 이 작업은:
 
-1. 고정 원본 커밋에서 기반 ZIP과 Android 패치 체인을 복원한다.
-2. V9.0.20 패치를 적용한다.
+1. 고정 원본 커밋 전체를 checkout하여 당시 overlay·패치 의존 구조까지 그대로 복원한다.
+2. 기반 ZIP을 풀고 V9.0.20 누적 패치 체인을 적용한다.
 3. 기존 release keystore Secret으로 APK/AAB를 빌드한다.
 4. package/version/권한/네이티브 엔진을 확인한다.
-5. 현재 공개 V9.0.20 APK를 내려받아 서명 인증서 지문을 대조한다.
+5. 현재 공개 V9.0.20 APK를 내려받아 공개 APK SHA-256과 서명 인증서 지문을 대조한다.
 6. 아무 릴리스·태그·앱 파일도 수정하거나 배포하지 않는다.
 
 새 Android 버전을 만들 때는 현재 정상 V9.0.20 재현 검증이 먼저 통과한 상태에서 최소 변경으로 진행한다.
