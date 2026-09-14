@@ -2517,7 +2517,7 @@ addEventListener('appinstalled', function(){
   <div class="faq-list">
     <details class="faq"><summary>처음에는 무엇부터 하면 되나요?</summary><div class="faq-a"><p>처음 설정에서 역할, 회복 영역, 시작일과 지역을 정한 뒤 홈에서 오늘 할 일과 상태를 확인하면 됩니다. 새 계획이나 연습은 <b>회복도구</b>에서 시작합니다.</p></div></details>
     <details class="faq"><summary>내 기록은 어디에 저장되나요?</summary><div class="faq-a"><p>감정, 충동, 하루, 몸, 12단계, 회복 실천도구, 자가점검 결과 같은 개인 회복기록은 기본적으로 <b>현재 기기 안</b>에 저장됩니다. 자동으로 다른 사람이나 마음프로에 전달되지 않습니다.</p></div></details>
-    <details class="faq"><summary>지나간 기록은 어디에서 볼 수 있나요?</summary><div class="faq-a"><p><b>나 → 내 발자취</b>에서 감정·충동·하루·몸·실천기록·자가점검·통계·회복 패턴을 다시 볼 수 있습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('rec')">내 발자취 열기</button></div></details>
+    <details class="faq"><summary>지나간 기록은 어디에서 볼 수 있나요?</summary><div class="faq-a"><p><b>나 → 내 발자취</b>에서 감정·충동·하루·몸·실천기록(의미·12단계·회복 실천도구)·자가점검·통계·회복 패턴을 다시 볼 수 있습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('rec')">내 발자취 열기</button></div></details>
     <details class="faq"><summary>내가 되찾은 것은 어디에서 보나요?</summary><div class="faq-a"><p>당사자 모드에서는 <b>나</b> 화면 상단의 접힌 <b>내가 되찾은 것</b>을 눌러 회복일·되찾은 시간·지킨 비용·회복 실천을 한눈에 볼 수 있습니다. 되찾은 시간과 지킨 비용은 <b>기준 설정</b>에서 원할 때만 켜며, 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('my')">나 열기</button></div></details>
     <details class="faq"><summary>기록을 백업하거나 다른 기기로 옮길 수 있나요?</summary><div class="faq-a"><p><b>나 → 내 정보 · 설정 → 기록 관리</b>에서 기록을 내보내고 다시 불러올 수 있습니다. 앱 삭제나 기기 변경 전에는 먼저 내보내기를 권합니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('me')">기록 관리 열기</button></div></details>
     <details class="faq"><summary>앱을 업데이트하거나 다시 설치하면 기록은 어떻게 되나요?</summary><div class="faq-a"><p>기존 앱 위에 업데이트하는 경우에는 같은 앱 데이터가 유지되도록 설계되어 있습니다. 다만 <b>앱 삭제, 앱 데이터 삭제, 기기 초기화</b>를 하면 기기 안 기록이 사라질 수 있으므로 먼저 기록을 내보내세요.</p></div></details>
@@ -2532,7 +2532,7 @@ addEventListener('appinstalled', function(){
 
   <h2>회복도구</h2>
   <div class="faq-list">
-    <details class="faq"><summary>의미 돌아보기는 무엇인가요?</summary><div class="faq-a"><p><b>회복도구 → 실천하기 → 의미 돌아보기</b>에서 오늘 돌아보기와 지난 기록을 사용할 수 있습니다. <b>의미회복 간편점검</b>은 같은 화면의 의미점검 탭에서도 할 수 있고, <b>회복도구 → 실천하기 → 의미점검</b>로 들어가면 오늘 의미기록의 보기·수정 절차를 거치지 않고 곧바로 점검할 수 있습니다. 의미점검의 작성 중 답변은 임시저장되고, 10문항 뒤 <b>결과 저장</b>을 눌러야 완료기록으로 저장됩니다. 모든 기록은 현재 기기에만 저장됩니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('meaning')">의미 돌아보기 열기</button><button class="btn ghost sm faq-go" type="button" onclick="openMeaningCheckDirect()">의미점검</button></div></details>
+    <details class="faq"><summary>의미 돌아보기는 무엇인가요?</summary><div class="faq-a"><p><b>회복도구 → 실천하기 → 의미 돌아보기</b>에서 오늘 돌아보기와 지난 기록을 사용할 수 있습니다. <b>의미회복 간편점검</b>은 같은 화면의 의미점검 탭에서도 할 수 있고, <b>회복도구 → 실천하기 → 의미점검</b>으로 들어가면 오늘 의미기록의 보기·수정 절차를 거치지 않고 곧바로 점검할 수 있습니다. 의미점검의 작성 중 답변은 임시저장되고, 10문항 뒤 <b>결과 저장</b>을 눌러야 완료기록으로 저장됩니다. 저장한 의미기록과 의미점검 완료결과는 <b>나 → 내 발자취 → 실천기록 → 의미</b>에서도 함께 볼 수 있습니다. 모든 기록은 현재 기기에만 저장됩니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('meaning')">의미 돌아보기 열기</button><button class="btn ghost sm faq-go" type="button" onclick="openMeaningCheckDirect()">의미점검</button></div></details>
     <details class="faq"><summary>의미회복 간편점검은 MIL 검사인가요?</summary><div class="faq-a"><p>아닙니다. <b>MIL-II의 자기인식·수용, 희망, 책임, 사랑, 자기초월, 관계, 자기만족, 헌신이라는 구성개념을 참고</b>해 오늘 한 걸음에서 새로 만든 10문항 자기점검입니다. 원 MIL-II 문항이나 원채점체계를 사용하지 않으며 진단·위험판정도 하지 않습니다. 저장한 결과는 <b>의미점검 → 점검 기록</b>에서 날짜별 총점과 4개 영역, 이전 기록과의 변화를 다시 볼 수 있습니다. 같은 날 다시 점검해 결과를 저장하면 그날의 완료결과 하나를 새 결과로 교체합니다.</p><button class="btn ghost sm faq-go" type="button" onclick="openMeaningCheckDirect()">의미점검</button></div></details>
     <details class="faq"><summary>12단계 기록은 어디에서 작성하나요?</summary><div class="faq-a"><p><b>회복도구 → 실천하기 → 12단계 점검</b>에서 작성합니다. 저장한 기록은 <b>내 발자취 → 실천기록</b>에서 다시 볼 수 있습니다.</p></div></details>
     <details class="faq"><summary>회복 실천도구는 어떻게 사용하나요?</summary><div class="faq-a"><p>SMART Recovery의 4-Point 학습 구조를 바탕으로 가치 우선순위 정하기, 의사결정 저울, 충동 다루기, 중독 생각과 거리두기, 상황·생각·감정 돌아보기, 삶의 균형 살펴보기 같은 도구를 필요할 때 골라 사용할 수 있습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('smart-tools')">회복 실천도구 열기</button></div></details>
@@ -2583,7 +2583,7 @@ addEventListener('appinstalled', function(){
     <details class="faq"><summary>4. 회복도구 — 계획 · 배우기 · 실천 · 자가점검</summary><div class="faq-a">
       <p><b>내 계획</b> — 일정·알림에서 습관·생활·치료 일정을 관리합니다.</p>
       <p style="margin-top:8px"><b>배우기</b> — 회복학습, 중독 Q&amp;A, 듣는 글을 이용합니다. 회복학습에는 12단계와 SMART Recovery 등 앱에 정리된 학습 콘텐츠가 포함됩니다.</p>
-      <p style="margin-top:8px"><b>실천하기</b> — 의미 돌아보기(오늘 돌아보기 · 지난 기록), 의미점검(점검하기 · 점검 기록), 12단계 점검, 회복 실천도구, 충동일기, 미래의 나에게 등을 사용합니다. 의미점검은 작성 중 답변과 완료결과를 구분하며, 완료결과는 점검 기록에서 다시 볼 수 있습니다. 가족·보호자 모드에서는 가족을 위한 도구 중심으로 구성이 달라집니다.</p>
+      <p style="margin-top:8px"><b>실천하기</b> — 의미 돌아보기(오늘 돌아보기 · 지난 기록), 의미점검(점검하기 · 점검 기록), 12단계 점검, 회복 실천도구, 충동일기, 미래의 나에게 등을 사용합니다. 의미점검은 작성 중 답변과 완료결과를 구분하며, 완료결과는 점검 기록에서 다시 볼 수 있습니다. 의미 돌아보기와 의미점검 완료기록은 <b>내 발자취 → 실천기록 → 의미</b>에서도 함께 확인합니다. 가족·보호자 모드에서는 가족을 위한 도구 중심으로 구성이 달라집니다.</p>
       <p style="margin-top:8px"><b>자가점검</b> — 현재 상태를 선별도구로 살펴보고 저장된 결과의 변화를 확인합니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('tools')">회복도구 열기</button>
     </div></details>
@@ -2611,7 +2611,7 @@ addEventListener('appinstalled', function(){
 
     <details class="faq"><summary>8. 내 발자취 — 저장한 기록 다시 보기</summary><div class="faq-a">
       <p>당사자 모드에서는 <b>감정 · 충동 · 하루 · 몸 · 다시 시작 · 실천기록 · 자가점검 · 통계 · 회복 패턴</b>을 한곳에서 돌아봅니다. 가족·보호자 모드에서는 당사자의 충동·재발을 대신 기록하지 않도록 구성이 달라집니다.</p>
-      <p style="margin-top:8px">12단계와 회복 실천도구의 저장기록도 실천기록에서 상세 내용을 다시 열 수 있습니다.</p>
+      <p style="margin-top:8px">의미 돌아보기와 의미회복 간편점검 완료기록은 실천기록의 <b>의미</b> 필터에서 함께 확인할 수 있고, 12단계와 회복 실천도구 저장기록도 같은 실천기록에서 다시 열 수 있습니다.</p>
       <p style="margin-top:8px"><b>통계 · 패턴</b>에서는 기존 기록 통계와 <b>내 회복 패턴</b>을 전환해 볼 수 있습니다. 내 회복 패턴은 최근 90일 기기 기록에서 시간·HALT·감정·수면·회복 실천·관계처럼 반복된 사실을 설명할 뿐 진단·재발예측이 아니며, 특정 사람을 원인으로 판단하거나 자가점검 점수를 다른 기록과 합쳐 위험점수로 만들지 않습니다.</p>
       <p style="margin-top:8px"><b>최근 4주 내 회복요약</b>은 통계 · 패턴 상단에서 열 수 있습니다. 회복일·충동·HALT·수면·회복 실천·자가점검 변화·다시 시작을 한 장으로 정리하며, 상담할 때 화면으로 보여주거나 브라우저의 인쇄 기능을 이용해 PDF로 저장할 수 있습니다. 요약을 만드는 과정에서 기록을 서버로 보내지 않습니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('rec')">내 발자취 열기</button>
@@ -2641,7 +2641,7 @@ addEventListener('appinstalled', function(){
     <details class="faq"><summary>12. 나 — 회복 요약 · 기록 · 설정 · 안내</summary><div class="faq-a">
       <p>당사자 모드의 <b>나</b> 화면 상단에는 <b>내가 되찾은 것</b>이 표시됩니다. 회복일은 설정한 회복 시작일에서 계산하고, <b>회복 실천</b>은 내 습관에서 직접 체크해 기록한 회복 행동 횟수를 보여줍니다.</p>
       <p style="margin-top:8px"><b>되찾은 시간</b>과 <b>지킨 비용</b>은 선택 기능입니다. <b>기준 설정</b>에서 회복 전 하루 평균 시간·실제 사용비용을 입력한 경우에만 추정치를 표시합니다. 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p>
-      <p style="margin-top:8px"><b>내 발자취</b>에서는 감정·충동·하루·몸·실천기록·자가점검·통계·회복 패턴을 다시 보고, <b>내 정보 · 설정</b>에서는 역할·회복영역·화면·앱·추천하기·기록 관리를 관리합니다.</p>
+      <p style="margin-top:8px"><b>내 발자취</b>에서는 감정·충동·하루·몸·실천기록(의미·12단계·회복 실천도구)·자가점검·통계·회복 패턴을 다시 보고, <b>내 정보 · 설정</b>에서는 역할·회복영역·화면·앱·추천하기·기록 관리를 관리합니다.</p>
       <p style="margin-top:8px"><b>지원 및 안내</b>와 <b>앱에 바라는 점</b>은 <b>내 정보 · 설정</b> 안이 아니라 <b>나</b> 화면에서 바로 이용하며, 앱에 바라는 점은 지원 및 안내 아래에 배치됩니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('my')">나 열기</button>
     </div></details>
@@ -7349,13 +7349,13 @@ function recPractice(){
         open:()=>{go('meaning');setTimeout(()=>openMeaningHistoryDay(d),80);}
       });
     });
-    (Array.isArray(S.meaningChecks)?S.meaningChecks:[]).forEach(r=>{
-      if(!r||!r.d||!Array.isArray(r.answers))return;
+    (typeof mcRecords==='function'?mcRecords():[]).forEach(r=>{
       const axes=(r.domains&&typeof r.domains==='object')?r.domains:(typeof mcAxes==='function'?mcAxes(r.answers):{});
+      const total=Number.isFinite(Number(r.total))?Number(r.total):(typeof mcScore==='function'?mcScore(r.answers):0);
       const axisText=['나를 보는 힘 '+Number(axes.self||0).toFixed(1)+'/4','앞으로 향하는 힘 '+Number(axes.future||0).toFixed(1)+'/4','책임·선택 '+Number(axes.choice||0).toFixed(1)+'/4','관계·넘어섬 '+Number(axes.relation||0).toFixed(1)+'/4'].join(' · ');
       const dt=(typeof ymdDate==='function')?ymdDate(r.d):null;
       rows.push({
-        group:'meaning',ts:Number(r.ts||(dt?dt.getTime():0)),title:'의미회복 간편점검',summary:Number(r.total||0)+'/40 · '+axisText,record:{kind:'meaning-check',d:r.d},
+        group:'meaning',ts:Number(r.ts||(dt?dt.getTime():0)),title:'의미회복 간편점검',summary:total+'/40 · '+axisText,record:{kind:'meaning-check',d:r.d},
         open:()=>{if(typeof mcShowResult==='function')mcShowResult(r.d);}
       });
     });
@@ -7397,13 +7397,13 @@ function recPractice(){
 
   const shown=(recPracticeFilter==='all'?rows:rows.filter(x=>x.group===recPracticeFilter));
   if(!shown.length){
-    const empty={all:'저장된 실천 기록이 없습니다.',meaning:'저장된 의미 기록이 없습니다.',step:'저장된 12단계 기록이 없습니다.',smart:'저장된 실천도구 기록이 없습니다.',family:'저장된 가족도구 기록이 없습니다.'};
+    const empty={all:'저장된 기록이 없습니다.',meaning:'저장된 의미 기록이 없습니다.',step:'저장된 12단계 기록이 없습니다.',smart:'저장된 실천도구 기록이 없습니다.',family:'저장된 가족도구 기록이 없습니다.'};
     w.appendChild(emptyBox(empty[recPracticeFilter]||empty.all));
     return w;
   }
 
   const c=el('div','card');
-  c.appendChild(el('h3','', (recPracticeFilter==='meaning'?'저장한 의미 기록 ':'저장한 실천 기록 ')+shown.length+'건'));
+  c.appendChild(el('h3','', (recPracticeFilter==='meaning'?'저장한 의미 기록 ':(recPracticeFilter==='all'?'저장한 기록 ':'저장한 실천 기록 '))+shown.length+'건'));
   shown.slice(0,30).forEach(row=>{
     const badge=row.group==='meaning'?'의':row.group==='step'?'12':row.group==='family'?'가':'S';
     const date=whenText(row.ts);
