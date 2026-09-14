@@ -8,8 +8,10 @@ on:
       - '*.js'
       - '*.json'
       - '*.gs'
+      - 'README.md'
       - 'icon-*.png'
       - '.github/workflows/check-web-runtime.yml'
+      - '.github/workflows/release-android-v910.yml'
   pull_request:
     branches: [main]
     paths:
@@ -17,8 +19,10 @@ on:
       - '*.js'
       - '*.json'
       - '*.gs'
+      - 'README.md'
       - 'icon-*.png'
       - '.github/workflows/check-web-runtime.yml'
+      - '.github/workflows/release-android-v910.yml'
   workflow_dispatch:
 
 permissions:
@@ -42,6 +46,7 @@ jobs:
           s=Path('index.html').read_text(encoding='utf-8')
           blocks=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
           blocks.append(Path('meaning-feature.js').read_text(encoding='utf-8'))
+          blocks.append(Path('meaning-check-feature.js').read_text(encoding='utf-8'))
           Path('/tmp/index-all.js').write_text('\n'.join(blocks),encoding='utf-8')
           Path('/tmp/social.js').write_text(Path('social-apps-script.gs').read_text(encoding='utf-8'),encoding='utf-8')
           print('script blocks:',len(blocks),'lines:',len(Path('/tmp/index-all.js').read_text(encoding='utf-8').splitlines()))
@@ -113,6 +118,17 @@ jobs:
           grep -F "const KEY = 'ohg.v1';" index.html
           grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
           ! grep -F 'HALTS.find' index.html
+          ! grep -F '커뮤니티은' index.html
+          ! grep -F '소셜' privacy.html
+          ! grep -F '커뮤니티은' privacy.html
+          ! grep -F '커뮤니티을' privacy.html
+          ! grep -F '커뮤니티이' privacy.html
+          ! grep -F '커뮤니티과' privacy.html
+          for v in {7..20}; do grep -F "## V9.0.$v " README.md; done
+          grep -F "## V9.1.0 " README.md
+          grep -F "versionCode 916" .github/workflows/release-android-v910.yml
+          grep -F "versionName '9.1.0'" .github/workflows/release-android-v910.yml
+          grep -F "gh release create v9.1.0" .github/workflows/release-android-v910.yml
 
       - name: Install Playwright Chromium
         run: |

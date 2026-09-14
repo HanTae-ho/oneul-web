@@ -191,6 +191,31 @@ const srv = http.createServer((req, res) => {
   assert(errs.length === toolErrBefore, '회복도구 진입 시 JavaScript 오류가 없어야 함');
   assert(await pg.isVisible('#tool-qa'), '하단 회복도구가 열려야 함');
   assert(await pg.isVisible('#tool-listen'), '회복도구에 듣는 글 메뉴가 보여야 함');
+  assert((await pg.$eval('#tool-meaning-check-direct b', e => e.textContent.trim())) === '의미점검', '의미점검 메뉴 이름이 자가점검 기록과 구분되어야 함');
+  assert((await pg.$eval('#tool-check-view b', e => e.textContent.trim())) === '자가점검 기록', '자가점검 결과 조회 메뉴 이름이 명확해야 함');
+
+  const meaningDay = daysAgo(1), meaningCheckDay = daysAgo(2);
+  await pg.evaluate(({meaningDay,meaningCheckDay}) => {
+    S.wbDays = S.wbDays && typeof S.wbDays === 'object' && !Array.isArray(S.wbDays) ? S.wbDays : {};
+    S.wbDays[meaningDay] = { hard:[], strength:[], action:[], request:'내가 지킬 한 걸음', ts:Date.now()-86400000 };
+    S.meaningChecks = [{ d:meaningCheckDay, ts:Date.now()-172800000, answers:Array(10).fill(2), total:20, domains:{self:2,future:2,choice:2,relation:2} }];
+    save(); recTab='work'; recPracticeFilter='meaning'; go('rec');
+  }, {meaningDay,meaningCheckDay});
+  await pg.waitForTimeout(180);
+  const meaningTrailText = await pg.$eval('#rec-body', e => e.innerText);
+  assert(meaningTrailText.includes('저장한 의미 기록 2건'), '내 발자취 의미 필터에 두 종류 의미 기록이 함께 보여야 함');
+  assert(meaningTrailText.includes('의미 돌아보기') && meaningTrailText.includes('내가 지킬 한 걸음'), '의미 돌아보기 기존 기록을 내 발자취에서 읽어야 함');
+  assert(meaningTrailText.includes('의미회복 간편점검') && meaningTrailText.includes('20/40'), '의미회복 간편점검 기존 결과를 내 발자취에서 읽어야 함');
+  await pg.locator('#rec-body button.toolcard').filter({hasText:'의미회복 간편점검'}).click();
+  await pg.waitForTimeout(100);
+  assert((await pg.$eval('#modin h2', e => e.textContent.trim())) === '의미점검 결과', '내 발자취의 의미점검 기록은 기존 결과 상세를 재사용해야 함');
+  await pg.evaluate(() => closeModal());
+  await pg.evaluate(() => { S.role='family'; save(); recTab='work'; recPracticeFilter='all'; go('rec'); });
+  await pg.waitForTimeout(150);
+  const familyTrailText = await pg.$eval('#rec-body', e => e.innerText);
+  assert(!familyTrailText.includes('의미 돌아보기') && !familyTrailText.includes('의미회복 간편점검'), '가족모드 내 발자취에는 당사자 의미기록이 노출되면 안 됨');
+  await pg.evaluate(() => { S.role='self'; save(); go('tools'); });
+  await pg.waitForTimeout(150);
   await pg.click('#tool-listen'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-listen', '회복도구의 듣는 글이 기존 듣는 글 화면을 열어야 함');
   assert(await pg.$eval('#tabs button[data-t="tools"]', e => e.classList.contains('on')), '회복도구에서 듣는 글을 열면 회복도구 탭 강조 유지');

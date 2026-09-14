@@ -3,7 +3,7 @@ const path = require('path');
 const vm = require('vm');
 const root=__dirname;
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
-const index=read('index.html'), sw=read('sw.js'), test=read('test.js'), manifest=read('manifest.json');
+const index=read('index.html'), privacy=read('privacy.html'), sw=read('sw.js'), test=read('test.js'), manifest=read('manifest.json');
 const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningSrc=read('screening-data.js'), workbookSrc=read('workbook-data.js');
 const readIf=f=>fs.existsSync(path.join(root,f))?read(f):'';
 const feedbackGs=readIf('오늘한걸음_의견_v1.0.gs'), resourceGs=readIf('오늘한걸음_자원시트_v1.8.gs');
@@ -21,6 +21,8 @@ ok(/id="ur-capsule-toggle"[^>]*>초심 보기<\/button>/.test(index),'충동 화
 ok(/id="me-package-update"/.test(index)&&/latest-release\.json/.test(index)&&/function nativeInstalledVersion\(\)/.test(index),'Android APK 업데이트 안내/버전 비교');
 ok(/ohg\.native\.version/.test(read('native.html'))&&/appv/.test(read('native.html')),'native.html 설치 APK 버전 마커');
 ok(!/탈퇴는 두 번 확인하며/.test(index),'도움말 탈퇴 1회 확인 현행화');
+ok(!index.includes('커뮤니티은'),'커뮤니티 사용자 문구 조사 오류 없음');
+ok(!privacy.includes('소셜'),'개인정보처리방침 사용자 명칭 커뮤니티로 통일');
 ok(/id="social-profile-manage"/.test(index)&&/function socialProfileManageMenu\(\)/.test(index),'내 커뮤니티 프로필 제목 오른쪽 관리 메뉴 존재');
 ok(!/social-profile-fixed><b>닉네임은 가입 후 고정됩니다/.test(index),'프로필 본문 닉네임 고정 안내 제거');
 ok(!/card social-profile-danger/.test(index),'프로필 본문 큰 탈퇴 카드 제거');
@@ -231,8 +233,10 @@ ok((practiceSection.match(/class="minitool/g)||[]).length===7,'실천하기 7개
 ok(!/class="toolcard/.test(practiceSection)&&!/class="go"/.test(practiceSection),'실천하기 목록형·열기 텍스트 제거');
 const learnSection=(index.match(/<h2>배우기<\/h2>([\s\S]*?)<div class="toolsec">/)||[])[1]||'';
 ok(!/<span(?! class="ic")/.test(learnSection+practiceSection),'배우기·실천하기 3열 카드 설명글 제거');
-ok(/<b>의미점검 보기<\/b>/.test(practiceSection)&&/<b>회복 실천도구<\/b>/.test(practiceSection),'실천하기 압축 제목 반영');
+ok(/<b>의미점검<\/b>/.test(practiceSection)&&/<b>회복 실천도구<\/b>/.test(practiceSection),'실천하기 압축 제목 반영');
+ok(/id="tool-check-view"[\s\S]{0,240}<b>자가점검 기록<\/b>/.test(index),'자가점검 기록 명칭 반영');
+ok(/\{v:'meaning',l:'의미'\}/.test(index),'내 발자취 실천기록 의미 필터');
 ok(/\.learnmini \.minitool\{min-height:100px/.test(index),'배우기·실천하기 카드 높이 축소');
-if(!index.includes("const BUILD='V9.0.20';")) throw new Error('V9.0.20 BUILD 불일치');
+if(!index.includes("const BUILD='V9.1.0';")) throw new Error('V9.1.0 BUILD 불일치');
 
 require('./verify-meaning.js');
