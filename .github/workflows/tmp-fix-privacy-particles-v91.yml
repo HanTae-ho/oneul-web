@@ -1,0 +1,29 @@
+name: Temp V9.1 privacy particle cleanup
+
+on:
+  push:
+    branches:
+      - v9.1-ux-consolidation
+    paths:
+      - .github/workflows/tmp-fix-privacy-particles-v91.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v9.1-ux-consolidation
+          fetch-depth: 0
+      - run: python .github/scripts/fix_privacy_particles_v91.py
+      - run: node verify.js
+      - run: git diff --check
+      - run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add privacy.html
+          git commit -m "V9.1: fix community particles in privacy policy"
+          git push origin HEAD:v9.1-ux-consolidation
