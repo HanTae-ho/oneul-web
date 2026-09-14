@@ -74,7 +74,8 @@ ok(/function mcPreviousRecord\(rec\)/.test(checkFeature)&&/function mcComparison
 ok(/정상·위험 기준은 없습니다/.test(checkFeature)&&/진단검사가 아닙니다/.test(checkFeature),'진단·위험 컷오프 금지');
 ok(/나를 보는 힘/.test(checkFeature)&&/앞으로 향하는 힘/.test(checkFeature)&&/책임·선택/.test(checkFeature)&&/관계·넘어섬/.test(checkFeature),'앱용 4개 결과 묶음');
 ok(index.includes('의미회복 간편점검은 MIL 검사인가요?')&&index.includes('원 MIL-II 문항이나 원채점체계를 사용하지 않으며')&&index.includes('의미점검 → 점검 기록'),'사용설명서에 3단계 성격·저장결과 조회 반영');
-ok(index.includes('의미점검 보기(점검하기 · 점검 기록)'),'전체 사용설명서 의미점검 독립 진입 현행화');
+ok(index.includes('의미점검(점검하기 · 점검 기록)'),'전체 사용설명서 의미점검 독립 진입 현행화');
+ok(index.includes('내 발자취 → 실천기록 → 의미'),'의미기록 내 발자취 조회 안내 반영');
 ok(index.includes('id="tool-meaning-check-direct"')&&/function openMeaningCheckDirect\(\)/.test(checkFeature)&&/__meaningDirectCheck/.test(checkFeature)&&/skipExistingPrompt:true/.test(checkFeature),'의미점검 바로하기는 오늘 의미기록 팝업 우회');
 ok(/data-mc-view="check"/.test(checkFeature)&&/data-mc-view="history"/.test(checkFeature),'의미점검 점검하기·점검 기록 분리');
 ok(/data-mc-result-date/.test(checkFeature)&&/function mcShowResult\(d\)/.test(checkFeature)&&/저장한 점검 기록/.test(checkFeature),'과거 의미점검 결과 상세조회');
