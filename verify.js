@@ -237,6 +237,6 @@ ok(/<b>의미점검<\/b>/.test(practiceSection)&&/<b>회복 실천도구<\/b>/.t
 ok(/id="tool-check-view"[\s\S]{0,240}<b>자가점검 기록<\/b>/.test(index),'자가점검 기록 명칭 반영');
 ok(/\{v:'meaning',l:'의미'\}/.test(index),'내 발자취 실천기록 의미 필터');
 ok(/\.learnmini \.minitool\{min-height:100px/.test(index),'배우기·실천하기 카드 높이 축소');
-if(!index.includes("const BUILD='V9.0.20';")) throw new Error('V9.0.20 BUILD 불일치');
+if(!index.includes("const BUILD='V9.1.0';")) throw new Error('V9.1.0 BUILD 불일치');
 
 require('./verify-meaning.js');
