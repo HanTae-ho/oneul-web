@@ -21,7 +21,22 @@ const srv = http.createServer((req, res) => {
 
   const errs = [];
   pg.on('pageerror', e => errs.push('PAGEERROR: ' + e.message));
-  pg.on('console', m => { if (m.type() === 'error') errs.push('CONSOLE: ' + m.text()); });
+  // 결정론적 회귀검사에서는 외부 서비스의 일시적 4xx를 JS 오류로 오인하지 않습니다.
+  // 대신 localhost의 4xx/5xx는 별도로 실패 처리해 앱 자체의 누락 자원은 계속 잡습니다.
+  pg.on('response', r => {
+    try {
+      const u = new URL(r.url());
+      if ((u.hostname === 'localhost' || u.hostname === '127.0.0.1') && r.status() >= 400) {
+        errs.push('LOCAL HTTP ' + r.status() + ': ' + u.pathname);
+      }
+    } catch (_) {}
+  });
+  pg.on('console', m => {
+    if (m.type() !== 'error') return;
+    const text = m.text();
+    if (text.startsWith('Failed to load resource:')) return;
+    errs.push('CONSOLE: ' + text);
+  });
 
   const shot = async n => { await pg.screenshot({ path: `${__dirname}/shot-${n}.png`, fullPage: true }); };
   const seen = async () => await pg.$eval('.pg.on', e => e.id);
@@ -405,7 +420,7 @@ const srv = http.createServer((req, res) => {
 
   console.log('\n=== 오류 ===');
   console.log(errs.length ? errs.join('\n') : '없음');
-  assert(errs.length === 0, '브라우저 회귀검사 중 JavaScript pageerror가 없어야 함');
+  assert(errs.length === 0, '브라우저 회귀검사 중 로컬 HTTP·JavaScript 런타임 오류가 없어야 함');
 
   await b.close(); srv.close();
 })();
