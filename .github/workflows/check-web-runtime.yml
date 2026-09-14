@@ -4,44 +4,36 @@ on:
   push:
     branches: [main]
     paths:
-      - 'index.html'
-      - 'sw.js'
-      - 'social-apps-script.gs'
-      - 'latest-release.json'
-      - 'install.html'
-      - 'native.html'
-      - 'release-version-check.js'
-      - 'meaning-data.js'
-      - 'meaning-feature.js'
-      - 'workbook-data.js'
-      - 'verify.js'
-      - 'verify-meaning.js'
+      - '*.html'
+      - '*.js'
+      - '*.json'
+      - '*.gs'
+      - 'icon-*.png'
       - '.github/workflows/check-web-runtime.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'index.html'
-      - 'sw.js'
-      - 'social-apps-script.gs'
-      - 'latest-release.json'
-      - 'install.html'
-      - 'native.html'
-      - 'release-version-check.js'
-      - 'meaning-data.js'
-      - 'meaning-feature.js'
-      - 'workbook-data.js'
-      - 'verify.js'
-      - 'verify-meaning.js'
+      - '*.html'
+      - '*.js'
+      - '*.json'
+      - '*.gs'
+      - 'icon-*.png'
       - '.github/workflows/check-web-runtime.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+
       - name: Extract browser scripts
         run: |
           python - <<'PY'
@@ -54,27 +46,78 @@ jobs:
           Path('/tmp/social.js').write_text(Path('social-apps-script.gs').read_text(encoding='utf-8'),encoding='utf-8')
           print('script blocks:',len(blocks),'lines:',len(Path('/tmp/index-all.js').read_text(encoding='utf-8').splitlines()))
           PY
-      - name: Syntax check
+
+      - name: Syntax check all JavaScript
         run: |
-          node --check /tmp/index-all.js
-          node --check sw.js
+          for f in ./*.js; do
+            echo "node --check $f"
+            node --check "$f"
+          done
           node --check /tmp/social.js
-          node --check release-version-check.js
-          node --check meaning-data.js
-          node --check meaning-feature.js
-          node --check workbook-data.js
-          node --check verify.js
-          node --check verify-meaning.js
+
       - name: Undefined-reference check
         run: |
           npx --yes eslint@8.57.1 --no-eslintrc --env browser,es2022 --parser-options '{"ecmaVersion":2022,"sourceType":"script"}' --rule 'no-undef:error' /tmp/index-all.js
+
+      - name: Static app-shell integrity
+        run: |
+          python - <<'PY'
+          import json, re
+          from pathlib import Path
+
+          root=Path('.')
+          html=Path('index.html').read_text(encoding='utf-8')
+          sw=Path('sw.js').read_text(encoding='utf-8')
+          manifest=json.loads(Path('manifest.json').read_text(encoding='utf-8'))
+          problems=[]
+
+          refs=re.findall(r'<(?:script|link)\b[^>]*(?:src|href)=["\']([^"\']+)["\']',html,re.I)
+          for ref in refs:
+            if re.match(r'^(?:https?:|data:|#|//)',ref):
+              continue
+            p=ref.split('?',1)[0].split('#',1)[0].lstrip('./')
+            if p and not (root/p).exists():
+              problems.append('missing index asset: '+ref)
+
+          for icon in manifest.get('icons',[]):
+            src=str(icon.get('src','')).split('?',1)[0].lstrip('./')
+            if src and not (root/src).exists():
+              problems.append('missing manifest icon: '+src)
+
+          m=re.search(r'const\s+SHELL\s*=\s*\[(.*?)\];',sw,re.S)
+          if not m:
+            problems.append('service-worker SHELL list not found')
+          else:
+            shell_refs=re.findall(r'["\'](\./[^"\']+)["\']',m.group(1))
+            for ref in shell_refs:
+              p=ref[2:]
+              if p and not (root/p).exists():
+                problems.append('missing service-worker asset: '+ref)
+
+          if problems:
+            raise SystemExit('\n'.join(problems))
+          print('APP_SHELL_INTEGRITY_OK', 'refs=',len(refs),'icons=',len(manifest.get('icons',[])))
+          PY
+
       - name: Release version coherence
         run: node release-version-check.js
+
       - name: Full regression invariants
-        run: node verify.js
+        run: |
+          node verify.js
+          node verify-meaning.js
+
       - name: Fixed invariants
         run: |
           grep -F "const DATA_SCHEMA = 6;" index.html
           grep -F "const KEY = 'ohg.v1';" index.html
           grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
           ! grep -F 'HALTS.find' index.html
+
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Browser regression
+        run: node test.js
