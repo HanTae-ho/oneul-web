@@ -116,6 +116,12 @@ jobs:
           grep -F "const KEY = 'ohg.v1';" index.html
           grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
           ! grep -F 'HALTS.find' index.html
+          ! grep -F '커뮤니티은' index.html
+          ! grep -F '소셜' privacy.html
+          ! grep -F '커뮤니티은' privacy.html
+          ! grep -F '커뮤니티을' privacy.html
+          ! grep -F '커뮤니티이' privacy.html
+          ! grep -F '커뮤니티과' privacy.html
           for v in {7..20}; do grep -F "## V9.0.$v " README.md; done
 
       - name: Install Playwright Chromium
