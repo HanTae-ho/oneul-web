@@ -24,23 +24,21 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Restore pinned V9.0.20 Android source chain
+      - name: Restore complete pinned V9.0.20 Android release tree
         env:
           ARCHIVE_SHA: c79a2957e47818550444abeb83e1fafafd9bd572
         run: |
           set -euo pipefail
           git fetch origin "$ARCHIVE_SHA"
           test "$(git rev-parse FETCH_HEAD)" = "$ARCHIVE_SHA"
-          git show "$ARCHIVE_SHA:android-v8-source.zip" > android-v8-source.zip
-          for f in $(git ls-tree -r --name-only "$ARCHIVE_SHA" | grep '^android-v.*\.sh$'); do
-            git show "$ARCHIVE_SHA:$f" > "$f"
-            chmod +x "$f"
-          done
-          for f in index.html sw.js latest-release.json social-apps-script.gs native.html install.html release-version-check.js; do
-            git show "$ARCHIVE_SHA:$f" > "$f"
-          done
           test "$(git rev-parse "$ARCHIVE_SHA:android-v8-source.zip")" = "627c56a3a557cc2fc1be2e3d00b693b7e0aa99ab"
           test "$(git rev-parse "$ARCHIVE_SHA:android-v9.0.20-restore-practice-label-release.sh")" = "d611514a0c4bf784c64a3155fa81a925621ccc33"
+          git checkout --detach "$ARCHIVE_SHA"
+          test "$(git rev-parse HEAD)" = "$ARCHIVE_SHA"
+          test -f android-v8-source.zip
+          test -f android-v8.0.3-overlay/ReminderScheduler.java
+          test -f android-v9.0.20-restore-practice-label-release.sh
+          chmod +x android-v*.sh
 
       - uses: actions/setup-java@v4
         with:
