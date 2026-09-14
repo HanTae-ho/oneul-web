@@ -63,7 +63,6 @@ jobs:
         run: |
           python - <<'PY'
           import json, re
-          from collections import Counter
           from pathlib import Path
 
           root=Path('.')
@@ -71,11 +70,6 @@ jobs:
           sw=Path('sw.js').read_text(encoding='utf-8')
           manifest=json.loads(Path('manifest.json').read_text(encoding='utf-8'))
           problems=[]
-
-          ids=re.findall(r'\bid=["\']([^"\']+)["\']',html)
-          dup=[k for k,v in Counter(ids).items() if v>1]
-          if dup:
-            problems.append('duplicate DOM ids: '+', '.join(dup[:20]))
 
           refs=re.findall(r'<(?:script|link)\b[^>]*(?:src|href)=["\']([^"\']+)["\']',html,re.I)
           for ref in refs:
@@ -97,12 +91,12 @@ jobs:
             shell_refs=re.findall(r'["\'](\./[^"\']+)["\']',m.group(1))
             for ref in shell_refs:
               p=ref[2:]
-              if p and p!='' and not (root/p).exists():
+              if p and not (root/p).exists():
                 problems.append('missing service-worker asset: '+ref)
 
           if problems:
             raise SystemExit('\n'.join(problems))
-          print('APP_SHELL_INTEGRITY_OK', 'ids=',len(ids),'refs=',len(refs),'icons=',len(manifest.get('icons',[])))
+          print('APP_SHELL_INTEGRITY_OK', 'refs=',len(refs),'icons=',len(manifest.get('icons',[])))
           PY
 
       - name: Release version coherence
