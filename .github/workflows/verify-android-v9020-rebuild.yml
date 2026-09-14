@@ -2,11 +2,6 @@ name: Verify Android V9.0.20 reproducible build
 
 on:
   workflow_dispatch:
-  push:
-    branches: [android-v9.0.20-reproducibility]
-    paths:
-      - '.github/workflows/verify-android-v9020-rebuild.yml'
-      - 'ANDROID_REPRODUCIBILITY.md'
 
 permissions:
   contents: read
