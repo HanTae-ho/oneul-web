@@ -85,7 +85,7 @@ ok(index.includes('function safeHttpUrl_(u)')&&!index.includes('esc(x.w)')&&!ind
 ok(/id="social-nick"[^>]*readonly/.test(index)||index.includes("(p?' readonly':'')"),'기존 커뮤니티 닉네임 읽기전용');
 ok(storageDiagnostic.includes("BACKUP_KEY='ohg.v1.recovery-backup'")&&storageDiagnostic.includes("QUARANTINE_KEY='ohg.v1.recovery-quarantine'"),'읽기 전용 진단에 안전백업 2개 표시');
 ok(!/localStorage\.(?:setItem|removeItem|clear)\s*\(/.test(storageDiagnostic),'저장 진단 페이지는 localStorage 쓰기·삭제 없음');
-ok(/백업 파일 내보내기/.test(test)&&/잘못된 JSON 선택 후 기존 원문 불변/.test(test)&&/전체 지우기는 개인 현재키와 안전백업 두 개를 모두 삭제/.test(test),'test.js 기록관리 브라우저 시뮬레이션 포함');
+ok(/같은 날 연속 내보내기도 파일명이 겹치지 않음/.test(test)&&/잘못된 JSON 선택 후 기존 원문 불변/.test(test)&&/전체 지우기는 개인 현재키와 안전백업 두 개를 모두 삭제/.test(test),'test.js 기록관리 브라우저 시뮬레이션 포함');
 
 ok(/회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery 3개/.test(test)&&/작성형 12단계 점검이 중복 표시되지 않아야 함/.test(test),'test.js 회복학습 3개 학습주제·12단계 점검 실천하기 일원화');
 ok(/알코올 영역 1단계 카드에 AA 단계문장 표시/.test(test)&&/도박 영역 1단계 카드에 GA 단계문장 표시/.test(test)&&/약물 영역 1단계 카드에 NA 단계문장 표시/.test(test),'test.js AA·GA·NA 영역별 단계문장 회귀검사');
