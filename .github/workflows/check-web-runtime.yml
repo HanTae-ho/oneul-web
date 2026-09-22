@@ -128,9 +128,8 @@ jobs:
           grep -F "## V9.1.0 " README.md
           grep -F "## V9.1.1 " README.md
           grep -F "## V9.1.2 " README.md
-          grep -F "versionCode 918" .github/workflows/release-android-v911.yml
-          grep -F "versionName '9.1.2'" .github/workflows/release-android-v911.yml
-          grep -F "gh release create v9.1.2" .github/workflows/release-android-v911.yml
+          # 버전 일관성은 release-version-check.js 한 곳에서 검증합니다.
+          # 이미 발행된 Android 릴리스 workflow의 고정 숫자를 일반 웹 CI에 중복 하드코딩하지 않습니다.
 
       - name: Install Playwright Chromium
         run: |
