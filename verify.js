@@ -245,7 +245,8 @@ const mySettingsPos=index.indexOf('id="my-settings"'), myTrailPos=index.indexOf(
 ok(mySettingsPos>=0&&mySettingsPos<myTrailPos&&myTrailPos<myReclaimPos,'나 화면 내 정보 · 설정 → 내 발자취 → 내가 되찾은 것 순서');
 ok(index.includes('function homeTodayFocusItems(items,nowMin)'),'홈 오늘 일정 기본 필터 함수');
 const todayScheduleSection=(index.match(/function drawTodayScheduleHome\(\)\{([\s\S]*?)function drawHabitHome/)||[])[1]||'';
-ok(!todayScheduleSection.includes("items.push({kind:'sleep'"),'홈 오늘 일정에서 잠자리 행 제외');
+ok(todayScheduleSection.includes("items.push({kind:'sleep'"),'홈 오늘 전체 일정에 잠자리 static 행 포함');
+ok(index.includes("if(x.kind==='sleep') return false;"),'잠자리는 홈 기본 오늘 일정에서 제외');
 ok(index.includes("오늘 전체 일정 보기 · '+items.length+'개"),'홈 오늘 전체 일정 보기 제공');
 ok(/\{v:'meaning',l:'의미'\}/.test(index),'내 발자취 실천기록 의미 필터');
 ok(/\.learnmini \.minitool\{min-height:100px/.test(index),'배우기·실천하기 카드 높이 축소');
