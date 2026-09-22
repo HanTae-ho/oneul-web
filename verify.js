@@ -236,7 +236,7 @@ ok(index.includes('앱스 화면에 설치'),'Samsung Internet 앱스 화면 설
 ok(index.indexOf('if(isSamsung){') < index.indexOf('} else if(isIOS){'),'Samsung 설치 분기를 표준 prompt보다 우선');
 ok(manifest.includes('\"id\": \"./index.html\"'),'manifest 안정적 app id');
 if(storageDiagnostic){
-  ok(storageDiagnostic.includes("const KEY='ohg.v1', SOCIAL_KEY='ohg.social.v1';"),'저장 진단 페이지가 개인·커뮤니티 키를 읽기 전용으로 확인');
+  ok(storageDiagnostic.includes("const KEY='ohg.v1', BACKUP_KEY='ohg.v1.recovery-backup', QUARANTINE_KEY='ohg.v1.recovery-quarantine', SOCIAL_KEY='ohg.social.v1';"),'저장 진단 페이지가 개인·안전백업·커뮤니티 키를 읽기 전용으로 확인');
   ok(storageDiagnostic.includes('localStorage.getItem(k)'),'저장 진단 페이지 localStorage 읽기 존재');
   ok(!storageDiagnostic.includes('localStorage.setItem(')&&!storageDiagnostic.includes('localStorage.removeItem(')&&!storageDiagnostic.includes('localStorage.clear('),'저장 진단 페이지가 localStorage를 수정·삭제하지 않음');
   ok(!storageDiagnostic.includes('sessionStorage.setItem(')&&!storageDiagnostic.includes('sessionStorage.removeItem(')&&!storageDiagnostic.includes('sessionStorage.clear('),'저장 진단 페이지가 sessionStorage도 수정하지 않음');
