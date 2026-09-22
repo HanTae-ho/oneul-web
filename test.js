@@ -130,6 +130,11 @@ const srv = http.createServer((req, res) => {
         return orig.call(this);
       };
     });
+    await exPg.$eval('#me-export',el=>{
+      const acc=el.closest('.acc'), head=acc&&acc.querySelector('.acc-h');
+      if(head) head.click();
+    });
+    assert(await exPg.isVisible('#me-export'),'기록 관리 아코디언을 펼치면 내보내기 버튼이 보여야 함');
     await exPg.click('#me-export');
     await exPg.waitForTimeout(10);
     await exPg.click('#me-export');
