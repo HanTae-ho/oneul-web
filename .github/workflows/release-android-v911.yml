@@ -1,14 +1,8 @@
 name: Release Android V9.1.2
 
+# V9.1.2는 이미 발행된 고정 릴리스입니다.
+# 이후 웹 소스 수정이 같은 태그의 Android 릴리스를 자동 재실행하지 않도록 수동 실행만 허용합니다.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'index.html'
-      - 'sw.js'
-      - 'install.html'
-      - 'latest-release.json'
-      - '.github/workflows/release-android-v911.yml'
   workflow_dispatch:
 
 permissions:

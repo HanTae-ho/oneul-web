@@ -111,6 +111,169 @@ const srv = http.createServer((req, res) => {
     await badCtx.close();
   }
 
+  // V9.1.2 기록관리 시뮬레이션 — 내보내기/불러오기/전체지우기/안전백업을 실제 브라우저에서 검증합니다.
+  {
+    const exCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul',acceptDownloads:true});
+    const exPg=await exCtx.newPage();
+    const base={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(30)},cum:{alcohol:0},
+      goal:'내보내기 테스트',hours:[],meds:[],medLog:[],eats:[],eatLog:[],sleep:{on:0,bed:'23:00',up:'07:00'},sleepLog:[],
+      moods:[{t:Date.now()-10000,v:4}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],stepDrafts:{},
+      wbDays:{},meaningChecks:[],smartWorks:[],familyStepWorks:[],familyStepDrafts:{},aiChat:[],fired:[]};
+    await exCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),JSON.stringify(base));
+    await exPg.goto('http://localhost:8899/index.html'); await exPg.waitForTimeout(300);
+    await exPg.evaluate(()=>{
+      go('me');
+      window.__exportNames=[];
+      const orig=HTMLAnchorElement.prototype.click;
+      HTMLAnchorElement.prototype.click=function(){
+        if(this.download) window.__exportNames.push(this.download);
+        return orig.call(this);
+      };
+    });
+    await exPg.$eval('#me-export',el=>{
+      const acc=el.closest('.acc'), head=acc&&acc.querySelector('.acc-h');
+      if(head) head.click();
+    });
+    assert(await exPg.isVisible('#me-export'),'기록 관리 아코디언을 펼치면 내보내기 버튼이 보여야 함');
+    await exPg.click('#me-export');
+    await exPg.waitForTimeout(10);
+    await exPg.click('#me-export');
+    const names=await exPg.evaluate(()=>window.__exportNames.slice());
+    assert(names.length===2,'연속 2회 내보내기는 각각 파일 생성을 요청');
+    assert(/^오늘 한 걸음_백업_\d{8}-\d{6}-\d{3}\.json$/.test(names[0]),'내보내기 파일명은 날짜·시각·밀리초가 포함된 백업 이름');
+    assert(names[0]!==names[1],'같은 날 연속 내보내기도 파일명이 겹치지 않음');
+    assert((await exPg.$eval('#toast',e=>e.innerText)).includes('완료'),'내보내기 후 완료 안내를 표시');
+    await exCtx.close();
+  }
+
+  // 전혀 다른 JSON은 백업으로 인정하지 않고 현재 기록을 보존합니다.
+  {
+    const imCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
+    const imPg=await imCtx.newPage();
+    const current={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(12)},goal:'현재기록',
+      moods:[{t:Date.now(),v:3}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],meaningChecks:[],smartWorks:[],
+      familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+    const currentRaw=JSON.stringify(current);
+    await imCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),currentRaw);
+    await imPg.goto('http://localhost:8899/index.html'); await imPg.waitForTimeout(250);
+    await imPg.setInputFiles('#me-file',{name:'not-oneul.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({version:'V9.1.2',versionCode:918}))});
+    await imPg.waitForTimeout(150);
+    assert((await imPg.$eval('#toast',e=>e.innerText)).includes('오늘 한 걸음 백업 파일이 아니거나'),'다른 JSON을 명확히 거부');
+    assert(await imPg.evaluate(()=>localStorage.getItem('ohg.v1'))===currentRaw,'잘못된 JSON 선택 후 기존 원문 불변');
+    await imCtx.close();
+  }
+
+  // 정상 백업 불러오기는 현재 원문을 안전백업한 뒤 교체합니다.
+  {
+    const imCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
+    const imPg=await imCtx.newPage();
+    const old={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(20)},goal:'교체 전',
+      moods:[{t:Date.now()-5000,v:2}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],meaningChecks:[],smartWorks:[],
+      familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+    const incoming={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(4)},goal:'불러온 기록',
+      moods:[{t:Date.now()-3000,v:5},{t:Date.now()-2000,v:4}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],
+      meaningChecks:[],smartWorks:[],familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+    const oldRaw=JSON.stringify(old);
+    await imCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),oldRaw);
+    await imPg.goto('http://localhost:8899/index.html'); await imPg.waitForTimeout(250);
+    await imPg.setInputFiles('#me-file',{name:'oneul-backup.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(incoming))});
+    await imPg.waitForTimeout(80);
+    assert(await imPg.isVisible('#import-yes'),'정상 백업은 교체 전 확인을 요청');
+    await imPg.click('#import-yes'); await imPg.waitForTimeout(150);
+    const result=await imPg.evaluate(()=>({goal:S.goal,moods:S.moods.length,backup:localStorage.getItem('ohg.v1.recovery-backup')}));
+    assert(result.goal==='불러온 기록'&&result.moods===2,'정상 백업을 현재 상태로 복원');
+    assert(result.backup===oldRaw,'불러오기 전 현재 원문을 안전백업으로 보존');
+    await imCtx.close();
+  }
+
+  // 저장 실패가 나면 메모리 S까지 새 백업으로 바뀌지 않고 기존 상태를 유지합니다.
+  {
+    const failCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
+    const failPg=await failCtx.newPage();
+    const old={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(8)},goal:'롤백 원본',
+      moods:[{t:Date.now(),v:3}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],meaningChecks:[],smartWorks:[],
+      familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+    const incoming={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(2)},goal:'저장되면안됨',
+      moods:[{t:Date.now(),v:5}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],meaningChecks:[],smartWorks:[],
+      familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+    const oldRaw=JSON.stringify(old);
+    await failCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),oldRaw);
+    await failPg.goto('http://localhost:8899/index.html'); await failPg.waitForTimeout(250);
+    await failPg.setInputFiles('#me-file',{name:'oneul-backup.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(incoming))});
+    await failPg.waitForTimeout(80);
+    await failPg.evaluate(()=>{
+      const original=Storage.prototype.setItem;
+      Storage.prototype.setItem=function(k,v){if(k==='ohg.v1')throw new DOMException('quota','QuotaExceededError');return original.call(this,k,v);};
+    });
+    await failPg.click('#import-yes'); await failPg.waitForTimeout(100);
+    const state=await failPg.evaluate(()=>({goal:S.goal,raw:localStorage.getItem('ohg.v1')}));
+    assert(state.goal==='롤백 원본'&&state.raw===JSON.stringify(old),'저장 실패 시 실행상태와 저장원문 모두 기존값 유지');
+    assert((await failPg.$eval('#toast',e=>e.innerText)).includes('기존 기록은 그대로'),'저장 실패 롤백 안내');
+    await failCtx.close();
+  }
+
+  // 현재 키가 없어도 두 번째 안전백업(quarantine)만 있으면 복구할 수 있습니다.
+  {
+    const qCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
+    const qPg=await qCtx.newPage();
+    const q={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(15)},goal:'두번째 안전백업',
+      moods:[{t:Date.now(),v:4}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],meaningChecks:[],smartWorks:[],
+      familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+    await qCtx.addInitScript(raw=>localStorage.setItem('ohg.v1.recovery-quarantine',raw),JSON.stringify(q));
+    await qPg.goto('http://localhost:8899/index.html'); await qPg.waitForTimeout(300);
+    assert((await qPg.$eval('#modin',e=>e.innerText)).includes('두 번째 안전백업'),'quarantine-only 상태를 사용자에게 안내');
+    assert(await qPg.isVisible('#recovery-use-quarantine'),'두 번째 안전백업 복구 버튼 표시');
+    await qPg.click('#recovery-use-quarantine'); await qPg.waitForTimeout(150);
+    assert(await qPg.evaluate(()=>S.goal)==='두번째 안전백업','두 번째 안전백업을 실제 개인 상태로 복구');
+    assert(((await qPg.evaluate(()=>localStorage.getItem('ohg.v1')))||'').includes('두번째 안전백업'),'복구한 상태를 주 개인키에 저장');
+    await qCtx.close();
+  }
+
+  // 전체 지우기는 현재 개인키와 두 안전백업만 지우고 커뮤니티 설정은 보존합니다.
+  {
+    const wCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
+    const wPg=await wCtx.newPage();
+    const current={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{},goal:'삭제대상',moods:[],halts:[],urges:[],
+      nights:[],relapses:[],screenings:[],stepWorks:[],meaningChecks:[],smartWorks:[],familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+    await wCtx.addInitScript(raw=>{
+      localStorage.setItem('ohg.v1',raw);
+      localStorage.setItem('ohg.v1.recovery-backup',raw);
+      localStorage.setItem('ohg.v1.recovery-quarantine',raw);
+      localStorage.setItem('ohg.social.v1',JSON.stringify({schema:1,profile:{userId:'u1',nickname:'테스터'}}));
+    },JSON.stringify(current));
+    await wPg.goto('http://localhost:8899/index.html'); await wPg.waitForTimeout(250);
+    await wPg.evaluate(()=>go('me'));
+    await wPg.$eval('#me-wipe',el=>{
+      const acc=el.closest('.acc'), head=acc&&acc.querySelector('.acc-h');
+      if(head) head.click();
+    });
+    assert(await wPg.isVisible('#me-wipe'),'기록 관리 아코디언을 펼치면 전체 지우기 버튼이 보여야 함');
+    await wPg.click('#me-wipe'); await wPg.click('#wipe-yes'); await wPg.waitForTimeout(100);
+    const gone=await wPg.evaluate(()=>({
+      p:localStorage.getItem('ohg.v1'),b:localStorage.getItem('ohg.v1.recovery-backup'),
+      q:localStorage.getItem('ohg.v1.recovery-quarantine'),social:localStorage.getItem('ohg.social.v1')
+    }));
+    assert(gone.p===null&&gone.b===null&&gone.q===null,'전체 지우기는 개인 현재키와 안전백업 두 개를 모두 삭제');
+    assert(gone.social!==null,'전체 지우기는 별도 커뮤니티 키를 삭제하지 않음');
+    await wCtx.close();
+  }
+
+  // 자원시트 URL은 http/https만 화면 링크로 허용합니다.
+  {
+    const uCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
+    const uPg=await uCtx.newPage();
+    await uPg.goto('http://localhost:8899/index.html'); await uPg.waitForTimeout(200);
+    const urlGuard=await uPg.evaluate(()=>({
+      bad:safeHttpUrl_('javascript:alert(1)'),
+      data:safeHttpUrl_('data:text/html,x'),
+      good:safeHttpUrl_('https://example.com/x'),
+      card:card({n:'테스트',d:'설명',w:'javascript:alert(1)'},'center',false)
+    }));
+    assert(urlGuard.bad===''&&urlGuard.data===''&&urlGuard.good==='https://example.com/x','외부 링크 scheme은 http/https만 허용');
+    assert(!urlGuard.card.includes('javascript:'),'자원 카드에 비허용 scheme 링크를 만들지 않음');
+    await uCtx.close();
+  }
+
   await pg.goto('http://localhost:8899/index.html');
   await pg.waitForTimeout(500);
   console.log('1. 첫 화면 =', await seen());

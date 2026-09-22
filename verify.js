@@ -74,6 +74,19 @@ ok(!/\.toISOString\s*\(/.test(test),'자동테스트에서 toISOString() 미사�
 ok(/timezoneId: 'Asia\/Seoul'/.test(test),'기존 브라우저 회귀테스트 시간대 Asia/Seoul 유지');
 ok(!/\/opt\/pw-browsers\/chromium/.test(test),'자동테스트 Chromium 경로 하드코딩 제거');
 ok(/process\.env\.CHROMIUM_PATH/.test(test),'필요 시 CHROMIUM_PATH 사용자 지정 지원');
+ok(index.includes('백업 파일 내보내기가 완료되었습니다.'),'기록 내보내기 완료 안내 존재');
+ok(/오늘 한 걸음_['"]?\+?\(label\|\|'백업'\)/.test(index)||index.includes("a.download='오늘 한 걸음_'+(label||'백업')"),'백업 파일명 생성 경로 존재');
+ok(index.includes("id=\"me-recovery-manage\"")&&index.includes('function showSavedRecoveryBackups_()'),'기기 안전백업 관리 화면 연결');
+ok(index.includes("localStorage.removeItem(RECOVERY_BACKUP_KEY)")&&index.includes("localStorage.removeItem(RECOVERY_QUARANTINE_KEY)"),'전체 지우기가 두 안전백업 키까지 삭제');
+ok(index.includes('function personalBackupShape_(j)')&&index.includes('오늘 한 걸음 백업 파일이 아니거나 읽을 수 없는 파일입니다.'),'불러오기 백업 형식 검증');
+ok(index.includes('function commitImportedState_(next,wasRecovering)')&&index.includes('기존 기록은 그대로입니다.'),'불러오기 저장 실패 롤백');
+ok(index.includes("st.quarantine=storedCandidate_(quarantineRaw,'quarantine')")&&index.includes('recovery-use-quarantine'),'두 번째 안전백업 진단·복구 경로');
+ok(index.includes('function safeHttpUrl_(u)')&&!index.includes('esc(x.w)')&&!index.includes('esc(r.w)'),'외부 자원 링크 http/https scheme 검증');
+ok(/id="social-nick"[^>]*readonly/.test(index)||index.includes("(p?' readonly':'')"),'기존 커뮤니티 닉네임 읽기전용');
+ok(storageDiagnostic.includes("BACKUP_KEY='ohg.v1.recovery-backup'")&&storageDiagnostic.includes("QUARANTINE_KEY='ohg.v1.recovery-quarantine'"),'읽기 전용 진단에 안전백업 2개 표시');
+ok(!/localStorage\.(?:setItem|removeItem|clear)\s*\(/.test(storageDiagnostic),'저장 진단 페이지는 localStorage 쓰기·삭제 없음');
+ok(/같은 날 연속 내보내기도 파일명이 겹치지 않음/.test(test)&&/잘못된 JSON 선택 후 기존 원문 불변/.test(test)&&/전체 지우기는 개인 현재키와 안전백업 두 개를 모두 삭제/.test(test),'test.js 기록관리 브라우저 시뮬레이션 포함');
+
 ok(/회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery 3개/.test(test)&&/작성형 12단계 점검이 중복 표시되지 않아야 함/.test(test),'test.js 회복학습 3개 학습주제·12단계 점검 실천하기 일원화');
 ok(/알코올 영역 1단계 카드에 AA 단계문장 표시/.test(test)&&/도박 영역 1단계 카드에 GA 단계문장 표시/.test(test)&&/약물 영역 1단계 카드에 NA 단계문장 표시/.test(test),'test.js AA·GA·NA 영역별 단계문장 회귀검사');
 
@@ -223,7 +236,7 @@ ok(index.includes('앱스 화면에 설치'),'Samsung Internet 앱스 화면 설
 ok(index.indexOf('if(isSamsung){') < index.indexOf('} else if(isIOS){'),'Samsung 설치 분기를 표준 prompt보다 우선');
 ok(manifest.includes('\"id\": \"./index.html\"'),'manifest 안정적 app id');
 if(storageDiagnostic){
-  ok(storageDiagnostic.includes("const KEY='ohg.v1', SOCIAL_KEY='ohg.social.v1';"),'저장 진단 페이지가 개인·커뮤니티 키를 읽기 전용으로 확인');
+  ok(storageDiagnostic.includes("const KEY='ohg.v1', BACKUP_KEY='ohg.v1.recovery-backup', QUARANTINE_KEY='ohg.v1.recovery-quarantine', SOCIAL_KEY='ohg.social.v1';"),'저장 진단 페이지가 개인·안전백업·커뮤니티 키를 읽기 전용으로 확인');
   ok(storageDiagnostic.includes('localStorage.getItem(k)'),'저장 진단 페이지 localStorage 읽기 존재');
   ok(!storageDiagnostic.includes('localStorage.setItem(')&&!storageDiagnostic.includes('localStorage.removeItem(')&&!storageDiagnostic.includes('localStorage.clear('),'저장 진단 페이지가 localStorage를 수정·삭제하지 않음');
   ok(!storageDiagnostic.includes('sessionStorage.setItem(')&&!storageDiagnostic.includes('sessionStorage.removeItem(')&&!storageDiagnostic.includes('sessionStorage.clear('),'저장 진단 페이지가 sessionStorage도 수정하지 않음');
@@ -255,7 +268,7 @@ ok(index.includes("const RECOVERY_BACKUP_KEY = 'ohg.v1.recovery-backup';")&&inde
 ok(index.includes('function inspectStoredPersonal_()')&&index.includes("st.state='needs-choice'; st.blocking=true;"),'시작상태 모순 시 복구 게이트 진입');
 ok(index.includes("if(storageRecovery && storageRecovery.blocking) return false;"),'복구 선택 전 save()가 기존 ohg.v1 덮어쓰기 차단');
 ok(index.includes('function showStorageRecoveryGate_()')&&index.includes('기존 데이터 사용')&&index.includes('안전백업 복구'),'기존 데이터 발견 시 사용자 복구 선택 UI');
-ok(index.includes('function preserveRecoveryRaw_(raw)')&&index.includes('localStorage.setItem(key,String(raw))'),'복구·새 시작 전 기존 원문 안전백업');
+ok(index.includes('function preserveRecoveryRaw_(raw)')&&index.includes('localStorage.setItem(RECOVERY_BACKUP_KEY,text)')&&index.includes('localStorage.setItem(RECOVERY_QUARANTINE_KEY,text)'),'복구·새 시작 전 기존 원문 안전백업');
 ok(index.includes("const localYmd = v =>")&&index.includes("return best || localYmd(Date.now());"),'recordStart 마이그레이션이 초기화 전 ymd/today const에 의존하지 않음');
 ok(!/function inferRecordStart_\(s\)[\s\S]{0,1400}ymd\(new Date/.test(index),'recordStart 초기 마이그레이션에서 뒤쪽 ymd 참조 제거');
 ok(index.includes("const blocked=!!(storageRecovery && storageRecovery.blocking);")&&index.includes("if(blocked){\n    showStorageRecoveryGate_();\n    return;"),'복구 게이트 중 자원동기화·알람 런타임 시작 차단');
