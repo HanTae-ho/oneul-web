@@ -241,6 +241,12 @@ ok(index.includes('id="me-smoking-mode"')&&index.includes('data-smoking-mode="pl
 ok(index.includes("recordStart: '', recoveryHome: 1"),'앱 기록 시작일·회복일 표시 로컬 상태');
 ok(index.includes("smoking: { mode:'', start:'', plan:'' }"),'금연 실천은 회복영역과 분리된 로컬 상태');
 ok(index.includes('회복 시작일 미설정 · 앱 기록 시작일부터'),'내가 되찾은 것 기록 시작일 대체 기준');
+const mySettingsPos=index.indexOf('id="my-settings"'), myTrailPos=index.indexOf('id="my-trail"'), myReclaimPos=index.indexOf('id="rec-reclaim"');
+ok(mySettingsPos>=0&&mySettingsPos<myTrailPos&&myTrailPos<myReclaimPos,'나 화면 내 정보 · 설정 → 내 발자취 → 내가 되찾은 것 순서');
+ok(index.includes('function homeTodayFocusItems(items,nowMin)'),'홈 오늘 일정 기본 필터 함수');
+const todayScheduleSection=(index.match(/function drawTodayScheduleHome\(\)\{([\s\S]*?)function drawHabitHome/)||[])[1]||'';
+ok(!todayScheduleSection.includes("items.push({kind:'sleep'"),'홈 오늘 일정에서 잠자리 행 제외');
+ok(index.includes("오늘 전체 일정 보기 · '+items.length+'개"),'홈 오늘 전체 일정 보기 제공');
 ok(/\{v:'meaning',l:'의미'\}/.test(index),'내 발자취 실천기록 의미 필터');
 ok(/\.learnmini \.minitool\{min-height:100px/.test(index),'배우기·실천하기 카드 높이 축소');
 if(!index.includes("const BUILD='V9.1.0';")) throw new Error('V9.1.0 BUILD 불일치');
