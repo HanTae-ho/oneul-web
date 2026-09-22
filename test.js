@@ -121,13 +121,22 @@ const srv = http.createServer((req, res) => {
       wbDays:{},meaningChecks:[],smartWorks:[],familyStepWorks:[],familyStepDrafts:{},aiChat:[],fired:[]};
     await exCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),JSON.stringify(base));
     await exPg.goto('http://localhost:8899/index.html'); await exPg.waitForTimeout(300);
-    await exPg.evaluate(()=>go('me'));
-    const [d1]=await Promise.all([exPg.waitForEvent('download'),exPg.click('#me-export')]);
+    await exPg.evaluate(()=>{
+      go('me');
+      window.__exportNames=[];
+      const orig=HTMLAnchorElement.prototype.click;
+      HTMLAnchorElement.prototype.click=function(){
+        if(this.download) window.__exportNames.push(this.download);
+        return orig.call(this);
+      };
+    });
+    await exPg.click('#me-export');
     await exPg.waitForTimeout(10);
-    const [d2]=await Promise.all([exPg.waitForEvent('download'),exPg.click('#me-export')]);
-    const n1=d1.suggestedFilename(), n2=d2.suggestedFilename();
-    assert(/^오늘 한 걸음_백업_\d{8}-\d{6}-\d{3}\.json$/.test(n1),'내보내기 파일명은 날짜·시각·밀리초가 포함된 백업 이름');
-    assert(n1!==n2,'같은 날 연속 내보내기도 파일명이 겹치지 않음');
+    await exPg.click('#me-export');
+    const names=await exPg.evaluate(()=>window.__exportNames.slice());
+    assert(names.length===2,'연속 2회 내보내기는 각각 파일 생성을 요청');
+    assert(/^오늘 한 걸음_백업_\d{8}-\d{6}-\d{3}\.json$/.test(names[0]),'내보내기 파일명은 날짜·시각·밀리초가 포함된 백업 이름');
+    assert(names[0]!==names[1],'같은 날 연속 내보내기도 파일명이 겹치지 않음');
     assert((await exPg.$eval('#toast',e=>e.innerText)).includes('완료'),'내보내기 후 완료 안내를 표시');
     await exCtx.close();
   }
