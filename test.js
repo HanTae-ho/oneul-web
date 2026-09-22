@@ -211,7 +211,7 @@ const srv = http.createServer((req, res) => {
     assert(await qPg.isVisible('#recovery-use-quarantine'),'두 번째 안전백업 복구 버튼 표시');
     await qPg.click('#recovery-use-quarantine'); await qPg.waitForTimeout(150);
     assert(await qPg.evaluate(()=>S.goal)==='두번째 안전백업','두 번째 안전백업을 실제 개인 상태로 복구');
-    assert((await qPg.evaluate(()=>localStorage.getItem('ohg.v1')))||'').includes('두번째 안전백업'),'복구한 상태를 주 개인키에 저장');
+    assert(((await qPg.evaluate(()=>localStorage.getItem('ohg.v1')))||'').includes('두번째 안전백업'),'복구한 상태를 주 개인키에 저장');
     await qCtx.close();
   }
 
