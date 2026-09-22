@@ -235,6 +235,12 @@ const learnSection=(index.match(/<h2>배우기<\/h2>([\s\S]*?)<div class="toolse
 ok(!/<span(?! class="ic")/.test(learnSection+practiceSection),'배우기·실천하기 3열 카드 설명글 제거');
 ok(/<b>의미점검<\/b>/.test(practiceSection)&&/<b>회복 실천도구<\/b>/.test(practiceSection),'실천하기 압축 제목 반영');
 ok(/id="tool-check-view"[\s\S]{0,240}<b>자가점검 기록<\/b>/.test(index),'자가점검 기록 명칭 반영');
+ok(index.includes('id="ob-recovery-home"'),'온보딩 회복일 홈 표시 선택');
+ok(index.includes('id="me-recovery-home"'),'내 정보 회복일 홈 표시 설정');
+ok(index.includes('id="me-smoking-mode"')&&index.includes('data-smoking-mode="plan"')&&index.includes('data-smoking-mode="quit"'),'금연 예정·금연 중 선택 설정');
+ok(index.includes("recordStart: '', recoveryHome: 1"),'앱 기록 시작일·회복일 표시 로컬 상태');
+ok(index.includes("smoking: { mode:'', start:'', plan:'' }"),'금연 실천은 회복영역과 분리된 로컬 상태');
+ok(index.includes('회복 시작일 미설정 · 앱 기록 시작일부터'),'내가 되찾은 것 기록 시작일 대체 기준');
 ok(/\{v:'meaning',l:'의미'\}/.test(index),'내 발자취 실천기록 의미 필터');
 ok(/\.learnmini \.minitool\{min-height:100px/.test(index),'배우기·실천하기 카드 높이 축소');
 if(!index.includes("const BUILD='V9.1.0';")) throw new Error('V9.1.0 BUILD 불일치');
