@@ -68,10 +68,11 @@ const srv = http.createServer((req, res) => {
   await pg.click('#ob-types button:nth-child(2)');
   await pg.waitForTimeout(150);
   // 시작일을 40일 전으로
-  const d40 = daysAgo(40);
+  const d40 = daysAgo(40), d12 = daysAgo(12);
   const ins = await pg.$$('#ob-dates input');
   await ins[0].fill(d40);
-  await ins[1].fill(daysAgo(12));
+  await ins[1].fill(d12);
+  assert(await pg.isChecked('#ob-recovery-home'), '최초 설정에서 홈 회복일 표시는 기본 ON');
   assert(await pg.isChecked('#ob-ai-use'), '최초 설정에서 마음프로 AI 사용은 기본 ON');
   await pg.check('#ob-privacy');
   await shot('2-onboard');
@@ -94,6 +95,50 @@ const srv = http.createServer((req, res) => {
   assert(dayRule.fixed === 3, '8/31 시작이면 9/2는 3일째');
   assert(dayRule.before === '2026-09-01' && dayRule.after === '2026-09-02', '한국시간 자정에서 날짜가 바뀌어야 함');
   console.log('   매일의 명상 =', (await pg.$eval('#home-daily-text', e => e.innerText)).slice(0, 80));
+
+  // 선택형 회복일 + 별도 금연 실천 홈 표시
+  await pg.evaluate(() => {
+    S.recoveryHome = 1;
+    S.smoking = { mode:'quit', start:today(), plan:'' };
+    save(); drawHome();
+  });
+  const dual = await pg.$eval('#home-days', e => ({dual:e.classList.contains('dual'), text:e.innerText.replace(/\n/g,' | ')}));
+  console.log('   회복+금연 2열 =', dual.text);
+  assert(dual.dual, '회복일과 금연일이 모두 있으면 홈이 2열이어야 함');
+  assert(dual.text.includes('금연') && dual.text.includes('1일째'), '금연 시작 당일은 금연 1일째로 보여야 함');
+
+  const d5 = daysAgo(-5);
+  await pg.evaluate(plan => {
+    S.recoveryHome = 0;
+    S.smoking = { mode:'plan', start:'', plan:plan };
+    save(); drawHome();
+  }, d5);
+  const smokeOnly = await pg.$eval('#home-days', e => ({dual:e.classList.contains('dual'), text:e.innerText.replace(/\n/g,' | ')}));
+  console.log('   금연예정 1열 =', smokeOnly.text);
+  assert(!smokeOnly.dual && smokeOnly.text.includes('D-5'), '회복일을 숨기면 금연 예정만 기존 1열로 보여야 함');
+  assert(!smokeOnly.text.includes('단주'), '홈 회복일 숨기기에서는 회복일 행이 보이면 안 됨');
+
+  const recordStart = daysAgo(9);
+  await pg.evaluate(recordStart => {
+    S.recordStart = recordStart;
+    S.dates.alcohol = '';
+    S.dates.gambling = '';
+    S.reclaim = { kind:'alcohol', timeOn:1, timePerDay:2, costOn:1, costPerDay:10000 };
+    save(); drawReclaim();
+  }, recordStart);
+  const reclaimFallback = (await pg.$eval('#rec-reclaim', e => e.innerText)).replace(/\n/g,' | ');
+  console.log('   시작일 미설정 되찾은 것 =', reclaimFallback.slice(0,180));
+  assert(reclaimFallback.includes('기록 기간') && reclaimFallback.includes('10일'), '회복 시작일이 없으면 앱 기록 시작일부터 기록 기간을 계산해야 함');
+  assert(reclaimFallback.includes('앱 기록 시작일부터'), '회복 시작일 미설정 계산 기준을 명확히 표시해야 함');
+
+  await pg.evaluate(({d40,d12}) => {
+    S.dates.alcohol = d40;
+    S.dates.gambling = d12;
+    S.recoveryHome = 1;
+    S.smoking = { mode:'', start:'', plan:'' };
+    S.reclaim = { kind:'', timeOn:0, timePerDay:0, costOn:0, costPerDay:0 };
+    save(); drawHome(); drawReclaim();
+  }, {d40,d12});
 
   // HALT + 감정
   await pg.click('#home-halt button:nth-child(1)');
