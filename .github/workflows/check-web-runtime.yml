@@ -11,7 +11,7 @@ on:
       - 'README.md'
       - 'icon-*.png'
       - '.github/workflows/check-web-runtime.yml'
-      - '.github/workflows/release-android-v910.yml'
+      - '.github/workflows/release-android-v911.yml'
   pull_request:
     branches: [main]
     paths:
@@ -22,7 +22,7 @@ on:
       - 'README.md'
       - 'icon-*.png'
       - '.github/workflows/check-web-runtime.yml'
-      - '.github/workflows/release-android-v910.yml'
+      - '.github/workflows/release-android-v911.yml'
   workflow_dispatch:
 
 permissions:
@@ -126,9 +126,10 @@ jobs:
           ! grep -F '커뮤니티과' privacy.html
           for v in {7..20}; do grep -F "## V9.0.$v " README.md; done
           grep -F "## V9.1.0 " README.md
-          grep -F "versionCode 916" .github/workflows/release-android-v910.yml
-          grep -F "versionName '9.1.0'" .github/workflows/release-android-v910.yml
-          grep -F "gh release create v9.1.0" .github/workflows/release-android-v910.yml
+          grep -F "## V9.1.1 " README.md
+          grep -F "versionCode 917" .github/workflows/release-android-v911.yml
+          grep -F "versionName '9.1.1'" .github/workflows/release-android-v911.yml
+          grep -F "gh release create v9.1.1" .github/workflows/release-android-v911.yml
 
       - name: Install Playwright Chromium
         run: |
