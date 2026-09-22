@@ -96,7 +96,7 @@ const srv = http.createServer((req, res) => {
   assert(dayRule.before === '2026-09-01' && dayRule.after === '2026-09-02', '한국시간 자정에서 날짜가 바뀌어야 함');
   console.log('   매일의 명상 =', (await pg.$eval('#home-daily-text', e => e.innerText)).slice(0, 80));
 
-  // 홈 오늘 일정 — 기본보기는 지금 확인할 것만, 전체보기에도 잠자리 행은 넣지 않음
+  // 홈 오늘 일정 — 기본보기는 지금 확인할 것만, 전체보기에는 잠자리를 static 안내 행으로 포함
   const scheduleFocus = await pg.evaluate(() => {
     S.eats = [{s:'아침',t:'08:00'},{s:'점심',t:'12:30'},{s:'저녁',t:'18:30'}];
     const sample = [
@@ -105,7 +105,8 @@ const srv = http.createServer((req, res) => {
       {kind:'med',id:'점심',time:'12:30',done:true,action:1},
       {kind:'eat',id:'아침',time:'08:00',done:false,action:1},
       {kind:'eat',id:'점심',time:'12:30',done:false,action:1},
-      {kind:'eat',id:'저녁',time:'18:30',done:false,action:1}
+      {kind:'eat',id:'저녁',time:'18:30',done:false,action:1},
+      {kind:'sleep',id:'bed',time:'23:00',done:false,action:0}
     ];
     return homeTodayFocusItems(sample, 13*60).map(x=>x.kind+':'+x.id);
   });
@@ -114,6 +115,7 @@ const srv = http.createServer((req, res) => {
   assert(scheduleFocus.includes('med:아침'), '시간이 지난 미완료 복약은 기본보기에서 계속 보여야 함');
   assert(!scheduleFocus.includes('med:점심') && !scheduleFocus.includes('habit:done-habit'), '완료한 복약·습관은 기본보기에서 접어야 함');
   assert(scheduleFocus.includes('eat:점심') && scheduleFocus.includes('eat:저녁'), '현재·다음 끼니는 기본보기에서 보여야 함');
+  assert(!scheduleFocus.includes('sleep:bed'), '잠자리는 기본보기에서 제외해야 함');
 
   await pg.evaluate(() => {
     S.eats = [{s:'아침',t:'08:00'},{s:'점심',t:'12:30'},{s:'저녁',t:'18:30'}];
@@ -125,7 +127,9 @@ const srv = http.createServer((req, res) => {
   });
   const fullScheduleText = await pg.$eval('#home-today', e => e.innerText);
   assert(fullScheduleText.includes('아침 식사') && fullScheduleText.includes('점심 식사') && fullScheduleText.includes('저녁 식사'), '전체보기에는 오늘 등록된 식사 일정이 보여야 함');
-  assert(!fullScheduleText.includes('잠자리'), '잠자리는 체크 일정이 아니므로 오늘 일정 행에 표시하지 않아야 함');
+  assert(fullScheduleText.includes('잠자리'), '전체보기에는 오늘 잠자리 설정도 보여야 함');
+  const fullSleepStatic = await pg.$eval('#home-today', e => [...e.querySelectorAll('.today-row')].some(r => r.innerText.includes('잠자리') && r.querySelector('.tcheck.static')));
+  assert(fullSleepStatic, '전체보기의 잠자리는 체크 버튼이 없는 static 안내 행이어야 함');
   await pg.evaluate(() => {
     S.eats=[]; S.eatLog=[]; S.sleep={on:0,bed:'23:00',up:'07:00'}; S.sleepLog=[];
     homeTodayExpanded=false; save(); drawTodayScheduleHome();
