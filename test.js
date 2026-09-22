@@ -68,10 +68,11 @@ const srv = http.createServer((req, res) => {
   await pg.click('#ob-types button:nth-child(2)');
   await pg.waitForTimeout(150);
   // 시작일을 40일 전으로
-  const d40 = daysAgo(40);
+  const d40 = daysAgo(40), d12 = daysAgo(12);
   const ins = await pg.$$('#ob-dates input');
   await ins[0].fill(d40);
-  await ins[1].fill(daysAgo(12));
+  await ins[1].fill(d12);
+  assert(await pg.isChecked('#ob-recovery-home'), '최초 설정에서 홈 회복일 표시는 기본 ON');
   assert(await pg.isChecked('#ob-ai-use'), '최초 설정에서 마음프로 AI 사용은 기본 ON');
   await pg.check('#ob-privacy');
   await shot('2-onboard');
@@ -94,6 +95,89 @@ const srv = http.createServer((req, res) => {
   assert(dayRule.fixed === 3, '8/31 시작이면 9/2는 3일째');
   assert(dayRule.before === '2026-09-01' && dayRule.after === '2026-09-02', '한국시간 자정에서 날짜가 바뀌어야 함');
   console.log('   매일의 명상 =', (await pg.$eval('#home-daily-text', e => e.innerText)).slice(0, 80));
+
+  // 홈 오늘 일정 — 기본보기는 지금 확인할 것만, 전체보기에는 잠자리를 static 안내 행으로 포함
+  const scheduleFocus = await pg.evaluate(() => {
+    S.eats = [{s:'아침',t:'08:00'},{s:'점심',t:'12:30'},{s:'저녁',t:'18:30'}];
+    const sample = [
+      {kind:'habit',id:'done-habit',time:'08:00',done:true,action:1},
+      {kind:'med',id:'아침',time:'08:00',done:false,action:1},
+      {kind:'med',id:'점심',time:'12:30',done:true,action:1},
+      {kind:'eat',id:'아침',time:'08:00',done:false,action:1},
+      {kind:'eat',id:'점심',time:'12:30',done:false,action:1},
+      {kind:'eat',id:'저녁',time:'18:30',done:false,action:1},
+      {kind:'sleep',id:'bed',time:'23:00',done:false,action:0}
+    ];
+    return homeTodayFocusItems(sample, 13*60).map(x=>x.kind+':'+x.id);
+  });
+  console.log('   오늘 일정 기본 필터 =', scheduleFocus.join(', '));
+  assert(!scheduleFocus.includes('eat:아침'), '점심 시간이 지나면 미완료 아침식사도 기본보기에서 접어야 함');
+  assert(scheduleFocus.includes('med:아침'), '시간이 지난 미완료 복약은 기본보기에서 계속 보여야 함');
+  assert(!scheduleFocus.includes('med:점심') && !scheduleFocus.includes('habit:done-habit'), '완료한 복약·습관은 기본보기에서 접어야 함');
+  assert(scheduleFocus.includes('eat:점심') && scheduleFocus.includes('eat:저녁'), '현재·다음 끼니는 기본보기에서 보여야 함');
+  assert(!scheduleFocus.includes('sleep:bed'), '잠자리는 기본보기에서 제외해야 함');
+
+  await pg.evaluate(() => {
+    S.eats = [{s:'아침',t:'08:00'},{s:'점심',t:'12:30'},{s:'저녁',t:'18:30'}];
+    S.eatLog = [];
+    S.sleep = {on:1,bed:'23:00',up:'07:00'};
+    S.sleepLog = [{t:Date.now(),q:'good'}];
+    homeTodayExpanded = true;
+    drawTodayScheduleHome();
+  });
+  const fullScheduleText = await pg.$eval('#home-today', e => e.innerText);
+  assert(fullScheduleText.includes('아침 식사') && fullScheduleText.includes('점심 식사') && fullScheduleText.includes('저녁 식사'), '전체보기에는 오늘 등록된 식사 일정이 보여야 함');
+  assert(fullScheduleText.includes('잠자리'), '전체보기에는 오늘 잠자리 설정도 보여야 함');
+  const fullSleepStatic = await pg.$eval('#home-today', e => [...e.querySelectorAll('.today-row')].some(r => r.innerText.includes('잠자리') && r.querySelector('.tcheck.static')));
+  assert(fullSleepStatic, '전체보기의 잠자리는 체크 버튼이 없는 static 안내 행이어야 함');
+  await pg.evaluate(() => {
+    S.eats=[]; S.eatLog=[]; S.sleep={on:0,bed:'23:00',up:'07:00'}; S.sleepLog=[];
+    homeTodayExpanded=false; save(); drawTodayScheduleHome();
+  });
+
+  // 선택형 회복일 + 별도 금연 실천 홈 표시
+  await pg.evaluate(() => {
+    S.recoveryHome = 1;
+    S.smoking = { mode:'quit', start:today(), plan:'' };
+    save(); drawHome();
+  });
+  const dual = await pg.$eval('#home-days', e => ({dual:e.classList.contains('dual'), text:e.innerText.replace(/\n/g,' | ')}));
+  console.log('   회복+금연 2열 =', dual.text);
+  assert(dual.dual, '회복일과 금연일이 모두 있으면 홈이 2열이어야 함');
+  assert(dual.text.includes('금연') && dual.text.includes('1일째'), '금연 시작 당일은 금연 1일째로 보여야 함');
+
+  const d5 = daysAgo(-5);
+  await pg.evaluate(plan => {
+    S.recoveryHome = 0;
+    S.smoking = { mode:'plan', start:'', plan:plan };
+    save(); drawHome();
+  }, d5);
+  const smokeOnly = await pg.$eval('#home-days', e => ({dual:e.classList.contains('dual'), text:e.innerText.replace(/\n/g,' | ')}));
+  console.log('   금연예정 1열 =', smokeOnly.text);
+  assert(!smokeOnly.dual && smokeOnly.text.includes('D-5'), '회복일을 숨기면 금연 예정만 기존 1열로 보여야 함');
+  assert(!smokeOnly.text.includes('단주'), '홈 회복일 숨기기에서는 회복일 행이 보이면 안 됨');
+
+  const recordStart = daysAgo(9);
+  await pg.evaluate(recordStart => {
+    S.recordStart = recordStart;
+    S.dates.alcohol = '';
+    S.dates.gambling = '';
+    S.reclaim = { kind:'alcohol', timeOn:1, timePerDay:2, costOn:1, costPerDay:10000 };
+    save(); drawReclaim();
+  }, recordStart);
+  const reclaimFallback = (await pg.$eval('#rec-reclaim', e => e.innerText)).replace(/\n/g,' | ');
+  console.log('   시작일 미설정 되찾은 것 =', reclaimFallback.slice(0,180));
+  assert(reclaimFallback.includes('기록 기간') && reclaimFallback.includes('10일'), '회복 시작일이 없으면 앱 기록 시작일부터 기록 기간을 계산해야 함');
+  assert(reclaimFallback.includes('앱 기록 시작일부터'), '회복 시작일 미설정 계산 기준을 명확히 표시해야 함');
+
+  await pg.evaluate(({d40,d12}) => {
+    S.dates.alcohol = d40;
+    S.dates.gambling = d12;
+    S.recoveryHome = 1;
+    S.smoking = { mode:'', start:'', plan:'' };
+    S.reclaim = { kind:'', timeOn:0, timePerDay:0, costOn:0, costPerDay:0 };
+    save(); drawHome(); drawReclaim();
+  }, {d40,d12});
 
   // HALT + 감정
   await pg.click('#home-halt button:nth-child(1)');
@@ -368,6 +452,8 @@ const srv = http.createServer((req, res) => {
   await pg.click('#tabs button[data-t="home"]'); await pg.waitForTimeout(150);
   await pg.click('#top-me'); await pg.waitForTimeout(250);
   assert((await seen()) === 'p-my' && await pg.isVisible('#my-trail') && await pg.isVisible('#my-settings'), '상단 나 아이콘은 개인 허브를 열어야 함');
+  const myOrder = await pg.$$eval('#p-my > #my-settings, #p-my > #my-trail, #p-my > #rec-reclaim', els => els.map(e=>e.id));
+  assert(myOrder.join('>') === 'my-settings>my-trail>rec-reclaim', '나 화면은 내 정보 · 설정 → 내 발자취 → 내가 되찾은 것 순서여야 함');
   await pg.click('#my-settings'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-me' && await pg.isVisible('#me-share'), '내 정보 · 설정에 독립 추천하기 항목 존재');
   assert(await pg.$('#me-feedback-send'), '내 정보 · 설정에 앱에 바라는 점 단일 입력 존재');

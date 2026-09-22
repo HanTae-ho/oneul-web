@@ -293,9 +293,14 @@ addEventListener('appinstalled', function(){
   .dailyword .k{display:block;font-size:11.5px;font-weight:700;color:var(--acc);letter-spacing:.2px;margin-bottom:5px}
   .dailyword p{margin:0;color:var(--tx);font-size:14.5px;line-height:1.68;letter-spacing:-.1px}
 
-  /* 회복일 */
+  /* 회복일 · 금연 실천 — 하나면 기존 1열, 둘 다 있으면 같은 줄 2열 */
   .days{background:linear-gradient(150deg,var(--accbg),var(--bg2));
     border:1px solid var(--line);border-radius:var(--r);padding:17px;margin-bottom:12px}
+  .days.dual{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;
+    background:none;border:0;border-radius:0;padding:0}
+  .days.dual .daytile{min-width:0;background:linear-gradient(150deg,var(--accbg),var(--bg2));
+    border:1px solid var(--line);border-radius:var(--r);padding:13px 12px}
+  .daytile-h{display:block;margin:0 0 5px;font-size:11.5px;font-weight:700;color:var(--dim)}
   .dayrow{display:flex;align-items:baseline;gap:8px;padding:5px 0}
   .dayrow+.dayrow{border-top:1px solid var(--line);margin-top:5px;padding-top:10px}
   .dayrow .nm{font-size:14px;color:var(--dim);min-width:52px}
@@ -303,6 +308,13 @@ addEventListener('appinstalled', function(){
     font-variant-numeric:tabular-nums}
   .dayrow .u{font-size:14px;color:var(--dim)}
   .dayrow .cum{margin-left:auto;font-size:12px;color:var(--faint);text-align:right;line-height:1.5}
+  .days.dual .dayrow{display:block;padding:4px 0}
+  .days.dual .dayrow+.dayrow{margin-top:6px;padding-top:8px}
+  .days.dual .dayrow .nm{display:block;min-width:0;margin-bottom:2px;font-size:11px}
+  .days.dual .dayrow .n{font-size:26px}
+  .days.dual .dayrow .u{font-size:12px;margin-left:4px}
+  .days.dual .dayrow .cum{display:block;margin:4px 0 0;text-align:left;font-size:10.5px}
+  .smoke-home-sub{display:block;margin-top:5px;font-size:10.8px;line-height:1.45;color:var(--dim)}
 
   /* 선택 칩 */
   .opts{display:flex;gap:8px;flex-wrap:wrap}
@@ -570,7 +582,8 @@ addEventListener('appinstalled', function(){
   @media(max-width:350px){.learnmini{grid-template-columns:repeat(3,minmax(0,1fr))}.learnmini .minitool{min-height:96px;padding:9px 4px}.learnmini .minitool b{font-size:12.5px}.practicegrid,.checkmini{grid-template-columns:1fr}.practicecard{min-height:0}}
   /* V8.1.5 — 습관: 추천 예시를 복사해 쓰고, 내 습관은 자유롭게 수정합니다. */
   .habit-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:17px 0 9px}.habit-head h2{margin:0!important;color:var(--tx)!important;font-weight:700!important}.habit-list{display:grid;gap:9px}.habit-card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px}.habit-card.done{opacity:.72}.habit-card .top{display:flex;align-items:flex-start;gap:10px}.habit-card .top .grow b{display:block;font-size:15.5px}.habit-card .meta{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.5}.habit-card .checkline{display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}.habit-card .checkline button{width:31px;height:31px;border-radius:9px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc);background:var(--bg)}.habit-card .checkline button.on{background:var(--acc);color:#fff;border-color:var(--acc)}.habit-card .checkline span{flex:1;font-size:13px;line-height:1.45}.habit-actions{display:flex;gap:7px;margin-top:10px}.habit-actions .btn{margin:0;width:auto;flex:1;padding:8px 7px;font-size:12px}.habit-template{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:8px}.habit-template b{font-size:14.5px}.habit-template p{margin:3px 0 9px;font-size:12px;color:var(--dim);line-height:1.5}.habit-template .rowbtn{display:flex;gap:7px}.habit-template .rowbtn .btn{margin:0;padding:8px 7px;font-size:12px}.habit-edit .field{margin-bottom:15px}.habit-edit .field>label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.habit-edit .opts{gap:6px}.habit-edit .opt{padding:8px 10px;font-size:12.5px}.weekday-opts{grid-template-columns:repeat(7,minmax(0,1fr));gap:5px!important}.weekday-opts .opt{padding:8px 2px;justify-content:center}.habit-home{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}.habit-home h3{margin:0 0 9px}.habit-home-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--line)}.habit-home-row:first-of-type{border-top:0}.habit-home-row .hcheck{width:31px;height:31px;flex:none;border-radius:9px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc)}.habit-home-row .hcheck.on{background:var(--acc);color:#fff;border-color:var(--acc)}.habit-home-row .txt{flex:1;min-width:0}.habit-home-row .txt b{display:block;font-size:13.5px}.habit-home-row .txt span{display:block;font-size:11.5px;color:var(--dim);margin-top:1px}.habit-home-row .time{font-size:11.5px;color:var(--faint);white-space:nowrap}
-  /* V8.1.6 — 홈의 습관·복약·식사·잠·외래를 한 장의 오늘 일정으로 모읍니다. */
+  /* 홈의 오늘 일정 — 기본보기는 지금부터 확인할 항목만, 전체보기는 오늘 등록된 항목을 보여줍니다.
+     잠자리는 기본보기에서는 빼고, 전체보기에서만 체크 없는 안내 행으로 보여줍니다. */
   .today-home{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
   .today-home h3{margin:0}.today-summary{font-size:11.5px;color:var(--dim);margin-top:2px}
   .today-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line)}
@@ -808,9 +821,13 @@ addEventListener('appinstalled', function(){
   </div>
 
   <div class="card" id="ob-dates-card" style="display:none">
-    <h3>회복 시작일</h3>
-    <p class="muted" style="margin:-4px 0 11px">기억나는 날짜를 넣어주세요. 나중에 고칠 수 있습니다.</p>
+    <h3>회복 시작일 <span class="tiny" style="font-weight:400">(선택)</span></h3>
+    <p class="muted" style="margin:-4px 0 11px">정확한 날짜를 아는 경우에만 넣어주세요. 기억나지 않으면 비워두셔도 됩니다.</p>
     <div id="ob-dates"></div>
+    <label style="display:flex;align-items:flex-start;gap:9px;margin-top:10px;cursor:pointer">
+      <input type="checkbox" id="ob-recovery-home" checked style="width:18px;height:18px;flex:none;margin:3px 0 0;padding:0">
+      <span><b>홈에서 회복일 보기</b><span class="tiny" style="display:block;margin-top:3px">시작일을 입력한 회복영역만 홈에 표시합니다.</span></span>
+    </label>
   </div>
 
   <!-- 지역은 모임·센터·병원 어디에나 쓰이는 값이라 맨 앞에서 받는다.
@@ -2315,10 +2332,10 @@ addEventListener('appinstalled', function(){
     <h1 style="margin:0">나</h1>
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('home')">← 홈</button>
   </div>
-  <p class="muted" style="margin:0 0 14px">내 기록과 설정을 확인하고, 앱 안내와 의견 보내기를 이용합니다.</p>
-  <div id="rec-reclaim"></div>
-  <button class="toolcard" id="my-trail"><span class="ic" data-ico="check"></span><span class="b"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 실천기록 · 자가점검 · 통계 · 회복 패턴</span></span><span class="go">열기</span></button>
-  <button class="toolcard" id="my-settings" style="margin-top:9px"><span class="ic" data-ico="sprout"></span><span class="b"><b>내 정보 · 설정</b><span>역할 · 회복영역 · 화면 · 앱 · 기록 관리</span></span><span class="go">열기</span></button>
+  <p class="muted" style="margin:0 0 14px">내 설정을 먼저 확인하고, 기록과 회복의 변화를 돌아볼 수 있습니다.</p>
+  <button class="toolcard" id="my-settings"><span class="ic" data-ico="sprout"></span><span class="b"><b>내 정보 · 설정</b><span>역할 · 회복영역 · 금연 실천 · 화면 · 앱 · 기록 관리</span></span><span class="go">열기</span></button>
+  <button class="toolcard" id="my-trail" style="margin-top:9px"><span class="ic" data-ico="check"></span><span class="b"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 실천기록 · 자가점검 · 통계 · 회복 패턴</span></span><span class="go">열기</span></button>
+  <div id="rec-reclaim" style="margin-top:9px"></div>
 
   <div style="height:12px"></div>
 
@@ -2371,7 +2388,7 @@ addEventListener('appinstalled', function(){
 
   <div class="acc">
     <button class="acc-h">
-      <span class="acc-n"><b>나</b><span>역할 · 회복 영역 · 회복 목표 · 내 지역</span></span>
+      <span class="acc-n"><b>나</b><span>역할 · 회복 영역 · 금연 실천 · 회복 목표 · 내 지역</span></span>
       <svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg>
     </button>
     <div class="acc-b">
@@ -2385,6 +2402,29 @@ addEventListener('appinstalled', function(){
       <h3 id="me-types-h">회복하고 있는 영역</h3>
       <div class="opts" id="me-types"></div>
       <div id="me-dates" style="margin-top:14px"></div>
+      <p class="tiny me-self" style="margin:3px 0 9px">정확한 시작일을 모르면 비워둘 수 있습니다. 시작일이 없어도 앱 기록과 실천은 계속 사용할 수 있습니다.</p>
+      <div class="opts me-self" id="me-recovery-home">
+        <button class="opt" data-recovery-home="1">홈에서 회복일 보기</button>
+        <button class="opt" data-recovery-home="0">홈에서 숨기기</button>
+      </div>
+
+      <div class="sep me-self"></div>
+      <div class="me-self" id="me-smoking-block">
+        <h3>금연 실천 <span class="tiny" style="font-weight:400">(선택)</span></h3>
+        <p class="muted" style="margin:-4px 0 11px">주 회복영역과는 별도로 관리합니다. 금연을 준비 중이거나 이미 시작한 경우에만 설정하세요.</p>
+        <div class="opts" id="me-smoking-mode">
+          <button class="opt" data-smoking-mode="">사용 안 함</button>
+          <button class="opt" data-smoking-mode="plan">금연 예정</button>
+          <button class="opt" data-smoking-mode="quit">금연 중</button>
+        </div>
+        <div id="me-smoking-date-wrap" class="hide" style="margin-top:11px">
+          <div class="sp" style="gap:10px">
+            <label id="me-smoking-date-label" for="me-smoking-date" style="font-size:14px;font-weight:600">금연 시작일</label>
+            <input id="me-smoking-date" type="date" style="width:156px">
+          </div>
+          <p class="tiny" id="me-smoking-date-hint" style="margin:7px 0 0"></p>
+        </div>
+      </div>
 
       <div class="sep"></div>
       <h3 id="me-goal-h">회복 목표 <span class="tiny" style="font-weight:400">(선택)</span></h3>
@@ -2515,10 +2555,10 @@ addEventListener('appinstalled', function(){
 
   <h2>시작 · 기록</h2>
   <div class="faq-list">
-    <details class="faq"><summary>처음에는 무엇부터 하면 되나요?</summary><div class="faq-a"><p>처음 설정에서 역할, 회복 영역, 시작일과 지역을 정한 뒤 홈에서 오늘 할 일과 상태를 확인하면 됩니다. 새 계획이나 연습은 <b>회복도구</b>에서 시작합니다.</p></div></details>
+    <details class="faq"><summary>처음에는 무엇부터 하면 되나요?</summary><div class="faq-a"><p>처음 설정에서 역할과 회복 영역을 고르고, 회복 시작일은 정확히 아는 경우에만 입력합니다. 시작일을 모르면 비워둘 수 있습니다. 지역을 정한 뒤 홈에서 오늘 할 일과 상태를 확인하고, 새 계획이나 연습은 <b>회복도구</b>에서 시작합니다.</p></div></details>
     <details class="faq"><summary>내 기록은 어디에 저장되나요?</summary><div class="faq-a"><p>감정, 충동, 하루, 몸, 12단계, 회복 실천도구, 자가점검 결과 같은 개인 회복기록은 기본적으로 <b>현재 기기 안</b>에 저장됩니다. 자동으로 다른 사람이나 마음프로에 전달되지 않습니다.</p></div></details>
     <details class="faq"><summary>지나간 기록은 어디에서 볼 수 있나요?</summary><div class="faq-a"><p><b>나 → 내 발자취</b>에서 감정·충동·하루·몸·실천기록(의미·12단계·회복 실천도구)·자가점검·통계·회복 패턴을 다시 볼 수 있습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('rec')">내 발자취 열기</button></div></details>
-    <details class="faq"><summary>내가 되찾은 것은 어디에서 보나요?</summary><div class="faq-a"><p>당사자 모드에서는 <b>나</b> 화면 상단의 접힌 <b>내가 되찾은 것</b>을 눌러 회복일·되찾은 시간·지킨 비용·회복 실천을 한눈에 볼 수 있습니다. 되찾은 시간과 지킨 비용은 <b>기준 설정</b>에서 원할 때만 켜며, 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('my')">나 열기</button></div></details>
+    <details class="faq"><summary>내가 되찾은 것은 어디에서 보나요?</summary><div class="faq-a"><p>당사자 모드에서는 <b>나 → 내가 되찾은 것</b>을 눌러 회복일·되찾은 시간·지킨 비용·회복 실천을 한눈에 볼 수 있습니다. 회복 시작일이 없으면 회복일이라고 표시하지 않고 <b>앱 기록 시작일부터의 기록 기간</b>을 기준으로 선택한 시간·비용 추정치를 계산합니다. 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('my')">나 열기</button></div></details>
     <details class="faq"><summary>기록을 백업하거나 다른 기기로 옮길 수 있나요?</summary><div class="faq-a"><p><b>나 → 내 정보 · 설정 → 기록 관리</b>에서 기록을 내보내고 다시 불러올 수 있습니다. 앱 삭제나 기기 변경 전에는 먼저 내보내기를 권합니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('me')">기록 관리 열기</button></div></details>
     <details class="faq"><summary>앱을 업데이트하거나 다시 설치하면 기록은 어떻게 되나요?</summary><div class="faq-a"><p>기존 앱 위에 업데이트하는 경우에는 같은 앱 데이터가 유지되도록 설계되어 있습니다. 다만 <b>앱 삭제, 앱 데이터 삭제, 기기 초기화</b>를 하면 기기 안 기록이 사라질 수 있으므로 먼저 기록을 내보내세요.</p></div></details>
   </div>
@@ -2562,7 +2602,7 @@ addEventListener('appinstalled', function(){
   <div class="faq-list">
     <details class="faq" open><summary>1. 처음 시작하기</summary><div class="faq-a">
       <p><b>① 역할 선택</b> — 당사자 또는 가족·보호자를 고릅니다. 역할에 따라 보이는 문구와 일부 도구가 달라집니다.</p>
-      <p style="margin-top:8px"><b>② 회복 정보 설정</b> — 당사자 모드에서는 회복 영역과 시작일, 필요한 경우 회복 목표·지역·위험 시간대를 정합니다.</p>
+      <p style="margin-top:8px"><b>② 회복 정보 설정</b> — 당사자 모드에서는 회복 영역을 고르고, 회복 시작일은 정확히 아는 경우에만 입력합니다. 홈의 회복일 표시는 따로 켜거나 끌 수 있으며, 원하면 금연 예정일 또는 금연 시작일을 별도 건강실천으로 설정할 수 있습니다.</p>
       <p style="margin-top:8px"><b>③ 홈 확인</b> — 설정을 마치면 홈에서 오늘 상태와 회복 흐름, 오늘 챙길 항목을 확인합니다.</p>
       <p style="margin-top:8px"><b>④ 계획 만들기</b> — 회복도구 → 일정·알림에서 습관·생활·치료 일정을 정합니다.</p>
       <p style="margin-top:8px"><b>⑤ 변화와 기록 돌아보기</b> — 당사자 모드에서는 나 화면 상단의 접힌 <b>내가 되찾은 것</b>을 필요할 때 펼쳐 회복일·되찾은 시간·지킨 비용·회복 실천을 확인하고, <b>나 → 내 발자취</b>에서 저장한 기록과 변화 흐름을 확인합니다.</p>
@@ -2571,11 +2611,12 @@ addEventListener('appinstalled', function(){
 
     <details class="faq"><summary>2. 화면과 메뉴 구조</summary><div class="faq-a">
       <p>하단 메뉴는 <b>홈 · 회복도구 · 헬프 · 마음프로 · 커뮤니티</b>를 중심으로 사용합니다. 홈 오른쪽 위의 사람 모양 버튼을 누르면 <b>나</b>로 들어갑니다.</p>
-      <p style="margin-top:8px">당사자 모드의 <b>나</b> 화면에는 위에서부터 <b>내가 되찾은 것 → 내 발자취 → 내 정보 · 설정 → 지원 및 안내 → 앱에 바라는 점</b>이 배치됩니다. <b>내가 되찾은 것</b>은 기본적으로 접혀 있어 내 발자취와 설정이 바로 보이며, 필요할 때 눌러 자세히 펼칩니다. 가족·보호자 모드에서는 당사자의 회복성과를 대신 계산하지 않도록 표시하지 않습니다.</p>
+      <p style="margin-top:8px">당사자 모드의 <b>나</b> 화면에는 위에서부터 <b>내 정보 · 설정 → 내 발자취 → 내가 되찾은 것 → 지원 및 안내 → 앱에 바라는 점</b>이 배치됩니다. 먼저 역할·회복영역·금연 실천·화면 같은 개인 설정을 찾기 쉽게 두고, 그 아래에서 기록과 회복의 변화를 돌아봅니다. 가족·보호자 모드에서는 당사자의 회복성과를 대신 계산하지 않도록 <b>내가 되찾은 것</b>을 표시하지 않습니다.</p>
     </div></details>
 
     <details class="faq"><summary>3. 홈 — 오늘 상태를 한눈에 보기</summary><div class="faq-a">
-      <p>홈은 매일 가장 먼저 확인하는 화면입니다. 당사자 모드에서는 <b>회복일, 오늘의 상태, HALT, 복약·식사·잠</b>처럼 지금 챙길 항목을 한곳에서 확인합니다. 설정한 내용과 역할에 따라 보이는 항목은 달라질 수 있습니다.</p>
+      <p>홈은 매일 가장 먼저 확인하는 화면입니다. 당사자 모드에서는 선택한 <b>회복일, 금연 시작·예정, 오늘의 상태, HALT, 복약·식사</b>처럼 지금 챙길 항목을 한곳에서 확인합니다. 회복일과 금연을 모두 표시하면 두 항목을 같은 줄의 2열로 보여주고, 하나만 사용하면 기존처럼 한 줄 전체 폭으로 보여줍니다.</p>
+      <p style="margin-top:8px"><b>오늘 일정</b>은 기본적으로 지금부터 확인할 항목만 간단히 보여줍니다. 완료한 습관·복약·식사는 접고, 다음 끼니 시간이 시작되면 지난 끼니도 기본보기에서 숨깁니다. 복약과 습관은 시간이 지났더라도 완료하지 않았다면 계속 남습니다. 잠자리는 체크하는 일정이 아니어서 기본보기에서는 제외하고, <b>오늘 전체 일정 보기</b>에서만 체크 없는 안내 행으로 확인할 수 있습니다. 어젯밤 수면 상태 질문은 그대로 유지합니다.</p>
       <p style="margin-top:8px">힘든 상태가 올라오면 홈과 위기 흐름에서 충동 대응, 호흡, 도움글, 사람 연결 등 필요한 기능으로 이어갈 수 있습니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('home')">홈 열기</button>
     </div></details>
@@ -2639,8 +2680,8 @@ addEventListener('appinstalled', function(){
     </div></details>
 
     <details class="faq"><summary>12. 나 — 회복 요약 · 기록 · 설정 · 안내</summary><div class="faq-a">
-      <p>당사자 모드의 <b>나</b> 화면 상단에는 <b>내가 되찾은 것</b>이 표시됩니다. 회복일은 설정한 회복 시작일에서 계산하고, <b>회복 실천</b>은 내 습관에서 직접 체크해 기록한 회복 행동 횟수를 보여줍니다.</p>
-      <p style="margin-top:8px"><b>되찾은 시간</b>과 <b>지킨 비용</b>은 선택 기능입니다. <b>기준 설정</b>에서 회복 전 하루 평균 시간·실제 사용비용을 입력한 경우에만 추정치를 표시합니다. 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p>
+      <p>당사자 모드의 <b>나</b> 화면에서 <b>내 정보 · 설정 → 내 발자취 → 내가 되찾은 것</b> 순서로 확인할 수 있습니다. <b>내가 되찾은 것</b>에서 회복 시작일을 입력한 영역은 그 날짜에서 회복일을 계산하고, 시작일을 비워둔 경우에는 회복일로 바꾸어 부르지 않고 <b>앱 기록 시작일부터의 기록 기간</b>을 사용합니다. <b>회복 실천</b>은 내 습관에서 직접 체크해 기록한 회복 행동 횟수를 보여줍니다.</p>
+      <p style="margin-top:8px"><b>되찾은 시간</b>과 <b>지킨 비용</b>은 선택 기능입니다. <b>기준 설정</b>에서 회복 전 하루 평균 시간·실제 사용비용을 입력한 경우에만 추정치를 표시하며, 회복 시작일이 없으면 앱 기록 시작일부터 계산합니다. 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p>
       <p style="margin-top:8px"><b>내 발자취</b>에서는 감정·충동·하루·몸·실천기록(의미·12단계·회복 실천도구)·자가점검·통계·회복 패턴을 다시 보고, <b>내 정보 · 설정</b>에서는 역할·회복영역·화면·앱·추천하기·기록 관리를 관리합니다.</p>
       <p style="margin-top:8px"><b>지원 및 안내</b>와 <b>앱에 바라는 점</b>은 <b>내 정보 · 설정</b> 안이 아니라 <b>나</b> 화면에서 바로 이용하며, 앱에 바라는 점은 지원 및 안내 아래에 배치됩니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('my')">나 열기</button>
@@ -2762,6 +2803,8 @@ const BLANK = {
      기획서의 세 역할(당사자·가족·실무자) 가운데 가족 자리가 가장 비어 있었습니다. */
   role: 'self',
   types: [], dates: {}, cum: {}, goal: '',
+  recordStart: '', recoveryHome: 1,             /* 회복 시작일이 없을 때 '앱 기록 시작일' 기준으로만 사용 */
+  smoking: { mode:'', start:'', plan:'' },      /* 금연 실천 — 주 회복영역과 분리 */
   hours: [], meds: [], medCnt: 0, medLog: [], area: '',
   treat: null,                                  /* 치료관리 — migrate()에서 안전하게 초기화 */
   eats: [], eatLog: [],                       /* 식사 — 복약과 같은 틀 */
@@ -2788,6 +2831,32 @@ function load(){
     if(!r) return JSON.parse(JSON.stringify(BLANK));
     return migrate(Object.assign(JSON.parse(JSON.stringify(BLANK)), JSON.parse(r)));
   }catch(e){ return JSON.parse(JSON.stringify(BLANK)); }
+}
+
+/* 예전 기록에는 앱을 처음 쓴 날짜가 따로 없었습니다.
+   기존 사용자에게 임의의 회복 시작일을 만들지 않고, 기기에 남은 가장 이른 기록일을
+   '앱 기록 시작일'로 잡습니다. 아무 기록도 없으면 이 기능을 처음 적용한 오늘부터 셉니다. */
+function inferRecordStart_(s){
+  let best = '';
+  const add = v => {
+    const x = String(v || '').slice(0, 10);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(x) && (!best || x < best)) best = x;
+  };
+  const addTs = v => {
+    const n = Number(v || 0);
+    if(n > 0 && Number.isFinite(n)) add(ymd(new Date(n)));
+  };
+  ['moods','halts','urges','nights','relapses','screenings','stepWorks','smartWorks','familyStepWorks',
+   'medLog','eatLog','sleepLog','meaningChecks'].forEach(k => {
+    (Array.isArray(s[k]) ? s[k] : []).forEach(r => {
+      if(!r) return;
+      add(r.d); add(r.day); addTs(r.t); addTs(r.ts); addTs(r.savedAt);
+    });
+  });
+  if(s.wbDays && typeof s.wbDays === 'object' && !Array.isArray(s.wbDays)) Object.keys(s.wbDays).forEach(add);
+  (Array.isArray(s.habits) ? s.habits : []).forEach(h => (Array.isArray(h && h.done) ? h.done : []).forEach(add));
+  if(s.timeCapsule) { addTs(s.timeCapsule.createdAt); addTs(s.timeCapsule.updatedAt); }
+  return best || today();
 }
 
 /* v16 까지는 복약을 '약 이름 + 시간' 으로 적었습니다.
@@ -2820,6 +2889,13 @@ function migrate(s){
   s.timeCapsule.text = String(s.timeCapsule.text || '');
   if(!s.reclaim || typeof s.reclaim !== 'object' || Array.isArray(s.reclaim)) s.reclaim = {};
   s.reclaim = Object.assign({ kind:'', timeOn:0, timePerDay:0, costOn:0, costPerDay:0 }, s.reclaim);
+  s.recoveryHome = s.recoveryHome === 0 ? 0 : 1;
+  if(!s.smoking || typeof s.smoking !== 'object' || Array.isArray(s.smoking)) s.smoking = {};
+  s.smoking = Object.assign({ mode:'', start:'', plan:'' }, s.smoking);
+  if(['','plan','quit'].indexOf(String(s.smoking.mode || '')) < 0) s.smoking.mode = '';
+  s.smoking.start = /^\d{4}-\d{2}-\d{2}$/.test(String(s.smoking.start || '')) ? String(s.smoking.start) : '';
+  s.smoking.plan = /^\d{4}-\d{2}-\d{2}$/.test(String(s.smoking.plan || '')) ? String(s.smoking.plan) : '';
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(s.recordStart || ''))) s.recordStart = s.started ? inferRecordStart_(s) : '';
   const old = (s.meds || []).filter(m => m && m.n !== undefined && m.s === undefined);
   if(old.length){
     const slotOf = t => {
@@ -3490,6 +3566,35 @@ function daysBetween(from, to){
 function recoveryDay(from, to){
   return from ? daysBetween(from, to) + 1 : 0;
 }
+function hasRecoveryStart(k){
+  return !!(S.dates && /^\d{4}-\d{2}-\d{2}$/.test(String(S.dates[k] || '')));
+}
+function recordStartDate(){
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(S.recordStart || '')) ? S.recordStart : today();
+}
+function smokingCfg(){
+  if(!S.smoking || typeof S.smoking !== 'object' || Array.isArray(S.smoking)) S.smoking = {};
+  S.smoking = Object.assign({ mode:'', start:'', plan:'' }, S.smoking);
+  if(['','plan','quit'].indexOf(String(S.smoking.mode || '')) < 0) S.smoking.mode = '';
+  return S.smoking;
+}
+function shortDateKo(d){
+  const m=String(d || '').match(/^\d{4}-(\d{2})-(\d{2})$/);
+  return m ? Number(m[1])+'월 '+Number(m[2])+'일' : '';
+}
+function smokingHomeInfo(){
+  const sm=smokingCfg();
+  if(sm.mode === 'quit' && /^\d{4}-\d{2}-\d{2}$/.test(String(sm.start || ''))){
+    return { title:'금연', main:String(recoveryDay(sm.start)), unit:'일째', sub:shortDateKo(sm.start)+' 시작' };
+  }
+  if(sm.mode === 'plan' && /^\d{4}-\d{2}-\d{2}$/.test(String(sm.plan || ''))){
+    const diff=daySerial(sm.plan)-daySerial(today());
+    if(diff > 0) return { title:'금연 예정', main:'D-'+diff, unit:'', sub:shortDateKo(sm.plan)+' 시작 예정' };
+    if(diff === 0) return { title:'금연 예정', main:'오늘', unit:'', sub:'금연 시작 예정일' };
+    return { title:'금연 예정', main:'확인 필요', unit:'', sub:shortDateKo(sm.plan)+' 예정 · 시작 여부를 확인해주세요.' };
+  }
+  return null;
+}
 function typeOf(k){ return TYPES.find(t=>t.k===k) || TYPES[3]; }
 function when(ts){
   const d = new Date(ts);
@@ -3731,7 +3836,7 @@ function drawIntro(){
     const b = el('button', 'opt wide' + (obTypes.includes(t.k) ? ' on' : ''), ico(t.i) + '<span>' + t.n + '</span>');
     b.onclick = () => {
       const i = obTypes.indexOf(t.k);
-      if(i < 0){ obTypes.push(t.k); if(!obDates[t.k]) obDates[t.k] = today(); }
+      if(i < 0){ obTypes.push(t.k); if(obDates[t.k] == null) obDates[t.k] = ''; }
       else { obTypes.splice(i,1); }
       drawIntro();
     };
@@ -3752,7 +3857,7 @@ function drawIntro(){
     const inp = el('input');
     inp.type = 'date';
     inp.style.width = '156px';
-    inp.value = obDates[k] || today();
+    inp.value = obDates[k] || '';
     inp.max = today();
     inp.onchange = () => { obDates[k] = inp.value; };
     r.appendChild(inp);
@@ -3811,7 +3916,9 @@ $('#ob-go').onclick = () => {
   S.types = obTypes.slice();
   S.dates = {};
   S.cum = {};
-  obTypes.forEach(k => { S.dates[k] = obDates[k] || today(); S.cum[k] = 0; });
+  obTypes.forEach(k => { S.dates[k] = obDates[k] || ''; S.cum[k] = 0; });
+  S.recoveryHome = fam ? 0 : ($('#ob-recovery-home').checked ? 1 : 0);
+  if(!S.recordStart) S.recordStart = today();
   S.area = obArea;
   S.goal = ($('#ob-goal').value || '').trim();
   S.hours = fam ? [] : obHours.slice();
@@ -3856,30 +3963,51 @@ function drawHome(){
     : '해당하는 것을 모두 누르고 [기록하기]를 눌러주세요. 하루에 몇 번이든 괜찮습니다.';
   $('#go-relapse').style.display = fam ? 'none' : '';
 
-  /* 회복일 */
+  /* 회복일 · 금연 실천 — 둘 다 있으면 2열, 하나만 있으면 기존 1열 */
   const d = $('#home-days');
   d.innerHTML = '';
+  d.classList.remove('dual');
+  d.style.display = '';
   if(fam){
     /* 카드를 겹쳐 넣으면 테두리가 두 겹이 됩니다. 바탕 상자 안에 바로 씁니다. */
     d.innerHTML = '<h3 style="margin:0 0 6px">오늘, 당신은 어떠신가요?</h3>' +
       '<p class="muted" style="margin:0">중독은 곁에 있는 사람도 같이 앓습니다. ' +
       '그 사람을 챙기기 전에 오늘 당신을 먼저 챙기셔도 됩니다.</p>';
+  } else {
+    const recoveryRows=(S.types||[]).filter(hasRecoveryStart).map(k => {
+      const t=typeOf(k), n=recoveryDay(S.dates[k]), sum=(S.cum[k]||0)+n;
+      const best=Math.max.apply(null,[n].concat(streaks(k).map(x=>x.d)));
+      return {k:k,t:t,n:n,sum:sum,best:best};
+    });
+    const showRecovery=S.recoveryHome!==0 && recoveryRows.length>0;
+    const smoke=smokingHomeInfo();
+    const showSmoke=!!smoke;
+    const recoveryHtml=recoveryRows.map(x =>
+      '<div class="dayrow"><span class="nm">'+esc(x.t.v)+'</span><span class="n">'+x.n+'</span><span class="u">일째</span>'+
+      (x.sum>x.n?'<span class="cum">지켜온 날 합계 '+x.sum+'일'+(x.best>x.n?'<br>가장 길었던 때 '+x.best+'일':'')+'</span>':'')+
+      '</div>').join('');
+    const smokeHtml=showSmoke
+      ? '<div class="dayrow"><span class="nm">'+esc(smoke.title)+'</span><span class="n">'+esc(smoke.main)+'</span>'+
+        (smoke.unit?'<span class="u">'+esc(smoke.unit)+'</span>':'')+
+        '<span class="smoke-home-sub">'+esc(smoke.sub)+'</span></div>'
+      : '';
+    if(showRecovery && showSmoke){
+      d.classList.add('dual');
+      const smokeDualHtml='<div class="dayrow"><span class="n">'+esc(smoke.main)+'</span>'+
+        (smoke.unit?'<span class="u">'+esc(smoke.unit)+'</span>':'')+
+        '<span class="smoke-home-sub">'+esc(smoke.sub)+'</span></div>';
+      d.innerHTML='<div class="daytile"><span class="daytile-h">회복</span>'+recoveryHtml+'</div>'+
+        '<div class="daytile"><span class="daytile-h">'+esc(smoke.title)+'</span>'+smokeDualHtml+'</div>';
+    } else if(showRecovery){
+      d.innerHTML=recoveryHtml;
+    } else if(showSmoke){
+      d.innerHTML=smokeHtml;
+    } else if(!(S.types||[]).length){
+      d.innerHTML='<p class="muted cen" style="margin:6px 0">내 정보에서 회복 영역을 골라주세요.</p>';
+    } else {
+      d.style.display='none';
+    }
   }
-  if(!fam && !S.types.length){
-    d.innerHTML = '<p class="muted cen" style="margin:6px 0">내 정보에서 회복 영역을 골라주세요.</p>';
-  }
-  (fam ? [] : S.types).forEach(k => {
-    const t = typeOf(k), n = recoveryDay(S.dates[k]);
-    const sum = (S.cum[k] || 0) + n;
-    /* '누적' 은 무엇을 센 것인지 알기 어려운 말이었습니다. 지켜온 날의 합계입니다. */
-    const best = Math.max.apply(null, [n].concat(streaks(k).map(x => x.d)));
-    const r = el('div', 'dayrow');
-    r.innerHTML = '<span class="nm">' + esc(t.v) + '</span>' +
-      '<span class="n">' + n + '</span><span class="u">일째</span>' +
-      (sum > n ? '<span class="cum">지켜온 날 합계 ' + sum + '일' +
-        (best > n ? '<br>가장 길었던 때 ' + best + '일' : '') + '</span>' : '');
-    d.appendChild(r);
-  });
 
   /* 예전에 무너지던 구간에 들어왔으면 미리 알려줍니다.
      ★ '너는 곧 재발한다' 로 읽히면 안 됩니다. 겁주는 말은 그 자체로 방아쇠가 됩니다.
@@ -4801,6 +4929,22 @@ let homeTodayExpanded=false;
 function homeTimeKey(v){
   const m=String(v||'').match(/^(\d{2}):(\d{2})$/); return m?(+m[1]*60 + +m[2]):9999;
 }
+/* 기본 홈에서는 완료한 항목을 걷어내고, 끼니는 다음 끼니 시간이 시작되면 지난 끼니를 접습니다.
+   복약·습관은 시간이 지났더라도 아직 완료하지 않았다면 계속 남깁니다. */
+function homeTodayFocusItems(items,nowMin){
+  nowMin=Number.isFinite(nowMin)?nowMin:(new Date().getHours()*60+new Date().getMinutes());
+  return (items||[]).filter(x=>{
+    if(x.action && x.done) return false;
+    if(x.kind==='sleep') return false;
+    if(x.kind!=='eat') return true;
+    const i=EATSLOT.findIndex(s=>s.k===x.id);
+    if(i<0 || i>=EATSLOT.length-1) return true;
+    const next=EATSLOT[i+1];
+    const configured=(S.eats||[]).find(m=>m.s===next.k);
+    const boundary=homeTimeKey((configured&&configured.t)||next.d);
+    return nowMin<boundary;
+  });
+}
 function drawTodayScheduleHome(){
   const box=$('#home-today'); if(!box) return;
   const fam=famMode(), d=today(), items=[];
@@ -4852,19 +4996,27 @@ function drawTodayScheduleHome(){
   const configured=items.length || visitHtml || askSleep;
   if(!configured){ box.innerHTML=''; return; }
 
-  const homeLimit=5, canFold=items.length>homeLimit;
-  const shown=(canFold&&!homeTodayExpanded)?items.slice(0,homeLimit):items;
+  const now=new Date(), nowMin=now.getHours()*60+now.getMinutes();
+  const focusItems=homeTodayFocusItems(items,nowMin);
+  const homeLimit=5;
+  const shown=homeTodayExpanded?items:focusItems.slice(0,homeLimit);
+  const hiddenCount=Math.max(0,items.length-shown.length);
+  const canToggle=homeTodayExpanded || hiddenCount>0;
   let html='<div class="today-home"><div class="sp" style="align-items:flex-start"><div><h3>오늘 일정</h3>'+
-    (actionable?'<div class="today-summary">오늘 실천 '+completed+' / '+actionable+' 완료</div>':'')+
+    (actionable?'<div class="today-summary">지금 확인 '+focusItems.length+'개 · 오늘 완료 '+completed+' / '+actionable+'</div>':'')+
     '</div><button class="tiny link" id="home-today-manage">일정 관리</button></div>';
+  if(!shown.length && items.length){
+    html+='<p class="tiny" style="margin:10px 0 4px">지금 확인할 일정은 없습니다.</p>';
+  }
   shown.forEach((x,i)=>{
     const icon=x.kind==='sleep'?'sleep':(x.kind==='visit'?'cal':(x.done?'check':'box'));
     const btn=x.action?'<button class="tcheck'+(x.done?' on':'')+'" data-today-kind="'+x.kind+'" data-today-id="'+esc(x.id)+'" data-today-done="'+(x.done?'1':'0')+'" aria-label="'+esc(x.label+(x.done?' 완료. 길게 눌러 수정':' 완료로 표시'))+'">'+ico(icon)+'</button>':'<span class="tcheck static">'+ico(icon)+'</span>';
     html+='<div class="today-row'+(i===0?' first':'')+'">'+btn+'<div class="txt"><b>'+esc(x.label)+'</b><span>'+esc(x.sub)+'</span></div><span class="time">'+esc(x.time||'')+'</span></div>';
   });
-  if(canFold){
-    const hidden=Math.max(0,items.length-homeLimit);
-    html+='<button class="today-more" id="home-today-more">'+(homeTodayExpanded?'간단히 보기':'전체 보기 · '+hidden+'개 더')+'</button>';
+  if(canToggle){
+    html+='<button class="today-more" id="home-today-more">'+
+      (homeTodayExpanded?'필요한 일정만 보기':'오늘 전체 일정 보기 · '+items.length+'개')+
+      '</button>';
   }
   if(items.some(x=>x.action&&x.done)) html+='<div class="today-edit-hint">잘못 체크했다면 완료 표시를 길게 눌러 수정할 수 있어요.</div>';
   html+=visitHtml;
@@ -7716,20 +7868,23 @@ function drawReclaim(){
   const box=$('#rec-reclaim'); if(!box) return;
   if(famMode()){ box.innerHTML=''; return; }
   const cfg=reclaimCfg(), k=cfg.kind, type=k?typeOf(k):null;
-  const days=(k&&S.dates&&S.dates[k])?recoveryDay(S.dates[k]):0;
+  const recoveryBasis=!!(type&&hasRecoveryStart(k));
+  const basisDate=type?(recoveryBasis?S.dates[k]:recordStartDate()):'';
+  const days=basisDate?recoveryDay(basisDate):0;
   const habits=reclaimHabitCount(), gambling=k==='gambling';
   const timeReady=!!(cfg.timeOn&&cfg.timePerDay>0&&days>0);
   const costReady=!!(!gambling&&cfg.costOn&&cfg.costPerDay>0&&days>0);
   const card=(icon,title,value,desc,cls,off)=>'<div class="reclaim-card '+(cls||'')+'"><div class="reclaim-title"><span class="reclaim-ico">'+ico(icon)+'</span><span>'+esc(title)+'</span></div><b class="reclaim-value'+(off?' off':'')+'">'+esc(value)+'</b><span class="reclaim-desc">'+esc(desc)+'</span></div>';
   const dayValue=type&&days?days+'일':'—';
-  const dayDesc=type?(type.n+' · 현재 회복 흐름'):'회복영역과 시작일을 설정해 주세요.';
+  const dayTitle=recoveryBasis?'회복일':'기록 기간';
+  const dayDesc=type?(recoveryBasis?(type.n+' · 현재 회복 흐름'):'회복 시작일 미설정 · 앱 기록 시작일부터'):'회복영역을 설정해 주세요.';
   const timeValue=timeReady?reclaimHoursText(days*cfg.timePerDay):'설정 안 함';
-  const timeDesc=timeReady?'회복 전 하루 평균 시간 기준':'원할 때만 기준을 정해 표시합니다.';
+  const timeDesc=timeReady?(recoveryBasis?'회복 시작일부터 · 하루 평균 시간 기준':'앱 기록 시작일부터 · 하루 평균 시간 기준'):'원할 때만 기준을 정해 표시합니다.';
   const costValue=gambling?'계산하지 않음':(costReady?reclaimMoneyText(days*cfg.costPerDay):'설정 안 함');
-  const costDesc=gambling?'도박 금액·손실액은 누적 계산하지 않습니다.':(costReady?'회복 전 하루 평균 사용비용 기준':'원할 때만 기준을 정해 표시합니다.');
-  const reclaimSummary=(type?('회복 '+dayValue):'회복일 설정 필요')+' · 회복 실천 '+habits+'회';
+  const costDesc=gambling?'도박 금액·손실액은 누적 계산하지 않습니다.':(costReady?(recoveryBasis?'회복 시작일부터 · 하루 평균 사용비용 기준':'앱 기록 시작일부터 · 하루 평균 사용비용 기준'):'원할 때만 기준을 정해 표시합니다.');
+  const reclaimSummary=(type?((recoveryBasis?'회복 ':'기록 시작 후 ')+dayValue):'회복영역 설정 필요')+' · 회복 실천 '+habits+'회';
   box.innerHTML='<div class="acc reclaim-acc"><button class="acc-h" type="button" aria-expanded="false" onclick="reclaimToggle(this)"><span class="acc-n"><b>내가 되찾은 것</b><span>'+esc(reclaimSummary)+' · 눌러서 자세히 보기</span></span><svg class="acc-v" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></svg></button><div class="acc-b"><div class="reclaim-wrap"><div class="reclaim-head"><div><b>회복하면서 되찾은 것</b><span>손실이 아니라 회복하면서 내 삶에 다시 남은 것을 봅니다.</span></div><button type="button" class="reclaim-set" id="rec-reclaim-settings">기준 설정</button></div><div class="reclaim-grid">'+
-    card('cal','회복일',dayValue,dayDesc,'',!type)+
+    card('cal',dayTitle,dayValue,dayDesc,'',!type)+
     card('clock','되찾은 시간',timeValue,timeDesc,'',!timeReady)+
     card('wallet','지킨 비용',costValue,costDesc,'',gambling||!costReady)+
     card('sprout','회복 실천',habits+'회','내가 실천하고 기록한 회복 행동','habit',false)+
@@ -7745,8 +7900,9 @@ function openReclaimSettings(){
     return;
   }
   const opts=kinds.map(k=>'<option value="'+esc(k)+'"'+(cfg.kind===k?' selected':'')+'>'+esc(typeOf(k).n)+'</option>').join('');
-  const kindHtml=kinds.length>1?'<div class="reclaim-field"><b>계산 기준 회복영역</b><select id="reclaim-kind" style="margin-top:7px">'+opts+'</select><p class="tiny" style="margin:6px 0 0">여러 영역을 함께 회복 중이면 돈·시간을 계산할 기준 하나를 고릅니다.</p></div>':'<div class="note" style="margin-bottom:12px">'+esc(typeOf(kinds[0]).n)+' 회복 시작일을 기준으로 계산합니다.</div>';
-  modal('<h2>내가 되찾은 것 기준</h2><p class="muted" style="margin:6px 0 12px">시간과 비용은 선택입니다. 입력값과 계산 결과는 이 기기에만 저장되며 외부로 전송하지 않습니다.</p>'+kindHtml+
+  const only=kinds[0], onlyRecovery=hasRecoveryStart(only);
+  const kindHtml=kinds.length>1?'<div class="reclaim-field"><b>계산 기준 회복영역</b><select id="reclaim-kind" style="margin-top:7px">'+opts+'</select><p class="tiny" style="margin:6px 0 0">여러 영역을 함께 회복 중이면 돈·시간을 계산할 기준 하나를 고릅니다. 시작일이 없는 영역은 앱 기록 시작일부터 계산합니다.</p></div>':'<div class="note" style="margin-bottom:12px">'+esc(typeOf(only).n)+' · '+(onlyRecovery?'회복 시작일':'앱 기록 시작일')+'을 기준으로 계산합니다.</div>';
+  modal('<h2>내가 되찾은 것 기준</h2><p class="muted" style="margin:6px 0 12px">시간과 비용은 선택입니다. 회복 시작일을 비워둔 경우에는 회복일로 간주하지 않고 <b>앱 기록 시작일부터</b> 계산합니다. 입력값과 계산 결과는 이 기기에만 저장됩니다.</p>'+kindHtml+
     '<div class="reclaim-field"><label><input type="checkbox" id="reclaim-time-on"'+(cfg.timeOn?' checked':'')+'><span>되찾은 시간 표시</span></label><div class="reclaim-num"><input type="number" inputmode="decimal" id="reclaim-time-day" min="0" max="24" step="0.5" value="'+esc(cfg.timePerDay||'')+'"><span>시간 / 하루</span></div><p class="tiny" style="margin:6px 0 0">회복 전 하루 평균 중독행동에 사용하던 시간을 기준으로 한 추정치입니다.</p></div>'+
     '<div class="reclaim-field" id="reclaim-cost-block"><label><input type="checkbox" id="reclaim-cost-on"'+(cfg.costOn?' checked':'')+'><span>지킨 비용 표시</span></label><div class="reclaim-num"><input type="number" inputmode="numeric" id="reclaim-cost-day" min="0" step="1000" value="'+esc(cfg.costPerDay||'')+'"><span>원 / 하루</span></div><p class="tiny" style="margin:6px 0 0">과거 손실액이 아니라 회복 전 하루 평균 실제 사용비용을 기준으로 한 추정치입니다.</p></div>'+
     '<div class="note w hide" id="reclaim-gamble-note" style="margin-top:12px">도박 회복영역에서는 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다. 회복일·시간·회복 실천은 그대로 볼 수 있습니다.</div>'+
@@ -10285,7 +10441,7 @@ function aiLocalNav(intent){
     ai.follow='nav-capsule'; drawAI(); return true;
   }
   if(intent === 'me'){
-    aiAdd('assistant','내정보에서는 회복 영역·시작일·지역과 앱 설정, 내 발자취·기록 내보내기 등을 관리할 수 있어요. 일정과 알림은 [회복도구] → [일정·알림]에서 관리할 수 있어요.', true);
+    aiAdd('assistant','내정보에서는 회복 영역·선택형 시작일·금연 실천·지역과 앱 설정, 내 발자취·기록 내보내기 등을 관리할 수 있어요. 일정과 알림은 [회복도구] → [일정·알림]에서 관리할 수 있어요.', true);
     ai.follow='nav-me'; drawAI(); return true;
   }
   if(intent === 'help'){
@@ -11171,7 +11327,7 @@ function drawMe(){
     const b = el('button', 'opt wide' + (on ? ' on' : ''), ico(t.i) + '<span>' + t.n + '</span>');
     b.onclick = () => {
       const i = S.types.indexOf(t.k);
-      if(i < 0){ S.types.push(t.k); if(!S.dates[t.k]) S.dates[t.k] = today(); if(S.cum[t.k] == null) S.cum[t.k] = 0; }
+      if(i < 0){ S.types.push(t.k); if(S.dates[t.k] == null) S.dates[t.k] = ''; if(S.cum[t.k] == null) S.cum[t.k] = 0; }
       else S.types.splice(i,1);
       save(); drawMe();
     };
@@ -11185,13 +11341,53 @@ function drawMe(){
     r.style.marginBottom = '9px';
     r.innerHTML = '<div class="grow">' + ico(t.i, 'ic-i') + esc(t.v) + ' 시작일</div>';
     const inp = el('input');
-    inp.type = 'date'; inp.style.width = '156px';
-    inp.value = S.dates[k] || today(); inp.max = today();
-    inp.onchange = () => { S.dates[k] = inp.value; save(); toast('바꿨습니다.'); };
+    inp.type = 'date'; inp.style.width = '136px';
+    inp.value = S.dates[k] || ''; inp.max = today();
+    inp.onchange = () => { S.dates[k] = inp.value || ''; save(); drawMe(); toast('바꿨습니다.'); };
     r.appendChild(inp);
+    const clear = el('button', 'tiny', S.dates[k] ? '설정 안 함' : '미설정');
+    clear.style.color = S.dates[k] ? 'var(--acc)' : 'var(--faint)';
+    clear.disabled = !S.dates[k];
+    clear.onclick = () => { S.dates[k] = ''; save(); drawMe(); toast('회복 시작일을 비웠습니다.'); };
+    r.appendChild(clear);
     d.appendChild(r);
     if(S.cum[k]) d.appendChild(el('p', 'tiny', '이전 누적 ' + S.cum[k] + '일이 더해집니다.'));
   });
+
+  $$('#me-recovery-home [data-recovery-home]').forEach(b => {
+    const on = Number(b.dataset.recoveryHome) === (S.recoveryHome === 0 ? 0 : 1);
+    b.classList.toggle('on', on);
+    b.onclick = () => { S.recoveryHome = Number(b.dataset.recoveryHome) ? 1 : 0; save(); drawMe(); toast('홈 표시를 바꿨습니다.'); };
+  });
+
+  const sm = smokingCfg();
+  $$('#me-smoking-mode [data-smoking-mode]').forEach(b => {
+    b.classList.toggle('on', b.dataset.smokingMode === sm.mode);
+    b.onclick = () => {
+      sm.mode = b.dataset.smokingMode || '';
+      if(sm.mode === 'plan' && !sm.plan) sm.plan = today();
+      if(sm.mode === 'quit' && !sm.start) sm.start = today();
+      save(); drawMe();
+    };
+  });
+  const smWrap=$('#me-smoking-date-wrap'), smDate=$('#me-smoking-date'), smLabel=$('#me-smoking-date-label'), smHint=$('#me-smoking-date-hint');
+  if(smWrap) smWrap.classList.toggle('hide', !sm.mode);
+  if(sm.mode && smDate){
+    const planned=sm.mode === 'plan';
+    smLabel.textContent=planned?'금연 예정일':'금연 시작일';
+    smDate.value=planned?(sm.plan||today()):(sm.start||today());
+    smDate.min=planned?today():'';
+    smDate.max=planned?'':today();
+    smHint.textContent=planned
+      ? '예정일이 되어도 자동으로 금연 중으로 바꾸지 않습니다. 시작한 뒤 [금연 중]으로 확인해주세요.'
+      : '금연을 실제로 시작한 날짜를 기준으로 홈의 금연일을 셉니다.';
+    smDate.onchange=()=>{
+      const v=smDate.value || '';
+      if(planned && v && v < today()){ toast('금연 예정일은 오늘 이후로 정해주세요.'); drawMe(); return; }
+      if(planned) sm.plan=v; else sm.start=v;
+      save(); drawMe(); toast('바꿨습니다.');
+    };
+  }
 
   $('#me-goal').value = S.goal || '';
 
