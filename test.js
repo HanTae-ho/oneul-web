@@ -242,7 +242,13 @@ const srv = http.createServer((req, res) => {
       localStorage.setItem('ohg.social.v1',JSON.stringify({schema:1,profile:{userId:'u1',nickname:'테스터'}}));
     },JSON.stringify(current));
     await wPg.goto('http://localhost:8899/index.html'); await wPg.waitForTimeout(250);
-    await wPg.evaluate(()=>go('me')); await wPg.click('#me-wipe'); await wPg.click('#wipe-yes'); await wPg.waitForTimeout(100);
+    await wPg.evaluate(()=>go('me'));
+    await wPg.$eval('#me-wipe',el=>{
+      const acc=el.closest('.acc'), head=acc&&acc.querySelector('.acc-h');
+      if(head) head.click();
+    });
+    assert(await wPg.isVisible('#me-wipe'),'기록 관리 아코디언을 펼치면 전체 지우기 버튼이 보여야 함');
+    await wPg.click('#me-wipe'); await wPg.click('#wipe-yes'); await wPg.waitForTimeout(100);
     const gone=await wPg.evaluate(()=>({
       p:localStorage.getItem('ohg.v1'),b:localStorage.getItem('ohg.v1.recovery-backup'),
       q:localStorage.getItem('ohg.v1.recovery-quarantine'),social:localStorage.getItem('ohg.social.v1')
