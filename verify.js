@@ -74,6 +74,19 @@ ok(!/\.toISOString\s*\(/.test(test),'자동테스트에서 toISOString() 미사�
 ok(/timezoneId: 'Asia\/Seoul'/.test(test),'기존 브라우저 회귀테스트 시간대 Asia/Seoul 유지');
 ok(!/\/opt\/pw-browsers\/chromium/.test(test),'자동테스트 Chromium 경로 하드코딩 제거');
 ok(/process\.env\.CHROMIUM_PATH/.test(test),'필요 시 CHROMIUM_PATH 사용자 지정 지원');
+ok(index.includes('백업 파일 내보내기가 완료되었습니다.'),'기록 내보내기 완료 안내 존재');
+ok(/오늘 한 걸음_['"]?\+?\(label\|\|'백업'\)/.test(index)||index.includes("a.download='오늘 한 걸음_'+(label||'백업')"),'백업 파일명 생성 경로 존재');
+ok(index.includes("id=\"me-recovery-manage\"")&&index.includes('function showSavedRecoveryBackups_()'),'기기 안전백업 관리 화면 연결');
+ok(index.includes("localStorage.removeItem(RECOVERY_BACKUP_KEY)")&&index.includes("localStorage.removeItem(RECOVERY_QUARANTINE_KEY)"),'전체 지우기가 두 안전백업 키까지 삭제');
+ok(index.includes('function personalBackupShape_(j)')&&index.includes('오늘 한 걸음 백업 파일이 아니거나 읽을 수 없는 파일입니다.'),'불러오기 백업 형식 검증');
+ok(index.includes('function commitImportedState_(next,wasRecovering)')&&index.includes('기존 기록은 그대로입니다.'),'불러오기 저장 실패 롤백');
+ok(index.includes("st.quarantine=storedCandidate_(quarantineRaw,'quarantine')")&&index.includes('recovery-use-quarantine'),'두 번째 안전백업 진단·복구 경로');
+ok(index.includes('function safeHttpUrl_(u)')&&!index.includes('esc(x.w)')&&!index.includes('esc(r.w)'),'외부 자원 링크 http/https scheme 검증');
+ok(/id="social-nick"[^>]*readonly/.test(index)||index.includes("(p?' readonly':'')"),'기존 커뮤니티 닉네임 읽기전용');
+ok(storageDiagnostic.includes("BACKUP_KEY='ohg.v1.recovery-backup'")&&storageDiagnostic.includes("QUARANTINE_KEY='ohg.v1.recovery-quarantine'"),'읽기 전용 진단에 안전백업 2개 표시');
+ok(!/localStorage\.(?:setItem|removeItem|clear)\s*\(/.test(storageDiagnostic),'저장 진단 페이지는 localStorage 쓰기·삭제 없음');
+ok(/백업 파일 내보내기/.test(test)&&/잘못된 JSON 선택 후 기존 원문 불변/.test(test)&&/전체 지우기는 개인 현재키와 안전백업 두 개를 모두 삭제/.test(test),'test.js 기록관리 브라우저 시뮬레이션 포함');
+
 ok(/회복학습 목록에는 12단계·회복의 기초 이해·SMART Recovery 3개/.test(test)&&/작성형 12단계 점검이 중복 표시되지 않아야 함/.test(test),'test.js 회복학습 3개 학습주제·12단계 점검 실천하기 일원화');
 ok(/알코올 영역 1단계 카드에 AA 단계문장 표시/.test(test)&&/도박 영역 1단계 카드에 GA 단계문장 표시/.test(test)&&/약물 영역 1단계 카드에 NA 단계문장 표시/.test(test),'test.js AA·GA·NA 영역별 단계문장 회귀검사');
 
