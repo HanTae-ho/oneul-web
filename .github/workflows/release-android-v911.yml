@@ -43,7 +43,7 @@ jobs:
           grep -F "const APP_VERSION = 'V9.1.2';" sw.js
           grep -F "const V = 'ohg-v912-storage-recovery-r1';" sw.js
           grep -F '"version": "V9.1.2"' latest-release.json
-          grep -F '"versionCode": 917' latest-release.json
+          grep -F '"versionCode": 918' latest-release.json
           grep -F 'releases/download/v9.1.2/oneul-v9.1.2.apk' latest-release.json
           grep -F "verifiedVersion:'V9.1.2'" install.html
           echo "RELEASE_SOURCE_SHA=$GITHUB_SHA" >> "$GITHUB_ENV"
@@ -152,7 +152,7 @@ jobs:
           echo "BUILT_AAB=$AAB" >> "$GITHUB_ENV"
           AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
           "$AAPT" dump badging "$APK" | tee /tmp/badging.txt
-          grep -F "package: name='io.github.hantae_ho.twa' versionCode='917' versionName='9.1.2'" /tmp/badging.txt
+          grep -F "package: name='io.github.hantae_ho.twa' versionCode='918' versionName='9.1.2'" /tmp/badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/permissions.txt
           grep -F 'android.permission.SCHEDULE_EXACT_ALARM' /tmp/permissions.txt
           grep -F 'android.permission.WAKE_LOCK' /tmp/permissions.txt
