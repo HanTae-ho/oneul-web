@@ -268,7 +268,7 @@ ok(index.includes("const RECOVERY_BACKUP_KEY = 'ohg.v1.recovery-backup';")&&inde
 ok(index.includes('function inspectStoredPersonal_()')&&index.includes("st.state='needs-choice'; st.blocking=true;"),'시작상태 모순 시 복구 게이트 진입');
 ok(index.includes("if(storageRecovery && storageRecovery.blocking) return false;"),'복구 선택 전 save()가 기존 ohg.v1 덮어쓰기 차단');
 ok(index.includes('function showStorageRecoveryGate_()')&&index.includes('기존 데이터 사용')&&index.includes('안전백업 복구'),'기존 데이터 발견 시 사용자 복구 선택 UI');
-ok(index.includes('function preserveRecoveryRaw_(raw)')&&index.includes('localStorage.setItem(key,String(raw))'),'복구·새 시작 전 기존 원문 안전백업');
+ok(index.includes('function preserveRecoveryRaw_(raw)')&&index.includes('localStorage.setItem(RECOVERY_BACKUP_KEY,text)')&&index.includes('localStorage.setItem(RECOVERY_QUARANTINE_KEY,text)'),'복구·새 시작 전 기존 원문 안전백업');
 ok(index.includes("const localYmd = v =>")&&index.includes("return best || localYmd(Date.now());"),'recordStart 마이그레이션이 초기화 전 ymd/today const에 의존하지 않음');
 ok(!/function inferRecordStart_\(s\)[\s\S]{0,1400}ymd\(new Date/.test(index),'recordStart 초기 마이그레이션에서 뒤쪽 ymd 참조 제거');
 ok(index.includes("const blocked=!!(storageRecovery && storageRecovery.blocking);")&&index.includes("if(blocked){\n    showStorageRecoveryGate_();\n    return;"),'복구 게이트 중 자원동기화·알람 런타임 시작 차단');
