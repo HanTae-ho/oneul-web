@@ -8,7 +8,7 @@ on:
       - 'sw.js'
       - 'install.html'
       - 'latest-release.json'
-      - '.github/workflows/release-android-v910.yml'
+      - '.github/workflows/release-android-v911.yml'
   workflow_dispatch:
 
 permissions:
