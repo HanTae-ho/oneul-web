@@ -3,7 +3,7 @@ const path = require('path');
 const vm = require('vm');
 const root=__dirname;
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
-const index=read('index.html'), privacy=read('privacy.html'), sw=read('sw.js'), test=read('test.js'), manifest=read('manifest.json');
+const index=read('index.html'), privacy=read('privacy.html'), sw=read('sw.js'), test=read('test.js'), manifest=read('manifest.json');\nconst storageDiagnostic=readIf('storage-diagnostic.html');
 const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningSrc=read('screening-data.js'), workbookSrc=read('workbook-data.js');
 const readIf=f=>fs.existsSync(path.join(root,f))?read(f):'';
 const feedbackGs=readIf('오늘한걸음_의견_v1.0.gs'), resourceGs=readIf('오늘한걸음_자원시트_v1.8.gs');
@@ -221,6 +221,16 @@ ok(index.includes('삼성 인터넷 권장 방법'),'Samsung Internet 전용 설
 ok(index.includes('앱스 화면에 설치'),'Samsung Internet 앱스 화면 설치 안내');
 ok(index.indexOf('if(isSamsung){') < index.indexOf('} else if(isIOS){'),'Samsung 설치 분기를 표준 prompt보다 우선');
 ok(manifest.includes('\"id\": \"./index.html\"'),'manifest 안정적 app id');
+if(storageDiagnostic){
+  ok(/const KEY='ohg\\.v1', SOCIAL_KEY='ohg\\.social\\.v1'/.test(storageDiagnostic),'저장 진단 페이지가 개인·커뮤니티 키를 읽기 전용으로 확인');
+  ok(/localStorage\\.getItem\\(k\\)/.test(storageDiagnostic),'저장 진단 페이지 localStorage 읽기 존재');
+  ok(!/localStorage\\.(?:setItem|removeItem|clear)\\s*\\(/.test(storageDiagnostic),'저장 진단 페이지가 localStorage를 수정·삭제하지 않음');
+  ok(!/sessionStorage\\.(?:setItem|removeItem|clear)\\s*\\(/.test(storageDiagnostic),'저장 진단 페이지가 sessionStorage도 수정하지 않음');
+  const diagScript=(storageDiagnostic.match(/<script>([\\s\\S]*?)<\\/script>/)||[])[1]||'';
+  new vm.Script(diagScript); ok(true,'저장 진단 페이지 JavaScript 문법 정상');
+  ok(/recordCount/.test(storageDiagnostic)&&/personalJson/.test(storageDiagnostic)&&/socialExists/.test(storageDiagnostic),'저장 진단 결과에 존재·JSON·기록수·커뮤니티 비교 포함');
+}
+
 
 console.log('\n'+build+' 웹 회귀검증 통과');
 
