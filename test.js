@@ -96,6 +96,41 @@ const srv = http.createServer((req, res) => {
   assert(dayRule.before === '2026-09-01' && dayRule.after === '2026-09-02', '한국시간 자정에서 날짜가 바뀌어야 함');
   console.log('   매일의 명상 =', (await pg.$eval('#home-daily-text', e => e.innerText)).slice(0, 80));
 
+  // 홈 오늘 일정 — 기본보기는 지금 확인할 것만, 전체보기에도 잠자리 행은 넣지 않음
+  const scheduleFocus = await pg.evaluate(() => {
+    S.eats = [{s:'아침',t:'08:00'},{s:'점심',t:'12:30'},{s:'저녁',t:'18:30'}];
+    const sample = [
+      {kind:'habit',id:'done-habit',time:'08:00',done:true,action:1},
+      {kind:'med',id:'아침',time:'08:00',done:false,action:1},
+      {kind:'med',id:'점심',time:'12:30',done:true,action:1},
+      {kind:'eat',id:'아침',time:'08:00',done:false,action:1},
+      {kind:'eat',id:'점심',time:'12:30',done:false,action:1},
+      {kind:'eat',id:'저녁',time:'18:30',done:false,action:1}
+    ];
+    return homeTodayFocusItems(sample, 13*60).map(x=>x.kind+':'+x.id);
+  });
+  console.log('   오늘 일정 기본 필터 =', scheduleFocus.join(', '));
+  assert(!scheduleFocus.includes('eat:아침'), '점심 시간이 지나면 미완료 아침식사도 기본보기에서 접어야 함');
+  assert(scheduleFocus.includes('med:아침'), '시간이 지난 미완료 복약은 기본보기에서 계속 보여야 함');
+  assert(!scheduleFocus.includes('med:점심') && !scheduleFocus.includes('habit:done-habit'), '완료한 복약·습관은 기본보기에서 접어야 함');
+  assert(scheduleFocus.includes('eat:점심') && scheduleFocus.includes('eat:저녁'), '현재·다음 끼니는 기본보기에서 보여야 함');
+
+  await pg.evaluate(() => {
+    S.eats = [{s:'아침',t:'08:00'},{s:'점심',t:'12:30'},{s:'저녁',t:'18:30'}];
+    S.eatLog = [];
+    S.sleep = {on:1,bed:'23:00',up:'07:00'};
+    S.sleepLog = [{t:Date.now(),q:'good'}];
+    homeTodayExpanded = true;
+    drawTodayScheduleHome();
+  });
+  const fullScheduleText = await pg.$eval('#home-today', e => e.innerText);
+  assert(fullScheduleText.includes('아침 식사') && fullScheduleText.includes('점심 식사') && fullScheduleText.includes('저녁 식사'), '전체보기에는 오늘 등록된 식사 일정이 보여야 함');
+  assert(!fullScheduleText.includes('잠자리'), '잠자리는 체크 일정이 아니므로 오늘 일정 행에 표시하지 않아야 함');
+  await pg.evaluate(() => {
+    S.eats=[]; S.eatLog=[]; S.sleep={on:0,bed:'23:00',up:'07:00'}; S.sleepLog=[];
+    homeTodayExpanded=false; save(); drawTodayScheduleHome();
+  });
+
   // 선택형 회복일 + 별도 금연 실천 홈 표시
   await pg.evaluate(() => {
     S.recoveryHome = 1;
@@ -413,6 +448,8 @@ const srv = http.createServer((req, res) => {
   await pg.click('#tabs button[data-t="home"]'); await pg.waitForTimeout(150);
   await pg.click('#top-me'); await pg.waitForTimeout(250);
   assert((await seen()) === 'p-my' && await pg.isVisible('#my-trail') && await pg.isVisible('#my-settings'), '상단 나 아이콘은 개인 허브를 열어야 함');
+  const myOrder = await pg.$$eval('#p-my > #my-settings, #p-my > #my-trail, #p-my > #rec-reclaim', els => els.map(e=>e.id));
+  assert(myOrder.join('>') === 'my-settings>my-trail>rec-reclaim', '나 화면은 내 정보 · 설정 → 내 발자취 → 내가 되찾은 것 순서여야 함');
   await pg.click('#my-settings'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-me' && await pg.isVisible('#me-share'), '내 정보 · 설정에 독립 추천하기 항목 존재');
   assert(await pg.$('#me-feedback-send'), '내 정보 · 설정에 앱에 바라는 점 단일 입력 존재');
