@@ -270,6 +270,6 @@ ok(index.includes("if(x.kind==='sleep') return false;"),'잠자리는 홈 기본
 ok(index.includes("오늘 전체 일정 보기 · '+items.length+'개"),'홈 오늘 전체 일정 보기 제공');
 ok(/\{v:'meaning',l:'의미'\}/.test(index),'내 발자취 실천기록 의미 필터');
 ok(/\.learnmini \.minitool\{min-height:100px/.test(index),'배우기·실천하기 카드 높이 축소');
-if(!index.includes("const BUILD='V9.1.1';")) throw new Error('V9.1.1 BUILD 불일치');
+if(!index.includes("const BUILD='V9.1.2';")) throw new Error('V9.1.1 BUILD 불일치');
 
 require('./verify-meaning.js');
