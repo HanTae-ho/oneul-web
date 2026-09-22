@@ -69,7 +69,7 @@ Play Console 요구사항: <https://support.google.com/googleplay/android-develo
 
 ### Target API 판정
 
-2026-08-31부터 Google Play의 새 Android 모바일 앱과 앱 업데이트는 Android 16 / API 36 이상을 target 해야 합니다. 현재 V9.1.4은 `targetSdk 36`이므로 이 요건을 충족합니다.
+2026-08-31부터 Google Play의 새 Android 모바일 앱과 앱 업데이트는 Android 16 / API 36 이상을 target 해야 합니다. 현재 V9.1.4는 `targetSdk 36`이므로 이 요건을 충족합니다.
 
 공식 정책: <https://support.google.com/googleplay/android-developer/answer/11926878>
 
