@@ -3,9 +3,10 @@ const path = require('path');
 const vm = require('vm');
 const root=__dirname;
 const read=f=>fs.readFileSync(path.join(root,f),'utf8');
-const index=read('index.html'), privacy=read('privacy.html'), sw=read('sw.js'), test=read('test.js'), manifest=read('manifest.json');\nconst storageDiagnostic=readIf('storage-diagnostic.html');
+const index=read('index.html'), privacy=read('privacy.html'), sw=read('sw.js'), test=read('test.js'), manifest=read('manifest.json');
 const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningSrc=read('screening-data.js'), workbookSrc=read('workbook-data.js');
 const readIf=f=>fs.existsSync(path.join(root,f))?read(f):'';
+const storageDiagnostic=readIf('storage-diagnostic.html');
 const feedbackGs=readIf('오늘한걸음_의견_v1.0.gs'), resourceGs=readIf('오늘한걸음_자원시트_v1.8.gs');
 const fail=m=>{throw new Error('VERIFY: '+m)}; const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
