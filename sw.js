@@ -6,9 +6,9 @@
 const APP_VERSION = 'V9.1.1';
 /* 내부 캐시 리비전. 기존 v46 클라이언트도 새 판을 감지하도록 숫자형 키를 유지합니다.
    V4.6 → 406, V4.7 → 407, V4.10 → 410, V5.0 → 500, V5.1 → 501, V5.2 → 502 */
-const V = 'ohg-v911-optional-recovery-smoking-r1';
+const V = 'ohg-v911-storage-recovery-r2';
 const SHELL = ['./', './index.html', './native.html',
-  './install.html', './qa-data.js', './learning-data.js', './screening-data.js', './workbook-data.js', './meaning-data.js', './meaning-feature.js', './meaning-check-feature.js', './music-audio-data.js', './privacy.html', './legal.html', './manifest.json',
+  './install.html', './storage-diagnostic.html', './qa-data.js', './learning-data.js', './screening-data.js', './workbook-data.js', './meaning-data.js', './meaning-feature.js', './meaning-check-feature.js', './music-audio-data.js', './privacy.html', './legal.html', './manifest.json',
   './icon-180.png', './icon-192.png', './icon-512.png', './icon-32.png'];
 
 self.addEventListener('install', e => {

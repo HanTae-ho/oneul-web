@@ -6,6 +6,7 @@ const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const index=read('index.html'), privacy=read('privacy.html'), sw=read('sw.js'), test=read('test.js'), manifest=read('manifest.json');
 const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningSrc=read('screening-data.js'), workbookSrc=read('workbook-data.js');
 const readIf=f=>fs.existsSync(path.join(root,f))?read(f):'';
+const storageDiagnostic=readIf('storage-diagnostic.html');
 const feedbackGs=readIf('오늘한걸음_의견_v1.0.gs'), resourceGs=readIf('오늘한걸음_자원시트_v1.8.gs');
 const fail=m=>{throw new Error('VERIFY: '+m)}; const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
@@ -221,6 +222,16 @@ ok(index.includes('삼성 인터넷 권장 방법'),'Samsung Internet 전용 설
 ok(index.includes('앱스 화면에 설치'),'Samsung Internet 앱스 화면 설치 안내');
 ok(index.indexOf('if(isSamsung){') < index.indexOf('} else if(isIOS){'),'Samsung 설치 분기를 표준 prompt보다 우선');
 ok(manifest.includes('\"id\": \"./index.html\"'),'manifest 안정적 app id');
+if(storageDiagnostic){
+  ok(storageDiagnostic.includes("const KEY='ohg.v1', SOCIAL_KEY='ohg.social.v1';"),'저장 진단 페이지가 개인·커뮤니티 키를 읽기 전용으로 확인');
+  ok(storageDiagnostic.includes('localStorage.getItem(k)'),'저장 진단 페이지 localStorage 읽기 존재');
+  ok(!storageDiagnostic.includes('localStorage.setItem(')&&!storageDiagnostic.includes('localStorage.removeItem(')&&!storageDiagnostic.includes('localStorage.clear('),'저장 진단 페이지가 localStorage를 수정·삭제하지 않음');
+  ok(!storageDiagnostic.includes('sessionStorage.setItem(')&&!storageDiagnostic.includes('sessionStorage.removeItem(')&&!storageDiagnostic.includes('sessionStorage.clear('),'저장 진단 페이지가 sessionStorage도 수정하지 않음');
+  const diagScript=(storageDiagnostic.match(/<script>([\s\S]*?)<\/script>/)||[])[1]||'';
+  new vm.Script(diagScript); ok(true,'저장 진단 페이지 JavaScript 문법 정상');
+  ok(/recordCount/.test(storageDiagnostic)&&/personalJson/.test(storageDiagnostic)&&/socialExists/.test(storageDiagnostic),'저장 진단 결과에 존재·JSON·기록수·커뮤니티 비교 포함');
+}
+
 
 console.log('\n'+build+' 웹 회귀검증 통과');
 
@@ -240,6 +251,15 @@ ok(index.includes('id="me-recovery-home"'),'내 정보 회복일 홈 표시 설�
 ok(index.includes('id="me-smoking-mode"')&&index.includes('data-smoking-mode="plan"')&&index.includes('data-smoking-mode="quit"'),'금연 예정·금연 중 선택 설정');
 ok(index.includes("recordStart: '', recoveryHome: 1"),'앱 기록 시작일·회복일 표시 로컬 상태');
 ok(index.includes("smoking: { mode:'', start:'', plan:'' }"),'금연 실천은 회복영역과 분리된 로컬 상태');
+ok(index.includes("const RECOVERY_BACKUP_KEY = 'ohg.v1.recovery-backup';")&&index.includes("const RECOVERY_QUARANTINE_KEY = 'ohg.v1.recovery-quarantine';"),'기존 기록 안전백업·격리 키 분리');
+ok(index.includes('function inspectStoredPersonal_()')&&index.includes("st.state='needs-choice'; st.blocking=true;"),'시작상태 모순 시 복구 게이트 진입');
+ok(index.includes("if(storageRecovery && storageRecovery.blocking) return false;"),'복구 선택 전 save()가 기존 ohg.v1 덮어쓰기 차단');
+ok(index.includes('function showStorageRecoveryGate_()')&&index.includes('기존 데이터 사용')&&index.includes('안전백업 복구'),'기존 데이터 발견 시 사용자 복구 선택 UI');
+ok(index.includes('function preserveRecoveryRaw_(raw)')&&index.includes('localStorage.setItem(key,String(raw))'),'복구·새 시작 전 기존 원문 안전백업');
+ok(index.includes("const localYmd = v =>")&&index.includes("return best || localYmd(Date.now());"),'recordStart 마이그레이션이 초기화 전 ymd/today const에 의존하지 않음');
+ok(!/function inferRecordStart_\(s\)[\s\S]{0,1400}ymd\(new Date/.test(index),'recordStart 초기 마이그레이션에서 뒤쪽 ymd 참조 제거');
+ok(index.includes("const blocked=!!(storageRecovery && storageRecovery.blocking);")&&index.includes("if(blocked){\n    showStorageRecoveryGate_();\n    return;"),'복구 게이트 중 자원동기화·알람 런타임 시작 차단');
+
 ok(index.includes('회복 시작일 미설정 · 앱 기록 시작일부터'),'내가 되찾은 것 기록 시작일 대체 기준');
 const mySettingsPos=index.indexOf('id="my-settings"'), myTrailPos=index.indexOf('id="my-trail"'), myReclaimPos=index.indexOf('id="rec-reclaim"');
 ok(mySettingsPos>=0&&mySettingsPos<myTrailPos&&myTrailPos<myReclaimPos,'나 화면 내 정보 · 설정 → 내 발자취 → 내가 되찾은 것 순서');

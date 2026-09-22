@@ -58,6 +58,59 @@ const srv = http.createServer((req, res) => {
   };
   const assert = (ok, msg) => { if(!ok) throw new Error('ASSERT: ' + msg); };
 
+  // V9.1.1 저장 복구 회귀 — V9.1.0 기존 데이터에는 recordStart가 없었습니다.
+  // 초기 load()가 뒤쪽 today()/ymd() const를 참조해 BLANK로 떨어지던 회귀를 재현하고 차단합니다.
+  {
+    const oldCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
+    const oldPg=await oldCtx.newPage();
+    const oldRecord={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(40)},cum:{alcohol:0},
+      goal:'기존 목표',hours:[],meds:[],medLog:[],eats:[],eatLog:[],sleep:{on:0,bed:'23:00',up:'07:00'},sleepLog:[],
+      moods:[{t:Date.now()-86400000,v:3}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],stepDrafts:{},
+      wbDays:{},meaningChecks:[],smartWorks:[],familyStepWorks:[],familyStepDrafts:{},aiChat:[],fired:[]};
+    await oldCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),JSON.stringify(oldRecord));
+    await oldPg.goto('http://localhost:8899/index.html'); await oldPg.waitForTimeout(500);
+    assert(await oldPg.$eval('.pg.on',e=>e.id)==='p-home','recordStart 없는 V9.1.0 기존 데이터는 자동으로 홈에 복구되어야 함');
+    const oldState=await oldPg.evaluate(()=>({moods:S.moods.length,goal:S.goal,recordStart:S.recordStart,blocked:!!(storageRecovery&&storageRecovery.blocking)}));
+    assert(oldState.moods===1&&oldState.goal==='기존 목표'&&/^\d{4}-\d{2}-\d{2}$/.test(oldState.recordStart),'V9.1.0 기록·목표를 보존하며 recordStart만 안전 추론');
+    assert(!oldState.blocked,'정상 기존 데이터에는 복구 선택창을 띄우지 않음');
+    await oldCtx.close();
+  }
+
+  // started=false인데 실제 개인기록이 있으면 자동 덮어쓰기 대신 복구 게이트에서 선택하게 합니다.
+  {
+    const gateCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
+    const gatePg=await gateCtx.newPage();
+    const gateRecord={ver:1,dataSchema:6,started:false,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(20)},cum:{alcohol:0},
+      goal:'복구할 목표',moods:[{t:Date.now()-3600000,v:4}],halts:[],urges:[],nights:[],relapses:[],screenings:[],
+      stepWorks:[],meaningChecks:[],smartWorks:[],familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+    const gateRaw=JSON.stringify(gateRecord);
+    await gateCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),gateRaw);
+    await gatePg.goto('http://localhost:8899/index.html'); await gatePg.waitForTimeout(500);
+    assert(await gatePg.isVisible('#mod.on'),'started=false + 기존 기록은 복구 게이트를 표시');
+    assert((await gatePg.$eval('#modin',e=>e.innerText)).includes('기존 데이터 사용'),'복구 게이트에 기존 데이터 사용 선택 제공');
+    await gatePg.waitForTimeout(700);
+    assert(await gatePg.evaluate(()=>localStorage.getItem('ohg.v1'))===gateRaw,'선택 전에는 기존 ohg.v1 원문을 덮어쓰지 않음');
+    await gatePg.click('#recovery-use-primary'); await gatePg.waitForTimeout(350);
+    assert(await gatePg.$eval('.pg.on',e=>e.id)==='p-home','기존 데이터 사용 선택 후 홈으로 복구');
+    const gateAfter=await gatePg.evaluate(()=>({started:S.started,moods:S.moods.length,backup:localStorage.getItem('ohg.v1.recovery-backup')}));
+    assert(gateAfter.started===true&&gateAfter.moods===1,'기존 기록을 유지하고 started만 복구');
+    assert(gateAfter.backup===gateRaw,'복구 전 원문을 안전백업 키에 그대로 보존');
+    await gateCtx.close();
+  }
+
+  // 파싱 불가 원문도 BLANK로 덮지 않고 그대로 보존합니다.
+  {
+    const badCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
+    const badPg=await badCtx.newPage();
+    const badRaw='{"started":true,"moods":[';
+    await badCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),badRaw);
+    await badPg.goto('http://localhost:8899/index.html'); await badPg.waitForTimeout(700);
+    assert(await badPg.isVisible('#mod.on'),'손상된 ohg.v1은 복구 게이트에서 멈춤');
+    assert((await badPg.$eval('#modin',e=>e.innerText)).includes('정상적으로 읽지 못했습니다'),'손상 데이터 읽기 오류를 사용자에게 표시');
+    assert(await badPg.evaluate(()=>localStorage.getItem('ohg.v1'))===badRaw,'손상된 기존 원문도 자동으로 덮어쓰지 않음');
+    await badCtx.close();
+  }
+
   await pg.goto('http://localhost:8899/index.html');
   await pg.waitForTimeout(500);
   console.log('1. 첫 화면 =', await seen());

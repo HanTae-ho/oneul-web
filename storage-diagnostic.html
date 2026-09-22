@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#1f6f8a">
+  <title>오늘 한 걸음 · 저장 데이터 진단</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#18323a;background:#f3f7f8}
+    *{box-sizing:border-box}body{margin:0;padding:22px 16px 40px}.wrap{max-width:680px;margin:0 auto}
+    h1{font-size:23px;margin:0 0 8px}.lead{margin:0 0 16px;color:#50666e;line-height:1.65}
+    .warn,.card{background:#fff;border:1px solid #d7e2e5;border-radius:16px;padding:15px;margin:10px 0}
+    .warn{background:#fff7e8;border-color:#ecd7aa}.ok{background:#edf8f3;border-color:#c7e3d5}
+    .bad{background:#fff0ef;border-color:#edc8c5}.k{font-size:12px;font-weight:700;color:#1f6f8a;margin-bottom:6px}
+    .big{font-size:18px;font-weight:750;line-height:1.5}.row{display:flex;gap:12px;justify-content:space-between;padding:9px 0;border-top:1px solid #e5edef}
+    .row:first-child{border-top:0}.row span:first-child{color:#64767d}.row b{text-align:right;word-break:break-all}
+    pre{white-space:pre-wrap;word-break:break-word;margin:0;font:13px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace}
+    button{width:100%;border:0;border-radius:13px;padding:13px 14px;font-size:15px;font-weight:700;background:#1f6f8a;color:#fff;margin-top:10px}
+    button.sec{background:#e4f0f3;color:#1f6f8a}.tiny{font-size:12px;color:#6d7f85;line-height:1.6;margin-top:10px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>저장 데이터 진단</h1>
+  <p class="lead">현재 브라우저의 <b>오늘 한 걸음</b> 저장공간을 읽기만 합니다. 기록을 저장·수정·삭제하지 않으며, 기록 원문 내용도 화면에 표시하지 않습니다.</p>
+  <div class="warn"><b>중요</b><br>진단이 끝날 때까지 앱의 처음 설정 완료, 앱 삭제·재설치, 브라우저 데이터 삭제를 하지 마세요.</div>
+  <div id="summary" class="card"></div>
+  <div id="detail" class="card"></div>
+  <div class="card"><div class="k">진단 결과</div><pre id="report"></pre></div>
+  <button id="copy" type="button">진단 결과 복사</button>
+  <button id="rerun" class="sec" type="button">다시 확인</button>
+  <p class="tiny">개인 기록 키: <code>ohg.v1</code> · 커뮤니티 설정 키: <code>ohg.social.v1</code><br>이 페이지에는 localStorage 쓰기·삭제 명령이 없습니다.</p>
+</div>
+<script>
+(function(){
+  'use strict';
+  const KEY='ohg.v1', SOCIAL_KEY='ohg.social.v1';
+  const RECORD_ARRAYS=['moods','halts','urges','nights','relapses','screenings','stepWorks','meaningChecks','smartWorks','familyStepWorks','medLog','eatLog','sleepLog'];
+  const EXPECT_ARRAYS=['types','hours','meds','medLog','eats','eatLog','sleepLog','moods','halts','urges','nights','relapses','screenings','stepWorks','meaningChecks','smartWorks','familyStepWorks','aiChat'];
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function readOnlyGet(k){
+    try{return {ok:true,value:localStorage.getItem(k),error:''};}
+    catch(e){return {ok:false,value:null,error:String(e&&e.message||e)};}
+  }
+  function arrCount(o,k){return Array.isArray(o&&o[k])?o[k].length:0;}
+  function habitDoneCount(o){
+    return (Array.isArray(o&&o.habits)?o.habits:[]).reduce((n,h)=>n+(Array.isArray(h&&h.done)?h.done.length:0),0);
+  }
+  function inspect(){
+    const p=readOnlyGet(KEY), s=readOnlyGet(SOCIAL_KEY);
+    const d={
+      origin:location.origin,
+      personalReadable:p.ok,
+      personalExists:p.ok&&p.value!==null,
+      personalChars:p.ok&&p.value!==null?p.value.length:0,
+      personalJson:false,
+      personalError:p.error||'',
+      socialReadable:s.ok,
+      socialExists:s.ok&&s.value!==null,
+      socialChars:s.ok&&s.value!==null?s.value.length:0,
+      schema:null,started:null,recordCount:0,counts:{},warnings:[]
+    };
+    if(!p.ok) return d;
+    if(p.value===null) return d;
+    let o;
+    try{
+      o=JSON.parse(p.value);
+      d.personalJson=!!o&&typeof o==='object'&&!Array.isArray(o);
+      if(!d.personalJson){d.personalError='JSON은 읽혔지만 객체 형식이 아닙니다.';return d;}
+    }catch(e){
+      d.personalError='JSON 해석 오류: '+String(e&&e.message||e);
+      return d;
+    }
+    d.schema=o.dataSchema==null?null:o.dataSchema;
+    d.started=o.started===true;
+    RECORD_ARRAYS.forEach(k=>{d.counts[k]=arrCount(o,k);d.recordCount+=d.counts[k];});
+    d.counts.wbDays=(o.wbDays&&typeof o.wbDays==='object'&&!Array.isArray(o.wbDays))?Object.keys(o.wbDays).length:0;
+    d.counts.habitDone=habitDoneCount(o);
+    d.recordCount+=d.counts.wbDays+d.counts.habitDone;
+    EXPECT_ARRAYS.forEach(k=>{
+      if(o[k]!=null&&!Array.isArray(o[k])) d.warnings.push(k+'가 배열 형식이 아님');
+    });
+    if(o.wbDays!=null&&(!o.wbDays||typeof o.wbDays!=='object'||Array.isArray(o.wbDays))) d.warnings.push('wbDays가 객체 형식이 아님');
+    if(o.treat!=null&&(!o.treat||typeof o.treat!=='object'||Array.isArray(o.treat))) d.warnings.push('treat가 객체 형식이 아님');
+    return d;
+  }
+  function conclusion(d){
+    if(!d.personalReadable) return {cls:'bad',title:'개인 기록 저장소를 읽을 수 없습니다.',body:d.personalError||'브라우저 저장소 접근 오류입니다.'};
+    if(!d.personalExists){
+      if(d.socialExists) return {cls:'bad',title:'커뮤니티 설정은 있지만 개인 기록 키가 없습니다.',body:'같은 저장공간에서 ohg.social.v1은 확인되지만 ohg.v1은 존재하지 않습니다.'};
+      return {cls:'bad',title:'현재 저장공간에 개인 기록 키가 없습니다.',body:'ohg.v1과 커뮤니티 키를 함께 확인해야 저장 컨텍스트 차이인지 판단할 수 있습니다.'};
+    }
+    if(!d.personalJson) return {cls:'bad',title:'개인 기록 원문은 존재하지만 정상 JSON으로 읽히지 않습니다.',body:'삭제된 것으로 단정하면 안 됩니다. 원문 보존 후 복구 절차가 필요합니다.'};
+    if(d.recordCount>0&&d.started===false) return {cls:'bad',title:'기록은 존재하지만 시작 상태가 꺼져 있습니다.',body:'기록 '+d.recordCount+'건이 확인되지만 started=false라서 앱이 처음 화면으로 갈 수 있습니다.'};
+    if(d.recordCount>0) return {cls:'ok',title:'개인 기록 원문과 기록 데이터가 존재합니다.',body:'주요 기록 '+d.recordCount+'건이 확인됩니다. 앱 표시/로드 경로를 점검해야 합니다.'};
+    return {cls:'warn',title:'개인 기록 키는 있으나 주요 기록 건수는 0입니다.',body:'키 크기와 설정값은 존재하므로 결과를 복사해 전달해 주세요.'};
+  }
+  function render(){
+    const d=inspect(), c=conclusion(d);
+    document.getElementById('summary').className='card '+c.cls;
+    document.getElementById('summary').innerHTML='<div class="k">판정</div><div class="big">'+esc(c.title)+'</div><div class="tiny">'+esc(c.body)+'</div>';
+    document.getElementById('detail').innerHTML=[
+      ['현재 origin',d.origin],
+      ['개인 기록 ohg.v1',d.personalExists?'있음':'없음'],
+      ['개인 기록 크기',d.personalExists?d.personalChars.toLocaleString()+'자':'-'],
+      ['개인 기록 JSON',d.personalExists?(d.personalJson?'정상':'오류'):'-'],
+      ['started',d.personalJson?String(d.started):'-'],
+      ['dataSchema',d.personalJson?String(d.schema):'-'],
+      ['주요 기록 합계',d.personalJson?String(d.recordCount):'-'],
+      ['커뮤니티 ohg.social.v1',d.socialExists?'있음':'없음'],
+      ['커뮤니티 크기',d.socialExists?d.socialChars.toLocaleString()+'자':'-'],
+      ['구조 경고',d.warnings.length?d.warnings.join(', '):'없음']
+    ].map((x,i)=>'<div class="row"><span>'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>').join('');
+    const countText=Object.keys(d.counts).map(k=>k+'='+d.counts[k]).join(', ');
+    const lines=[
+      'origin='+d.origin,
+      'personalReadable='+d.personalReadable,
+      'personalExists='+d.personalExists,
+      'personalChars='+d.personalChars,
+      'personalJson='+d.personalJson,
+      'personalError='+(d.personalError||'없음'),
+      'started='+(d.started===null?'-':d.started),
+      'dataSchema='+(d.schema===null?'-':d.schema),
+      'recordCount='+d.recordCount,
+      'recordCounts='+(countText||'-'),
+      'socialReadable='+d.socialReadable,
+      'socialExists='+d.socialExists,
+      'socialChars='+d.socialChars,
+      'warnings='+(d.warnings.length?d.warnings.join(' | '):'없음')
+    ];
+    document.getElementById('report').textContent=lines.join('\n');
+  }
+  document.getElementById('rerun').addEventListener('click',render);
+  document.getElementById('copy').addEventListener('click',async function(){
+    const txt=document.getElementById('report').textContent;
+    try{await navigator.clipboard.writeText(txt);this.textContent='복사했습니다';}
+    catch(e){this.textContent='복사 실패 · 화면을 캡처해주세요';}
+    setTimeout(()=>{this.textContent='진단 결과 복사';},1800);
+  });
+  render();
+})();
+</script>
+</body>
+</html>
