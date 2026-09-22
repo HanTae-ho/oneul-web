@@ -583,7 +583,7 @@ addEventListener('appinstalled', function(){
   /* V8.1.5 — 습관: 추천 예시를 복사해 쓰고, 내 습관은 자유롭게 수정합니다. */
   .habit-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:17px 0 9px}.habit-head h2{margin:0!important;color:var(--tx)!important;font-weight:700!important}.habit-list{display:grid;gap:9px}.habit-card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px}.habit-card.done{opacity:.72}.habit-card .top{display:flex;align-items:flex-start;gap:10px}.habit-card .top .grow b{display:block;font-size:15.5px}.habit-card .meta{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.5}.habit-card .checkline{display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}.habit-card .checkline button{width:31px;height:31px;border-radius:9px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc);background:var(--bg)}.habit-card .checkline button.on{background:var(--acc);color:#fff;border-color:var(--acc)}.habit-card .checkline span{flex:1;font-size:13px;line-height:1.45}.habit-actions{display:flex;gap:7px;margin-top:10px}.habit-actions .btn{margin:0;width:auto;flex:1;padding:8px 7px;font-size:12px}.habit-template{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:8px}.habit-template b{font-size:14.5px}.habit-template p{margin:3px 0 9px;font-size:12px;color:var(--dim);line-height:1.5}.habit-template .rowbtn{display:flex;gap:7px}.habit-template .rowbtn .btn{margin:0;padding:8px 7px;font-size:12px}.habit-edit .field{margin-bottom:15px}.habit-edit .field>label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.habit-edit .opts{gap:6px}.habit-edit .opt{padding:8px 10px;font-size:12.5px}.weekday-opts{grid-template-columns:repeat(7,minmax(0,1fr));gap:5px!important}.weekday-opts .opt{padding:8px 2px;justify-content:center}.habit-home{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}.habit-home h3{margin:0 0 9px}.habit-home-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--line)}.habit-home-row:first-of-type{border-top:0}.habit-home-row .hcheck{width:31px;height:31px;flex:none;border-radius:9px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc)}.habit-home-row .hcheck.on{background:var(--acc);color:#fff;border-color:var(--acc)}.habit-home-row .txt{flex:1;min-width:0}.habit-home-row .txt b{display:block;font-size:13.5px}.habit-home-row .txt span{display:block;font-size:11.5px;color:var(--dim);margin-top:1px}.habit-home-row .time{font-size:11.5px;color:var(--faint);white-space:nowrap}
   /* 홈의 오늘 일정 — 기본보기는 지금부터 확인할 항목만, 전체보기는 오늘 등록된 항목을 보여줍니다.
-     잠자리는 체크 일정이 아니므로 행으로 넣지 않고, 아침 수면상태 질문만 별도로 유지합니다. */
+     잠자리는 기본보기에서는 빼고, 전체보기에서만 체크 없는 안내 행으로 보여줍니다. */
   .today-home{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
   .today-home h3{margin:0}.today-summary{font-size:11.5px;color:var(--dim);margin-top:2px}
   .today-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line)}
@@ -2616,7 +2616,7 @@ addEventListener('appinstalled', function(){
 
     <details class="faq"><summary>3. 홈 — 오늘 상태를 한눈에 보기</summary><div class="faq-a">
       <p>홈은 매일 가장 먼저 확인하는 화면입니다. 당사자 모드에서는 선택한 <b>회복일, 금연 시작·예정, 오늘의 상태, HALT, 복약·식사</b>처럼 지금 챙길 항목을 한곳에서 확인합니다. 회복일과 금연을 모두 표시하면 두 항목을 같은 줄의 2열로 보여주고, 하나만 사용하면 기존처럼 한 줄 전체 폭으로 보여줍니다.</p>
-      <p style="margin-top:8px"><b>오늘 일정</b>은 기본적으로 지금부터 확인할 항목만 간단히 보여줍니다. 완료한 습관·복약·식사는 접고, 다음 끼니 시간이 시작되면 지난 끼니도 기본보기에서 숨깁니다. 복약과 습관은 시간이 지났더라도 완료하지 않았다면 계속 남으며, 잠자리는 체크 일정이 아니어서 일정 행에는 표시하지 않습니다. 필요하면 <b>오늘 전체 일정 보기</b>로 오늘 항목을 다시 펼칠 수 있습니다.</p>
+      <p style="margin-top:8px"><b>오늘 일정</b>은 기본적으로 지금부터 확인할 항목만 간단히 보여줍니다. 완료한 습관·복약·식사는 접고, 다음 끼니 시간이 시작되면 지난 끼니도 기본보기에서 숨깁니다. 복약과 습관은 시간이 지났더라도 완료하지 않았다면 계속 남습니다. 잠자리는 체크하는 일정이 아니어서 기본보기에서는 제외하고, <b>오늘 전체 일정 보기</b>에서만 체크 없는 안내 행으로 확인할 수 있습니다. 어젯밤 수면 상태 질문은 그대로 유지합니다.</p>
       <p style="margin-top:8px">힘든 상태가 올라오면 홈과 위기 흐름에서 충동 대응, 호흡, 도움글, 사람 연결 등 필요한 기능으로 이어갈 수 있습니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('home')">홈 열기</button>
     </div></details>
@@ -4935,6 +4935,7 @@ function homeTodayFocusItems(items,nowMin){
   nowMin=Number.isFinite(nowMin)?nowMin:(new Date().getHours()*60+new Date().getMinutes());
   return (items||[]).filter(x=>{
     if(x.action && x.done) return false;
+    if(x.kind==='sleep') return false;
     if(x.kind!=='eat') return true;
     const i=EATSLOT.findIndex(s=>s.k===x.id);
     if(i<0 || i>=EATSLOT.length-1) return true;
@@ -4970,8 +4971,8 @@ function drawTodayScheduleHome(){
   });
 
   const sp=S.sleep||{};
-  /* 잠자리는 완료를 누르는 일정이 아니므로 홈의 일정 행에서는 제외합니다.
-     수면 설정·알림과 아래의 '어젯밤 잠' 질문은 그대로 유지합니다. */
+  if(sp.on && /^\d{2}:\d{2}$/.test(String(sp.bed||'')))
+    items.push({kind:'sleep',id:'bed',time:sp.bed,label:'잠자리',sub:'잘 시간',done:false,action:0});
 
   items.sort((a,b)=>homeTimeKey(a.time)-homeTimeKey(b.time));
 
@@ -5008,7 +5009,7 @@ function drawTodayScheduleHome(){
     html+='<p class="tiny" style="margin:10px 0 4px">지금 확인할 일정은 없습니다.</p>';
   }
   shown.forEach((x,i)=>{
-    const icon=x.kind==='visit'?'cal':(x.done?'check':'box');
+    const icon=x.kind==='sleep'?'sleep':(x.kind==='visit'?'cal':(x.done?'check':'box'));
     const btn=x.action?'<button class="tcheck'+(x.done?' on':'')+'" data-today-kind="'+x.kind+'" data-today-id="'+esc(x.id)+'" data-today-done="'+(x.done?'1':'0')+'" aria-label="'+esc(x.label+(x.done?' 완료. 길게 눌러 수정':' 완료로 표시'))+'">'+ico(icon)+'</button>':'<span class="tcheck static">'+ico(icon)+'</span>';
     html+='<div class="today-row'+(i===0?' first':'')+'">'+btn+'<div class="txt"><b>'+esc(x.label)+'</b><span>'+esc(x.sub)+'</span></div><span class="time">'+esc(x.time||'')+'</span></div>';
   });
