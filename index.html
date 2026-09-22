@@ -3840,7 +3840,9 @@ function finishStorageRecovery_(target){
 function useStorageCandidate_(candidate){
   if(!candidate || !candidate.valid){ toast('사용할 수 있는 기존 데이터가 없습니다.'); return; }
   const current=storageRecovery && storageRecovery.primary ? storageRecovery.primary.raw : null;
-  if(current!=null && current!==candidate.raw && !preserveRecoveryRaw_(current)) return;
+  /* 주 개인키 자체를 복구할 때도 복구 직전 원문은 안전백업으로 남깁니다.
+     안전백업/격리본을 복구하는 경우에만 현재 원문과 동일하면 중복 보존을 생략합니다. */
+  if(current!=null && (candidate.source==='primary' || current!==candidate.raw) && !preserveRecoveryRaw_(current)) return;
   const next=candidate.migrated;
   if(!next.started) next.started=true;
   if(!commitImportedState_(next,true)) return;
