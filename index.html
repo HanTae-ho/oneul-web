@@ -2533,10 +2533,12 @@ addEventListener('appinstalled', function(){
         기록은 이 기기의 브라우저 안에만 있습니다. 브라우저 데이터를 지우면
         함께 사라지니, 가끔 파일로 내보내 두세요.
       </p>
-      <button class="btn sec sm" id="me-export">파일로 내보내기</button>
+      <button class="btn sec sm" id="me-export">백업 파일 내보내기</button>
       <div style="height:9px"></div>
-      <button class="btn ghost sm" id="me-import">파일에서 불러오기</button>
+      <button class="btn ghost sm" id="me-import">백업 파일 불러오기</button>
       <input type="file" id="me-file" accept="application/json" class="hide">
+      <div style="height:9px"></div>
+      <button class="btn ghost sm" id="me-recovery-manage">기기 안전백업 확인</button>
       <div style="height:9px"></div>
       <button class="btn ghost sm" id="me-wipe" style="color:var(--bad);border-color:var(--bad)">전체 지우기</button>
     </div>
@@ -2866,18 +2868,24 @@ function storedCandidate_(raw, source){
   return c;
 }
 function inspectStoredPersonal_(){
-  const st={state:'none',blocking:false,primary:null,backup:null,error:''};
-  let raw=null, backupRaw=null;
+  const st={state:'none',blocking:false,primary:null,backup:null,quarantine:null,error:''};
+  let raw=null, backupRaw=null, quarantineRaw=null;
   try{
     raw=localStorage.getItem(KEY);
     backupRaw=localStorage.getItem(RECOVERY_BACKUP_KEY);
+    quarantineRaw=localStorage.getItem(RECOVERY_QUARANTINE_KEY);
   }catch(e){
     st.state='storage-error'; st.blocking=true; st.error=String(e&&e.message||e); return st;
   }
   if(backupRaw!==null) st.backup=storedCandidate_(backupRaw,'backup');
+  if(quarantineRaw!==null) st.quarantine=storedCandidate_(quarantineRaw,'quarantine');
   if(raw===null){
-    if(st.backup){
-      st.state=st.backup.valid?'backup-only':'backup-error';
+    const fallback=(st.backup&&st.backup.valid)?st.backup:((st.quarantine&&st.quarantine.valid)?st.quarantine:null);
+    if(fallback){
+      st.state=fallback.source==='backup'?'backup-only':'quarantine-only';
+      st.blocking=true;
+    }else if(st.backup || st.quarantine){
+      st.state='backup-error';
       st.blocking=true;
     }
     return st;
@@ -3711,28 +3719,112 @@ $('#mod').addEventListener('click', e => { if(e.target.id === 'mod' && !storageR
 
 function recoveryStamp_(){
   const d=new Date(), z=n=>String(n).padStart(2,'0');
-  return d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+'-'+z(d.getHours())+z(d.getMinutes());
+  return d.getFullYear()+z(d.getMonth()+1)+z(d.getDate())+'-'+z(d.getHours())+z(d.getMinutes())+z(d.getSeconds());
 }
-function downloadRecoveryRaw_(raw,label){
-  if(raw==null) return;
+function downloadJsonText_(raw,label){
+  if(raw==null) return false;
   const blob=new Blob([String(raw)],{type:'application/json'});
   const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='오늘 한 걸음_'+(label||'기존기록')+'_'+recoveryStamp_()+'.json';
+  const u=URL.createObjectURL(blob);
+  a.href=u;
+  a.download='오늘 한 걸음_'+(label||'백업')+'_'+recoveryStamp_()+'.json';
+  document.body.appendChild(a);
   a.click();
-  setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u),3000);
+  return true;
+}
+function downloadRecoveryRaw_(raw,label){
+  return downloadJsonText_(raw,label||'기존기록');
 }
 function preserveRecoveryRaw_(raw){
   if(raw==null) return true;
   try{
     const current=localStorage.getItem(RECOVERY_BACKUP_KEY);
-    const key=(current===null || current===String(raw)) ? RECOVERY_BACKUP_KEY : RECOVERY_QUARANTINE_KEY;
-    localStorage.setItem(key,String(raw));
-    return true;
+    const quarantine=localStorage.getItem(RECOVERY_QUARANTINE_KEY);
+    const text=String(raw);
+    if(current===null || current===text){
+      localStorage.setItem(RECOVERY_BACKUP_KEY,text);
+      return true;
+    }
+    if(quarantine===null || quarantine===text){
+      localStorage.setItem(RECOVERY_QUARANTINE_KEY,text);
+      return true;
+    }
+    /* 두 안전백업이 모두 다른 값이면 더 오래된 원문을 조용히 덮지 않습니다. */
+    toast('기기 안전백업이 이미 2개 있습니다. 기록 관리에서 먼저 확인해주세요.');
+    return false;
   }catch(e){
     toast('기존 기록의 안전백업을 만들 수 없어 진행을 멈췄습니다.');
     return false;
   }
+}
+function personalBackupShape_(j){
+  if(!j || typeof j!=='object' || Array.isArray(j)) return false;
+  const keys=['started','role','types','dates','moods','halts','urges','nights','relapses','screenings',
+    'stepWorks','meaningChecks','smartWorks','familyStepWorks','medLog','eatLog','sleepLog','wbDays','timeCapsule','goal'];
+  let hits=0;
+  keys.forEach(k=>{ if(Object.prototype.hasOwnProperty.call(j,k)) hits++; });
+  return hits>=2 && (Object.prototype.hasOwnProperty.call(j,'started') ||
+    Object.prototype.hasOwnProperty.call(j,'dataSchema') || Object.prototype.hasOwnProperty.call(j,'ver'));
+}
+function commitImportedState_(next,wasRecovering){
+  const oldS=S;
+  try{
+    localStorage.setItem(KEY,JSON.stringify(next));
+  }catch(e){
+    S=oldS;
+    if(wasRecovering && storageRecovery) storageRecovery.blocking=true;
+    toast('저장 공간이 부족해 불러오기를 취소했습니다. 기존 기록은 그대로입니다.');
+    return false;
+  }
+  S=next;
+  if(storageRecovery) storageRecovery.blocking=false;
+  if(nativeReminderSyncReady) queueNativeReminderSync();
+  return true;
+}
+function recoveryCandidateFromKey_(key,source){
+  try{
+    const raw=localStorage.getItem(key);
+    return raw===null?null:storedCandidate_(raw,source);
+  }catch(e){ return null; }
+}
+function showSavedRecoveryBackups_(){
+  const b=recoveryCandidateFromKey_(RECOVERY_BACKUP_KEY,'backup');
+  const q=recoveryCandidateFromKey_(RECOVERY_QUARANTINE_KEY,'quarantine');
+  let h='<h2>기기 안전백업</h2><p class="muted" style="margin:5px 0 13px">업데이트 복구나 백업 불러오기 전에 앱이 보존한 원문입니다. 커뮤니티 데이터는 포함하지 않습니다.</p>';
+  const row=(c,label)=>{
+    if(!c) return '<div class="note"><b>'+label+'</b><br>저장된 안전백업이 없습니다.</div>';
+    return '<div class="note '+(c.valid?'':'w')+'"><b>'+label+'</b><br>'+
+      (c.valid?'주요 기록 '+c.recordCount+'건 · '+c.chars.toLocaleString()+'자':'읽기 오류 · '+esc(c.error||''))+
+      '</div><div class="row" style="margin:7px 0 12px">'+
+      (c.valid?'<button class="btn sec sm" data-recovery-restore="'+c.source+'">이 백업 복구</button>':'')+
+      '<button class="btn ghost sm" data-recovery-export="'+c.source+'">파일로 내보내기</button></div>';
+  };
+  h+=row(b,'안전백업 1')+row(q,'안전백업 2')+
+    '<button class="btn ghost" id="recovery-manage-close">닫기</button>';
+  modal(h);
+  $('[data-recovery-export]').forEach(btn=>btn.onclick=()=>{
+    const c=btn.dataset.recoveryExport==='backup'?b:q;
+    if(c&&downloadRecoveryRaw_(c.raw,btn.dataset.recoveryExport==='backup'?'안전백업1':'안전백업2'))
+      toast('백업 파일 내보내기를 시작했습니다.');
+  });
+  $('[data-recovery-restore]').forEach(btn=>btn.onclick=()=>{
+    const c=btn.dataset.recoveryRestore==='backup'?b:q;
+    if(!c||!c.valid) return;
+    modal('<h2>이 안전백업을 복구할까요?</h2><p class="muted">현재 개인 기록은 다른 안전백업에 먼저 보존한 뒤 선택한 백업으로 교체합니다.</p>'+
+      '<button class="btn" id="recovery-manage-yes">복구하기</button><div style="height:9px"></div>'+
+      '<button class="btn ghost" id="recovery-manage-back">그만두기</button>');
+    $('#recovery-manage-back').onclick=showSavedRecoveryBackups_;
+    $('#recovery-manage-yes').onclick=()=>{
+      let current=null; try{current=localStorage.getItem(KEY);}catch(e){}
+      if(current!=null && current!==c.raw && !preserveRecoveryRaw_(current)) return;
+      if(!commitImportedState_(c.migrated,false)) return;
+      closeModal(); applyTheme(); drawIntro(); drawUrge(); toast('안전백업을 복구했습니다.');
+      go(S.started?'home':'intro');
+    };
+  });
+  $('#recovery-manage-close').onclick=()=>closeModal();
 }
 function finishStorageRecovery_(target){
   if(storageRecovery) storageRecovery.blocking=false;
@@ -3780,7 +3872,7 @@ function confirmRecoveryNewStart_(){
 function showStorageRecoveryGate_(){
   if(!storageRecovery || !storageRecovery.blocking) return;
   storageRecoveryGateOpen=true;
-  const p=storageRecovery.primary, b=storageRecovery.backup;
+  const p=storageRecovery.primary, b=storageRecovery.backup, q=storageRecovery.quarantine;
   let h='<h2>기존 기록 확인</h2>';
   if(storageRecovery.state==='needs-choice'){
     if(p && p.hasUserData){
@@ -3793,6 +3885,8 @@ function showStorageRecoveryGate_(){
     h+='<div class="note w" style="margin-bottom:14px">기존 개인 데이터 원문은 남아 있지만 정상적으로 읽지 못했습니다.<br><span class="tiny">'+esc((p&&p.error)||'읽기 오류')+'</span></div>';
   }else if(storageRecovery.state==='backup-only'){
     h+='<p class="muted" style="margin:6px 0 14px">현재 개인 기록 키는 없지만 이전에 만든 안전백업이 발견되었습니다. 복구할지 선택해주세요.</p>';
+  }else if(storageRecovery.state==='quarantine-only'){
+    h+='<p class="muted" style="margin:6px 0 14px">현재 개인 기록 키는 없지만 두 번째 안전백업이 발견되었습니다. 복구할지 선택해주세요.</p>';
   }else if(storageRecovery.state==='backup-error'){
     h+='<div class="note w" style="margin-bottom:14px">안전백업 원문은 있지만 정상적으로 읽지 못했습니다.</div>';
   }else if(storageRecovery.state==='storage-error'){
@@ -3800,15 +3894,19 @@ function showStorageRecoveryGate_(){
       '<button class="btn sec" id="recovery-reload">다시 확인</button>';
     modal(h); $('#recovery-reload').onclick=()=>location.reload(); return;
   }
-  if(b && b.valid) h+='<div style="height:9px"></div><button class="btn sec" id="recovery-use-backup">안전백업 복구</button>';
-  if(p && p.raw!=null) h+='<div style="height:9px"></div><button class="btn ghost" id="recovery-download">기존 원문 파일로 백업</button>';
+  if(b && b.valid) h+='<div style="height:9px"></div><button class="btn sec" id="recovery-use-backup">안전백업 1 복구</button>';
+  if(q && q.valid) h+='<div style="height:9px"></div><button class="btn sec" id="recovery-use-quarantine">안전백업 2 복구</button>';
+  if(p && p.raw!=null) h+='<div style="height:9px"></div><button class="btn ghost" id="recovery-download">기존 원문 파일로 내보내기</button>';
   h+='<div style="height:9px"></div><button class="btn ghost" id="recovery-import">백업 파일에서 불러오기</button>'+
     '<div style="height:9px"></div><button class="btn ghost" id="recovery-new" style="color:var(--bad);border-color:var(--bad)">새로 시작</button>'+
     '<p class="tiny" style="margin-top:13px">선택하기 전에는 앱이 개인 기록을 저장하거나 덮어쓰지 않습니다.</p>';
   modal(h);
   const up=$('#recovery-use-primary'); if(up) up.onclick=()=>useStorageCandidate_(p);
   const ub=$('#recovery-use-backup'); if(ub) ub.onclick=()=>useStorageCandidate_(b);
-  const dl=$('#recovery-download'); if(dl) dl.onclick=()=>downloadRecoveryRaw_(p.raw,'기존원문');
+  const uq=$('#recovery-use-quarantine'); if(uq) uq.onclick=()=>useStorageCandidate_(q);
+  const dl=$('#recovery-download'); if(dl) dl.onclick=()=>{
+    if(downloadRecoveryRaw_(p.raw,'기존원문')) toast('기존 원문 내보내기를 시작했습니다.');
+  };
   $('#recovery-import').onclick=()=>$('#me-file').click();
   $('#recovery-new').onclick=confirmRecoveryNewStart_;
 }
@@ -9156,12 +9254,13 @@ function socialPostHtml(x){
 function socialProfileModal(){
   const p=SO.profile;
   const blocked=SO.blocks||[];
-  modal('<h2>'+(p?'내 커뮤니티 프로필':'익명 프로필 만들기')+'</h2><p class="muted" style="margin:5px 0 13px">실명 대신 커뮤니티에서만 사용할 닉네임입니다. 회복영역·회복일·충동기록은 프로필에 붙지 않습니다.</p><label class="tiny">닉네임 · 2~12자</label><input id="social-nick" maxlength="12" value="'+esc(p&&p.nickname||'')+'" placeholder="닉네임을 입력하세요"><p class="tiny" style="margin:7px 0 13px">한글·영문·숫자·공백·-·_를 사용할 수 있습니다. 관리자·운영자·오늘한걸음·마음프로와 혼동되는 이름은 사용할 수 없습니다. 가입 후에는 닉네임을 변경할 수 없습니다.</p><button class="btn" id="social-profile-save">'+(p?'닉네임 저장':'계속하기')+'</button>'+(p?'<div class="sep"></div><p class="tiny">내부 커뮤니티 ID · …'+esc(String(p.userId||'').slice(-8))+'<br>게시물 소유자 확인에만 사용하며 피드 화면에는 표시하지 않습니다.</p><h3 style="margin-top:15px">차단한 사용자</h3><div id="social-block-list">'+(blocked.length?blocked.map((b,i)=>'<div class="social-block-row"><span>'+esc(b.nickname||'익명')+'</span><button class="btn ghost sm" style="width:auto" data-social-unblock="'+i+'">차단 해제</button></div>').join(''):'<p class="tiny">차단한 사용자가 없습니다.</p>')+'</div><button class="btn ghost sm" id="social-profile-delete" style="margin-top:12px;color:var(--bad);border-color:var(--bad)">커뮤니티 프로필 삭제</button>':'')+'<div style="height:9px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
-  $('#social-profile-save').onclick=()=>{
+  modal('<h2>'+(p?'내 커뮤니티 프로필':'익명 프로필 만들기')+'</h2><p class="muted" style="margin:5px 0 13px">실명 대신 커뮤니티에서만 사용할 닉네임입니다. 회복영역·회복일·충동기록은 프로필에 붙지 않습니다.</p><label class="tiny">닉네임 · 2~12자</label><input id="social-nick" maxlength="12" value="'+esc(p&&p.nickname||'')+'" placeholder="닉네임을 입력하세요"'+(p?' readonly':'')+'><p class="tiny" style="margin:7px 0 13px">한글·영문·숫자·공백·-·_를 사용할 수 있습니다. 관리자·운영자·오늘한걸음·마음프로와 혼동되는 이름은 사용할 수 없습니다. 가입 후 닉네임은 변경되지 않으며, 다른 닉네임을 쓰려면 커뮤니티 탈퇴 후 새 프로필을 만들어야 합니다.</p>'+(p?'':'<button class="btn" id="social-profile-save">계속하기</button>')+(p?'<div class="sep"></div><p class="tiny">내부 커뮤니티 ID · …'+esc(String(p.userId||'').slice(-8))+'<br>게시물 소유자 확인에만 사용하며 피드 화면에는 표시하지 않습니다.</p><h3 style="margin-top:15px">차단한 사용자</h3><div id="social-block-list">'+(blocked.length?blocked.map((b,i)=>'<div class="social-block-row"><span>'+esc(b.nickname||'익명')+'</span><button class="btn ghost sm" style="width:auto" data-social-unblock="'+i+'">차단 해제</button></div>').join(''):'<p class="tiny">차단한 사용자가 없습니다.</p>')+'</div><button class="btn ghost sm" id="social-profile-delete" style="margin-top:12px;color:var(--bad);border-color:var(--bad)">커뮤니티 프로필 삭제</button>':'')+'<div style="height:9px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
+  const saveProfile=$('#social-profile-save');
+  if(saveProfile) saveProfile.onclick=()=>{
     const nick=socialNick($('#social-nick').value);
     if(!nick){toast('닉네임은 2~12자로 입력하고 관리자·운영자·오늘한걸음·마음프로·admin·official·staff와 혼동되는 이름은 피해주세요.');return;}
     if(!SO.profile) SO.profile={userId:socialNewId(),token:socialRandHex(32),nickname:nick,registeredUrl:''};
-    else {toast('가입 후 닉네임은 변경할 수 없습니다. 다른 닉네임을 사용하려면 커뮤니티 탈퇴 후 새 프로필을 만들어주세요.');return;}
+    else return;
     socialSave(); closeModal(); socialResetFeed(); drawSocial();
   };
   $$('[data-social-unblock]').forEach(b=>b.onclick=()=>{const i=Number(b.dataset.socialUnblock);if(i>=0){SO.blocks.splice(i,1);socialSave();socialProfileModal();if(cur==='social')drawSocial();}});
@@ -9366,7 +9465,7 @@ function drawMeet(){
     '<span class="b"><b>' + esc(x.n) + '</b><span>' + esc(x.d || '') + '</span></span>' +
     '<span class="acts">' +
     (x.t ? '<a class="go" href="tel:' + esc(String(x.t).replace(/[^0-9+\-]/g,'')) + '">전화</a>' : '') +
-    (x.w ? '<a class="go" href="' + esc(x.w) + '" target="_blank" rel="noopener">열기</a>' : '') +
+    (safeHttpUrl_(x.w) ? '<a class="go" href="' + esc(safeHttpUrl_(x.w)) + '" target="_blank" rel="noopener">열기</a>' : '') +
     '</span></div>').join('');
 
   renderMeet();
@@ -9484,7 +9583,7 @@ function renderMeet(){
       '<span>' + esc(r.d || '') + '</span></span>' +
       '<span class="acts">' +
       (r.t ? '<a class="go" href="tel:' + esc(String(r.t).replace(/[^0-9+\-]/g,'')) + '">전화</a>' : '') +
-      (r.w ? '<a class="go" href="' + esc(r.w) + '" target="_blank" rel="noopener">열기</a>' : '') +
+      (safeHttpUrl_(r.w) ? '<a class="go" href="' + esc(safeHttpUrl_(r.w)) + '" target="_blank" rel="noopener">열기</a>' : '') +
       editBtn(r) +
       '</span></div>';
   });
@@ -9870,7 +9969,7 @@ function aiMeetingCards(rows){
       '<span class="b"><b>' + esc(r.n) + '</b><span>' + esc([r.y ? r.y + '요일' : '', r.h || '', r.a || '', r.d || ''].filter(Boolean).join(' · ')) + '</span></span>' +
       '<span class="acts">' +
       (r.t ? '<a class="go" href="tel:' + esc(String(r.t).replace(/[^0-9+\-]/g,'')) + '">전화</a>' : '') +
-      (r.w ? '<a class="go" href="' + esc(r.w) + '" target="_blank" rel="noopener">열기</a>' : '') +
+      (safeHttpUrl_(r.w) ? '<a class="go" href="' + esc(safeHttpUrl_(r.w)) + '" target="_blank" rel="noopener">열기</a>' : '') +
       '</span></div>';
   });
   h += '<button class="btn ghost sm" id="ai-all-meet">전체 모임 찾기</button>';
@@ -9956,7 +10055,7 @@ function aiResourceCards(items){
       '<span class="acts">' +
       (r.t ? '<a class="go" href="tel:' + esc(String(r.t).replace(/[^0-9+\-]/g,'')) + '">전화</a>' : '') +
       (!r.x ? '<a class="go" href="' + esc(mapURL(mapQ(r))) + '" target="_blank" rel="noopener">지도</a>' : '') +
-      (r.w ? '<a class="go" href="' + esc(r.w) + '" target="_blank" rel="noopener">안내</a>' : '') +
+      (safeHttpUrl_(r.w) ? '<a class="go" href="' + esc(safeHttpUrl_(r.w)) + '" target="_blank" rel="noopener">안내</a>' : '') +
       '</span></div>';
   });
   h += '<div class="row"><button class="btn ghost sm" id="ai-centers">전체 센터</button>' +
@@ -10821,10 +10920,14 @@ function editBtn(x){
 
 /* 링크가 죽어도 전화는 걸리도록, 둘 다 있으면 둘 다 보여준다.
    map 을 켜면 그 곳 '이름' 으로 지도를 연다 — 낱말 검색과 달리 헛것이 안 나온다. */
+function safeHttpUrl_(u){
+  const x=String(u||'').trim();
+  return /^https?:\/\//i.test(x) ? x : '';
+}
 function card(x, icon, map){
   const acts =
     (x.t ? '<a class="go" href="tel:' + esc(String(x.t).replace(/[^0-9+\-]/g, '')) + '">전화</a>' : '') +
-    (x.w ? '<a class="go" href="' + esc(x.w) + '" target="_blank" rel="noopener">열기</a>' : '') +
+    (safeHttpUrl_(x.w) ? '<a class="go" href="' + esc(safeHttpUrl_(x.w)) + '" target="_blank" rel="noopener">열기</a>' : '') +
     (map && !x.x ? '<a class="go" target="_blank" rel="noopener" href="' +
            mapURL(mapQ(x)) + '">지도 보기</a>' : '') +
     editBtn(x);
@@ -12434,15 +12537,14 @@ $('#my-trail').onclick = () => go('rec');
 $('#my-settings').onclick = () => go('me');
 
 $('#me-export').onclick = () => {
-  const blob = new Blob([JSON.stringify(S, null, 1)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = '오늘 한 걸음_' + today() + '.json';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  const raw=JSON.stringify(S,null,1);
+  if(downloadJsonText_(raw,'백업')){
+    toast('백업 파일 내보내기가 완료되었습니다.');
+  }else toast('백업 파일을 내보내지 못했습니다.');
 };
 
 $('#me-import').onclick = () => $('#me-file').click();
+$('#me-recovery-manage').onclick = showSavedRecoveryBackups_;
 $('#me-file').onchange = e => {
   const f = e.target.files[0];
   if(!f) return;
@@ -12450,46 +12552,60 @@ $('#me-file').onchange = e => {
   r.onload = () => {
     const recovering=!!(storageRecovery && storageRecovery.blocking);
     try{
-      const j = JSON.parse(r.result);
-      if(!j || typeof j !== 'object' || Array.isArray(j)) throw new Error('형식이 다릅니다');
-      if(recovering && storageRecovery.primary && storageRecovery.primary.raw!=null &&
-         !preserveRecoveryRaw_(storageRecovery.primary.raw)) return;
-      const next=migrate(Object.assign(blankCopy_(), j));
-      if(recovering) storageRecovery.blocking=false;
-      S=next;
-      if(!save()){
-        if(recovering) storageRecovery.blocking=true;
-        return;
-      }
-      applyTheme();
-      toast('불러왔습니다.');
-      if(recovering) finishStorageRecovery_(S.started?'home':'intro');
-      else go(S.started?'home':'intro');
+      const j=JSON.parse(r.result);
+      if(!personalBackupShape_(j)) throw new Error('오늘 한 걸음 백업 형식이 아닙니다');
+      const next=migrate(Object.assign(blankCopy_(),j));
+      const candidate=storedCandidate_(JSON.stringify(j),'file');
+      if(!candidate.valid) throw new Error(candidate.error||'백업을 변환할 수 없습니다');
+      modal('<h2>이 백업을 불러올까요?</h2>'+
+        '<p class="muted" style="margin:6px 0 14px">현재 개인 기록은 기기 안전백업에 먼저 보존한 뒤 선택한 파일로 교체합니다.</p>'+
+        '<div class="note">불러올 백업 · 주요 기록 <b>'+candidate.recordCount+'건</b></div>'+
+        '<button class="btn" id="import-yes">안전백업 후 불러오기</button><div style="height:9px"></div>'+
+        '<button class="btn ghost" id="import-no">그만두기</button>');
+      $('#import-no').onclick=()=>{ if(recovering) showStorageRecoveryGate_(); else closeModal(); };
+      $('#import-yes').onclick=()=>{
+        let current=null;
+        try{current=localStorage.getItem(KEY);}catch(err){}
+        if(current!=null && current!==String(r.result) && !preserveRecoveryRaw_(current)) return;
+        if(!commitImportedState_(next,recovering)) return;
+        applyTheme(); drawIntro(); drawUrge();
+        toast('백업 파일을 불러왔습니다.');
+        if(recovering) finishStorageRecovery_(S.started?'home':'intro');
+        else { closeModal(); go(S.started?'home':'intro'); }
+      };
     }catch(err){
       if(recovering && storageRecovery) storageRecovery.blocking=true;
-      toast('읽을 수 없는 파일입니다.');
+      toast('오늘 한 걸음 백업 파일이 아니거나 읽을 수 없는 파일입니다.');
+      if(recovering) showStorageRecoveryGate_();
     }
   };
+  r.onerror=()=>toast('백업 파일을 읽지 못했습니다.');
   r.readAsText(f);
   e.target.value = '';
 };
 
 $('#me-wipe').onclick = () => {
   modal('<h2>정말 모두 지울까요?</h2>' +
-    '<p class="muted" style="margin:6px 0 14px">회복일, 감정, 충동, 모든 기록이 사라집니다. ' +
-    '되돌릴 수 없습니다. 먼저 파일로 내보내 두시는 것을 권합니다.</p>' +
-    '<button class="btn danger" id="wipe-yes">네, 모두 지웁니다</button>' +
+    '<p class="muted" style="margin:6px 0 14px">개인 회복기록과 기기에 남은 안전백업 2개까지 모두 삭제합니다. 커뮤니티 프로필은 별도이므로 지우지 않습니다. ' +
+    '되돌릴 수 없습니다. 먼저 백업 파일을 내보내 두시는 것을 권합니다.</p>' +
+    '<button class="btn danger" id="wipe-yes">네, 개인 기록을 모두 지웁니다</button>' +
     '<div style="height:9px"></div>' +
     '<button class="btn ghost" onclick="closeModal()">그만두기</button>');
   $('#wipe-yes').onclick = () => {
-    localStorage.removeItem(KEY);
-    S = JSON.parse(JSON.stringify(BLANK));
+    try{
+      localStorage.removeItem(KEY);
+      localStorage.removeItem(RECOVERY_BACKUP_KEY);
+      localStorage.removeItem(RECOVERY_QUARANTINE_KEY);
+    }catch(e){ toast('기기 기록을 모두 지우지 못했습니다.'); return; }
+    S = blankCopy_();
+    storageRecovery={state:'fresh',blocking:false,primary:null,backup:null,quarantine:null,error:''};
     /* 웹 기록만 비우고 Android AlarmManager 예약이 남는 일을 막습니다. */
     try{ nativeReminderLastSig = nativeReminderSignature(); }catch(e){ nativeReminderLastSig = ''; }
     closeModal();
     obTypes = []; obDates = {};
     drawIntro();
     go('intro');
+    toast('개인 기록과 기기 안전백업을 모두 지웠습니다.');
     setTimeout(clearNativeReminders, 80);
   };
 };
