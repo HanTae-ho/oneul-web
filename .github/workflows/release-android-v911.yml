@@ -1,15 +1,19 @@
-name: Release Android V9.1.2
+name: Release Android V9.1.3
 
-# V9.1.2는 이미 발행된 고정 릴리스입니다.
-# 이후 웹 소스 수정이 같은 태그의 Android 릴리스를 자동 재실행하지 않도록 수동 실행만 허용합니다.
+# V9.1.3 정식 릴리스: 이 워크플로 파일이 main에 병합될 때 한 번 실행합니다.
+# 경로 필터가 이 파일 자체라 다른 웹 소스 수정으로는 자동 재실행되지 않습니다.
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-android-v911.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-android-v9.1.2
+  group: release-android-v9.1.3
   cancel-in-progress: false
 
 jobs:
@@ -28,21 +32,21 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Verify V9.1.2 web release metadata
+      - name: Verify V9.1.3 web release metadata
         run: |
           set -euo pipefail
           test "$(git branch --show-current)" = "main"
           node release-version-check.js
-          grep -F "const BUILD='V9.1.2';" index.html
-          grep -F "const APP_VERSION = 'V9.1.2';" sw.js
-          grep -F "const V = 'ohg-v912-storage-recovery-r1';" sw.js
-          grep -F '"version": "V9.1.2"' latest-release.json
-          grep -F '"versionCode": 918' latest-release.json
-          grep -F 'releases/download/v9.1.2/oneul-v9.1.2.apk' latest-release.json
-          grep -F "verifiedVersion:'V9.1.2'" install.html
+          grep -F "const BUILD='V9.1.3';" index.html
+          grep -F "const APP_VERSION = 'V9.1.3';" sw.js
+          grep -F "const V = 'ohg-v913-record-management-r1';" sw.js
+          grep -F '"version": "V9.1.3"' latest-release.json
+          grep -F '"versionCode": 919' latest-release.json
+          grep -F 'releases/download/v9.1.3/oneul-v9.1.3.apk' latest-release.json
+          grep -F "verifiedVersion:'V9.1.3'" install.html
           echo "RELEASE_SOURCE_SHA=$GITHUB_SHA" >> "$GITHUB_ENV"
-          if git ls-remote --exit-code --tags origin refs/tags/v9.1.2 >/dev/null 2>&1; then
-            echo 'v9.1.2 tag already exists; refusing duplicate release' >&2
+          if git ls-remote --exit-code --tags origin refs/tags/v9.1.3 >/dev/null 2>&1; then
+            echo 'v9.1.3 tag already exists; refusing duplicate release' >&2
             exit 1
           fi
 
@@ -83,16 +87,16 @@ jobs:
           unzip -q android-v8-source.zip -d android-v8
           bash android-v9.0.20-restore-practice-label-release.sh
 
-      - name: Advance Android metadata only to V9.1.2
+      - name: Advance Android metadata only to V9.1.3
         run: |
           set -euo pipefail
           GRADLE=android-v8/app/build.gradle
-          sed -i "s/versionCode 915/versionCode 918/; s/versionName '9.0.20'/versionName '9.1.2'/" "$GRADLE"
+          sed -i "s/versionCode 915/versionCode 919/; s/versionName '9.0.20'/versionName '9.1.3'/" "$GRADLE"
           python3 - <<'PY'
           from pathlib import Path
           root=Path('android-v8/app/src/main')
           old='https://hantae-ho.github.io/oneul-web/native.html?appv=9.0.20'
-          new='https://hantae-ho.github.io/oneul-web/native.html?appv=9.1.2'
+          new='https://hantae-ho.github.io/oneul-web/native.html?appv=9.1.3'
           changed=[]
           for p in root.rglob('*'):
               if not p.is_file() or p.suffix.lower() not in {'.java','.xml'}:
@@ -105,9 +109,9 @@ jobs:
               raise SystemExit('V9.0.20 appv marker not found')
           print('updated appv marker:', *changed, sep='\n')
           PY
-          grep -F "versionCode 918" "$GRADLE"
-          grep -F "versionName '9.1.2'" "$GRADLE"
-          grep -R -F 'native.html?appv=9.1.2' android-v8/app/src/main
+          grep -F "versionCode 919" "$GRADLE"
+          grep -F "versionName '9.1.3'" "$GRADLE"
+          grep -R -F 'native.html?appv=9.1.3' android-v8/app/src/main
 
       - name: Restore existing release signing key
         env:
@@ -133,7 +137,7 @@ jobs:
           keyPassword=$KEY_PASSWORD
           EOF
 
-      - name: Build signed V9.1.2 APK and AAB
+      - name: Build signed V9.1.3 APK and AAB
         run: gradle -p android-v8 :app:assembleRelease :app:bundleRelease
 
       - name: Verify package, permissions and preserved native engines
@@ -146,7 +150,7 @@ jobs:
           echo "BUILT_AAB=$AAB" >> "$GITHUB_ENV"
           AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
           "$AAPT" dump badging "$APK" | tee /tmp/badging.txt
-          grep -F "package: name='io.github.hantae_ho.twa' versionCode='918' versionName='9.1.2'" /tmp/badging.txt
+          grep -F "package: name='io.github.hantae_ho.twa' versionCode='919' versionName='9.1.3'" /tmp/badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/permissions.txt
           grep -F 'android.permission.SCHEDULE_EXACT_ALARM' /tmp/permissions.txt
           grep -F 'android.permission.WAKE_LOCK' /tmp/permissions.txt
@@ -164,68 +168,67 @@ jobs:
           grep -F 'PowerManager.PARTIAL_WAKE_LOCK' "$PKG/RelaxTtsActivity.java"
           grep -F 'TextToSpeech.QUEUE_FLUSH' "$PKG/MindProVoiceService.java"
 
-      - name: Verify signer continuity with V9.0.20
+      - name: Verify signer continuity with V9.1.2
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           mkdir -p published
-          gh release download v9.0.20-test --pattern 'oneul-v9.0.20.apk' --dir published
-          echo '711b68a3da5c5ac82f588b6756a6b8a2b214b1a7914790ee48645a4994a5f821  published/oneul-v9.0.20.apk' | sha256sum -c -
+          gh release download v9.1.2 --pattern 'oneul-v9.1.2.apk' --dir published
+          echo 'fe0ae9db14d52c70a1ea50855f04aaeaf3a99ad002b205c1adfdeb185c0623c4  published/oneul-v9.1.2.apk' | sha256sum -c -
           APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
           "$APKSIGNER" verify --verbose --print-certs "$BUILT_APK" | tee /tmp/new-certs.txt
-          "$APKSIGNER" verify --print-certs published/oneul-v9.0.20.apk | tee /tmp/old-certs.txt
+          "$APKSIGNER" verify --print-certs published/oneul-v9.1.2.apk | tee /tmp/old-certs.txt
           grep 'Signer #1 certificate SHA-256 digest:' /tmp/new-certs.txt | sed 's/.*digest: //' > /tmp/new.sha
           grep 'Signer #1 certificate SHA-256 digest:' /tmp/old-certs.txt | sed 's/.*digest: //' > /tmp/old.sha
           diff -u /tmp/old.sha /tmp/new.sha
           jarsigner -verify "$BUILT_AAB"
-          echo 'V9.1.2 signer continuity PASS'
+          echo 'V9.1.3 signer continuity PASS'
 
       - name: Prepare release assets and checksums
         run: |
           set -euo pipefail
           mkdir -p dist
-          cp "$BUILT_APK" dist/oneul-v9.1.2.apk
-          cp "$BUILT_AAB" dist/oneul-v9.1.2.aab
-          (cd dist && sha256sum oneul-v9.1.2.apk oneul-v9.1.2.aab > SHA256SUMS.txt)
+          cp "$BUILT_APK" dist/oneul-v9.1.3.apk
+          cp "$BUILT_AAB" dist/oneul-v9.1.3.aab
+          (cd dist && sha256sum oneul-v9.1.3.apk oneul-v9.1.3.aab > SHA256SUMS.txt)
           cat dist/SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: oneul-v9.1.2-verified
+          name: oneul-v9.1.3-verified
           path: dist/*
           if-no-files-found: error
 
-      - name: Publish V9.1.2 GitHub Release
+      - name: Publish V9.1.3 GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           cat > /tmp/release-notes.md <<'EOF'
-          ## 오늘 한 걸음 V9.1.2
-          - 기존 V9.1.0 기록의 recordStart 마이그레이션 오류로 빈 상태가 저장될 수 있던 문제를 수정했습니다.
-          - 정상 기존 기록은 자동으로 사용하고, 상태 모순이나 읽기 오류가 있으면 저장을 차단한 채 복구 선택 화면에서 멈춥니다.
-          - 복구 또는 새 시작 전에 기존 원문을 별도 안전백업으로 보존합니다.
-          - 회복 시작일 선택 입력, 금연 실천, 오늘 일정 집중보기 등 V9.1.1 기능은 그대로 유지합니다.
-          - 금연 예정/금연 중을 주 회복영역과 분리한 선택형 건강실천으로 추가했습니다.
-          - 나 화면을 내 정보 · 설정 → 내 발자취 → 내가 되찾은 것 순서로 정리했습니다.
-          - 홈 오늘 일정은 지금 확인할 항목 중심으로 간결하게 표시하고, 전체보기에서 오늘 등록 일정을 확인할 수 있습니다.
-          - FAQ·사용설명서·개인정보처리방침을 실제 동작과 맞췄습니다.
-          - Android 네이티브 알림·부팅복원·치료알림·Relax/MindPro TTS 엔진은 검증된 기존 계보를 그대로 유지합니다.
-          - Android: versionCode 918 / versionName 9.1.2
+          ## 오늘 한 걸음 V9.1.3
+          - 백업 파일 내보내기 완료 안내와 날짜·시간 기반 고유 파일명을 적용했습니다.
+          - 백업 불러오기 전 파일 구조를 검증하고 현재 개인기록을 안전백업하며, 저장 실패 시 기존 상태를 유지합니다.
+          - 전체 지우기 시 개인기록 복구용 backup/quarantine도 함께 정리하되 커뮤니티 ohg.social.v1은 유지합니다.
+          - recovery-backup과 recovery-quarantine을 저장 진단에서 확인하고 복구할 수 있게 보강했습니다.
+          - 커뮤니티 닉네임 안내·개인정보처리방침 문구 정합성과 외부 자원 URL http/https scheme 검증을 보강했습니다.
+          - 기록 관리 핵심 흐름을 Playwright 회귀 테스트로 시뮬레이션합니다.
+          - DATA_SCHEMA=6, ohg.v1, ohg.social.v1, package io.github.hantae_ho.twa는 유지합니다.
+          - Android exact alarm·화면 OFF 알림·부팅 재등록·치료관리 알림·Relax TTS·MindPro Voice TTS 엔진은 기존 계보를 그대로 유지합니다.
+          - Android: versionCode 919 / versionName 9.1.3
           EOF
-          gh release create v9.1.2 dist/oneul-v9.1.2.apk dist/oneul-v9.1.2.aab dist/SHA256SUMS.txt \
+          gh release create v9.1.3 dist/oneul-v9.1.3.apk dist/oneul-v9.1.3.aab dist/SHA256SUMS.txt \
             --repo "$GITHUB_REPOSITORY" --target "$RELEASE_SOURCE_SHA" \
-            --title '오늘 한 걸음 V9.1.2' --notes-file /tmp/release-notes.md --latest
+            --title '오늘 한 걸음 V9.1.3' --notes-file /tmp/release-notes.md --latest
 
       - name: Verify published release assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release view v9.1.2 --repo "$GITHUB_REPOSITORY" --json tagName,name,isDraft,isPrerelease,url
+          gh release view v9.1.3 --repo "$GITHUB_REPOSITORY" --json tagName,name,isDraft,isPrerelease,url
           mkdir -p released
-          gh release download v9.1.2 --repo "$GITHUB_REPOSITORY" --pattern 'oneul-v9.1.2.apk' --dir released
-          sha256sum dist/oneul-v9.1.2.apk released/oneul-v9.1.2.apk
-          test "$(sha256sum dist/oneul-v9.1.2.apk | awk '{print $1}')" = "$(sha256sum released/oneul-v9.1.2.apk | awk '{print $1}')"
-          echo 'ANDROID_V9_1_0_RELEASE_PASS'
+          gh release download v9.1.3 --repo "$GITHUB_REPOSITORY" --pattern 'oneul-v9.1.3.apk' --dir released
+          sha256sum dist/oneul-v9.1.3.apk released/oneul-v9.1.3.apk
+          test "$(sha256sum dist/oneul-v9.1.3.apk | awk '{print $1}')" = "$(sha256sum released/oneul-v9.1.3.apk | awk '{print $1}')"
+          echo 'ANDROID_V9_1_3_RELEASE_PASS'
