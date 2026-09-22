@@ -3840,14 +3840,10 @@ function finishStorageRecovery_(target){
 function useStorageCandidate_(candidate){
   if(!candidate || !candidate.valid){ toast('사용할 수 있는 기존 데이터가 없습니다.'); return; }
   const current=storageRecovery && storageRecovery.primary ? storageRecovery.primary.raw : null;
-  if(current!=null && !preserveRecoveryRaw_(current)) return;
-  S=candidate.migrated;
-  if(!S.started) S.started=true;
-  if(storageRecovery) storageRecovery.blocking=false;
-  if(!save()){
-    if(storageRecovery) storageRecovery.blocking=true;
-    return;
-  }
+  if(current!=null && current!==candidate.raw && !preserveRecoveryRaw_(current)) return;
+  const next=candidate.migrated;
+  if(!next.started) next.started=true;
+  if(!commitImportedState_(next,true)) return;
   finishStorageRecovery_('home');
 }
 function confirmRecoveryNewStart_(){
