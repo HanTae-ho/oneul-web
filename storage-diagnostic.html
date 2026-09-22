@@ -29,12 +29,12 @@
   <div class="card"><div class="k">진단 결과</div><pre id="report"></pre></div>
   <button id="copy" type="button">진단 결과 복사</button>
   <button id="rerun" class="sec" type="button">다시 확인</button>
-  <p class="tiny">개인 기록 키: <code>ohg.v1</code> · 커뮤니티 설정 키: <code>ohg.social.v1</code><br>이 페이지에는 localStorage 쓰기·삭제 명령이 없습니다.</p>
+  <p class="tiny">개인 기록 키: <code>ohg.v1</code> · 안전백업: <code>ohg.v1.recovery-backup</code>, <code>ohg.v1.recovery-quarantine</code> · 커뮤니티 설정 키: <code>ohg.social.v1</code><br>이 페이지에는 localStorage 쓰기·삭제 명령이 없습니다.</p>
 </div>
 <script>
 (function(){
   'use strict';
-  const KEY='ohg.v1', SOCIAL_KEY='ohg.social.v1';
+  const KEY='ohg.v1', BACKUP_KEY='ohg.v1.recovery-backup', QUARANTINE_KEY='ohg.v1.recovery-quarantine', SOCIAL_KEY='ohg.social.v1';
   const RECORD_ARRAYS=['moods','halts','urges','nights','relapses','screenings','stepWorks','meaningChecks','smartWorks','familyStepWorks','medLog','eatLog','sleepLog'];
   const EXPECT_ARRAYS=['types','hours','meds','medLog','eats','eatLog','sleepLog','moods','halts','urges','nights','relapses','screenings','stepWorks','meaningChecks','smartWorks','familyStepWorks','aiChat'];
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -48,7 +48,15 @@
     return (Array.isArray(o&&o.habits)?o.habits:[]).reduce((n,h)=>n+(Array.isArray(h&&h.done)?h.done.length:0),0);
   }
   function inspect(){
-    const p=readOnlyGet(KEY), s=readOnlyGet(SOCIAL_KEY);
+    const p=readOnlyGet(KEY), b=readOnlyGet(BACKUP_KEY), q=readOnlyGet(QUARANTINE_KEY), s=readOnlyGet(SOCIAL_KEY);
+    const probeRaw=x=>{
+      const z={readable:x.ok,exists:x.ok&&x.value!==null,chars:x.ok&&x.value!==null?x.value.length:0,json:false,error:x.error||''};
+      if(!z.exists) return z;
+      try{const o=JSON.parse(x.value);z.json=!!o&&typeof o==='object'&&!Array.isArray(o);if(!z.json)z.error='객체 형식이 아님';}
+      catch(e){z.error='JSON 해석 오류: '+String(e&&e.message||e);}
+      return z;
+    };
+    const db=probeRaw(b), dq=probeRaw(q);
     const d={
       origin:location.origin,
       personalReadable:p.ok,
@@ -56,6 +64,7 @@
       personalChars:p.ok&&p.value!==null?p.value.length:0,
       personalJson:false,
       personalError:p.error||'',
+      backup:db, quarantine:dq,
       socialReadable:s.ok,
       socialExists:s.ok&&s.value!==null,
       socialChars:s.ok&&s.value!==null?s.value.length:0,
@@ -108,6 +117,8 @@
       ['started',d.personalJson?String(d.started):'-'],
       ['dataSchema',d.personalJson?String(d.schema):'-'],
       ['주요 기록 합계',d.personalJson?String(d.recordCount):'-'],
+      ['안전백업 1',d.backup.exists?(d.backup.json?'있음 · 정상 JSON · '+d.backup.chars.toLocaleString()+'자':'있음 · 읽기 오류'):'없음'],
+      ['안전백업 2',d.quarantine.exists?(d.quarantine.json?'있음 · 정상 JSON · '+d.quarantine.chars.toLocaleString()+'자':'있음 · 읽기 오류'):'없음'],
       ['커뮤니티 ohg.social.v1',d.socialExists?'있음':'없음'],
       ['커뮤니티 크기',d.socialExists?d.socialChars.toLocaleString()+'자':'-'],
       ['구조 경고',d.warnings.length?d.warnings.join(', '):'없음']
@@ -124,6 +135,12 @@
       'dataSchema='+(d.schema===null?'-':d.schema),
       'recordCount='+d.recordCount,
       'recordCounts='+(countText||'-'),
+      'recoveryBackupExists='+d.backup.exists,
+      'recoveryBackupChars='+d.backup.chars,
+      'recoveryBackupJson='+d.backup.json,
+      'recoveryQuarantineExists='+d.quarantine.exists,
+      'recoveryQuarantineChars='+d.quarantine.chars,
+      'recoveryQuarantineJson='+d.quarantine.json,
       'socialReadable='+d.socialReadable,
       'socialExists='+d.socialExists,
       'socialChars='+d.socialChars,
