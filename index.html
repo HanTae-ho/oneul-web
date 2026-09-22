@@ -3991,8 +3991,11 @@ function drawHome(){
       : '';
     if(showRecovery && showSmoke){
       d.classList.add('dual');
+      const smokeDualHtml='<div class="dayrow"><span class="n">'+esc(smoke.main)+'</span>'+
+        (smoke.unit?'<span class="u">'+esc(smoke.unit)+'</span>':'')+
+        '<span class="smoke-home-sub">'+esc(smoke.sub)+'</span></div>';
       d.innerHTML='<div class="daytile"><span class="daytile-h">회복</span>'+recoveryHtml+'</div>'+
-        '<div class="daytile"><span class="daytile-h">'+esc(smoke.title)+'</span>'+smokeHtml+'</div>';
+        '<div class="daytile"><span class="daytile-h">'+esc(smoke.title)+'</span>'+smokeDualHtml+'</div>';
     } else if(showRecovery){
       d.innerHTML=recoveryHtml;
     } else if(showSmoke){
