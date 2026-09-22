@@ -582,7 +582,8 @@ addEventListener('appinstalled', function(){
   @media(max-width:350px){.learnmini{grid-template-columns:repeat(3,minmax(0,1fr))}.learnmini .minitool{min-height:96px;padding:9px 4px}.learnmini .minitool b{font-size:12.5px}.practicegrid,.checkmini{grid-template-columns:1fr}.practicecard{min-height:0}}
   /* V8.1.5 — 습관: 추천 예시를 복사해 쓰고, 내 습관은 자유롭게 수정합니다. */
   .habit-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:17px 0 9px}.habit-head h2{margin:0!important;color:var(--tx)!important;font-weight:700!important}.habit-list{display:grid;gap:9px}.habit-card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px}.habit-card.done{opacity:.72}.habit-card .top{display:flex;align-items:flex-start;gap:10px}.habit-card .top .grow b{display:block;font-size:15.5px}.habit-card .meta{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.5}.habit-card .checkline{display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:10px;border-top:1px solid var(--line)}.habit-card .checkline button{width:31px;height:31px;border-radius:9px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc);background:var(--bg)}.habit-card .checkline button.on{background:var(--acc);color:#fff;border-color:var(--acc)}.habit-card .checkline span{flex:1;font-size:13px;line-height:1.45}.habit-actions{display:flex;gap:7px;margin-top:10px}.habit-actions .btn{margin:0;width:auto;flex:1;padding:8px 7px;font-size:12px}.habit-template{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:8px}.habit-template b{font-size:14.5px}.habit-template p{margin:3px 0 9px;font-size:12px;color:var(--dim);line-height:1.5}.habit-template .rowbtn{display:flex;gap:7px}.habit-template .rowbtn .btn{margin:0;padding:8px 7px;font-size:12px}.habit-edit .field{margin-bottom:15px}.habit-edit .field>label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.habit-edit .opts{gap:6px}.habit-edit .opt{padding:8px 10px;font-size:12.5px}.weekday-opts{grid-template-columns:repeat(7,minmax(0,1fr));gap:5px!important}.weekday-opts .opt{padding:8px 2px;justify-content:center}.habit-home{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}.habit-home h3{margin:0 0 9px}.habit-home-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--line)}.habit-home-row:first-of-type{border-top:0}.habit-home-row .hcheck{width:31px;height:31px;flex:none;border-radius:9px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--acc)}.habit-home-row .hcheck.on{background:var(--acc);color:#fff;border-color:var(--acc)}.habit-home-row .txt{flex:1;min-width:0}.habit-home-row .txt b{display:block;font-size:13.5px}.habit-home-row .txt span{display:block;font-size:11.5px;color:var(--dim);margin-top:1px}.habit-home-row .time{font-size:11.5px;color:var(--faint);white-space:nowrap}
-  /* V8.1.6 — 홈의 습관·복약·식사·잠·외래를 한 장의 오늘 일정으로 모읍니다. */
+  /* 홈의 오늘 일정 — 기본보기는 지금부터 확인할 항목만, 전체보기는 오늘 등록된 항목을 보여줍니다.
+     잠자리는 체크 일정이 아니므로 행으로 넣지 않고, 아침 수면상태 질문만 별도로 유지합니다. */
   .today-home{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
   .today-home h3{margin:0}.today-summary{font-size:11.5px;color:var(--dim);margin-top:2px}
   .today-row{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line)}
@@ -2331,10 +2332,10 @@ addEventListener('appinstalled', function(){
     <h1 style="margin:0">나</h1>
     <button class="tiny" style="color:var(--acc);font-weight:600" onclick="appBack('home')">← 홈</button>
   </div>
-  <p class="muted" style="margin:0 0 14px">내 기록과 설정을 확인하고, 앱 안내와 의견 보내기를 이용합니다.</p>
-  <div id="rec-reclaim"></div>
-  <button class="toolcard" id="my-trail"><span class="ic" data-ico="check"></span><span class="b"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 실천기록 · 자가점검 · 통계 · 회복 패턴</span></span><span class="go">열기</span></button>
-  <button class="toolcard" id="my-settings" style="margin-top:9px"><span class="ic" data-ico="sprout"></span><span class="b"><b>내 정보 · 설정</b><span>역할 · 회복영역 · 화면 · 앱 · 기록 관리</span></span><span class="go">열기</span></button>
+  <p class="muted" style="margin:0 0 14px">내 설정을 먼저 확인하고, 기록과 회복의 변화를 돌아볼 수 있습니다.</p>
+  <button class="toolcard" id="my-settings"><span class="ic" data-ico="sprout"></span><span class="b"><b>내 정보 · 설정</b><span>역할 · 회복영역 · 금연 실천 · 화면 · 앱 · 기록 관리</span></span><span class="go">열기</span></button>
+  <button class="toolcard" id="my-trail" style="margin-top:9px"><span class="ic" data-ico="check"></span><span class="b"><b>내 발자취</b><span>감정 · 충동 · 하루 · 몸 · 실천기록 · 자가점검 · 통계 · 회복 패턴</span></span><span class="go">열기</span></button>
+  <div id="rec-reclaim" style="margin-top:9px"></div>
 
   <div style="height:12px"></div>
 
@@ -2557,7 +2558,7 @@ addEventListener('appinstalled', function(){
     <details class="faq"><summary>처음에는 무엇부터 하면 되나요?</summary><div class="faq-a"><p>처음 설정에서 역할과 회복 영역을 고르고, 회복 시작일은 정확히 아는 경우에만 입력합니다. 시작일을 모르면 비워둘 수 있습니다. 지역을 정한 뒤 홈에서 오늘 할 일과 상태를 확인하고, 새 계획이나 연습은 <b>회복도구</b>에서 시작합니다.</p></div></details>
     <details class="faq"><summary>내 기록은 어디에 저장되나요?</summary><div class="faq-a"><p>감정, 충동, 하루, 몸, 12단계, 회복 실천도구, 자가점검 결과 같은 개인 회복기록은 기본적으로 <b>현재 기기 안</b>에 저장됩니다. 자동으로 다른 사람이나 마음프로에 전달되지 않습니다.</p></div></details>
     <details class="faq"><summary>지나간 기록은 어디에서 볼 수 있나요?</summary><div class="faq-a"><p><b>나 → 내 발자취</b>에서 감정·충동·하루·몸·실천기록(의미·12단계·회복 실천도구)·자가점검·통계·회복 패턴을 다시 볼 수 있습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('rec')">내 발자취 열기</button></div></details>
-    <details class="faq"><summary>내가 되찾은 것은 어디에서 보나요?</summary><div class="faq-a"><p>당사자 모드에서는 <b>나</b> 화면 상단의 접힌 <b>내가 되찾은 것</b>을 눌러 회복일·되찾은 시간·지킨 비용·회복 실천을 한눈에 볼 수 있습니다. 회복 시작일이 없으면 회복일이라고 표시하지 않고 <b>앱 기록 시작일부터의 기록 기간</b>을 기준으로 선택한 시간·비용 추정치를 계산합니다. 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('my')">나 열기</button></div></details>
+    <details class="faq"><summary>내가 되찾은 것은 어디에서 보나요?</summary><div class="faq-a"><p>당사자 모드에서는 <b>나 → 내가 되찾은 것</b>을 눌러 회복일·되찾은 시간·지킨 비용·회복 실천을 한눈에 볼 수 있습니다. 회복 시작일이 없으면 회복일이라고 표시하지 않고 <b>앱 기록 시작일부터의 기록 기간</b>을 기준으로 선택한 시간·비용 추정치를 계산합니다. 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('my')">나 열기</button></div></details>
     <details class="faq"><summary>기록을 백업하거나 다른 기기로 옮길 수 있나요?</summary><div class="faq-a"><p><b>나 → 내 정보 · 설정 → 기록 관리</b>에서 기록을 내보내고 다시 불러올 수 있습니다. 앱 삭제나 기기 변경 전에는 먼저 내보내기를 권합니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('me')">기록 관리 열기</button></div></details>
     <details class="faq"><summary>앱을 업데이트하거나 다시 설치하면 기록은 어떻게 되나요?</summary><div class="faq-a"><p>기존 앱 위에 업데이트하는 경우에는 같은 앱 데이터가 유지되도록 설계되어 있습니다. 다만 <b>앱 삭제, 앱 데이터 삭제, 기기 초기화</b>를 하면 기기 안 기록이 사라질 수 있으므로 먼저 기록을 내보내세요.</p></div></details>
   </div>
@@ -2610,11 +2611,12 @@ addEventListener('appinstalled', function(){
 
     <details class="faq"><summary>2. 화면과 메뉴 구조</summary><div class="faq-a">
       <p>하단 메뉴는 <b>홈 · 회복도구 · 헬프 · 마음프로 · 커뮤니티</b>를 중심으로 사용합니다. 홈 오른쪽 위의 사람 모양 버튼을 누르면 <b>나</b>로 들어갑니다.</p>
-      <p style="margin-top:8px">당사자 모드의 <b>나</b> 화면에는 위에서부터 <b>내가 되찾은 것 → 내 발자취 → 내 정보 · 설정 → 지원 및 안내 → 앱에 바라는 점</b>이 배치됩니다. <b>내가 되찾은 것</b>은 기본적으로 접혀 있어 내 발자취와 설정이 바로 보이며, 필요할 때 눌러 자세히 펼칩니다. 가족·보호자 모드에서는 당사자의 회복성과를 대신 계산하지 않도록 표시하지 않습니다.</p>
+      <p style="margin-top:8px">당사자 모드의 <b>나</b> 화면에는 위에서부터 <b>내 정보 · 설정 → 내 발자취 → 내가 되찾은 것 → 지원 및 안내 → 앱에 바라는 점</b>이 배치됩니다. 먼저 역할·회복영역·금연 실천·화면 같은 개인 설정을 찾기 쉽게 두고, 그 아래에서 기록과 회복의 변화를 돌아봅니다. 가족·보호자 모드에서는 당사자의 회복성과를 대신 계산하지 않도록 <b>내가 되찾은 것</b>을 표시하지 않습니다.</p>
     </div></details>
 
     <details class="faq"><summary>3. 홈 — 오늘 상태를 한눈에 보기</summary><div class="faq-a">
-      <p>홈은 매일 가장 먼저 확인하는 화면입니다. 당사자 모드에서는 선택한 <b>회복일, 금연 시작·예정, 오늘의 상태, HALT, 복약·식사·잠</b>처럼 지금 챙길 항목을 한곳에서 확인합니다. 회복일과 금연을 모두 표시하면 두 항목을 같은 줄의 2열로 보여주고, 하나만 사용하면 기존처럼 한 줄 전체 폭으로 보여줍니다.</p>
+      <p>홈은 매일 가장 먼저 확인하는 화면입니다. 당사자 모드에서는 선택한 <b>회복일, 금연 시작·예정, 오늘의 상태, HALT, 복약·식사</b>처럼 지금 챙길 항목을 한곳에서 확인합니다. 회복일과 금연을 모두 표시하면 두 항목을 같은 줄의 2열로 보여주고, 하나만 사용하면 기존처럼 한 줄 전체 폭으로 보여줍니다.</p>
+      <p style="margin-top:8px"><b>오늘 일정</b>은 기본적으로 지금부터 확인할 항목만 간단히 보여줍니다. 완료한 습관·복약·식사는 접고, 다음 끼니 시간이 시작되면 지난 끼니도 기본보기에서 숨깁니다. 복약과 습관은 시간이 지났더라도 완료하지 않았다면 계속 남으며, 잠자리는 체크 일정이 아니어서 일정 행에는 표시하지 않습니다. 필요하면 <b>오늘 전체 일정 보기</b>로 오늘 항목을 다시 펼칠 수 있습니다.</p>
       <p style="margin-top:8px">힘든 상태가 올라오면 홈과 위기 흐름에서 충동 대응, 호흡, 도움글, 사람 연결 등 필요한 기능으로 이어갈 수 있습니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('home')">홈 열기</button>
     </div></details>
@@ -2678,7 +2680,7 @@ addEventListener('appinstalled', function(){
     </div></details>
 
     <details class="faq"><summary>12. 나 — 회복 요약 · 기록 · 설정 · 안내</summary><div class="faq-a">
-      <p>당사자 모드의 <b>나</b> 화면 상단에는 <b>내가 되찾은 것</b>이 표시됩니다. 회복 시작일을 입력한 영역은 그 날짜에서 회복일을 계산하고, 시작일을 비워둔 경우에는 회복일로 바꾸어 부르지 않고 <b>앱 기록 시작일부터의 기록 기간</b>을 사용합니다. <b>회복 실천</b>은 내 습관에서 직접 체크해 기록한 회복 행동 횟수를 보여줍니다.</p>
+      <p>당사자 모드의 <b>나</b> 화면에서 <b>내 정보 · 설정 → 내 발자취 → 내가 되찾은 것</b> 순서로 확인할 수 있습니다. <b>내가 되찾은 것</b>에서 회복 시작일을 입력한 영역은 그 날짜에서 회복일을 계산하고, 시작일을 비워둔 경우에는 회복일로 바꾸어 부르지 않고 <b>앱 기록 시작일부터의 기록 기간</b>을 사용합니다. <b>회복 실천</b>은 내 습관에서 직접 체크해 기록한 회복 행동 횟수를 보여줍니다.</p>
       <p style="margin-top:8px"><b>되찾은 시간</b>과 <b>지킨 비용</b>은 선택 기능입니다. <b>기준 설정</b>에서 회복 전 하루 평균 시간·실제 사용비용을 입력한 경우에만 추정치를 표시하며, 회복 시작일이 없으면 앱 기록 시작일부터 계산합니다. 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p>
       <p style="margin-top:8px"><b>내 발자취</b>에서는 감정·충동·하루·몸·실천기록(의미·12단계·회복 실천도구)·자가점검·통계·회복 패턴을 다시 보고, <b>내 정보 · 설정</b>에서는 역할·회복영역·화면·앱·추천하기·기록 관리를 관리합니다.</p>
       <p style="margin-top:8px"><b>지원 및 안내</b>와 <b>앱에 바라는 점</b>은 <b>내 정보 · 설정</b> 안이 아니라 <b>나</b> 화면에서 바로 이용하며, 앱에 바라는 점은 지원 및 안내 아래에 배치됩니다.</p>
@@ -4927,6 +4929,21 @@ let homeTodayExpanded=false;
 function homeTimeKey(v){
   const m=String(v||'').match(/^(\d{2}):(\d{2})$/); return m?(+m[1]*60 + +m[2]):9999;
 }
+/* 기본 홈에서는 완료한 항목을 걷어내고, 끼니는 다음 끼니 시간이 시작되면 지난 끼니를 접습니다.
+   복약·습관은 시간이 지났더라도 아직 완료하지 않았다면 계속 남깁니다. */
+function homeTodayFocusItems(items,nowMin){
+  nowMin=Number.isFinite(nowMin)?nowMin:(new Date().getHours()*60+new Date().getMinutes());
+  return (items||[]).filter(x=>{
+    if(x.action && x.done) return false;
+    if(x.kind!=='eat') return true;
+    const i=EATSLOT.findIndex(s=>s.k===x.id);
+    if(i<0 || i>=EATSLOT.length-1) return true;
+    const next=EATSLOT[i+1];
+    const configured=(S.eats||[]).find(m=>m.s===next.k);
+    const boundary=homeTimeKey((configured&&configured.t)||next.d);
+    return nowMin<boundary;
+  });
+}
 function drawTodayScheduleHome(){
   const box=$('#home-today'); if(!box) return;
   const fam=famMode(), d=today(), items=[];
@@ -4953,8 +4970,8 @@ function drawTodayScheduleHome(){
   });
 
   const sp=S.sleep||{};
-  if(sp.on && /^\d{2}:\d{2}$/.test(String(sp.bed||'')))
-    items.push({kind:'sleep',id:'bed',time:sp.bed,label:'잠자리',sub:'잘 시간',done:false,action:0});
+  /* 잠자리는 완료를 누르는 일정이 아니므로 홈의 일정 행에서는 제외합니다.
+     수면 설정·알림과 아래의 '어젯밤 잠' 질문은 그대로 유지합니다. */
 
   items.sort((a,b)=>homeTimeKey(a.time)-homeTimeKey(b.time));
 
@@ -4978,19 +4995,27 @@ function drawTodayScheduleHome(){
   const configured=items.length || visitHtml || askSleep;
   if(!configured){ box.innerHTML=''; return; }
 
-  const homeLimit=5, canFold=items.length>homeLimit;
-  const shown=(canFold&&!homeTodayExpanded)?items.slice(0,homeLimit):items;
+  const now=new Date(), nowMin=now.getHours()*60+now.getMinutes();
+  const focusItems=homeTodayFocusItems(items,nowMin);
+  const homeLimit=5;
+  const shown=homeTodayExpanded?items:focusItems.slice(0,homeLimit);
+  const hiddenCount=Math.max(0,items.length-shown.length);
+  const canToggle=homeTodayExpanded || hiddenCount>0;
   let html='<div class="today-home"><div class="sp" style="align-items:flex-start"><div><h3>오늘 일정</h3>'+
-    (actionable?'<div class="today-summary">오늘 실천 '+completed+' / '+actionable+' 완료</div>':'')+
+    (actionable?'<div class="today-summary">지금 확인 '+focusItems.length+'개 · 오늘 완료 '+completed+' / '+actionable+'</div>':'')+
     '</div><button class="tiny link" id="home-today-manage">일정 관리</button></div>';
+  if(!shown.length && items.length){
+    html+='<p class="tiny" style="margin:10px 0 4px">지금 확인할 일정은 없습니다.</p>';
+  }
   shown.forEach((x,i)=>{
-    const icon=x.kind==='sleep'?'sleep':(x.kind==='visit'?'cal':(x.done?'check':'box'));
+    const icon=x.kind==='visit'?'cal':(x.done?'check':'box');
     const btn=x.action?'<button class="tcheck'+(x.done?' on':'')+'" data-today-kind="'+x.kind+'" data-today-id="'+esc(x.id)+'" data-today-done="'+(x.done?'1':'0')+'" aria-label="'+esc(x.label+(x.done?' 완료. 길게 눌러 수정':' 완료로 표시'))+'">'+ico(icon)+'</button>':'<span class="tcheck static">'+ico(icon)+'</span>';
     html+='<div class="today-row'+(i===0?' first':'')+'">'+btn+'<div class="txt"><b>'+esc(x.label)+'</b><span>'+esc(x.sub)+'</span></div><span class="time">'+esc(x.time||'')+'</span></div>';
   });
-  if(canFold){
-    const hidden=Math.max(0,items.length-homeLimit);
-    html+='<button class="today-more" id="home-today-more">'+(homeTodayExpanded?'간단히 보기':'전체 보기 · '+hidden+'개 더')+'</button>';
+  if(canToggle){
+    html+='<button class="today-more" id="home-today-more">'+
+      (homeTodayExpanded?'필요한 일정만 보기':'오늘 전체 일정 보기 · '+items.length+'개')+
+      '</button>';
   }
   if(items.some(x=>x.action&&x.done)) html+='<div class="today-edit-hint">잘못 체크했다면 완료 표시를 길게 눌러 수정할 수 있어요.</div>';
   html+=visitHtml;
