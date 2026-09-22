@@ -3807,7 +3807,7 @@ function showSavedRecoveryBackups_(){
   $('[data-recovery-export]').forEach(btn=>btn.onclick=()=>{
     const c=btn.dataset.recoveryExport==='backup'?b:q;
     if(c&&downloadRecoveryRaw_(c.raw,btn.dataset.recoveryExport==='backup'?'안전백업1':'안전백업2'))
-      toast('백업 파일 내보내기를 시작했습니다.');
+      toast('백업 파일 내보내기가 완료되었습니다.');
   });
   $('[data-recovery-restore]').forEach(btn=>btn.onclick=()=>{
     const c=btn.dataset.recoveryRestore==='backup'?b:q;
@@ -3859,7 +3859,7 @@ function confirmRecoveryNewStart_(){
     if(storageRecovery) storageRecovery.blocking=false;
     try{ localStorage.removeItem(KEY); }catch(e){ toast('기존 개인 저장 데이터를 정리하지 못했습니다.'); if(storageRecovery) storageRecovery.blocking=true; return; }
     S=blankCopy_();
-    storageRecovery={state:'fresh',blocking:false,primary:null,backup:storageRecovery&&storageRecovery.backup||null,error:''};
+    storageRecovery={state:'fresh',blocking:false,primary:null,backup:storageRecovery&&storageRecovery.backup||null,quarantine:storageRecovery&&storageRecovery.quarantine||null,error:''};
     obTypes=[]; obDates={};
     setTimeout(clearNativeReminders,80);
     finishStorageRecovery_('intro');
