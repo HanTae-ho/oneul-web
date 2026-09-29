@@ -342,10 +342,10 @@ const srv = http.createServer((req, res) => {
     S.meds=MEDSLOT.map(x=>({s:x.k,t:x.d})); S.medLog=[]; S.eats=[]; S.eatLog=[]; S.sleep={on:0,bed:'23:00',up:'07:00'};
     homeTodayExpanded=false; drawTodayScheduleHome();
   });
-  assert((await pg.$eval('#home-today .today-row',a=>a.length))===3,'간단히 보기에서는 오늘 일정이 최대 3개만 먼저 보여야 함');
+  assert((await pg['$$eval']('#home-today .today-row',a=>a.length))===3,'간단히 보기에서는 오늘 일정이 최대 3개만 먼저 보여야 함');
   assert(await pg.isVisible('#home-today-more'),'간단히 보기에서 숨은 일정은 펼쳐 볼 수 있어야 함');
   await pg.click('#home-today-more'); await pg.waitForTimeout(80);
-  assert((await pg.$eval('#home-today .today-row',a=>a.length))>=4,'전체 펼치기에서는 등록된 일정을 모두 확인 가능');
+  assert((await pg['$$eval']('#home-today .today-row',a=>a.length))>=4,'전체 펼치기에서는 등록된 일정을 모두 확인 가능');
   await pg.evaluate(()=>{ treatmentCfg().medOn=0; S.meds=[]; homeTodayExpanded=false; drawTodayScheduleHome(); });
 
   await pg.evaluate(() => {
@@ -725,10 +725,10 @@ const srv = http.createServer((req, res) => {
 
   // 도움
   await pg.click('#tabs button[data-t="help"]'); await pg.waitForTimeout(300);
-  console.log('13. 핫라인 =', await pg.$eval('#help-lines a', a => a.map(x => x.getAttribute('href')).join(' ')));
-  const fixedCalls=await pg.$eval('#help-fixed-lines a',a=>a.map(x=>x.getAttribute('href')));
+  console.log('13. 핫라인 =', await pg['$$eval']('#help-lines a', a => a.map(x => x.getAttribute('href')).join(' ')));
+  const fixedCalls=await pg['$$eval']('#help-fixed-lines a',a=>a.map(x=>x.getAttribute('href')));
   assert(fixedCalls.includes('tel:119')&&fixedCalls.includes('tel:109'),'헬프 맨 위 119·109는 앱 내 고정 연결');
-  assert(await pg.$eval('#help-lines a',a=>a.every(x=>!['tel:119','tel:109'].includes(x.getAttribute('href')))),'헬프 동적 목록에는 109·119 중복 없음');
+  assert(await pg['$$eval']('#help-lines a',a=>a.every(x=>!['tel:119','tel:109'].includes(x.getAttribute('href')))),'헬프 동적 목록에는 109·119 중복 없음');
   await shot('13-help');
 
   // 마음프로 Local-first — AI 서버 없이 앱 데이터 설명 + 위치 불일치 선택
