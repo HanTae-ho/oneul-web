@@ -782,7 +782,9 @@ const srv = http.createServer((req, res) => {
   await pg.evaluate(()=>go('home')); await pg.waitForTimeout(80);
   assert(await pg.isVisible('#home-daily')&&await pg.isVisible('#home-quote'),'전체 보기에서는 숨긴 두 요소가 다시 보여야 함');
   await pg.evaluate(()=>go('me')); await pg.waitForTimeout(80);
-  await pg.locator('#p-me .acc-h', {hasText:'앱'}).click(); await pg.waitForTimeout(80);
+  if(!(await pg.isVisible('#me-view-mode'))){
+    await pg.locator('#p-me .acc-h', {hasText:'앱'}).click(); await pg.waitForTimeout(80);
+  }
   await pg.click('#me-view-mode [data-view-mode="simple"]'); await pg.waitForTimeout(80);
   assert(await pg.evaluate(()=>S.viewMode==='simple'&&document.body.classList.contains('simple-view')),'간단히 보기 재선택이 즉시 저장·적용');
   await pg.click('#me-theme [data-theme="dark"]'); await pg.waitForTimeout(300);
