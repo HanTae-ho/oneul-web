@@ -180,8 +180,8 @@ const srv = http.createServer((req, res) => {
     assert(await mgrPg.isVisible('#me-recovery-manage'),'기록 관리에서 기기 안전백업 확인 버튼 표시');
     await mgrPg.click('#me-recovery-manage'); await mgrPg.waitForTimeout(80);
     assert((await mgrPg.$eval('#modin',e=>e.innerText)).includes('안전백업 1')&&(await mgrPg.$eval('#modin',e=>e.innerText)).includes('안전백업 2'),'기기 안전백업 1·2를 함께 표시');
-    assert((await mgrPg.$('[data-recovery-export]')).length===2,'두 안전백업의 파일 내보내기 버튼 연결');
-    assert((await mgrPg.$('[data-recovery-restore]')).length===2,'두 안전백업의 복구 버튼 연결');
+    assert(await mgrPg.evaluate(()=>document.querySelectorAll('[data-recovery-export]').length===2),'두 안전백업의 파일 내보내기 버튼 연결');
+    assert(await mgrPg.evaluate(()=>document.querySelectorAll('[data-recovery-restore]').length===2),'두 안전백업의 복구 버튼 연결');
     await mgrPg.click('[data-recovery-export="backup"]'); await mgrPg.waitForTimeout(30);
     assert(await mgrPg.evaluate(()=>window.__backupExportClicks)===1,'안전백업 파일 내보내기 버튼이 실제로 동작');
     await mgrPg.click('[data-recovery-restore="backup"]'); await mgrPg.waitForTimeout(30);
