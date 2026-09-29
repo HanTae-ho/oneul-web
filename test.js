@@ -147,6 +147,49 @@ const srv = http.createServer((req, res) => {
     await exCtx.close();
   }
 
+  // 기기 안전백업 관리 화면은 실제 버튼을 연결할 때도 오류 없이 열려야 합니다.
+  {
+    const mgrCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul',acceptDownloads:true});
+    const mgrPg=await mgrCtx.newPage();
+    const pageErrors=[];
+    mgrPg.on('pageerror',e=>pageErrors.push(String(e&&e.message||e)));
+    const current={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(10)},goal:'현재 기록',
+      moods:[{t:Date.now(),v:3}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],meaningChecks:[],smartWorks:[],
+      familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+    const backup={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(20)},goal:'안전백업1',
+      moods:[{t:Date.now()-5000,v:4}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],meaningChecks:[],smartWorks:[],
+      familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+    const quarantine={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(30)},goal:'안전백업2',
+      moods:[{t:Date.now()-10000,v:2}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],meaningChecks:[],smartWorks:[],
+      familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+    await mgrCtx.addInitScript(v=>{
+      localStorage.setItem('ohg.v1',v.current);
+      localStorage.setItem('ohg.v1.recovery-backup',v.backup);
+      localStorage.setItem('ohg.v1.recovery-quarantine',v.quarantine);
+    },{current:JSON.stringify(current),backup:JSON.stringify(backup),quarantine:JSON.stringify(quarantine)});
+    await mgrPg.goto('http://localhost:8899/index.html'); await mgrPg.waitForTimeout(250);
+    await mgrPg.evaluate(()=>{
+      go('me');
+      window.__backupExportClicks=0;
+      HTMLAnchorElement.prototype.click=function(){ if(this.download) window.__backupExportClicks++; };
+    });
+    await mgrPg.$eval('#me-recovery-manage',el=>{
+      const acc=el.closest('.acc'),head=acc&&acc.querySelector('.acc-h');
+      if(head&&!acc.classList.contains('on')) head.click();
+    });
+    assert(await mgrPg.isVisible('#me-recovery-manage'),'기록 관리에서 기기 안전백업 확인 버튼 표시');
+    await mgrPg.click('#me-recovery-manage'); await mgrPg.waitForTimeout(80);
+    assert((await mgrPg.$eval('#modin',e=>e.innerText)).includes('안전백업 1')&&(await mgrPg.$eval('#modin',e=>e.innerText)).includes('안전백업 2'),'기기 안전백업 1·2를 함께 표시');
+    assert((await mgrPg.$('[data-recovery-export]')).length===2,'두 안전백업의 파일 내보내기 버튼 연결');
+    assert((await mgrPg.$('[data-recovery-restore]')).length===2,'두 안전백업의 복구 버튼 연결');
+    await mgrPg.click('[data-recovery-export="backup"]'); await mgrPg.waitForTimeout(30);
+    assert(await mgrPg.evaluate(()=>window.__backupExportClicks)===1,'안전백업 파일 내보내기 버튼이 실제로 동작');
+    await mgrPg.click('[data-recovery-restore="backup"]'); await mgrPg.waitForTimeout(30);
+    assert((await mgrPg.$eval('#modin',e=>e.innerText)).includes('이 안전백업을 복구할까요?'),'안전백업 복구 확인 화면 연결');
+    assert(pageErrors.length===0,'기기 안전백업 관리 화면에서 JavaScript pageerror 없음');
+    await mgrCtx.close();
+  }
+
   // 전혀 다른 JSON은 백업으로 인정하지 않고 현재 기록을 보존합니다.
   {
     const imCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
