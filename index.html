@@ -3824,12 +3824,12 @@ function showSavedRecoveryBackups_(){
   h+=row(b,'안전백업 1')+row(q,'안전백업 2')+
     '<button class="btn ghost" id="recovery-manage-close">닫기</button>';
   modal(h);
-  $('[data-recovery-export]').forEach(btn=>btn.onclick=()=>{
+  $$('[data-recovery-export]').forEach(btn=>btn.onclick=()=>{
     const c=btn.dataset.recoveryExport==='backup'?b:q;
     if(c&&downloadRecoveryRaw_(c.raw,btn.dataset.recoveryExport==='backup'?'안전백업1':'안전백업2'))
       toast('백업 파일 내보내기가 완료되었습니다.');
   });
-  $('[data-recovery-restore]').forEach(btn=>btn.onclick=()=>{
+  $$('[data-recovery-restore]').forEach(btn=>btn.onclick=()=>{
     const c=btn.dataset.recoveryRestore==='backup'?b:q;
     if(!c||!c.valid) return;
     modal('<h2>이 안전백업을 복구할까요?</h2><p class="muted">현재 개인 기록은 다른 안전백업에 먼저 보존한 뒤 선택한 백업으로 교체합니다.</p>'+
