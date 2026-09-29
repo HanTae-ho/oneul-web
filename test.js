@@ -70,8 +70,9 @@ const srv = http.createServer((req, res) => {
     await oldCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),JSON.stringify(oldRecord));
     await oldPg.goto('http://localhost:8899/index.html'); await oldPg.waitForTimeout(500);
     assert(await oldPg.$eval('.pg.on',e=>e.id)==='p-home','recordStart 없는 V9.1.0 기존 데이터는 자동으로 홈에 복구되어야 함');
-    const oldState=await oldPg.evaluate(()=>({moods:S.moods.length,goal:S.goal,recordStart:S.recordStart,blocked:!!(storageRecovery&&storageRecovery.blocking)}));
+    const oldState=await oldPg.evaluate(()=>({moods:S.moods.length,goal:S.goal,recordStart:S.recordStart,blocked:!!(storageRecovery&&storageRecovery.blocking),familyWbDays:S.familyWbDays,familyMeaningChecks:S.familyMeaningChecks,familyMeaningCheckDraft:S.familyMeaningCheckDraft}));
     assert(oldState.moods===1&&oldState.goal==='기존 목표'&&/^\d{4}-\d{2}-\d{2}$/.test(oldState.recordStart),'V9.1.0 기록·목표를 보존하며 recordStart만 안전 추론');
+    assert(oldState.familyWbDays&&Object.keys(oldState.familyWbDays).length===0&&Array.isArray(oldState.familyMeaningChecks)&&oldState.familyMeaningChecks.length===0&&oldState.familyMeaningCheckDraft===null,'기존 데이터는 DATA_SCHEMA 변경 없이 가족 의미 저장소만 안전 초기화');
     assert(!oldState.blocked,'정상 기존 데이터에는 복구 선택창을 띄우지 않음');
     assert(await oldPg.evaluate(()=>S.viewMode===''&&!document.body.classList.contains('simple-view')),'viewMode 없는 기존 사용자는 전체 보기를 유지');
     await oldCtx.close();
@@ -590,7 +591,7 @@ const srv = http.createServer((req, res) => {
   assert((await pg.$eval('#tool-meaning-check-direct b', e => e.textContent.trim())) === '의미점검', '의미점검 메뉴 이름이 자가점검 기록과 구분되어야 함');
   assert((await pg.$eval('#tool-check-view b', e => e.textContent.trim())) === '자가점검 기록', '자가점검 결과 조회 메뉴 이름이 명확해야 함');
 
-  const meaningDay = daysAgo(1), meaningCheckDay = daysAgo(2);
+  const meaningDay = daysAgo(1), meaningCheckDay = daysAgo(2), familyMeaningDay = daysAgo(3), familyMeaningCheckDay = daysAgo(4);
   await pg.evaluate(({meaningDay,meaningCheckDay}) => {
     S.wbDays = S.wbDays && typeof S.wbDays === 'object' && !Array.isArray(S.wbDays) ? S.wbDays : {};
     S.wbDays[meaningDay] = { hard:[], strength:[], action:[], request:'내가 지킬 한 걸음', ts:Date.now()-86400000 };
@@ -599,18 +600,57 @@ const srv = http.createServer((req, res) => {
   }, {meaningDay,meaningCheckDay});
   await pg.waitForTimeout(180);
   const meaningTrailText = await pg.$eval('#rec-body', e => e.innerText);
-  assert(meaningTrailText.includes('저장한 의미 기록 2건'), '내 발자취 의미 필터에 두 종류 의미 기록이 함께 보여야 함');
-  assert(meaningTrailText.includes('의미 돌아보기') && meaningTrailText.includes('내가 지킬 한 걸음'), '의미 돌아보기 기존 기록을 내 발자취에서 읽어야 함');
-  assert(meaningTrailText.includes('의미회복 간편점검') && meaningTrailText.includes('20/40'), '의미회복 간편점검 기존 결과를 내 발자취에서 읽어야 함');
+  assert(meaningTrailText.includes('저장한 의미 기록 2건'), '당사자 내 발자취 의미 필터에 두 종류 의미 기록이 함께 보여야 함');
+  assert(meaningTrailText.includes('의미 돌아보기') && meaningTrailText.includes('내가 지킬 한 걸음'), '당사자 의미 돌아보기 기존 기록을 내 발자취에서 읽어야 함');
+  assert(meaningTrailText.includes('의미회복 간편점검') && meaningTrailText.includes('20/40'), '당사자 의미회복 간편점검 기존 결과를 내 발자취에서 읽어야 함');
   await pg.locator('#rec-body button.toolcard').filter({hasText:'의미회복 간편점검'}).click();
   await pg.waitForTimeout(100);
   assert((await pg.$eval('#modin h2', e => e.textContent.trim())) === '의미점검 결과', '내 발자취의 의미점검 기록은 기존 결과 상세를 재사용해야 함');
   await pg.evaluate(() => closeModal());
-  await pg.evaluate(() => { S.role='family'; save(); recTab='work'; recPracticeFilter='all'; go('rec'); });
+
+  // 가족 의미영역 — UI 틀은 재사용하되 문항과 저장소는 당사자와 완전히 분리합니다.
+  await pg.evaluate(() => { S.role='family'; save(); go('tools'); });
+  await pg.waitForTimeout(150);
+  assert(await pg.isVisible('#tool-meaning'), '가족모드 회복도구에도 의미 돌아보기가 보여야 함');
+  assert(await pg.isVisible('#tool-meaning-check-direct'), '가족모드 회복도구에도 의미점검이 보여야 함');
+  await pg.click('#tool-meaning'); await pg.waitForTimeout(120);
+  assert((await seen()) === 'p-meaning', '가족모드에서 의미 돌아보기 화면이 열려야 함');
+  const familyMeaningPage = await pg.$eval('#p-meaning', e => e.innerText);
+  assert(familyMeaningPage.includes('오늘 내 마음, 경계, 자기돌봄'), '가족 의미 돌아보기는 가족 자신의 삶·경계 문구를 사용');
+  assert(familyMeaningPage.includes('오늘의 부담감') && familyMeaningPage.includes('오늘 나를 힘들게 한 것은'), '가족용 오늘 돌아보기 문항이 표시');
+  assert(!familyMeaningPage.includes('오늘 기록된 충동'), '가족 의미 돌아보기에는 당사자 충동기록을 참고자료로 노출하지 않음');
+  await pg.fill('#mn-request','가족인 나의 삶을 지키기');
+  await pg.click('#mn-save'); await pg.waitForTimeout(100);
+  const familySaveState = await pg.evaluate(() => ({
+    family:!!(S.familyWbDays&&S.familyWbDays[wbToday()]&&S.familyWbDays[wbToday()].request==='가족인 나의 삶을 지키기'),
+    self:!!(S.wbDays&&S.wbDays[wbToday()]&&S.wbDays[wbToday()].request==='가족인 나의 삶을 지키기')
+  }));
+  assert(familySaveState.family&&!familySaveState.self, '가족 오늘 의미기록은 familyWbDays에만 저장');
+
+  await pg.evaluate(({familyMeaningDay,familyMeaningCheckDay}) => {
+    S.familyWbDays[familyMeaningDay] = { hard:['worry'], strength:['boundary'], action:['selfCare'], request:'가족 기록 전용 문장', ts:Date.now()-259200000 };
+    S.familyMeaningChecks = [{ d:familyMeaningCheckDay, ts:Date.now()-345600000, answers:Array(10).fill(3), total:30, domains:{self:3,future:3,choice:3,relation:3} }];
+    save(); recTab='work'; recPracticeFilter='meaning'; go('rec');
+  }, {familyMeaningDay,familyMeaningCheckDay});
   await pg.waitForTimeout(150);
   const familyTrailText = await pg.$eval('#rec-body', e => e.innerText);
-  assert(!familyTrailText.includes('의미 돌아보기') && !familyTrailText.includes('의미회복 간편점검'), '가족모드 내 발자취에는 당사자 의미기록이 노출되면 안 됨');
-  await pg.evaluate(() => { S.role='self'; save(); go('tools'); });
+  assert(familyTrailText.includes('의미') && familyTrailText.includes('가족 기록 전용 문장') && familyTrailText.includes('30/40'), '가족 내 발자취 의미 필터가 가족 의미기록과 점검만 표시');
+  assert(!familyTrailText.includes('내가 지킬 한 걸음') && !familyTrailText.includes('20/40'), '가족 내 발자취에 당사자 의미기록이 섞이지 않음');
+
+  await pg.evaluate(() => openMeaningCheckDirect());
+  await pg.waitForTimeout(80);
+  assert((await pg.$eval('#mn-view-check', e => e.innerText)).includes('가족의 변화 여부가 아니라'), '가족 의미점검은 가족 자신의 상태·경계·자기돌봄을 안내');
+  await pg.evaluate(() => { const d=mcNewDraft(); d.answers=Array(10).fill(2); mcCommitResult(d); });
+  await pg.waitForTimeout(80);
+  const familyCheckState = await pg.evaluate(() => ({family:S.familyMeaningChecks.length,self:S.meaningChecks.length,draft:S.familyMeaningCheckDraft}));
+  assert(familyCheckState.family>=2 && familyCheckState.self===1 && familyCheckState.draft===null, '가족 의미점검 완료기록·초안은 가족 저장소에만 기록');
+
+  await pg.evaluate(() => { S.role='self'; save(); recTab='work'; recPracticeFilter='meaning'; go('rec'); });
+  await pg.waitForTimeout(120);
+  const selfAgainText = await pg.$eval('#rec-body', e => e.innerText);
+  assert(selfAgainText.includes('내가 지킬 한 걸음') && selfAgainText.includes('20/40'), '역할을 당사자로 돌리면 기존 당사자 의미기록을 그대로 다시 읽음');
+  assert(!selfAgainText.includes('가족 기록 전용 문장') && !selfAgainText.includes('30/40'), '당사자 내 발자취에 가족 의미기록이 섞이지 않음');
+  await pg.evaluate(() => go('tools'));
   await pg.waitForTimeout(150);
   await pg.click('#tool-listen'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-listen', '회복도구의 듣는 글이 기존 듣는 글 화면을 열어야 함');

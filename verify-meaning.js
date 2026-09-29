@@ -5,7 +5,9 @@ const fail=m=>{throw new Error('VERIFY-MEANING: '+m)};
 const ok=(c,m)=>{if(!c)fail(m);console.log('OK - '+m)};
 
 let box={window:{}};vm.createContext(box);vm.runInContext(dataSrc,box);const md=box.window.MEANING_DATA;
-ok(md&&md.ver===3,'의미 돌아보기 데이터 버전');
+ok(md&&md.ver===4,'의미 돌아보기 데이터 버전');
+ok(md.family&&Array.isArray(md.family.hard)&&md.family.hard.length===8&&Array.isArray(md.family.strength)&&md.family.strength.length===8&&Array.isArray(md.family.action)&&md.family.action.length===8,'가족 의미 돌아보기 8개 선택지 세트');
+ok(Array.isArray(md.family.lines)&&md.family.lines.length===12&&md.family.lines.every(x=>x.id&&x.text),'가족 의미 돌아보기 전용 문장 12개');
 ok(Array.isArray(md.hard)&&md.hard.length===8,'오늘 아팠던 것 8개 칩');
 ok(Array.isArray(md.strength)&&md.strength.length===8&&['hold','recoveryWill','hope','selfProtect','family','help','learning','restart'].every(k=>md.strength.some(x=>x.k===k)),'남아 있던 힘 8개 선택지·기존 키 보존');
 ok(Array.isArray(md.action)&&md.action.length===8&&md.action.every(x=>x.value),'선택·행동 8개와 가치 매핑');
@@ -32,10 +34,10 @@ ok(feature.includes('[0,1,2,3,4].forEach')&&!index.includes('id="mn-empty-r"'),'
 ok(index.includes('컷오프나 판정은 없습니다.'),'공허감 컷오프·판정 없음 안내');
 ok(index.includes('직접 적은 글은 앱이 자동 분류하거나 점수화하지 않습니다.'),'직접입력 자동분류 금지 안내');
 
-ok(/p==='meaning' && famMode\(\)/.test(index),'라우터 가족모드 직접 진입 차단');
-ok(/\$\('#ni-meaning'\)\.style\.display = fam \? 'none' : ''/.test(index),'가족모드 하루마무리 우회 버튼 숨김');
-ok(/night\.kept === 0 && niAfter !== 'meaning'/.test(index),'당사자가 의미 돌아보기를 선택하면 재발 안내보다 해당 진입을 우선');
-ok(/if\(famMode\(\)\)\{go\('tools',\{replace:true\}\);return;\}/.test(feature),'의미 화면 자체 가족모드 이중 차단');
+ok(!/p==='meaning' && famMode\(\)/.test(index),'가족모드 의미 돌아보기 직접 진입 허용');
+ok(/\$\('#ni-meaning'\)\.style\.display = ''/.test(index),'가족모드 하루마무리 의미 돌아보기 버튼 표시');
+ok(/night\.kept === 0 && famMode\(\) && niAfter !== 'meaning'/.test(index)&&/night\.kept === 0 && niAfter !== 'meaning'/.test(index),'가족·당사자가 의미 돌아보기를 선택하면 다른 사후안내보다 해당 진입을 우선');
+ok(/const key=meaningFamilyMode\(\)\?'familyWbDays':'wbDays'/.test(feature)&&!/의미 돌아보기는 당사자 모드에서 사용합니다/.test(feature),'같은 의미 화면에서 가족·당사자 저장소 분리');
 ok(/function wbAllowedLines\(\)/.test(feature)&&/areas\.length===1/.test(feature)&&/scopes\.includes\('all'\)/.test(feature),'단일영역 추가문장·복수영역 공통문장 필터');
 
 ok(/function wbUrgesForDate\(d\)/.test(feature)&&/function wbTodayUrges\(d\)\{return wbUrgesForDate\(d\);\}/.test(feature)&&/Array\.isArray\(S\.urges\)/.test(feature)&&/ymd\(Number\(x\.t\)\)===d/.test(feature),'날짜별 충동기록을 로컬 날짜 기준 동적 조회');
@@ -63,13 +65,13 @@ ok(/st\[d\]=x\.rec;save\(\)/.test(feature),'같은 날짜 키에 upsert 저장')
 ok(!/toISOString\(/.test(feature)&&/function wbToday\(\)\{return ymd\(new Date\(\)\);\}/.test(feature),'로컬 ymd 날짜 사용·UTC 날짜 변환 없음');
 ok(/hardNote/.test(feature)&&/strengthNote/.test(feature)&&/actionNote/.test(feature)&&/request/.test(feature),'직접입력은 별도 원문 필드로 저장');
 
-ok(/meaningChecks: \[\], meaningCheckDraft: null/.test(index)&&/if\(!Array\.isArray\(s\.meaningChecks\)\)/.test(index),'3단계 완료기록·중간저장 기본값/정규화');
-ok((checkFeature.match(/\{id:'q\d+'/g)||[]).length===10,'3단계 독자 의미회복 간편점검 10문항');
+ok(/meaningChecks: \[\], meaningCheckDraft: null/.test(index)&&/familyMeaningChecks: \[\], familyMeaningCheckDraft: null/.test(index)&&/if\(!Array\.isArray\(s\.meaningChecks\)\)/.test(index)&&/if\(!Array\.isArray\(s\.familyMeaningChecks\)\)/.test(index),'3단계 당사자·가족 완료기록·중간저장 기본값/정규화');
+ok((checkFeature.match(/\{id:'q\d+'/g)||[]).length===10&&(checkFeature.match(/\{id:'fq\d+'/g)||[]).length===10,'3단계 당사자·가족 독자 의미회복 간편점검 각 10문항');
 ok(/MIL-II의 8개 구성개념을 참고/.test(checkFeature)&&/원문항·원채점체계를 복제하지 않은/.test(checkFeature),'MIL-II 구성개념 참고·원문항 비복제 명시');
 ok(['자기인식','희망','책임','사랑','자기초월','관계','자기만족','헌신'].every(x=>index.includes(x)||checkFeature.includes(x)),'MIL-II 8개 구성개념 안내 반영');
 ok(/\[0,1,2,3,4\]\.forEach/.test(checkFeature)&&/10문항, 약 1~2분/.test(checkFeature),'0~4 응답·1~2분 간편점검');
 ok(/meaningCheckDraft/.test(checkFeature)&&/현재 답변은 임시저장됩니다/.test(checkFeature)&&/결과 저장.*완료기록/.test(checkFeature)&&/save\(\)/.test(checkFeature),'중간답변 임시저장과 완료결과 저장 구분');
-ok(/findIndex\(x=>x&&x\.d===rec\.d\)/.test(checkFeature)&&/s\.meaningChecks\[idx\]=rec/.test(checkFeature),'완료 결과 날짜별 1개 upsert');
+ok(/findIndex\(x=>x&&x\.d===rec\.d\)/.test(checkFeature)&&/if\(replaced\)store\[idx\]=rec;else store\.push\(rec\)/.test(checkFeature),'현재 역할 완료 결과 날짜별 1개 upsert');
 ok(/function mcPreviousRecord\(rec\)/.test(checkFeature)&&/function mcComparison\(rec\)/.test(checkFeature)&&/이전 .*이 기록/.test(checkFeature),'과거 날짜 기준 이전 나와 변화 비교');
 ok(/정상·위험 기준은 없습니다/.test(checkFeature)&&/진단검사가 아닙니다/.test(checkFeature),'진단·위험 컷오프 금지');
 ok(/나를 보는 힘/.test(checkFeature)&&/앞으로 향하는 힘/.test(checkFeature)&&/책임·선택/.test(checkFeature)&&/관계·넘어섬/.test(checkFeature),'앱용 4개 결과 묶음');
