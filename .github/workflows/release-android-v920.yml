@@ -178,11 +178,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p published
-          gh release download v9.2.0 --pattern 'oneul-v9.2.0.apk' --dir published
-          echo 'f8536f5eef4fef9b63a54bce5729ee71757b8e5ef2c91dc5b9eb3c386c383004  published/oneul-v9.2.0.apk' | sha256sum -c -
+          gh release download v9.1.4 --pattern 'oneul-v9.1.4.apk' --dir published
+          echo 'f8536f5eef4fef9b63a54bce5729ee71757b8e5ef2c91dc5b9eb3c386c383004  published/oneul-v9.1.4.apk' | sha256sum -c -
           APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
           "$APKSIGNER" verify --verbose --print-certs "$BUILT_APK" | tee /tmp/new-certs.txt
-          "$APKSIGNER" verify --print-certs published/oneul-v9.2.0.apk | tee /tmp/old-certs.txt
+          "$APKSIGNER" verify --print-certs published/oneul-v9.1.4.apk | tee /tmp/old-certs.txt
           grep 'Signer #1 certificate SHA-256 digest:' /tmp/new-certs.txt | sed 's/.*digest: //' > /tmp/new.sha
           grep 'Signer #1 certificate SHA-256 digest:' /tmp/old-certs.txt | sed 's/.*digest: //' > /tmp/old.sha
           diff -u /tmp/old.sha /tmp/new.sha
@@ -217,7 +217,7 @@ jobs:
           - JavaScript syntax, no-undef, 앱 셸, 버전 일관성, 전체 불변식, Playwright 브라우저 회귀검증을 통과한 소스에서 빌드합니다.
           - DATA_SCHEMA=6, ohg.v1, ohg.social.v1, package io.github.hantae_ho.twa는 유지합니다.
           - Android exact alarm·화면 OFF 알림·부팅 재등록·치료관리 알림·Relax TTS·MindPro Voice TTS 엔진은 기존 계보를 그대로 유지합니다.
-          - Android: versionCode 921 / versionName 9.1.4
+          - Android: versionCode 921 / versionName 9.2.0
           EOF
           gh release create v9.2.0 dist/oneul-v9.2.0.apk dist/oneul-v9.2.0.aab dist/SHA256SUMS.txt \
             --repo "$GITHUB_REPOSITORY" --target "$RELEASE_SOURCE_SHA" \
