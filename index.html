@@ -2467,6 +2467,16 @@ addEventListener('appinstalled', function(){
         <button class="opt" data-theme="dark">어둡게</button>
       </div>
 
+      <div style="height:13px"></div>
+      <h3>홈 간단히 보기</h3>
+      <p class="muted" style="margin:-4px 0 11px">
+        간단히 보기는 같은 홈에서 일부 내용을 덜 보여주는 설정입니다.
+      </p>
+      <div class="opts" id="me-view-mode">
+        <button class="opt" data-view-mode="simple">간단히 보기</button>
+        <button class="opt" data-view-mode="">전체 보기</button>
+      </div>
+
       <div class="sep"></div>
       <h3>마음프로 AI</h3>
       <p class="muted" style="margin:-4px 0 11px">AI 답변이 필요한 경우 마음프로에 직접 입력한 내용과 최근 대화 일부가 외부 AI 서비스에서 처리될 수 있습니다. 기기에 저장된 회복기록은 자동으로 전송되지 않습니다.</p>
@@ -2821,7 +2831,7 @@ const BLANK = {
   timeCapsule: { text:'', createdAt:0, updatedAt:0 }, /* 미래의 나에게 — 개인 회복기록, 기기 안에만 저장 */
   reclaim: { kind:'', timeOn:0, timePerDay:0, costOn:0, costPerDay:0 }, /* 내가 되찾은 것 — 선택 기준값, 기기 안에만 저장 */
   aiChat: [], aiClient: '', aiConsent: 0, aiEnabled: 1, aiAutoRead: 0, /* AI 대화·음성 기본설정은 이 기기에만 저장 */
-  sheet: '', res: null, resAt: 0, resVer: '', theme: '',
+  sheet: '', res: null, resAt: 0, resVer: '', theme: '', viewMode: '',
   notify: 0, fired: [],
   admin: 0, adminUrl: ''
 };
@@ -2968,6 +2978,7 @@ function migrate(s){
   if(!s.reclaim || typeof s.reclaim !== 'object' || Array.isArray(s.reclaim)) s.reclaim = {};
   s.reclaim = Object.assign({ kind:'', timeOn:0, timePerDay:0, costOn:0, costPerDay:0 }, s.reclaim);
   s.recoveryHome = s.recoveryHome === 0 ? 0 : 1;
+  s.viewMode = s.viewMode === 'simple' ? 'simple' : '';
   if(!s.smoking || typeof s.smoking !== 'object' || Array.isArray(s.smoking)) s.smoking = {};
   s.smoking = Object.assign({ mode:'', start:'', plan:'' }, s.smoking);
   if(['','plan','quit'].indexOf(String(s.smoking.mode || '')) < 0) s.smoking.mode = '';
@@ -3820,7 +3831,7 @@ function showSavedRecoveryBackups_(){
       let current=null; try{current=localStorage.getItem(KEY);}catch(e){}
       if(current!=null && current!==c.raw && !preserveRecoveryRaw_(current)) return;
       if(!commitImportedState_(c.migrated,false)) return;
-      closeModal(); applyTheme(); drawIntro(); drawUrge(); toast('안전백업을 복구했습니다.');
+      closeModal(); applyTheme(); applyViewMode(); drawIntro(); drawUrge(); toast('안전백업을 복구했습니다.');
       go(S.started?'home':'intro');
     };
   });
@@ -3830,7 +3841,7 @@ function finishStorageRecovery_(target){
   if(storageRecovery) storageRecovery.blocking=false;
   storageRecoveryGateOpen=false;
   closeModal(true);
-  applyTheme(); drawIntro(); drawUrge();
+  applyTheme(); applyViewMode(); drawIntro(); drawUrge();
   const first=target || (S.started?'home':'intro');
   try{ history.replaceState({ohg:1,p:first,depth:0},'',location.href); }catch(e){}
   navReady=true;
@@ -4190,6 +4201,7 @@ $('#ob-go').onclick = () => {
     return;
   }
   S.aiEnabled = $('#ob-ai-use').checked ? 1 : 0;
+  S.viewMode = 'simple';
   S.types = obTypes.slice();
   S.dates = {};
   S.cum = {};
@@ -4200,6 +4212,7 @@ $('#ob-go').onclick = () => {
   S.goal = ($('#ob-goal').value || '').trim();
   S.hours = fam ? [] : obHours.slice();
   S.started = true;
+  applyViewMode();
   save();
   go('home');
   /* 시간대를 골랐다면 알림을 물어봅니다 — 고르기도 전에 물으면 거절만 부릅니다 */
@@ -4567,6 +4580,14 @@ $('#top-me').onclick = () => go('my');
 function applyTheme(){
   document.body.classList.toggle('dark', S.theme === 'dark');
 }
+function applyViewMode(){
+  document.body.classList.toggle('simple-view', S.viewMode === 'simple');
+}
+function drawViewModeSetting(){
+  $('#me-view-mode [data-view-mode]').forEach(b => {
+    b.classList.toggle('on', (b.dataset.viewMode || '') === (S.viewMode === 'simple' ? 'simple' : ''));
+  });
+}
 function drawThemeSetting(){
   $$('#me-theme [data-theme]').forEach(b => {
     const k = b.dataset.theme;
@@ -4590,6 +4611,12 @@ $('#me-theme').addEventListener('click', e => {
   if(!b) return;
   S.theme = b.dataset.theme === 'dark' ? 'dark' : '';
   applyTheme(); save(); drawThemeSetting();
+});
+$('#me-view-mode').addEventListener('click', e => {
+  const b = e.target.closest('[data-view-mode]');
+  if(!b) return;
+  S.viewMode = b.dataset.viewMode === 'simple' ? 'simple' : '';
+  applyViewMode(); save(); drawViewModeSetting();
 });
 $('#me-ai-use').addEventListener('click', e => {
   const b = e.target.closest('[data-ai-use]');
@@ -11581,6 +11608,7 @@ function fetchRes(url){
 function drawMe(){
   const fam = famMode();
   drawThemeSetting();
+  drawViewModeSetting();
   drawAIUseSetting();
   drawAiVoiceSetting();
   drawFeedbackStatus();
@@ -12566,7 +12594,7 @@ $('#me-file').onchange = e => {
         try{current=localStorage.getItem(KEY);}catch(err){}
         if(current!=null && current!==String(r.result) && !preserveRecoveryRaw_(current)) return;
         if(!commitImportedState_(next,recovering)) return;
-        applyTheme(); drawIntro(); drawUrge();
+        applyTheme(); applyViewMode(); drawIntro(); drawUrge();
         toast('백업 파일을 불러왔습니다.');
         if(recovering) finishStorageRecovery_(S.started?'home':'intro');
         else { closeModal(); go(S.started?'home':'intro'); }
@@ -12924,6 +12952,7 @@ function startBootRuntime_(){
 /* ══════════ 부팅 ══════════ */
 function boot(){
   applyTheme();
+  applyViewMode();
   $('#intro-ico').innerHTML = markSVG(52);
   $('#af-ico').innerHTML = ico('wave');
   refreshIcons();
