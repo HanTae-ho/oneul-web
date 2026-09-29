@@ -725,11 +725,12 @@ const srv = http.createServer((req, res) => {
 
   // 도움
   await pg.click('#tabs button[data-t="help"]'); await pg.waitForTimeout(300);
-  console.log('13. 핫라인 =', await pg['$$eval']('#help-lines a', a => a.map(x => x.getAttribute('href')).join(' ')));
-  const fixedCalls=await pg['$eval']('#help-fixed-lines a',a=>a.map(x=>x.getAttribute('href')));
+  console.log('13. 핫라인 =', await pg.evaluate(() => [...document.querySelectorAll('#help-lines a')].map(x => x.getAttribute('href')).join(' ')));
+  const helpTypesBefore=await pg.evaluate(()=>Array.isArray(S.types)?S.types.slice():[]);
+  const fixedCalls=await pg.evaluate(() => [...document.querySelectorAll('#help-fixed-lines a')].map(x=>x.getAttribute('href')));
   assert(fixedCalls.includes('tel:119')&&fixedCalls.includes('tel:109'),'헬프 맨 위 119·109는 앱 내 고정 연결');
-  assert(await pg['$eval']('#help-fixed-lines .b span',a=>a.length===0),'119·109 카드에는 설명문이 없어야 함');
-  const helpCalls=async()=>await pg['$eval']('#help-lines a',a=>a.map(x=>x.getAttribute('href')));
+  assert(await pg.evaluate(()=>document.querySelectorAll('#help-fixed-lines .b span').length===0),'119·109 카드에는 설명문이 없어야 함');
+  const helpCalls=async()=>await pg.evaluate(() => [...document.querySelectorAll('#help-lines a')].map(x=>x.getAttribute('href')));
   await pg.evaluate(()=>{ S.types=['alcohol']; drawHelp(); });
   assert(JSON.stringify(await helpCalls())===JSON.stringify(['tel:1577-0199','tel:129']),'알코올/기본 영역은 정신건강 1577-0199·보건복지 129만 표시');
   await pg.evaluate(()=>{ S.types=['gambling']; drawHelp(); });
@@ -738,8 +739,9 @@ const srv = http.createServer((req, res) => {
   assert(JSON.stringify(await helpCalls())===JSON.stringify(['tel:1577-0199','tel:129','tel:1342']),'약물 영역은 기본 + 1342 표시');
   await pg.evaluate(()=>{ S.types=['gambling','drug']; drawHelp(); });
   assert(JSON.stringify(await helpCalls())===JSON.stringify(['tel:1577-0199','tel:129','tel:1336','tel:1342']),'도박+약물은 기본 + 1336 + 1342를 중복 없이 표시');
-  assert(await pg['$eval']('#help-lines a',a=>a.every(x=>!['tel:119','tel:109'].includes(x.getAttribute('href')))),'헬프콜 목록에는 109·119 중복 없음');
+  assert(await pg.evaluate(()=>[...document.querySelectorAll('#help-lines a')].every(x=>!['tel:119','tel:109'].includes(x.getAttribute('href')))),'헬프콜 목록에는 109·119 중복 없음');
   assert(!(await pg.$eval('#p-help',e=>e.innerText)).includes('지도 앱이 열리면서 지금 계신 곳 주변을 찾아줍니다.'),'내 주변에서 찾기 중복 설명문 없음');
+  await pg.evaluate(types=>{ S.types=types; save(); drawHelp(); },helpTypesBefore);
   await shot('13-help');
 
   // 마음프로 Local-first — AI 서버 없이 앱 데이터 설명 + 위치 불일치 선택
