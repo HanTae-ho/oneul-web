@@ -53,7 +53,11 @@ ok(index.includes("내 기록 돌아보기 →")&&index.includes("내일 외래 
 ok(index.includes("저장했어요. 나중에 내 회복요약에서 다시 볼 수 있어요.")&&index.includes("누르면 바로 저장돼요."),'V9.2 기분/HALT 공통 저장 안내와 짧은 설명');
 ok(index.includes("id=\"help-fixed-lines\"")&&index.includes("t!=='109' && t!=='119'"),'V9.2 헬프 109·119 고정 및 동적 목록 중복 제외');
 ok(index.includes('홈 간단히 보기는 무엇인가요?')&&index.includes('나 → 내 정보 · 설정 → 앱 → 홈 간단히 보기')&&index.includes('사용설명서')&&index.includes('상담 때 보여주기 (선택)'),'V9.2 기능 변경이 앱 내 FAQ·사용설명서에 함께 반영');
-ok(index.includes('자원 목록을 받지 못했거나 오프라인이어도')&&index.includes('가족·보호자 모드의 폭력·타해·즉각적 위협 안내에서는 기존 <b>112</b> 연결을 유지'),'V9.2 FAQ 안전 안내에 109·119 고정과 가족 112 유지 반영');
+ok(index.includes("const fixed=[\n    {n:'응급 신고',t:'119'},\n    {n:'자살예방 상담전화',t:'109'}")&&!index.includes("몸이 위급하거나 경련·환각·심한 금단이 있을 때")&&!index.includes("24시간 · 무료 · 죽고 싶은 마음이 들 때"),'헬프 상단 119·109는 설명문 없이 고정');
+ok(index.includes("const wantedPhones=['15770199','129'];")&&index.includes("selectedTypes.includes('gambling')")&&index.includes("selectedTypes.includes('drug')"),'헬프콜은 기본 1577-0199·129 + 선택 영역 1336·1342');
+ok(index.includes('헬프콜에는 어떤 전화가 보이나요?')&&index.includes('회복영역에 <b>도박</b>이 있으면 <b>도박문제 헬프라인 1336</b>')&&index.includes('약물</b>이 있으면 <b>마약류 중독 상담 1342</b>'),'헬프콜 영역별 표시 규칙이 FAQ에 반영');
+ok(!index.includes('지도 앱이 열리면서 지금 계신 곳 주변을 찾아줍니다. 거기서 바로 길찾기와 전화가 됩니다.'),'내 주변에서 찾기 중복 설명문 제거');
+ok(index.includes('가족·보호자 모드의 폭력·타해·즉각적 위협 안내에서는 기존 <b>112</b> 연결을 유지'),'가족 위기 112 안내 유지');
 ok(/도박문제 헬프라인', t:'1336', d:'365일 09:00~22:00/.test(index) && /가족 상담도 받습니다 · 365일 09:00~22:00/.test(index),'1336 운영시간 최신 표기 365일 09:00~22:00');
 ok(!/user-scalable=no/.test(index),'접근성: 사용자 화면 확대 차단 없음');
 ok(/ks\.filter\(k => k\.startsWith\('ohg-'\)\)/.test(index),'앱 새로고침은 오늘 한 걸음 캐시만 삭제');
