@@ -2319,9 +2319,6 @@ addEventListener('appinstalled', function(){
        앞에 두었더니 시트에 정리해둔 곳들보다 먼저 눌려서, 엉뚱한 데로 나갔습니다. -->
   <h2>내 주변에서 찾기</h2>
   <div id="help-near"></div>
-  <p class="tiny" style="margin:2px 0 0">
-    지도 앱이 열리면서 지금 계신 곳 주변을 찾아줍니다. 거기서 바로 길찾기와 전화가 됩니다.
-  </p>
 
   <div class="sep"></div>
   <p class="tiny">
@@ -2605,7 +2602,8 @@ addEventListener('appinstalled', function(){
     <details class="faq"><summary>마음프로는 어떤 기능인가요?</summary><div class="faq-a"><p>회복학습과 앱 사용법을 안내하고, 사용자가 직접 보낸 문장에 답하는 대화 기능입니다. 치료자나 응급서비스를 대신하지 않으며 위급한 상황의 판단을 맡기는 용도로 사용하지 않습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('ai')">마음프로 열기</button></div></details>
     <details class="faq"><summary>마음프로에 내 회복기록이 자동으로 전송되나요?</summary><div class="faq-a"><p><b>자동으로 전송되지 않습니다.</b> 내 발자취, 자가점검 점수, 12단계·회복 실천도구 기록을 마음프로가 자동 첨부하지 않습니다. 마음프로에서 사용자가 직접 전송한 문장은 답변 생성을 위해 AI 서버로 전송됩니다.</p></div></details>
     <details class="faq"><summary>마음프로 답변을 음성으로 들을 수 있나요?</summary><div class="faq-a"><p>Android 설치 앱에서는 <b>나 → 내 정보 · 설정 → 앱</b>의 마음프로 답변 자동 읽기를 사용할 수 있습니다. 대화에서 “계속 읽어줘”, “그만 읽어”라고 입력해 현재 대화의 읽기 상태를 바꿀 수도 있습니다.</p></div></details>
-    <details class="faq"><summary>지금 위험하거나 스스로를 다치게 할 것 같으면 어떻게 하나요?</summary><div class="faq-a"><p>앱의 <b>지금 위험해요</b>를 열어 즉시 도움 연결을 확인하세요. 헬프 맨 위의 <b>119</b>와 <b>109</b>는 자원 목록을 받지 못했거나 오프라인이어도 앱 안에서 바로 전화 연결을 확인할 수 있도록 고정되어 있습니다. 자신이나 다른 사람의 생명·신체에 즉각적인 위험이 있다면 앱에 머물지 말고 <b>112 또는 119</b>, 가까운 응급의료기관 등 즉시 연결 가능한 도움을 이용하세요. 가족·보호자 모드의 폭력·타해·즉각적 위협 안내에서는 기존 <b>112</b> 연결을 유지합니다.</p><button class="btn danger sm faq-go" type="button" onclick="go('panic')">지금 위험해요 열기</button></div></details>
+    <details class="faq"><summary>헬프콜에는 어떤 전화가 보이나요?</summary><div class="faq-a"><p>헬프콜에는 기본으로 <b>정신건강 상담전화 1577-0199</b>와 <b>보건복지상담센터 129</b>가 표시됩니다. 회복영역에 <b>도박</b>이 있으면 <b>도박문제 헬프라인 1336</b>, <b>약물</b>이 있으면 <b>마약류 중독 상담 1342</b>가 추가됩니다. 여러 영역을 선택하면 해당 전화가 중복 없이 함께 표시됩니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('help')">헬프 열기</button></div></details>
+    <details class="faq"><summary>지금 위험하거나 스스로를 다치게 할 것 같으면 어떻게 하나요?</summary><div class="faq-a"><p>앱의 <b>지금 위험해요</b>를 열어 즉시 도움 연결을 확인하세요. 헬프 맨 위의 <b>119</b>와 <b>109</b>는 설명문 없이 항상 고정되어 있습니다. 자신이나 다른 사람의 생명·신체에 즉각적인 위험이 있다면 앱에 머물지 말고 <b>112 또는 119</b>, 가까운 응급의료기관 등 즉시 연결 가능한 도움을 이용하세요. 가족·보호자 모드의 폭력·타해·즉각적 위협 안내에서는 기존 <b>112</b> 연결을 유지합니다.</p><button class="btn danger sm faq-go" type="button" onclick="go('panic')">지금 위험해요 열기</button></div></details>
   </div>
 
   <div class="note" style="margin-top:18px">짧은 답보다 메뉴 전체 흐름이 필요하면 <b>사용설명서</b>를 확인하세요.</div>
@@ -2680,7 +2678,9 @@ addEventListener('appinstalled', function(){
     </div></details>
 
     <details class="faq"><summary>9. 헬프 · 지금 위험해요 — 사람과 실제 자원 연결</summary><div class="faq-a">
-      <p><b>헬프</b>에는 헬프콜과 자조모임, 센터·병원처럼 실제 도움으로 연결되는 자원이 모여 있습니다. 맨 위의 <b>119</b>와 <b>109</b>는 자원시트 성공 여부나 온라인 상태와 관계없이 앱 안에 고정된 전화 연결입니다. 자원 목록은 앱 설정에서 최신 목록을 다시 받을 수 있으며 목록 안의 109·119는 중복 표시하지 않습니다.</p>
+      <p><b>헬프</b>에는 헬프콜과 자조모임, 센터·병원처럼 실제 도움으로 연결되는 자원이 모여 있습니다. 맨 위의 <b>119</b>와 <b>109</b>는 설명문 없이 항상 고정되어 있습니다.</p>
+      <p style="margin-top:8px"><b>헬프콜</b>은 기본으로 <b>정신건강 상담전화 1577-0199</b>와 <b>보건복지상담센터 129</b>를 보여줍니다. 회복영역에 도박이 있으면 <b>1336</b>, 약물이 있으면 <b>1342</b>가 추가되며, 여러 영역을 선택하면 해당 전화가 중복 없이 함께 표시됩니다.</p>
+      <p style="margin-top:8px"><b>내 주변에서 찾기</b>는 별도 설명문 없이 센터·병원·모임의 지도 보기 버튼으로 바로 연결합니다.</p>
       <p style="margin-top:8px"><b>지금 위험해요</b>는 충동이 매우 강하거나 즉시 도움이 필요한 때의 대응 흐름입니다. 생명이나 신체에 즉각적인 위험이 있으면 앱에 머물지 말고 <b>112 또는 119</b>, 가까운 응급의료기관 등 즉시 연결 가능한 도움을 이용하세요. 가족·보호자 모드의 폭력·타해·즉각적 위협 안내에서는 기존 <b>112</b> 연결을 유지합니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('help')">헬프 열기</button>
       <button class="btn danger sm faq-go" type="button" onclick="go('panic')">지금 위험해요 열기</button>
@@ -9651,13 +9651,13 @@ function drawHelp(){
   const R = S.res || {};
 
   const fixed=[
-    {n:'응급 신고',t:'119',d:'몸이 위급하거나 경련·환각·심한 금단이 있을 때'},
-    {n:'자살예방 상담전화',t:'109',d:'24시간 · 무료 · 죽고 싶은 마음이 들 때'}
+    {n:'응급 신고',t:'119'},
+    {n:'자살예방 상담전화',t:'109'}
   ];
   $('#help-fixed-lines').innerHTML=fixed.map(l=>
     '<a class="help urgent" href="tel:'+l.t+'">'+
     '<span class="ic">'+ico('sos')+'</span>'+
-    '<span class="b"><b>'+esc(l.n)+' · '+esc(l.t)+'</b><span>'+esc(l.d)+'</span></span>'+
+    '<span class="b"><b>'+esc(l.n)+' · '+esc(l.t)+'</b></span>'+
     '<span class="go">전화</span></a>').join('');
 
   /* 가족 모드에서는 가족 모임을 위로 올립니다.
@@ -9676,10 +9676,20 @@ function drawHelp(){
     '<a class="go" target="_blank" rel="noopener" href="' + mapURL(x.q) + '">지도 보기</a>' +
     '</span></div>').join('');
 
-  const lines = ((R.lines && R.lines.length) ? R.lines : LINES).filter(l => {
+  const lineByPhone=new Map();
+  LINES.forEach(l=>{
     const t=String(l.t||'').replace(/[^0-9]/g,'');
-    return t!=='109' && t!=='119';
+    if(t) lineByPhone.set(t,l);
   });
+  (R.lines||[]).forEach(l=>{
+    const t=String(l.t||'').replace(/[^0-9]/g,'');
+    if(t) lineByPhone.set(t,l);
+  });
+  const wantedPhones=['15770199','129'];
+  const selectedTypes=Array.isArray(S.types)?S.types:[];
+  if(selectedTypes.includes('gambling')) wantedPhones.push('1336');
+  if(selectedTypes.includes('drug')) wantedPhones.push('1342');
+  const lines=wantedPhones.map(t=>lineByPhone.get(t)).filter(Boolean);
   $('#help-lines').innerHTML = lines.map(l =>
     '<a class="help' + (l.u ? ' urgent' : '') + '" href="tel:' + esc(String(l.t).replace(/[^0-9\-]/g,'')) + '">' +
     '<span class="ic">' + ico(l.u ? 'sos' : 'phone') + '</span>' +
