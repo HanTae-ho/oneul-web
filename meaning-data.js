@@ -1,8 +1,8 @@
-/* 오늘 한 걸음 V9.0.14 — 의미 돌아보기 기본 자료
+/* 오늘 한 걸음 — 의미 돌아보기 기본 자료
    사람의 기록은 들어 있지 않습니다. 선택지와 문장 목록만 정의합니다.
-   실제 기록은 index.html의 S.wbDays에 기기 로컬로만 저장됩니다. */
+   실제 기록은 index.html의 역할별 S 저장소에 기기 로컬로만 저장됩니다. */
 window.MEANING_DATA = {
-  ver: 3,
+  ver: 4,
   hard: [
     {k:'lonely', l:'외로움'},
     {k:'anxious', l:'불안'},
@@ -60,5 +60,52 @@ window.MEANING_DATA = {
     {id:'c11', scope:['all'], text:'버티는 것 자체가 태도적 가치입니다.'},
     {id:'a09', scope:['alcohol'], text:'단주는 목적지가 아니라 출발점이다. 나는 이제 의미를 만들어가는 창조적인 존재다.'},
     {id:'c12', scope:['all'], text:'그럼에도 불구하고 — 나는 오늘도 의미 쪽을 선택한다.'}
-  ]
+  ],
+  family: {
+    hard: [
+      {k:'worry', l:'걱정·불안'},
+      {k:'conflict', l:'갈등'},
+      {k:'exhausted', l:'지침'},
+      {k:'guilt', l:'죄책감'},
+      {k:'angry', l:'화'},
+      {k:'rescue', l:'대신 수습하고 싶은 마음'},
+      {k:'uncertain', l:'어떻게 해야 할지 막막함'},
+      {k:'alone', l:'혼자 감당하는 느낌'}
+    ],
+    strength: [
+      {k:'pause', l:'잠시 멈추기'},
+      {k:'boundary', l:'경계를 지키려는 마음'},
+      {k:'selfCare', l:'나를 돌보려는 마음'},
+      {k:'support', l:'도움을 받을 사람'},
+      {k:'honesty', l:'내 마음을 인정함'},
+      {k:'routine', l:'내 생활을 지키려는 마음'},
+      {k:'hope', l:'희망'},
+      {k:'hold', l:'오늘을 버틴 힘'}
+    ],
+    action: [
+      {k:'boundary', l:'경계를 지킴', value:'choice'},
+      {k:'selfCare', l:'나를 돌봄', value:'care'},
+      {k:'rest', l:'쉬는 시간을 가짐', value:'care'},
+      {k:'help', l:'도움을 요청함', value:'connection'},
+      {k:'talk', l:'차분히 말함', value:'connection'},
+      {k:'notRescue', l:'대신 수습하지 않음', value:'choice'},
+      {k:'routine', l:'내 일상을 지킴', value:'life'},
+      {k:'hold', l:'그냥 버팀', value:'life'}
+    ],
+    values: {choice:'경계·선택', care:'자기돌봄', connection:'연결·대화', life:'내 삶 지키기'},
+    lines: [
+      {id:'f01', text:'상대의 선택을 내가 대신할 수는 없지만, 오늘 내 행동과 경계는 선택할 수 있다.'},
+      {id:'f02', text:'가족을 돌보는 일과 나 자신을 지키는 일은 함께 갈 수 있다.'},
+      {id:'f03', text:'모든 문제를 오늘 해결하지 않아도 된다. 지금 내가 맡을 몫부터 살펴본다.'},
+      {id:'f04', text:'도움을 요청하는 것은 포기가 아니라 내 삶을 지키는 행동이다.'},
+      {id:'f05', text:'상대의 회복은 상대의 몫이고, 나의 안전과 생활을 돌보는 것은 나의 몫이다.'},
+      {id:'f06', text:'죄책감이 올라와도 모든 책임이 내게 있는 것은 아니다.'},
+      {id:'f07', text:'경계는 벌이 아니라 내가 지킬 수 있는 행동의 선을 분명히 하는 것이다.'},
+      {id:'f08', text:'나는 가족이라는 역할만이 아니라 나 자신의 삶을 가진 사람이다.'},
+      {id:'f09', text:'오늘 잠시 쉬고 먹고 자는 것도 내 삶을 회복하는 실천이다.'},
+      {id:'f10', text:'상대가 변하지 않는 순간에도 나는 내 삶의 방향을 선택할 수 있다.'},
+      {id:'f11', text:'혼자 감당하지 않고 필요한 도움과 연결될 수 있다.'},
+      {id:'f12', text:'오늘 내가 지킨 작은 선택도 충분히 의미가 있다.'}
+    ]
+  }
 };
