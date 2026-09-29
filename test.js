@@ -475,7 +475,22 @@ const srv = http.createServer((req, res) => {
   assert(reviewLabels.d1.includes('내일 외래 일정이 있어요')&&reviewLabels.d0.includes('오늘 외래 일정이 있어요')&&reviewLabels.d2==='내 기록 돌아보기 →','외래 D-1/D-0에만 회복요약 링크 보조문구 변경');
   await pg.click('#home-review'); await pg.waitForTimeout(100);
   assert((await seen())==='p-recovery-summary','홈 링크는 내 회복요약으로 한 번에 진입');
-  assert((await pg.$eval('#p-recovery-summary',e=>e.innerText)).includes('상담 때 보여주기')&&await pg.isVisible('#summary-consult'),'회복요약 안에 상담 때 보여주기 선택 카드 표시');
+  const summaryText=await pg.$eval('#p-recovery-summary',e=>e.innerText);
+  assert(summaryText.includes('최근 4주 · 최근 상태'),'회복요약은 최근 4주를 최근 상태로 설명');
+  assert(summaryText.includes('최근 90일 기록에서 함께 나타난 흐름'),'90일 반복 흐름을 함께 나타난 기록으로 설명');
+  assert(summaryText.includes('함께 나타난 것일 뿐, 원인이나 위험 판정이 아닙니다.'),'90일 반복 흐름은 원인·위험 판정이 아님을 명시');
+  assert(summaryText.includes('상담 때 보여주기')&&await pg.isVisible('#summary-consult'),'회복요약 안에 상담 때 보여주기 선택 카드 표시');
+  const emptySummaryText=await pg.evaluate(()=>{
+    const keep={
+      urges:S.urges,halts:S.halts,moods:S.moods,sleepLog:S.sleepLog,relapses:S.relapses,habits:S.habits,hours:S.hours
+    };
+    S.urges=[]; S.halts=[]; S.moods=[]; S.sleepLog=[]; S.relapses=[]; S.habits=[]; S.hours=[];
+    drawRecoverySummary();
+    const txt=$('#summary-patterns').innerText;
+    Object.assign(S,keep); drawRecoverySummary();
+    return txt;
+  });
+  assert(emptySummaryText.includes('원할 때 홈에서 짧게 남겨보세요. 남긴 내용이 이곳에 모입니다.'),'반복 흐름 기록 부족 시 기록 초대 안내');
   await pg.click('#summary-consult'); await pg.waitForTimeout(80);
   assert(await pg.evaluate(()=>document.body.classList.contains('summary-consult')),'상담 보여주기는 눌렀을 때만 표시 모드');
   await pg.click('#summary-consult-exit'); await pg.waitForTimeout(50);

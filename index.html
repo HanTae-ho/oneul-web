@@ -2574,6 +2574,7 @@ addEventListener('appinstalled', function(){
     <details class="faq"><summary>홈 간단히 보기는 무엇인가요?</summary><div class="faq-a"><p><b>홈 간단히 보기</b>는 별도 홈이 아니라 같은 홈에서 일부 내용을 덜 보여주는 설정입니다. 간단히 보기에서는 <b>매일의 명상 · 오늘의 문장</b>을 숨기고, 오늘 일정은 처음에 최대 3개까지 보여줍니다. <b>오늘 전체 일정 보기</b>를 누르면 나머지 일정도 확인할 수 있습니다. <b>나 → 내 정보 · 설정 → 앱 → 홈 간단히 보기</b>에서 간단히 보기와 전체 보기를 언제든 바꿀 수 있습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('me')">화면 설정 열기</button></div></details>
     <details class="faq"><summary>내 기록은 어디에 저장되나요?</summary><div class="faq-a"><p>감정, 충동, 하루, 몸, 12단계, 회복 실천도구, 자가점검 결과 같은 개인 회복기록은 기본적으로 <b>현재 기기 안</b>에 저장됩니다. 자동으로 다른 사람이나 마음프로에 전달되지 않습니다.</p></div></details>
     <details class="faq"><summary>지나간 기록은 어디에서 볼 수 있나요?</summary><div class="faq-a"><p><b>나 → 내 발자취</b>에서 감정·충동·하루·몸·실천기록(의미·12단계·회복 실천도구)·자가점검·통계·회복 패턴을 다시 볼 수 있습니다. 당사자 모드에서는 홈의 기분·HALT 기록 아래 <b>내 기록 돌아보기 →</b>를 눌러 <b>내 회복요약</b>으로 바로 들어갈 수도 있습니다. 외래 일정이 설정되어 있으면 외래 전날과 당일에만 같은 링크의 안내 문구가 달라집니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('rec')">내 발자취 열기</button></div></details>
+    <details class="faq"><summary>내 회복요약의 최근 4주와 90일은 무엇을 뜻하나요?</summary><div class="faq-a"><p><b>최근 4주</b>는 최근 상태를 돌아보기 위한 사실 요약입니다. 충동·HALT·수면·회복 실천·자가점검·다시 시작처럼 내가 남긴 기록을 모아 보여줍니다.</p><p style="margin-top:8px"><b>최근 90일 반복된 흐름</b>은 기록에서 함께 나타난 항목을 보여주는 참고입니다. 함께 나타났다고 해서 원인이라는 뜻도 아니고, 위험 판정이나 재발예측도 아닙니다. 기록이 충분하지 않으면 흐름을 억지로 만들지 않고 더 기록이 필요하다고 안내합니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('recovery-summary')">내 회복요약 열기</button></div></details>
     <details class="faq"><summary>내가 되찾은 것은 어디에서 보나요?</summary><div class="faq-a"><p>당사자 모드에서는 <b>나 → 내가 되찾은 것</b>을 눌러 회복일·되찾은 시간·지킨 비용·회복 실천을 한눈에 볼 수 있습니다. 회복 시작일이 없으면 회복일이라고 표시하지 않고 <b>앱 기록 시작일부터의 기록 기간</b>을 기준으로 선택한 시간·비용 추정치를 계산합니다. 도박 회복영역은 손실복구 사고를 자극하지 않도록 금액 누적 계산을 제공하지 않습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('my')">나 열기</button></div></details>
     <details class="faq"><summary>기록을 백업하거나 다른 기기로 옮길 수 있나요?</summary><div class="faq-a"><p><b>나 → 내 정보 · 설정 → 기록 관리</b>에서 기록을 내보내고 다시 불러올 수 있습니다. 앱 삭제나 기기 변경 전에는 먼저 내보내기를 권합니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('me')">기록 관리 열기</button></div></details>
     <details class="faq"><summary>앱을 업데이트하거나 다시 설치하면 기록은 어떻게 되나요?</summary><div class="faq-a"><p>같은 저장공간에 정상적인 <b>ohg.v1</b> 기록이 있으면 업데이트 뒤에도 자동으로 기존 데이터를 사용합니다. 기존 데이터가 있는데 시작 상태가 맞지 않거나 읽기 오류가 나면 새 기록을 덮어쓰지 않고 <b>기존 데이터 사용 · 안전백업 복구 · 파일 백업 · 새로 시작</b> 중에서 선택하도록 안내합니다. 앱 삭제와 함께 브라우저 데이터까지 삭제되거나 기기가 초기화되면 기기 안 기록은 사라질 수 있으므로 파일 백업도 권합니다.</p></div></details>
@@ -2673,7 +2674,7 @@ addEventListener('appinstalled', function(){
       <p>당사자 모드에서는 <b>감정 · 충동 · 하루 · 몸 · 다시 시작 · 실천기록 · 자가점검 · 통계 · 회복 패턴</b>을 한곳에서 돌아봅니다. 가족·보호자 모드에서는 당사자의 충동·재발을 대신 기록하지 않도록 구성이 달라집니다.</p>
       <p style="margin-top:8px">의미 돌아보기와 의미회복 간편점검 완료기록은 실천기록의 <b>의미</b> 필터에서 함께 확인할 수 있고, 12단계와 회복 실천도구 저장기록도 같은 실천기록에서 다시 열 수 있습니다.</p>
       <p style="margin-top:8px"><b>통계 · 패턴</b>에서는 기존 기록 통계와 <b>내 회복 패턴</b>을 전환해 볼 수 있습니다. 내 회복 패턴은 최근 90일 기기 기록에서 시간·HALT·감정·수면·회복 실천·관계처럼 반복된 사실을 설명할 뿐 진단·재발예측이 아니며, 특정 사람을 원인으로 판단하거나 자가점검 점수를 다른 기록과 합쳐 위험점수로 만들지 않습니다.</p>
-      <p style="margin-top:8px"><b>내 회복요약</b>은 홈의 <b>내 기록 돌아보기 →</b> 또는 통계 · 패턴 상단에서 열 수 있습니다. 회복일·충동·HALT·수면·회복 실천·자가점검 변화·다시 시작을 한 장으로 모아 보여주며, 점수나 판정이 아니라 스스로 돌아보기 위한 요약입니다. <b>상담 때 보여주기 (선택)</b>은 사용자가 원할 때만 화면 표시를 바꾸며 기록을 자동 전송하지 않습니다. <b>인쇄 · PDF 저장</b>은 상담 기능과 별도의 일반 기능입니다.</p>
+      <p style="margin-top:8px"><b>내 회복요약</b>은 홈의 <b>내 기록 돌아보기 →</b> 또는 통계 · 패턴 상단에서 열 수 있습니다. <b>최근 4주</b>는 최근 상태를 돌아보기 위한 사실 요약이고, <b>최근 90일 반복된 흐름</b>은 기록에서 함께 나타난 항목을 보여주는 참고입니다. 함께 나타난 것은 원인이나 위험 판정, 재발예측을 뜻하지 않으며 기록이 충분하지 않으면 흐름을 만들지 않습니다. 회복일·충동·HALT·수면·회복 실천·자가점검 변화·다시 시작을 한 장으로 모아 보여주며, 점수나 판정이 아니라 스스로 돌아보기 위한 요약입니다. <b>상담 때 보여주기 (선택)</b>은 사용자가 원할 때만 화면 표시를 바꾸며 기록을 자동 전송하지 않습니다. <b>인쇄 · PDF 저장</b>은 상담 기능과 별도의 일반 기능입니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('rec')">내 발자취 열기</button>
     </div></details>
 
@@ -2761,7 +2762,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD='V9.2.1';
+const BUILD='V9.2.2';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 커뮤니티의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 커뮤니티 데이터는 포함되지 않습니다. */
@@ -8744,10 +8745,10 @@ function drawRecoverySummary(){
   const d=recoverySummaryData();
   document.body.classList.toggle('summary-consult',!!window.recoverySummaryConsult);
   body.innerHTML='<div class="summary-sheet">'+
-    '<div class="card summary-period"><div><b>최근 4주</b><div class="tiny">내가 직접 남긴 기기 내 기록 요약</div></div><span>'+esc(d.win.start.replaceAll('-','.'))+' ~ '+esc(d.win.end.replaceAll('-','.'))+'</span></div>'+
+    '<div class="card summary-period"><div><b>최근 4주 · 최근 상태</b><div class="tiny">최근 4주에 내가 직접 남긴 기기 내 기록을 모아 보여줍니다.</div></div><span>'+esc(d.win.start.replaceAll('-','.'))+' ~ '+esc(d.win.end.replaceAll('-','.'))+'</span></div>'+
     '<details class="note info-fold" id="recovery-summary-info"><summary>기록 요약 안내</summary><div class="info-fold-body">이 화면은 사용자가 직접 기록한 내용을 정리한 것이며 진단·위험도 점수·재발예측이 아닙니다. 자유기록 원문은 표시하지 않으며 서버나 마음프로로 자동 전송하지 않습니다.</div></details>'+
     recoverySummaryMainHtml(d)+recoverySummaryScreenHtml(d)+
-    '<div class="card summary-section" id="summary-patterns"><h2>반복된 흐름 · 최근 90일</h2><p class="tiny" style="margin:0 0 9px">최근 4주 요약과 별도로, 기존 내 회복 패턴 엔진에서 반복이 확인된 항목만 최대 4개 참고합니다.</p></div>'+
+    '<div class="card summary-section" id="summary-patterns"><h2>반복된 흐름 · 최근 90일</h2><p class="tiny" style="margin:0 0 5px">최근 90일 기록에서 함께 나타난 흐름을 최대 4개 보여줍니다.</p><p class="tiny" style="margin:0 0 9px">함께 나타난 것일 뿐, 원인이나 위험 판정이 아닙니다.</p></div>'+
     '</div>';
 
   autoFoldInfo('recovery-summary-info','recovery-summary',1100);
@@ -8756,7 +8757,7 @@ function drawRecoverySummary(){
   const pattern=recPattern();
   const cards=[...pattern.children].filter(x=>x.classList&&x.classList.contains('card'));
   if(cards.length) cards.slice(0,4).forEach(c=>pb.appendChild(c));
-  else pb.insertAdjacentHTML('beforeend','<div class="empty">아직 반복되는 흐름을 말하기에 기록이 충분하지 않습니다.</div>');
+  else pb.insertAdjacentHTML('beforeend','<div class="empty">아직 반복되는 흐름을 말하기에 기록이 충분하지 않습니다.<br>원할 때 홈에서 짧게 남겨보세요. 남긴 내용이 이곳에 모입니다.</div>');
 
   const consult=$('#summary-consult'); if(consult) consult.onclick=()=>{ window.recoverySummaryConsult=true; document.body.classList.add('summary-consult'); drawRecoverySummary(); };
   const exit=$('#summary-consult-exit'); if(exit) exit.onclick=()=>{ window.recoverySummaryConsult=false; document.body.classList.remove('summary-consult'); drawRecoverySummary(); };

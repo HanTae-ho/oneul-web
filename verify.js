@@ -51,6 +51,10 @@ ok(index.includes("viewMode: ''")&&index.includes("s.viewMode = s.viewMode === '
 ok(index.includes("body.simple-view #home-daily,body.simple-view #home-quote{display:none}")&&index.includes("const homeLimit=S.viewMode==='simple'?3:5;"),'V9.2 간단히 보기 차이는 홈 숨김 2개 + 일정 3개 제한');
 ok(index.includes("내 기록 돌아보기 →")&&index.includes("내일 외래 일정이 있어요 · 내 기록 돌아보기 →")&&index.includes("오늘 외래 일정이 있어요 · 필요하면 내 기록 돌아보기 →"),'V9.2 홈 회복요약 링크와 외래 D-1/D-0 문구');
 ok(index.includes("저장했어요. 나중에 내 회복요약에서 다시 볼 수 있어요.")&&index.includes("누르면 바로 저장돼요."),'V9.2 기분/HALT 공통 저장 안내와 짧은 설명');
+ok(index.includes('최근 4주 · 최근 상태')&&index.includes('최근 90일 기록에서 함께 나타난 흐름을 최대 4개 보여줍니다.')&&index.includes('함께 나타난 것일 뿐, 원인이나 위험 판정이 아닙니다.'),'V9.2.2 회복요약의 최근 4주·90일 의미 설명');
+ok(index.includes('원할 때 홈에서 짧게 남겨보세요. 남긴 내용이 이곳에 모입니다.'),'V9.2.2 반복 흐름 기록 부족 안내');
+ok(index.includes('내 회복요약의 최근 4주와 90일은 무엇을 뜻하나요?')&&index.includes('<b>최근 4주</b>는 최근 상태를 돌아보기 위한 사실 요약')&&index.includes('<b>최근 90일 반복된 흐름</b>은 기록에서 함께 나타난 항목을 보여주는 참고'),'V9.2.2 회복요약 설명이 FAQ에 반영');
+ok(index.includes('<b>최근 4주</b>는 최근 상태를 돌아보기 위한 사실 요약이고, <b>최근 90일 반복된 흐름</b>은 기록에서 함께 나타난 항목을 보여주는 참고'),'V9.2.2 회복요약 설명이 사용설명서에 반영');
 ok(index.includes("id=\"help-fixed-lines\"")&&index.includes("const wantedPhones=['15770199','129'];")&&!index.includes("wantedPhones=['109'")&&!index.includes("wantedPhones=['119'"),'헬프 109·119는 고정 영역에만 두고 일반 헬프콜 목록에서 분리');
 ok(index.includes('홈 간단히 보기는 무엇인가요?')&&index.includes('나 → 내 정보 · 설정 → 앱 → 홈 간단히 보기')&&index.includes('사용설명서')&&index.includes('상담 때 보여주기 (선택)'),'V9.2 기능 변경이 앱 내 FAQ·사용설명서에 함께 반영');
 ok(index.includes("const fixed=[\n    {n:'응급 신고',t:'119'},\n    {n:'자살예방 상담전화',t:'109'}")&&index.includes("'<span class=\"b\"><b>'+esc(l.n)+' · '+esc(l.t)+'</b></span>'"),'헬프 상단 119·109 고정 카드 자체에는 설명문을 렌더링하지 않음');
