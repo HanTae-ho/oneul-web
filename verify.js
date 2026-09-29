@@ -184,7 +184,7 @@ ok(/familyStepWorks: \[\], familyStepDrafts: \{\}/.test(index),'가족 12단계 
 ok(/familyWbDays: \{\}/.test(index)&&/familyMeaningChecks: \[\], familyMeaningCheckDraft: null/.test(index),'가족 의미 돌아보기·의미점검 별도 로컬 저장소');
 ok(/const key=meaningFamilyMode\(\)\?'familyWbDays':'wbDays'/.test(meaningFeatureSrc),'의미 돌아보기 역할별 저장소 분기');
 ok(/function mcRecordStore\(\).*familyMeaningChecks/.test(meaningCheckSrc)&&/function mcDraftValue\(\).*familyMeaningCheckDraft/.test(meaningCheckSrc),'의미점검 역할별 완료기록·초안 분리');
-ok(/const MCQ_FAMILY=\[/.test(meaningCheckSrc)&&/가족의 변화 여부와 별개로 내 삶에서 기대해 볼 만한 것이 있다고 느낀다/.test(meaningCheckSrc),'가족 의미점검 10문항 별도 구성');
+ok(/const MCQ_FAMILY=\[/.test(meaningCheckSrc)&&/그 사람의 변화 여부와 별개로 내 삶에서 기대해 볼 만한 것이 있다고 느낀다/.test(meaningCheckSrc),'가족 의미점검 10문항 별도 구성');
 ok(/family:\s*\{[\s\S]*?hard:\s*\[/.test(meaningDataSrc)&&/대신 수습하지 않음/.test(meaningDataSrc)&&/내 삶 지키기/.test(meaningDataSrc),'가족 의미 돌아보기 선택문항·가치 별도 구성');
 ok(!/if\(p==='meaning' && famMode\(\)\)/.test(index)&&/if\(mnb\) mnb\.style\.display='flex'/.test(index),'가족모드 의미 돌아보기 진입 허용');
 ok(/\{v:'meaning',l:'의미'\}/.test(index)&&/scope==='family'[\s\S]{0,500}familyWbDays/.test(index),'가족 내 발자취 의미 필터·역할별 기록 조회');
