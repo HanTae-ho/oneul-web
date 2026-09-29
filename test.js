@@ -650,6 +650,40 @@ const srv = http.createServer((req, res) => {
   const selfAgainText = await pg.$eval('#rec-body', e => e.innerText);
   assert(selfAgainText.includes('내가 지킬 한 걸음') && selfAgainText.includes('20/40'), '역할을 당사자로 돌리면 기존 당사자 의미기록을 그대로 다시 읽음');
   assert(!selfAgainText.includes('가족 기록 전용 문장') && !selfAgainText.includes('30/40'), '당사자 내 발자취에 가족 의미기록이 섞이지 않음');
+
+  // 앱 종료→재실행을 새 페이지로 시뮬레이션: 같은 브라우저 저장공간과 캐시에서 가족 의미기록/진입이 유지되어야 합니다.
+  const coldRaw=await pg.evaluate(() => {
+    const x=JSON.parse(JSON.stringify(S));
+    x.role='family'; x.familyWbDays={}; x.familyMeaningChecks=[]; x.familyMeaningCheckDraft=null;
+    return JSON.stringify(x);
+  });
+  const coldCtx=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'ko-KR',timezoneId:'Asia/Seoul'});
+  await coldCtx.addInitScript(raw=>{if(!localStorage.getItem('ohg.v1'))localStorage.setItem('ohg.v1',raw);},coldRaw);
+  let coldPg=await coldCtx.newPage();
+  const coldErrs=[]; coldPg.on('pageerror',e=>coldErrs.push(e.message));
+  await coldPg.goto('http://localhost:8899/index.html'); await coldPg.waitForTimeout(650);
+  assert(await coldPg.evaluate(()=>S.role==='family'),'cold-start 1차 실행에서 가족 역할 복구');
+  await coldPg.evaluate(()=>go('meaning')); await coldPg.waitForTimeout(120);
+  assert((await coldPg.$eval('.pg.on',e=>e.id))==='p-meaning','cold-start 1차 실행에서 가족 의미 돌아보기 진입');
+  await coldPg.fill('#mn-request','재실행 뒤에도 남길 가족 의미기록');
+  await coldPg.click('#mn-save'); await coldPg.waitForTimeout(120);
+  assert(await coldPg.evaluate(()=>S.familyWbDays[wbToday()].request==='재실행 뒤에도 남길 가족 의미기록'),'cold-start 시뮬레이션용 가족 의미기록 저장');
+  await coldPg.close();
+
+  coldPg=await coldCtx.newPage();
+  coldPg.on('pageerror',e=>coldErrs.push(e.message));
+  await coldPg.goto('http://localhost:8899/index.html'); await coldPg.waitForTimeout(650);
+  assert(await coldPg.evaluate(()=>S.role==='family'),'앱 종료 후 재실행에서도 가족 역할 유지');
+  assert(await coldPg.evaluate(()=>S.familyWbDays[wbToday()]&&S.familyWbDays[wbToday()].request==='재실행 뒤에도 남길 가족 의미기록'),'앱 종료 후 재실행에서도 가족 의미기록 유지');
+  await coldPg.evaluate(()=>go('tools')); await coldPg.waitForTimeout(100);
+  await coldPg.click('#tool-meaning'); await coldPg.waitForTimeout(120);
+  assert((await coldPg.$eval('.pg.on',e=>e.id))==='p-meaning','재실행 후 가족 의미 돌아보기 버튼이 정상 작동');
+  if(await coldPg.isVisible('#mod.on').catch(()=>false)) await coldPg.evaluate(()=>closeModal());
+  await coldPg.evaluate(()=>openMeaningCheckDirect()); await coldPg.waitForTimeout(100);
+  assert((await coldPg.$eval('.pg.on',e=>e.id))==='p-meaning' && (await coldPg.$eval('#mn-view-check',e=>e.innerText)).includes('가족의 변화 여부가 아니라'),'재실행 후 가족 의미점검도 정상 작동');
+  assert(coldErrs.length===0,'cold-start 재실행 시 JavaScript pageerror가 없어야 함');
+  await coldCtx.close();
+
   await pg.evaluate(() => go('tools'));
   await pg.waitForTimeout(150);
   await pg.click('#tool-listen'); await pg.waitForTimeout(180);
@@ -776,14 +810,43 @@ const srv = http.createServer((req, res) => {
   const secondAudit = await pg.$eval('#screen-test-body', e => e.innerText);
   assert(secondAudit.includes('1점') && secondAudit.includes('1점 증가'), '두 번째 AUDIT-K는 이전 대비 1점 증가를 표시');
   assert(secondAudit.includes('약 4주 후') && secondAudit.includes('공식 재검사 주기'), '결과에 경과관찰용 재점검 안내 표시');
-  assert(await pg.isVisible('#screen-log-go') && await pg.isVisible('#screen-help-go') && await pg.isVisible('#screen-ai-go'), '결과에서 기록·도움·마음프로 행동 연결 표시');
+  assert(await pg.isVisible('#screen-log-go') && await pg.isVisible('#screen-help-go') && await pg.isVisible('#screen-ai-go'), '결과에서 오늘 돌아보기·도움·마음프로 행동 연결 표시');
+  assert((await pg.$eval('#screen-log-go',e=>e.textContent.trim()))==='오늘 돌아보기','자가점검 결과 첫 행동 이름은 오늘 돌아보기');
+  await pg.evaluate(() => { window.__screenResultRouteTest=JSON.parse(JSON.stringify(screenRun)); });
+  await pg.click('#screen-log-go'); await pg.waitForTimeout(150);
+  assert((await seen()) === 'p-meaning', '당사자 자가점검 결과의 오늘 돌아보기는 의미 돌아보기로 이동');
+  assert(await pg.$eval('[data-mn-view="today"]',e=>e.classList.contains('on')), '자가점검 결과에서는 의미 돌아보기의 오늘 돌아보기 탭이 열림');
+  assert((await pg.$eval('#mn-intro-text',e=>e.textContent)).includes('오늘의 경험에서 아팠던 것'), '당사자는 당사자용 오늘 돌아보기 문항을 사용');
+  assert(await pg.evaluate(()=>screenRun===null), '오늘 돌아보기로 이동하면 자가점검 실행 상태를 정리');
+  await pg.evaluate(() => { screenRun=window.__screenResultRouteTest; go('screen-test'); drawScreenTest(); });
+  await pg.waitForTimeout(120);
   await pg.click('#screen-stat-go'); await pg.waitForTimeout(180);
   assert((await seen()) === 'p-rec', '자가점검 결과에서 내 발자취 통계로 이동');
   const statTextV7 = await pg.$eval('#rec-body', e => e.innerText);
   assert(statTextV7.includes('자가점검 변화') && statTextV7.includes('AUDIT-K') && statTextV7.includes('이전보다 1점 증가'), '통계에 자가점검 최근점수와 이전 대비 변화 표시');
-  assert((await pg.$$eval('#rec-body .trend-svg', a => a.length)) >= 1, '자가점검 통계에 검사별 꺾은선 그래프 표시');
-  assert((await pg.$$eval('#rec-body .screen-record-row', a => a.length)) >= 2, '자가점검 통계에 최근 검사일·점수 목록 표시');
+  assert((await pg.$eval('#rec-body .trend-svg', a => a.length)) >= 1, '자가점검 통계에 검사별 꺾은선 그래프 표시');
+  assert((await pg.$eval('#rec-body .screen-record-row', a => a.length)) >= 2, '자가점검 통계에 최근 검사일·점수 목록 표시');
   await shot('10-screening-stat');
+
+  // 가족도 같은 결과 행동을 쓰되 가족용 의미 돌아보기로 분기합니다.
+  await pg.evaluate(() => {
+    S.role='family';
+    if(S.familyWbDays&&typeof S.familyWbDays==='object') delete S.familyWbDays[wbToday()];
+    save();
+    const t=screenTool('nds-bv');
+    screenRun={id:t.id,i:0,a:Array(t.questions.length).fill(0),result:null};
+    go('screen-test');
+    finishScreen(t);
+  });
+  await pg.waitForTimeout(120);
+  assert((await pg.$eval('#screen-log-go',e=>e.textContent.trim()))==='오늘 돌아보기','가족 자가점검 결과도 오늘 돌아보기 행동 표시');
+  await pg.click('#screen-log-go'); await pg.waitForTimeout(150);
+  assert((await seen()) === 'p-meaning', '가족 자가점검 결과의 오늘 돌아보기도 의미 돌아보기로 이동');
+  const familyScreenMeaning=await pg.$eval('#p-meaning',e=>e.innerText);
+  assert(familyScreenMeaning.includes('오늘 내 마음, 경계, 자기돌봄')&&familyScreenMeaning.includes('오늘의 부담감'),'가족 자가점검 결과는 가족용 오늘 돌아보기 문항으로 연결');
+  assert(await pg.$eval('[data-mn-view="today"]',e=>e.classList.contains('on')), '가족 결과에서도 오늘 돌아보기 탭이 열림');
+  await pg.evaluate(() => { S.role='self'; save(); go('tools'); });
+  await pg.waitForTimeout(120);
 
   // 다시 회복도구로 돌아와 Q&A 검증
   await pg.click('#tabs button[data-t="tools"]'); await pg.waitForTimeout(120);
