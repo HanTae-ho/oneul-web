@@ -4607,7 +4607,7 @@ function applyViewMode(){
   document.body.classList.toggle('simple-view', S.viewMode === 'simple');
 }
 function drawViewModeSetting(){
-  $('#me-view-mode [data-view-mode]').forEach(b => {
+  document.querySelectorAll('#me-view-mode [data-view-mode]').forEach(b => {
     b.classList.toggle('on', (b.dataset.viewMode || '') === (S.viewMode === 'simple' ? 'simple' : ''));
   });
 }
