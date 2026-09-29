@@ -52,6 +52,8 @@ ok(index.includes("body.simple-view #home-daily,body.simple-view #home-quote{dis
 ok(index.includes("내 기록 돌아보기 →")&&index.includes("내일 외래 일정이 있어요 · 내 기록 돌아보기 →")&&index.includes("오늘 외래 일정이 있어요 · 필요하면 내 기록 돌아보기 →"),'V9.2 홈 회복요약 링크와 외래 D-1/D-0 문구');
 ok(index.includes("저장했어요. 나중에 내 회복요약에서 다시 볼 수 있어요.")&&index.includes("누르면 바로 저장돼요."),'V9.2 기분/HALT 공통 저장 안내와 짧은 설명');
 ok(index.includes("id=\"help-fixed-lines\"")&&index.includes("t!=='109' && t!=='119'"),'V9.2 헬프 109·119 고정 및 동적 목록 중복 제외');
+ok(index.includes('홈 간단히 보기는 무엇인가요?')&&index.includes('나 → 내 정보 · 설정 → 앱 → 홈 간단히 보기')&&index.includes('사용설명서')&&index.includes('상담 때 보여주기 (선택)'),'V9.2 기능 변경이 앱 내 FAQ·사용설명서에 함께 반영');
+ok(index.includes('자원 목록을 받지 못했거나 오프라인이어도')&&index.includes('가족·보호자 모드의 폭력·타해·즉각적 위협 안내에서는 기존 <b>112</b> 연결을 유지'),'V9.2 FAQ 안전 안내에 109·119 고정과 가족 112 유지 반영');
 ok(/도박문제 헬프라인', t:'1336', d:'365일 09:00~22:00/.test(index) && /가족 상담도 받습니다 · 365일 09:00~22:00/.test(index),'1336 운영시간 최신 표기 365일 09:00~22:00');
 ok(!/user-scalable=no/.test(index),'접근성: 사용자 화면 확대 차단 없음');
 ok(/ks\.filter\(k => k\.startsWith\('ohg-'\)\)/.test(index),'앱 새로고침은 오늘 한 걸음 캐시만 삭제');
