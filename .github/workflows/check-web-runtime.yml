@@ -12,6 +12,7 @@ on:
       - 'icon-*.png'
       - '.github/workflows/check-web-runtime.yml'
       - '.github/workflows/release-android-v911.yml'
+      - '.github/workflows/release-android-v920.yml'
   pull_request:
     branches: [main]
     paths:
@@ -23,6 +24,7 @@ on:
       - 'icon-*.png'
       - '.github/workflows/check-web-runtime.yml'
       - '.github/workflows/release-android-v911.yml'
+      - '.github/workflows/release-android-v920.yml'
   workflow_dispatch:
 
 permissions:
