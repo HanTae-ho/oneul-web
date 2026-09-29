@@ -596,6 +596,8 @@ addEventListener('appinstalled', function(){
   /* V8.1.7 — 오늘 일정이 많으면 홈은 5개까지만 보여주고 필요할 때 펼칩니다. */
   .today-more{width:100%;margin-top:5px;padding:9px 4px;border-top:1px dashed var(--line);text-align:center;font-size:12px;font-weight:700;color:var(--acc);background:transparent}
   .today-edit-hint{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:11.5px;line-height:1.45;color:var(--dim)}
+  /* V9.2 — 간단히 보기는 DOM을 지우지 않고 홈의 두 읽기 요소만 숨깁니다. */
+  body.simple-view #home-daily,body.simple-view #home-quote{display:none}
   /* ── 자가점검 V7.1 ── */
   .screen-group{margin:18px 0 8px}
   .screen-group h2{margin:0 0 4px;font-size:15px;color:var(--tx)}
