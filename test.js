@@ -637,7 +637,7 @@ const srv = http.createServer((req, res) => {
   assert(familyTrailText.includes('의미') && familyTrailText.includes('가족 기록 전용 문장') && familyTrailText.includes('30/40'), '가족 내 발자취 의미 필터가 가족 의미기록과 점검만 표시');
   assert(!familyTrailText.includes('내가 지킬 한 걸음') && !familyTrailText.includes('20/40'), '가족 내 발자취에 당사자 의미기록이 섞이지 않음');
 
-  await pg.evaluate(() => { go('meaning'); setMeaningView('check'); });
+  await pg.evaluate(() => openMeaningCheckDirect());
   await pg.waitForTimeout(80);
   assert((await pg.$eval('#mn-view-check', e => e.innerText)).includes('가족의 변화 여부가 아니라'), '가족 의미점검은 가족 자신의 상태·경계·자기돌봄을 안내');
   await pg.evaluate(() => { const d=mcNewDraft(); d.answers=Array(10).fill(2); mcCommitResult(d); });
