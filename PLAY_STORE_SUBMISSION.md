@@ -58,7 +58,7 @@ Play Console 요구사항: <https://support.google.com/googleplay/android-develo
 - minSdk: `23`
 - compileSdk: `36`
 - targetSdk: `36`
-- 정식 GitHub Release: `v9.1.4`
+- 정식 GitHub Release: `v9.2.0`
 - AAB: `oneul-v9.2.0.aab`
   - SHA-256: 정식 릴리스의 `SHA256SUMS.txt` 기준
 - APK: `oneul-v9.2.0.apk`
@@ -309,10 +309,8 @@ GitHub 직접배포 APK의 자동 검증과 별개로, Google Play에 올린 AAB
 
 ---
 
-## 11. 이번 준비 작업에서 변경하지 않는 항목
+## 11. V9.2.0 릴리스에서도 유지하는 보호 항목
 
-- 앱 버전 `V9.2.0`
-- Android versionCode `919`
 - `DATA_SCHEMA = 6`
 - `ohg.v1`
 - `ohg.social.v1`
@@ -321,4 +319,3 @@ GitHub 직접배포 APK의 자동 검증과 별개로, Google Play에 올린 AAB
 - `scheduleNextForOffset`
 - Relax TTS
 - MindPro Voice TTS
-- 현재 GitHub Release APK/AAB 및 tag
