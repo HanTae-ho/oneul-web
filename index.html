@@ -1034,6 +1034,8 @@ addEventListener('appinstalled', function(){
     <p class="tiny" id="mood-st" style="margin:10px 0 0"></p>
   </div>
 
+  <button class="tiny" id="home-review" style="display:block;width:100%;text-align:right;color:var(--acc);font-weight:700;margin:-2px 0 12px">내 기록 돌아보기 →</button>
+
   <div class="quote" id="home-quote"></div>
 
   <div style="height:12px"></div>
@@ -2175,10 +2177,14 @@ addEventListener('appinstalled', function(){
     <button class="tiny summary-normal-only" style="color:var(--acc);font-weight:600" onclick="appBack('rec')">← 통계 · 패턴</button>
     <button class="tiny summary-consult-only" id="summary-consult-exit" style="color:var(--acc);font-weight:700">상담 화면 끝내기</button>
   </div>
-  <p class="muted summary-normal-only" style="margin:0 0 14px">최근 4주 기록을 한 장으로 정리합니다. 저장된 기록을 새로 전송하거나 공유하지 않습니다.</p>
+  <p class="muted summary-normal-only" style="margin:0 0 14px">내가 남긴 기록을 모아 보여줍니다. 점수나 판정이 아니라, 나를 돌아보는 데 쓰는 요약입니다. 기록은 전송되지 않습니다.</p>
   <div id="recovery-summary-body"></div>
-  <div class="summary-actions summary-normal-only">
-    <button class="btn" id="summary-consult">상담할 때 보여주기</button>
+  <div class="summary-normal-only" style="margin-top:14px">
+    <div class="card tight" style="margin-bottom:9px">
+      <b style="display:block;margin-bottom:4px">상담 때 보여주기 <span class="tiny" style="font-weight:400">(선택)</span></b>
+      <p class="muted" style="margin:0 0 10px">원하면 이 화면을 직접 보여줄 수 있습니다. 기록은 자동으로 전송되지 않습니다.</p>
+      <button class="btn sec sm" id="summary-consult">보여주기 화면 열기</button>
+    </div>
     <button class="btn sec" id="summary-print">인쇄 · PDF 저장</button>
   </div>
 </section>
@@ -2279,9 +2285,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-help">
   <h1>헬프</h1>
 
-  <div class="note b" style="margin-bottom:16px">
-    지금 생명이 위험하거나 몸에 이상이 있다면 망설이지 말고 <b>119</b>에 전화하세요.
-  </div>
+  <div id="help-fixed-lines" style="margin-bottom:16px"></div>
 
   <h2>헬프콜</h2>
   <p class="muted" style="margin:-5px 0 10px">지금 사람에게 바로 연결되는 상담·응급 전화입니다.</p>
@@ -4420,6 +4424,23 @@ function drawHome(){
     mb.appendChild(b);
   });
   $('#mood-st').textContent = countLine(S.moods);
+
+  const review=$('#home-review');
+  if(review){
+    review.style.display=fam?'none':'block';
+    if(!fam){
+      let label='내 기록 돌아보기 →';
+      const t=treatmentCfg();
+      if(t.outpatientOn){
+        const v=treatmentEffectiveVisit();
+        const dd=v?diffYmd(today(),v):null;
+        if(dd===1) label='내일 외래 일정이 있어요 · 내 기록 돌아보기 →';
+        else if(dd===0) label='오늘 외래 일정이 있어요 · 필요하면 내 기록 돌아보기 →';
+      }
+      review.textContent=label;
+      review.onclick=()=>go('recovery-summary');
+    }
+  }
 
   /* 기존 하단 오늘의 말 — 이쪽도 기기 로컬 날짜 기준으로 고정합니다. */
   const qd = new Date();
@@ -9626,6 +9647,16 @@ $('#go-meet-fam').onclick = () => { mt.target = 'fam'; mt.mode = 'today'; mt.tod
 function drawHelp(){
   const R = S.res || {};
 
+  const fixed=[
+    {n:'응급 신고',t:'119',d:'몸이 위급하거나 경련·환각·심한 금단이 있을 때'},
+    {n:'자살예방 상담전화',t:'109',d:'24시간 · 무료 · 죽고 싶은 마음이 들 때'}
+  ];
+  $('#help-fixed-lines').innerHTML=fixed.map(l=>
+    '<a class="help urgent" href="tel:'+l.t+'">'+
+    '<span class="ic">'+ico('sos')+'</span>'+
+    '<span class="b"><b>'+esc(l.n)+' · '+esc(l.t)+'</b><span>'+esc(l.d)+'</span></span>'+
+    '<span class="go">전화</span></a>').join('');
+
   /* 가족 모드에서는 가족 모임을 위로 올립니다.
      자조모임을 먼저 보여주면 "내가 갈 곳은 없구나" 로 읽힙니다. */
   const me = $('#go-meet-me'), fm = $('#go-meet-fam');
@@ -9642,7 +9673,10 @@ function drawHelp(){
     '<a class="go" target="_blank" rel="noopener" href="' + mapURL(x.q) + '">지도 보기</a>' +
     '</span></div>').join('');
 
-  const lines = (R.lines && R.lines.length) ? R.lines : LINES;
+  const lines = ((R.lines && R.lines.length) ? R.lines : LINES).filter(l => {
+    const t=String(l.t||'').replace(/[^0-9]/g,'');
+    return t!=='109' && t!=='119';
+  });
   $('#help-lines').innerHTML = lines.map(l =>
     '<a class="help' + (l.u ? ' urgent' : '') + '" href="tel:' + esc(String(l.t).replace(/[^0-9\-]/g,'')) + '">' +
     '<span class="ic">' + ico(l.u ? 'sos' : 'phone') + '</span>' +
