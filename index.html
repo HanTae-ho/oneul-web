@@ -1388,9 +1388,9 @@ addEventListener('appinstalled', function(){
   </div>
 </section>
 
-<!-- ══════════ 의미 돌아보기 V9.0.17 · 하루 한 장 + 기록 다시보기 + 의미회복 간편점검 UX ══════════
-     ★ 당사자 모드에서만 사용합니다. 가족모드 기록과 섞지 않습니다.
-     ★ 진입은 회복도구와 하루 마무리 두 곳이지만 저장은 S.wbDays[날짜] 한 곳입니다.
+<!-- ══════════ 의미 돌아보기 · 역할별 하루 한 장 + 기록 다시보기 + 의미회복 간편점검 UX ══════════
+     ★ 당사자와 가족·보호자가 같은 UI를 사용하되 문항과 기록 저장소는 역할별로 분리합니다.
+     ★ 당사자 기록은 S.wbDays / S.meaningChecks, 가족 기록은 S.familyWbDays / S.familyMeaningChecks에 저장합니다.
      ★ 필수 항목은 없고, 아무것도 남기지 않으면 빈 기록을 만들지 않습니다. -->
 <section class="pg" id="p-meaning">
   <div class="sp" style="margin-bottom:11px">
@@ -1403,13 +1403,13 @@ addEventListener('appinstalled', function(){
     <button type="button" data-mn-view="check">의미점검</button>
   </div>
   <div id="mn-view-today">
-  <div class="note" style="margin-bottom:12px">오늘의 경험에서 아팠던 것, 남아 있던 힘, 내가 지킨 것을 짧게 돌아봅니다.<br><b id="mn-date"></b></div>
-  <div class="card"><h3>오늘의 공허감 <span class="tiny" style="font-weight:400">(선택)</span></h3><p class="muted" style="margin:-4px 0 10px">0은 그런 느낌 없음, 4는 많이 느껴짐입니다. 컷오프나 판정은 없습니다.</p><div class="mn-empty" id="mn-empty"></div><div style="height:8px"></div><button class="btn ghost sm" id="mn-empty-skip" style="display:none">답하지 않음</button></div>
-  <div class="card"><h3>오늘 아팠던 것은</h3><p class="muted" style="margin:-4px 0 10px">여러 개를 골라도 됩니다. 없으면 건너뛰어도 됩니다.</p><div class="opts" id="mn-hard"></div><textarea id="mn-hard-note" maxlength="180" placeholder="칩에 없으면 직접 적기 (선택)" style="margin-top:10px;min-height:58px"></textarea></div>
-  <div class="card"><h3>그럼에도 남아 있던 힘은</h3><p class="muted" style="margin:-4px 0 10px">버틴 것, 연결된 사람, 도움을 요청한 것도 힘입니다.</p><div class="opts" id="mn-strength"></div><textarea id="mn-strength-note" maxlength="180" placeholder="나에게 남아 있던 힘을 직접 적기 (선택)" style="margin-top:10px;min-height:58px"></textarea></div>
-  <div class="card"><h3>오늘 선택하거나 지킨 것은</h3><p class="muted" style="margin:-4px 0 10px">작은 행동도 괜찮습니다. 통계는 선택한 칩만 셉니다.</p><div class="opts" id="mn-action"></div><textarea id="mn-action-note" maxlength="180" placeholder="칩에 없으면 직접 적기 (선택)" style="margin-top:10px;min-height:58px"></textarea></div>
-  <div class="card"><h3>삶이 나에게 요청한 것은 <span class="tiny" style="font-weight:400">(선택)</span></h3><textarea id="mn-request" maxlength="240" placeholder="지금의 삶이 나에게 묻거나 요청하는 것이 있다면 짧게 적어보세요"></textarea><p class="tiny" style="margin:8px 0 0">직접 적은 글은 앱이 자동 분류하거나 점수화하지 않습니다.</p></div>
-  <div class="card" id="mn-line-card"><h3>오늘의 문장 <span class="tiny" style="font-weight:400">(선택)</span></h3><p class="muted" style="margin:-4px 0 8px">내 회복영역에 맞는 후보를 세 문장씩 보여드립니다. 마음에 남는 문장이 있을 때만 고르세요.</p><div id="mn-lines"></div><button class="btn ghost sm" id="mn-lines-more" style="margin-top:9px">다른 문장 보기</button></div>
+  <div class="note" style="margin-bottom:12px"><span id="mn-intro-text">오늘의 경험에서 아팠던 것, 남아 있던 힘, 내가 지킨 것을 짧게 돌아봅니다.</span><br><b id="mn-date"></b></div>
+  <div class="card"><h3><span id="mn-scale-h">오늘의 공허감</span> <span class="tiny" style="font-weight:400">(선택)</span></h3><p class="muted" id="mn-scale-d" style="margin:-4px 0 10px">0은 그런 느낌 없음, 4는 많이 느껴짐입니다. 컷오프나 판정은 없습니다.</p><div class="mn-empty" id="mn-empty"></div><div style="height:8px"></div><button class="btn ghost sm" id="mn-empty-skip" style="display:none">답하지 않음</button></div>
+  <div class="card"><h3 id="mn-hard-h">오늘 아팠던 것은</h3><p class="muted" id="mn-hard-d" style="margin:-4px 0 10px">여러 개를 골라도 됩니다. 없으면 건너뛰어도 됩니다.</p><div class="opts" id="mn-hard"></div><textarea id="mn-hard-note" maxlength="180" placeholder="칩에 없으면 직접 적기 (선택)" style="margin-top:10px;min-height:58px"></textarea></div>
+  <div class="card"><h3 id="mn-strength-h">그럼에도 남아 있던 힘은</h3><p class="muted" id="mn-strength-d" style="margin:-4px 0 10px">버틴 것, 연결된 사람, 도움을 요청한 것도 힘입니다.</p><div class="opts" id="mn-strength"></div><textarea id="mn-strength-note" maxlength="180" placeholder="나에게 남아 있던 힘을 직접 적기 (선택)" style="margin-top:10px;min-height:58px"></textarea></div>
+  <div class="card"><h3 id="mn-action-h">오늘 선택하거나 지킨 것은</h3><p class="muted" id="mn-action-d" style="margin:-4px 0 10px">작은 행동도 괜찮습니다. 통계는 선택한 칩만 셉니다.</p><div class="opts" id="mn-action"></div><textarea id="mn-action-note" maxlength="180" placeholder="칩에 없으면 직접 적기 (선택)" style="margin-top:10px;min-height:58px"></textarea></div>
+  <div class="card"><h3><span id="mn-request-h">삶이 나에게 요청한 것은</span> <span class="tiny" style="font-weight:400">(선택)</span></h3><textarea id="mn-request" maxlength="240" placeholder="지금의 삶이 나에게 묻거나 요청하는 것이 있다면 짧게 적어보세요"></textarea><p class="tiny" style="margin:8px 0 0">직접 적은 글은 앱이 자동 분류하거나 점수화하지 않습니다.</p></div>
+  <div class="card" id="mn-line-card"><h3>오늘의 문장 <span class="tiny" style="font-weight:400">(선택)</span></h3><p class="muted" id="mn-line-d" style="margin:-4px 0 8px">내 회복영역에 맞는 후보를 세 문장씩 보여드립니다. 마음에 남는 문장이 있을 때만 고르세요.</p><div id="mn-lines"></div><button class="btn ghost sm" id="mn-lines-more" style="margin-top:9px">다른 문장 보기</button></div>
   <button class="btn" id="mn-save">저장하기</button><div style="height:9px"></div><button class="btn ghost" id="mn-clear" style="display:none;color:var(--bad);border-color:var(--bad)">오늘 기록 지우기</button>
   </div>
   <div id="mn-view-history" class="hide">
@@ -2589,7 +2589,7 @@ addEventListener('appinstalled', function(){
 
   <h2>회복도구</h2>
   <div class="faq-list">
-    <details class="faq"><summary>의미 돌아보기는 무엇인가요?</summary><div class="faq-a"><p><b>회복도구 → 실천하기 → 의미 돌아보기</b>에서 오늘 돌아보기와 지난 기록을 사용할 수 있습니다. <b>의미회복 간편점검</b>은 같은 화면의 의미점검 탭에서도 할 수 있고, <b>회복도구 → 실천하기 → 의미점검</b>으로 들어가면 오늘 의미기록의 보기·수정 절차를 거치지 않고 곧바로 점검할 수 있습니다. 의미점검의 작성 중 답변은 임시저장되고, 10문항 뒤 <b>결과 저장</b>을 눌러야 완료기록으로 저장됩니다. 저장한 의미기록과 의미점검 완료결과는 <b>나 → 내 발자취 → 실천기록 → 의미</b>에서도 함께 볼 수 있습니다. 모든 기록은 현재 기기에만 저장됩니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('meaning')">의미 돌아보기 열기</button><button class="btn ghost sm faq-go" type="button" onclick="openMeaningCheckDirect()">의미점검</button></div></details>
+    <details class="faq"><summary>의미 돌아보기는 무엇인가요?</summary><div class="faq-a"><p><b>회복도구 → 실천하기 → 의미 돌아보기</b>에서 오늘 돌아보기와 지난 기록을 사용할 수 있습니다. 당사자와 가족·보호자는 같은 화면을 사용하지만 <b>문항과 저장기록은 역할별로 분리</b>됩니다. 가족모드에서는 상대의 중독상태를 평가하지 않고 내 마음·경계·자기돌봄과 생활을 돌아봅니다. <b>의미회복 간편점검</b>도 역할에 맞는 10문항으로 구성되며 작성 중 답변은 임시저장되고 <b>결과 저장</b>을 눌러야 완료기록으로 남습니다. 저장한 의미기록과 의미점검 완료결과는 <b>나 → 내 발자취 → 실천기록 → 의미</b>에서도 현재 역할의 기록만 확인합니다. 모든 기록은 현재 기기에만 저장됩니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('meaning')">의미 돌아보기 열기</button><button class="btn ghost sm faq-go" type="button" onclick="openMeaningCheckDirect()">의미점검</button></div></details>
     <details class="faq"><summary>의미회복 간편점검은 MIL 검사인가요?</summary><div class="faq-a"><p>아닙니다. <b>MIL-II의 자기인식·수용, 희망, 책임, 사랑, 자기초월, 관계, 자기만족, 헌신이라는 구성개념을 참고</b>해 오늘 한 걸음에서 새로 만든 10문항 자기점검입니다. 원 MIL-II 문항이나 원채점체계를 사용하지 않으며 진단·위험판정도 하지 않습니다. 저장한 결과는 <b>의미점검 → 점검 기록</b>에서 날짜별 총점과 4개 영역, 이전 기록과의 변화를 다시 볼 수 있습니다. 같은 날 다시 점검해 결과를 저장하면 그날의 완료결과 하나를 새 결과로 교체합니다.</p><button class="btn ghost sm faq-go" type="button" onclick="openMeaningCheckDirect()">의미점검</button></div></details>
     <details class="faq"><summary>12단계 기록은 어디에서 작성하나요?</summary><div class="faq-a"><p><b>회복도구 → 실천하기 → 12단계 점검</b>에서 작성합니다. 저장한 기록은 <b>내 발자취 → 실천기록</b>에서 다시 볼 수 있습니다.</p></div></details>
     <details class="faq"><summary>회복 실천도구는 어떻게 사용하나요?</summary><div class="faq-a"><p>SMART Recovery의 4-Point 학습 구조를 바탕으로 가치 우선순위 정하기, 의사결정 저울, 충동 다루기, 중독 생각과 거리두기, 상황·생각·감정 돌아보기, 삶의 균형 살펴보기 같은 도구를 필요할 때 골라 사용할 수 있습니다.</p><button class="btn ghost sm faq-go" type="button" onclick="go('smart-tools')">회복 실천도구 열기</button></div></details>
@@ -2644,7 +2644,7 @@ addEventListener('appinstalled', function(){
     <details class="faq"><summary>4. 회복도구 — 계획 · 배우기 · 실천 · 자가점검</summary><div class="faq-a">
       <p><b>내 계획</b> — 일정·알림에서 습관·생활·치료 일정을 관리합니다.</p>
       <p style="margin-top:8px"><b>배우기</b> — 회복학습, 중독 Q&amp;A, 듣는 글을 이용합니다. 회복학습에는 12단계와 SMART Recovery 등 앱에 정리된 학습 콘텐츠가 포함됩니다.</p>
-      <p style="margin-top:8px"><b>실천하기</b> — 의미 돌아보기(오늘 돌아보기 · 지난 기록), 의미점검(점검하기 · 점검 기록), 12단계 점검, 회복 실천도구, 충동일기, 미래의 나에게 등을 사용합니다. 의미점검은 작성 중 답변과 완료결과를 구분하며, 완료결과는 점검 기록에서 다시 볼 수 있습니다. 의미 돌아보기와 의미점검 완료기록은 <b>내 발자취 → 실천기록 → 의미</b>에서도 함께 확인합니다. 가족·보호자 모드에서는 가족을 위한 도구 중심으로 구성이 달라집니다.</p>
+      <p style="margin-top:8px"><b>실천하기</b> — 의미 돌아보기(오늘 돌아보기 · 지난 기록), 의미점검(점검하기 · 점검 기록), 12단계 점검, 회복 실천도구, 충동일기, 미래의 나에게 등을 사용합니다. 의미 돌아보기와 의미점검은 당사자와 가족·보호자가 같은 화면 틀을 쓰되 <b>역할별 문항과 기록을 따로 저장</b>합니다. 가족모드에서는 상대의 상태를 대신 평가하지 않고 내 마음·경계·자기돌봄·생활을 돌아봅니다. 의미점검 완료기록은 <b>내 발자취 → 실천기록 → 의미</b>에서도 현재 역할의 기록만 확인합니다.</p>
       <p style="margin-top:8px"><b>자가점검</b> — 현재 상태를 선별도구로 살펴보고 저장된 결과의 변화를 확인합니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('tools')">회복도구 열기</button>
     </div></details>
@@ -2671,8 +2671,8 @@ addEventListener('appinstalled', function(){
     </div></details>
 
     <details class="faq"><summary>8. 내 발자취 — 저장한 기록 다시 보기</summary><div class="faq-a">
-      <p>당사자 모드에서는 <b>감정 · 충동 · 하루 · 몸 · 다시 시작 · 실천기록 · 자가점검 · 통계 · 회복 패턴</b>을 한곳에서 돌아봅니다. 가족·보호자 모드에서는 당사자의 충동·재발을 대신 기록하지 않도록 구성이 달라집니다.</p>
-      <p style="margin-top:8px">의미 돌아보기와 의미회복 간편점검 완료기록은 실천기록의 <b>의미</b> 필터에서 함께 확인할 수 있고, 12단계와 회복 실천도구 저장기록도 같은 실천기록에서 다시 열 수 있습니다.</p>
+      <p>당사자 모드에서는 <b>감정 · 충동 · 하루 · 몸 · 다시 시작 · 실천기록 · 자가점검 · 통계 · 회복 패턴</b>을 한곳에서 돌아봅니다. 가족·보호자 모드에서는 당사자의 충동·재발을 대신 기록하지 않도록 구성이 달라지고, 가족 자신의 의미·12단계·가족도구 기록을 확인합니다.</p>
+      <p style="margin-top:8px">의미 돌아보기와 의미회복 간편점검 완료기록은 실천기록의 <b>의미</b> 필터에서 함께 확인할 수 있습니다. 역할을 바꾸면 당사자와 가족의 의미기록은 서로 섞이지 않고 현재 역할의 기록만 보입니다.</p>
       <p style="margin-top:8px"><b>통계 · 패턴</b>에서는 기존 기록 통계와 <b>내 회복 패턴</b>을 전환해 볼 수 있습니다. 내 회복 패턴은 최근 90일 기기 기록에서 시간·HALT·감정·수면·회복 실천·관계처럼 반복된 사실을 설명할 뿐 진단·재발예측이 아니며, 특정 사람을 원인으로 판단하거나 자가점검 점수를 다른 기록과 합쳐 위험점수로 만들지 않습니다.</p>
       <p style="margin-top:8px"><b>내 회복요약</b>은 홈의 <b>내 기록 돌아보기 →</b> 또는 통계 · 패턴 상단에서 열 수 있습니다. <b>최근 4주</b>는 최근 상태를 돌아보기 위한 사실 요약이고, <b>최근 90일 반복된 흐름</b>은 기록에서 함께 나타난 항목을 보여주는 참고입니다. 함께 나타난 것은 원인이나 위험 판정, 재발예측을 뜻하지 않으며 기록이 충분하지 않으면 흐름을 만들지 않습니다. 회복일·충동·HALT·수면·회복 실천·자가점검 변화·다시 시작을 한 장으로 모아 보여주며, 점수나 판정이 아니라 스스로 돌아보기 위한 요약입니다. <b>상담 때 보여주기 (선택)</b>은 사용자가 원할 때만 화면 표시를 바꾸며 기록을 자동 전송하지 않습니다. <b>인쇄 · PDF 저장</b>은 상담 기능과 별도의 일반 기능입니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('rec')">내 발자취 열기</button>
@@ -2697,6 +2697,7 @@ addEventListener('appinstalled', function(){
 
     <details class="faq"><summary>11. 가족 · 보호자 모드</summary><div class="faq-a">
       <p>가족·보호자 모드는 당사자의 회복기록을 대신 작성하는 화면이 아니라 <b>가족 자신의 안전, 경계, 대화, 대응계획과 생활 회복</b>을 돕는 방향으로 구성됩니다.</p>
+      <p style="margin-top:8px"><b>의미 돌아보기</b>에서는 오늘 나를 힘들게 한 것, 내가 지킨 힘과 경계, 자기돌봄과 내 삶의 요청을 돌아보고, <b>의미점검</b>에서는 가족의 변화 여부가 아니라 내 상태·경계·자기돌봄과 삶의 방향을 10문항으로 살펴봅니다. 당사자 기록과 가족 기록은 따로 저장됩니다.</p>
       <p style="margin-top:8px">가족을 위한 도구에서는 경계 세우기, 대화 준비, 다시 사용했을 때 내 대응계획과 내 생각·행동·생활을 돌보는 연습을 사용할 수 있습니다. 역할은 나 → 내 정보 · 설정 → 나에서 언제든 바꿀 수 있습니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('me')">역할 설정 열기</button>
     </div></details>
@@ -2834,8 +2835,10 @@ const BLANK = {
   sleepLog: [],                               /* [{t, q}] q: good|soso|bad */
   moods: [], halts: [], urges: [], urgeDraft: null, nights: [], relapses: [], screenings: [],
   stepWorks: [], stepDrafts: {},
-  wbDays: {},                                 /* 의미 돌아보기 — 날짜(YYYY-MM-DD)가 열쇠. 하루 한 장 */
-  meaningChecks: [], meaningCheckDraft: null,   /* 의미회복 간편점검 — 완료기록·중간저장, ohg.v1 안에서만 사용 */
+  wbDays: {},                                 /* 당사자 의미 돌아보기 — 날짜(YYYY-MM-DD)가 열쇠. 하루 한 장 */
+  meaningChecks: [], meaningCheckDraft: null,   /* 당사자 의미회복 간편점검 — 완료기록·중간저장 */
+  familyWbDays: {},                           /* 가족 의미 돌아보기 — 당사자 기록과 별도 저장 */
+  familyMeaningChecks: [], familyMeaningCheckDraft: null, /* 가족 의미회복 간편점검 — 완료기록·중간저장 */
   smartWorks: [],                         /* SMART Recovery 작성형 도구 — [{tool, role, ...}] */
   familyStepWorks: [], familyStepDrafts: {},
   timeCapsule: { text:'', createdAt:0, updatedAt:0 }, /* 미래의 나에게 — 개인 회복기록, 기기 안에만 저장 */
@@ -2852,9 +2855,10 @@ let storageRecovery = null;
 function blankCopy_(){ return JSON.parse(JSON.stringify(BLANK)); }
 function personalRecordCount_(x){
   let n=0;
-  ['moods','halts','urges','nights','relapses','screenings','stepWorks','meaningChecks','smartWorks',
+  ['moods','halts','urges','nights','relapses','screenings','stepWorks','meaningChecks','familyMeaningChecks','smartWorks',
    'familyStepWorks','medLog','eatLog','sleepLog'].forEach(k => { if(Array.isArray(x && x[k])) n += x[k].length; });
   if(x && x.wbDays && typeof x.wbDays === 'object' && !Array.isArray(x.wbDays)) n += Object.keys(x.wbDays).length;
+  if(x && x.familyWbDays && typeof x.familyWbDays === 'object' && !Array.isArray(x.familyWbDays)) n += Object.keys(x.familyWbDays).length;
   (Array.isArray(x && x.habits) ? x.habits : []).forEach(h => { if(Array.isArray(h && h.done)) n += h.done.length; });
   return n;
 }
@@ -2945,13 +2949,14 @@ function inferRecordStart_(s){
     if(n > 0 && Number.isFinite(n)) add(localYmd(n));
   };
   ['moods','halts','urges','nights','relapses','screenings','stepWorks','smartWorks','familyStepWorks',
-   'medLog','eatLog','sleepLog','meaningChecks'].forEach(k => {
+   'medLog','eatLog','sleepLog','meaningChecks','familyMeaningChecks'].forEach(k => {
     (Array.isArray(s[k]) ? s[k] : []).forEach(r => {
       if(!r) return;
       add(r.d); add(r.day); addTs(r.t); addTs(r.ts); addTs(r.savedAt);
     });
   });
   if(s.wbDays && typeof s.wbDays === 'object' && !Array.isArray(s.wbDays)) Object.keys(s.wbDays).forEach(add);
+  if(s.familyWbDays && typeof s.familyWbDays === 'object' && !Array.isArray(s.familyWbDays)) Object.keys(s.familyWbDays).forEach(add);
   (Array.isArray(s.habits) ? s.habits : []).forEach(h => (Array.isArray(h && h.done) ? h.done : []).forEach(add));
   if(s.timeCapsule) { addTs(s.timeCapsule.createdAt); addTs(s.timeCapsule.updatedAt); }
   return best || localYmd(Date.now());
@@ -2974,10 +2979,13 @@ function migrate(s){
   if(!Array.isArray(s.screenings)) s.screenings = [];
   if(s.urgeDraft && (typeof s.urgeDraft !== 'object' || Array.isArray(s.urgeDraft))) s.urgeDraft = null;
   if(!Array.isArray(s.stepWorks)) s.stepWorks = [];
-  /* 의미 돌아보기 — 기존 기록의 해석이 바뀌지 않으므로 DATA_SCHEMA 는 6 그대로 둡니다. */
+  /* 의미 돌아보기 — 기존 당사자 기록은 그대로 두고 가족 기록 필드만 안전 초기화하므로 DATA_SCHEMA 는 6 그대로 둡니다. */
   if(!s.wbDays || typeof s.wbDays !== 'object' || Array.isArray(s.wbDays)) s.wbDays = {};
   if(!Array.isArray(s.meaningChecks)) s.meaningChecks = [];
   if(s.meaningCheckDraft && (typeof s.meaningCheckDraft !== 'object' || Array.isArray(s.meaningCheckDraft))) s.meaningCheckDraft = null;
+  if(!s.familyWbDays || typeof s.familyWbDays !== 'object' || Array.isArray(s.familyWbDays)) s.familyWbDays = {};
+  if(!Array.isArray(s.familyMeaningChecks)) s.familyMeaningChecks = [];
+  if(s.familyMeaningCheckDraft && (typeof s.familyMeaningCheckDraft !== 'object' || Array.isArray(s.familyMeaningCheckDraft))) s.familyMeaningCheckDraft = null;
   if(!Array.isArray(s.smartWorks)) s.smartWorks = [];
   if(!s.stepDrafts || typeof s.stepDrafts !== 'object' || Array.isArray(s.stepDrafts)) s.stepDrafts = {};
   if(!Array.isArray(s.familyStepWorks)) s.familyStepWorks = [];
@@ -3783,7 +3791,7 @@ function preserveRecoveryRaw_(raw){
 function personalBackupShape_(j){
   if(!j || typeof j!=='object' || Array.isArray(j)) return false;
   const keys=['started','role','types','dates','moods','halts','urges','nights','relapses','screenings',
-    'stepWorks','meaningChecks','smartWorks','familyStepWorks','medLog','eatLog','sleepLog','wbDays','timeCapsule','goal'];
+    'stepWorks','meaningChecks','familyMeaningChecks','smartWorks','familyStepWorks','medLog','eatLog','sleepLog','wbDays','familyWbDays','timeCapsule','goal'];
   let hits=0;
   keys.forEach(k=>{ if(Object.prototype.hasOwnProperty.call(j,k)) hits++; });
   return hits>=2 && (Object.prototype.hasOwnProperty.call(j,'started') ||
@@ -3945,11 +3953,6 @@ function appBack(fallback){
 
 function go(p,opt){
   opt=opt||{};
-  /* 의미 돌아보기는 당사자 개인기록입니다. 가족모드에서는 직접 URL/history 진입까지 막습니다. */
-  if(p==='meaning' && famMode()){
-    toast('의미 돌아보기는 당사자 모드에서 사용합니다.');
-    p='tools'; opt=Object.assign({},opt,{replace:true});
-  }
   if(p!=='recovery-summary'){ window.recoverySummaryConsult=false; document.body.classList.remove('summary-consult'); }
   const prev = cur;
   const target=$('#p-' + p);
@@ -4980,7 +4983,7 @@ function drawNight(){
   /* 가족에게 '오늘 충동이 있었나요' 는 맞지 않는 물음입니다 */
   const fam = famMode();
   $('#ni-urge-card').style.display = fam ? 'none' : '';
-  $('#ni-meaning').style.display = fam ? 'none' : '';
+  $('#ni-meaning').style.display = '';
   $('#ni-kept-h').textContent = fam
     ? '오늘 나를 위한 시간이 있었나요?'
     : '오늘 하루를 지켰나요?';
@@ -5047,7 +5050,7 @@ $('#ni-save').onclick = () => {
                   n: $('#ni-note').value.trim() });
   if(night.mood != null) S.moods.push({ t: Date.now(), v: night.mood });
   save();
-  if(night.kept === 0 && famMode()){
+  if(night.kept === 0 && famMode() && niAfter !== 'meaning'){
     modal('<h2>오늘은 그런 날이었군요</h2>' +
       '<p class="muted" style="margin:6px 0 14px">하루쯤 나를 못 챙긴 날은 누구에게나 있습니다. ' +
       '내일은 십 분이라도 내 것으로 남겨두세요.</p>' +
@@ -5563,17 +5566,18 @@ function drawTools(){
   const uds=$('#tool-urge-diary-s'), ud=$('#tool-urge-diary');
   if(ud) ud.style.display=famMode()?'none':'flex';
   if(uds) uds.textContent=(S.urges||[]).length ? ('충동 기록 '+S.urges.length+'건'+(S.urgeDraft?' · 작성 중':'')) : (S.urgeDraft?'작성 중 · 이어서':'충동 기록하기');
-  /* 의미 돌아보기 — 당사자 개인기록. 기록일수는 앞세우지 않고 오늘 상태만 짧게 알립니다. */
+  /* 의미 돌아보기/의미점검 — 같은 UI를 사용하되 현재 역할의 별도 저장소만 읽습니다. */
   const mnb=$('#tool-meaning'), mns=$('#tool-meaning-s');
-  if(mnb) mnb.style.display=famMode()?'none':'flex';
-  if(mns && !famMode()){
-    const todayMeaning=(S.wbDays&&typeof S.wbDays==='object')?S.wbDays[ymd(new Date())]:null;
+  if(mnb) mnb.style.display='flex';
+  if(mns){
+    const meaningStore=famMode()?S.familyWbDays:S.wbDays;
+    const todayMeaning=(meaningStore&&typeof meaningStore==='object'&&!Array.isArray(meaningStore))?meaningStore[ymd(new Date())]:null;
     mns.textContent=todayMeaning?'오늘 기록 있음 · 다시 보기':'오늘 의미 돌아보기';
   }
   const mcb=$('#tool-meaning-check-direct'), mcs=$('#tool-meaning-check-s');
-  if(mcb) mcb.style.display=famMode()?'none':'flex';
-  if(mcs && !famMode()){
-    const d=ymd(new Date()), checks=Array.isArray(S.meaningChecks)?S.meaningChecks:[], todayCheck=checks.find(x=>x&&x.d===d), draft=S.meaningCheckDraft&&Array.isArray(S.meaningCheckDraft.answers)?S.meaningCheckDraft:null;
+  if(mcb) mcb.style.display='flex';
+  if(mcs){
+    const d=ymd(new Date()), checks=Array.isArray(famMode()?S.familyMeaningChecks:S.meaningChecks)?(famMode()?S.familyMeaningChecks:S.meaningChecks):[], draftRaw=famMode()?S.familyMeaningCheckDraft:S.meaningCheckDraft, todayCheck=checks.find(x=>x&&x.d===d), draft=draftRaw&&Array.isArray(draftRaw.answers)?draftRaw:null;
     const done=draft?draft.answers.filter(v=>Number.isInteger(v)&&v>=0&&v<=4).length:0;
     mcs.textContent=draft?('작성 중 '+done+'/10 · 이어서'):(todayCheck?('오늘 '+Number(todayCheck.total||0)+'/40 · 결과 보기'):(checks.length?'10문항 · 이전과 비교':'10문항 · 의미 흐름 점검'));
   }
@@ -7819,13 +7823,16 @@ function recPractice(){
   };
 
   const rows=[];
-  /* V9.1 — 의미 기록도 기존 원본(S.wbDays / S.meaningChecks)을 복사하지 않고 내 발자취에서 함께 읽습니다. */
-  if(scope==='self'){
-    const meaningDays=(S.wbDays&&typeof S.wbDays==='object'&&!Array.isArray(S.wbDays))?S.wbDays:{};
+  /* 의미 기록은 현재 역할의 원본 저장소만 읽고 당사자·가족 기록을 섞지 않습니다. */
+  {
+    const meaningDays=scope==='family'
+      ? ((S.familyWbDays&&typeof S.familyWbDays==='object'&&!Array.isArray(S.familyWbDays))?S.familyWbDays:{})
+      : ((S.wbDays&&typeof S.wbDays==='object'&&!Array.isArray(S.wbDays))?S.wbDays:{});
     Object.keys(meaningDays).forEach(d=>{
       const r=meaningDays[d]; if(!r||typeof r!=='object'||Array.isArray(r))return;
       const line=(typeof wbLineById==='function'&&r.line)?wbLineById(r.line):null;
-      const raw=(line&&line.text)||r.request||r.actionNote||r.strengthNote||r.hardNote||r.note||(typeof r.empty==='number'?('공허감 '+Number(r.empty)+'/4'):'의미 돌아보기 기록');
+      const scaleLabel=scope==='family'?'부담감 ':'공허감 ';
+      const raw=(line&&line.text)||r.request||r.actionNote||r.strengthNote||r.hardNote||r.note||(typeof r.empty==='number'?(scaleLabel+Number(r.empty)+'/4'):'의미 돌아보기 기록');
       const dt=(typeof ymdDate==='function')?ymdDate(d):null;
       rows.push({
         group:'meaning',ts:Number(r.ts||(dt?dt.getTime():0)),title:'의미 돌아보기',summary:cleanText(raw),record:{kind:'meaning-day',d:d},
@@ -7864,7 +7871,7 @@ function recPractice(){
   rows.sort((a,b)=>b.ts-a.ts);
 
   const filters=scope==='family'
-    ? [{v:'all',l:'전체'},{v:'step',l:'12단계'},{v:'smart',l:'실천도구'},{v:'family',l:'가족도구'}]
+    ? [{v:'all',l:'전체'},{v:'meaning',l:'의미'},{v:'step',l:'12단계'},{v:'smart',l:'실천도구'},{v:'family',l:'가족도구'}]
     : [{v:'all',l:'전체'},{v:'meaning',l:'의미'},{v:'step',l:'12단계'},{v:'smart',l:'실천도구'}];
   if(!filters.some(x=>x.v===recPracticeFilter)) recPracticeFilter='all';
   const bar=el('div','row wrap'); bar.style.marginBottom='12px';
