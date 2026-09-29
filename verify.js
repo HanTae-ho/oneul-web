@@ -53,7 +53,7 @@ ok(index.includes("내 기록 돌아보기 →")&&index.includes("내일 외래 
 ok(index.includes("저장했어요. 나중에 내 회복요약에서 다시 볼 수 있어요.")&&index.includes("누르면 바로 저장돼요."),'V9.2 기분/HALT 공통 저장 안내와 짧은 설명');
 ok(index.includes("id=\"help-fixed-lines\"")&&index.includes("const wantedPhones=['15770199','129'];")&&!index.includes("wantedPhones=['109'")&&!index.includes("wantedPhones=['119'"),'헬프 109·119는 고정 영역에만 두고 일반 헬프콜 목록에서 분리');
 ok(index.includes('홈 간단히 보기는 무엇인가요?')&&index.includes('나 → 내 정보 · 설정 → 앱 → 홈 간단히 보기')&&index.includes('사용설명서')&&index.includes('상담 때 보여주기 (선택)'),'V9.2 기능 변경이 앱 내 FAQ·사용설명서에 함께 반영');
-ok(index.includes("const fixed=[\n    {n:'응급 신고',t:'119'},\n    {n:'자살예방 상담전화',t:'109'}")&&!index.includes("몸이 위급하거나 경련·환각·심한 금단이 있을 때")&&!index.includes("24시간 · 무료 · 죽고 싶은 마음이 들 때"),'헬프 상단 119·109는 설명문 없이 고정');
+ok(index.includes("const fixed=[\n    {n:'응급 신고',t:'119'},\n    {n:'자살예방 상담전화',t:'109'}")&&index.includes("'<span class=\"b\"><b>'+esc(l.n)+' · '+esc(l.t)+'</b></span>'"),'헬프 상단 119·109 고정 카드 자체에는 설명문을 렌더링하지 않음');
 ok(index.includes("const wantedPhones=['15770199','129'];")&&index.includes("selectedTypes.includes('gambling')")&&index.includes("selectedTypes.includes('drug')"),'헬프콜은 기본 1577-0199·129 + 선택 영역 1336·1342');
 ok(index.includes('헬프콜에는 어떤 전화가 보이나요?')&&index.includes('회복영역에 <b>도박</b>이 있으면 <b>도박문제 헬프라인 1336</b>')&&index.includes('약물</b>이 있으면 <b>마약류 중독 상담 1342</b>'),'헬프콜 영역별 표시 규칙이 FAQ에 반영');
 ok(!index.includes('지도 앱이 열리면서 지금 계신 곳 주변을 찾아줍니다. 거기서 바로 길찾기와 전화가 됩니다.'),'내 주변에서 찾기 중복 설명문 제거');
