@@ -73,6 +73,7 @@ const srv = http.createServer((req, res) => {
     const oldState=await oldPg.evaluate(()=>({moods:S.moods.length,goal:S.goal,recordStart:S.recordStart,blocked:!!(storageRecovery&&storageRecovery.blocking)}));
     assert(oldState.moods===1&&oldState.goal==='기존 목표'&&/^\d{4}-\d{2}-\d{2}$/.test(oldState.recordStart),'V9.1.0 기록·목표를 보존하며 recordStart만 안전 추론');
     assert(!oldState.blocked,'정상 기존 데이터에는 복구 선택창을 띄우지 않음');
+    assert(await oldPg.evaluate(()=>S.viewMode===''&&!document.body.classList.contains('simple-view')),'viewMode 없는 기존 사용자는 전체 보기를 유지');
     await oldCtx.close();
   }
 
@@ -295,6 +296,9 @@ const srv = http.createServer((req, res) => {
   await pg.click('#ob-go');
   await pg.waitForTimeout(300);
   console.log('2. 시작 후 =', await seen());
+  assert(await pg.evaluate(()=>S.viewMode==='simple'&&document.body.classList.contains('simple-view')),'신규 설치는 간단히 보기로 시작');
+  assert(await pg.$('#home-daily')&&await pg.$('#home-quote'),'간단히 보기에서도 숨김 대상 DOM은 유지');
+  assert(await pg.$eval('#home-daily',e=>getComputedStyle(e).display==='none')&&await pg.$eval('#home-quote',e=>getComputedStyle(e).display==='none'),'간단히 보기에서는 매일의 명상·오늘의 문장만 숨김');
   const recoveryText = (await pg.$eval('#home-days', e => e.innerText)).replace(/\n/g, ' | ');
   console.log('   회복일 =', recoveryText);
   const recoveryCompact = recoveryText.replace(/\s*\|\s*/g, '').replace(/\s+/g, '');
@@ -332,6 +336,17 @@ const srv = http.createServer((req, res) => {
   assert(!scheduleFocus.includes('med:점심') && !scheduleFocus.includes('habit:done-habit'), '완료한 복약·습관은 기본보기에서 접어야 함');
   assert(scheduleFocus.includes('eat:점심') && scheduleFocus.includes('eat:저녁'), '현재·다음 끼니는 기본보기에서 보여야 함');
   assert(!scheduleFocus.includes('sleep:bed'), '잠자리는 기본보기에서 제외해야 함');
+
+  await pg.evaluate(() => {
+    const t=treatmentCfg(); t.medOn=1; t.outpatientOn=0;
+    S.meds=MEDSLOT.map(x=>({s:x.k,t:x.d})); S.medLog=[]; S.eats=[]; S.eatLog=[]; S.sleep={on:0,bed:'23:00',up:'07:00'};
+    homeTodayExpanded=false; drawTodayScheduleHome();
+  });
+  assert((await pg.$eval('#home-today .today-row',a=>a.length))===3,'간단히 보기에서는 오늘 일정이 최대 3개만 먼저 보여야 함');
+  assert(await pg.isVisible('#home-today-more'),'간단히 보기에서 숨은 일정은 펼쳐 볼 수 있어야 함');
+  await pg.click('#home-today-more'); await pg.waitForTimeout(80);
+  assert((await pg.$eval('#home-today .today-row',a=>a.length))>=4,'전체 펼치기에서는 등록된 일정을 모두 확인 가능');
+  await pg.evaluate(()=>{ treatmentCfg().medOn=0; S.meds=[]; homeTodayExpanded=false; drawTodayScheduleHome(); });
 
   await pg.evaluate(() => {
     S.eats = [{s:'아침',t:'08:00'},{s:'점심',t:'12:30'},{s:'저녁',t:'18:30'}];
@@ -401,6 +416,29 @@ const srv = http.createServer((req, res) => {
   await pg.click('#home-mood button:nth-child(4)');
   await pg.waitForTimeout(200);
   console.log('3. HALT 팁 =', (await pg.$eval('#halt-tip', e => e.innerText)).slice(0, 40));
+  assert((await pg.$eval('#toast',e=>e.textContent)).includes('저장했어요. 나중에 내 회복요약에서 다시 볼 수 있어요.'),'기분 저장 후 회복요약 안내 표시');
+  await pg.click('#halt-act button'); await pg.waitForTimeout(80);
+  assert((await pg.$eval('#toast',e=>e.textContent)).includes('저장했어요. 나중에 내 회복요약에서 다시 볼 수 있어요.'),'HALT 저장 후 같은 회복요약 안내 표시');
+  assert(await pg.evaluate(()=>S.halts.length>0&&S.moods.length>0),'기분·HALT 기록은 정상 저장');
+  assert(await pg.isVisible('#home-review'),'당사자 홈에는 작은 내 기록 돌아보기 링크 표시');
+  const reviewLabels=await pg.evaluate(()=>{
+    const t=treatmentCfg(); t.outpatientOn=1; t.intervalDays=0;
+    t.nextVisit=addYmd(today(),1); drawHome(); const d1=$('#home-review').textContent;
+    t.nextVisit=today(); drawHome(); const d0=$('#home-review').textContent;
+    t.nextVisit=addYmd(today(),2); drawHome(); const d2=$('#home-review').textContent;
+    t.outpatientOn=0; t.nextVisit=''; drawHome();
+    return {d1,d0,d2};
+  });
+  assert(reviewLabels.d1.includes('내일 외래 일정이 있어요')&&reviewLabels.d0.includes('오늘 외래 일정이 있어요')&&reviewLabels.d2==='내 기록 돌아보기 →','외래 D-1/D-0에만 회복요약 링크 보조문구 변경');
+  await pg.click('#home-review'); await pg.waitForTimeout(100);
+  assert((await seen())==='p-recovery-summary','홈 링크는 내 회복요약으로 한 번에 진입');
+  assert((await pg.$eval('#p-recovery-summary',e=>e.innerText)).includes('상담 때 보여주기')&&await pg.isVisible('#summary-consult'),'회복요약 안에 상담 때 보여주기 선택 카드 표시');
+  await pg.click('#summary-consult'); await pg.waitForTimeout(80);
+  assert(await pg.evaluate(()=>document.body.classList.contains('summary-consult')),'상담 보여주기는 눌렀을 때만 표시 모드');
+  await pg.click('#summary-consult-exit'); await pg.waitForTimeout(50);
+  await pg.evaluate(()=>{ S.role='family'; drawHome(); });
+  assert(await pg.$eval('#home-review',e=>getComputedStyle(e).display==='none'),'가족모드에는 내 기록 돌아보기 링크를 두지 않음');
+  await pg.evaluate(()=>{ S.role='self'; save(); go('home'); drawHome(); });
   await shot('3-home');
 
   // 위기 분기
@@ -687,7 +725,10 @@ const srv = http.createServer((req, res) => {
 
   // 도움
   await pg.click('#tabs button[data-t="help"]'); await pg.waitForTimeout(300);
-  console.log('13. 핫라인 =', await pg.$$eval('#help-lines a', a => a.map(x => x.getAttribute('href')).join(' ')));
+  console.log('13. 핫라인 =', await pg.$eval('#help-lines a', a => a.map(x => x.getAttribute('href')).join(' ')));
+  const fixedCalls=await pg.$eval('#help-fixed-lines a',a=>a.map(x=>x.getAttribute('href')));
+  assert(fixedCalls.includes('tel:119')&&fixedCalls.includes('tel:109'),'헬프 맨 위 119·109는 앱 내 고정 연결');
+  assert(await pg.$eval('#help-lines a',a=>a.every(x=>!['tel:119','tel:109'].includes(x.getAttribute('href')))),'헬프 동적 목록에는 109·119 중복 없음');
   await shot('13-help');
 
   // 마음프로 Local-first — AI 서버 없이 앱 데이터 설명 + 위치 불일치 선택
@@ -736,6 +777,14 @@ const srv = http.createServer((req, res) => {
   await pg.click('#my-settings'); await pg.waitForTimeout(120);
   await pg.locator('#p-me .acc-h', {hasText:'앱'}).click(); await pg.waitForTimeout(150);
   assert(await pg.isVisible('#me-theme'), '앱 묶음에 화면 설정이 보여야 함');
+  assert(await pg.isVisible('#me-view-mode'),'앱 화면 설정에 홈 간단히 보기 선택이 보여야 함');
+  await pg.click('#me-view-mode [data-view-mode=""]'); await pg.waitForTimeout(80);
+  await pg.evaluate(()=>go('home')); await pg.waitForTimeout(80);
+  assert(await pg.isVisible('#home-daily')&&await pg.isVisible('#home-quote'),'전체 보기에서는 숨긴 두 요소가 다시 보여야 함');
+  await pg.evaluate(()=>go('me')); await pg.waitForTimeout(80);
+  await pg.locator('#p-me .acc-h', {hasText:'앱'}).click(); await pg.waitForTimeout(80);
+  await pg.click('#me-view-mode [data-view-mode="simple"]'); await pg.waitForTimeout(80);
+  assert(await pg.evaluate(()=>S.viewMode==='simple'&&document.body.classList.contains('simple-view')),'간단히 보기 재선택이 즉시 저장·적용');
   await pg.click('#me-theme [data-theme="dark"]'); await pg.waitForTimeout(300);
   await shot('17-dark');
   await pg.click('#me-theme [data-theme="light"]'); await pg.waitForTimeout(200);
