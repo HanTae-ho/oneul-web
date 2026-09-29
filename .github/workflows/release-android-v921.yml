@@ -217,6 +217,7 @@ jobs:
           - 헬프콜은 기본으로 정신건강 상담전화 1577-0199·보건복지상담센터 129를 표시하고, 도박 영역에는 1336, 약물 영역에는 1342를 추가합니다.
           - 여러 회복영역을 선택하면 해당 상담전화를 중복 없이 함께 표시합니다.
           - 내 주변에서 찾기의 중복 설명문을 제거하고 앱 내 사용설명서·FAQ도 같은 규칙으로 현행화했습니다.
+          - 기기 안전백업 확인 화면의 JavaScript 오류를 수정하고 안전백업 1·2 내보내기·복구 버튼을 실제 브라우저에서 검증합니다.
           - JavaScript syntax, no-undef, 앱 셸, 버전 일관성, 전체 불변식, Playwright 브라우저 회귀검증을 통과한 소스에서 빌드합니다.
           - DATA_SCHEMA=6, ohg.v1, ohg.social.v1, package io.github.hantae_ho.twa는 유지합니다.
           - Android exact alarm·화면 OFF 알림·부팅 재등록·치료관리 알림·Relax TTS·MindPro Voice TTS 엔진은 기존 계보를 그대로 유지합니다.
