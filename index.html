@@ -596,6 +596,8 @@ addEventListener('appinstalled', function(){
   /* V8.1.7 — 오늘 일정이 많으면 홈은 5개까지만 보여주고 필요할 때 펼칩니다. */
   .today-more{width:100%;margin-top:5px;padding:9px 4px;border-top:1px dashed var(--line);text-align:center;font-size:12px;font-weight:700;color:var(--acc);background:transparent}
   .today-edit-hint{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:11.5px;line-height:1.45;color:var(--dim)}
+  /* V9.2 — 간단히 보기는 DOM을 지우지 않고 홈의 두 읽기 요소만 숨깁니다. */
+  body.simple-view #home-daily,body.simple-view #home-quote{display:none}
   /* ── 자가점검 V7.1 ── */
   .screen-group{margin:18px 0 8px}
   .screen-group h2{margin:0 0 4px;font-size:15px;color:var(--tx)}
@@ -1015,7 +1017,7 @@ addEventListener('appinstalled', function(){
   <div class="card">
     <h3 id="halt-h">지금 상태는 어떤가요?</h3>
     <p class="muted" style="margin:-4px 0 11px" id="halt-d">
-      해당하는 것을 모두 누르고 [기록하기]를 눌러주세요. 하루에 몇 번이든 괜찮습니다.
+      해당하는 것을 고르고 [기록하기]를 눌러주세요.
     </p>
     <div class="halt" id="home-halt"></div>
     <div id="halt-tip" style="margin-top:11px"></div>
@@ -1026,11 +1028,13 @@ addEventListener('appinstalled', function(){
   <div class="card">
     <h3>지금 기분</h3>
     <p class="muted" style="margin:-4px 0 11px">
-      누르면 바로 기록됩니다. 아침과 밤이 다르면 그때그때 눌러주세요.
+      누르면 바로 저장돼요.
     </p>
     <div class="moods" id="home-mood"></div>
     <p class="tiny" id="mood-st" style="margin:10px 0 0"></p>
   </div>
+
+  <button class="tiny" id="home-review" style="display:block;width:100%;text-align:right;color:var(--acc);font-weight:700;margin:-2px 0 12px">내 기록 돌아보기 →</button>
 
   <div class="quote" id="home-quote"></div>
 
@@ -2173,10 +2177,14 @@ addEventListener('appinstalled', function(){
     <button class="tiny summary-normal-only" style="color:var(--acc);font-weight:600" onclick="appBack('rec')">← 통계 · 패턴</button>
     <button class="tiny summary-consult-only" id="summary-consult-exit" style="color:var(--acc);font-weight:700">상담 화면 끝내기</button>
   </div>
-  <p class="muted summary-normal-only" style="margin:0 0 14px">최근 4주 기록을 한 장으로 정리합니다. 저장된 기록을 새로 전송하거나 공유하지 않습니다.</p>
+  <p class="muted summary-normal-only" style="margin:0 0 14px">내가 남긴 기록을 모아 보여줍니다. 점수나 판정이 아니라, 나를 돌아보는 데 쓰는 요약입니다. 기록은 전송되지 않습니다.</p>
   <div id="recovery-summary-body"></div>
-  <div class="summary-actions summary-normal-only">
-    <button class="btn" id="summary-consult">상담할 때 보여주기</button>
+  <div class="summary-normal-only" style="margin-top:14px">
+    <div class="card tight" style="margin-bottom:9px">
+      <b style="display:block;margin-bottom:4px">상담 때 보여주기 <span class="tiny" style="font-weight:400">(선택)</span></b>
+      <p class="muted" style="margin:0 0 10px">원하면 이 화면을 직접 보여줄 수 있습니다. 기록은 자동으로 전송되지 않습니다.</p>
+      <button class="btn sec sm" id="summary-consult">보여주기 화면 열기</button>
+    </div>
     <button class="btn sec" id="summary-print">인쇄 · PDF 저장</button>
   </div>
 </section>
@@ -2277,9 +2285,7 @@ addEventListener('appinstalled', function(){
 <section class="pg" id="p-help">
   <h1>헬프</h1>
 
-  <div class="note b" style="margin-bottom:16px">
-    지금 생명이 위험하거나 몸에 이상이 있다면 망설이지 말고 <b>119</b>에 전화하세요.
-  </div>
+  <div id="help-fixed-lines" style="margin-bottom:16px"></div>
 
   <h2>헬프콜</h2>
   <p class="muted" style="margin:-5px 0 10px">지금 사람에게 바로 연결되는 상담·응급 전화입니다.</p>
@@ -2465,6 +2471,16 @@ addEventListener('appinstalled', function(){
       <div class="opts" id="me-theme">
         <button class="opt" data-theme="light">밝게</button>
         <button class="opt" data-theme="dark">어둡게</button>
+      </div>
+
+      <div style="height:13px"></div>
+      <h3>홈 간단히 보기</h3>
+      <p class="muted" style="margin:-4px 0 11px">
+        간단히 보기는 같은 홈에서 일부 내용을 덜 보여주는 설정입니다.
+      </p>
+      <div class="opts" id="me-view-mode">
+        <button class="opt" data-view-mode="simple">간단히 보기</button>
+        <button class="opt" data-view-mode="">전체 보기</button>
       </div>
 
       <div class="sep"></div>
@@ -2742,7 +2758,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD='V9.1.4';
+const BUILD='V9.2.0';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 커뮤니티의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 커뮤니티 데이터는 포함되지 않습니다. */
@@ -2821,7 +2837,7 @@ const BLANK = {
   timeCapsule: { text:'', createdAt:0, updatedAt:0 }, /* 미래의 나에게 — 개인 회복기록, 기기 안에만 저장 */
   reclaim: { kind:'', timeOn:0, timePerDay:0, costOn:0, costPerDay:0 }, /* 내가 되찾은 것 — 선택 기준값, 기기 안에만 저장 */
   aiChat: [], aiClient: '', aiConsent: 0, aiEnabled: 1, aiAutoRead: 0, /* AI 대화·음성 기본설정은 이 기기에만 저장 */
-  sheet: '', res: null, resAt: 0, resVer: '', theme: '',
+  sheet: '', res: null, resAt: 0, resVer: '', theme: '', viewMode: '',
   notify: 0, fired: [],
   admin: 0, adminUrl: ''
 };
@@ -2968,6 +2984,7 @@ function migrate(s){
   if(!s.reclaim || typeof s.reclaim !== 'object' || Array.isArray(s.reclaim)) s.reclaim = {};
   s.reclaim = Object.assign({ kind:'', timeOn:0, timePerDay:0, costOn:0, costPerDay:0 }, s.reclaim);
   s.recoveryHome = s.recoveryHome === 0 ? 0 : 1;
+  s.viewMode = s.viewMode === 'simple' ? 'simple' : '';
   if(!s.smoking || typeof s.smoking !== 'object' || Array.isArray(s.smoking)) s.smoking = {};
   s.smoking = Object.assign({ mode:'', start:'', plan:'' }, s.smoking);
   if(['','plan','quit'].indexOf(String(s.smoking.mode || '')) < 0) s.smoking.mode = '';
@@ -3820,7 +3837,7 @@ function showSavedRecoveryBackups_(){
       let current=null; try{current=localStorage.getItem(KEY);}catch(e){}
       if(current!=null && current!==c.raw && !preserveRecoveryRaw_(current)) return;
       if(!commitImportedState_(c.migrated,false)) return;
-      closeModal(); applyTheme(); drawIntro(); drawUrge(); toast('안전백업을 복구했습니다.');
+      closeModal(); applyTheme(); applyViewMode(); drawIntro(); drawUrge(); toast('안전백업을 복구했습니다.');
       go(S.started?'home':'intro');
     };
   });
@@ -3830,7 +3847,7 @@ function finishStorageRecovery_(target){
   if(storageRecovery) storageRecovery.blocking=false;
   storageRecoveryGateOpen=false;
   closeModal(true);
-  applyTheme(); drawIntro(); drawUrge();
+  applyTheme(); applyViewMode(); drawIntro(); drawUrge();
   const first=target || (S.started?'home':'intro');
   try{ history.replaceState({ohg:1,p:first,depth:0},'',location.href); }catch(e){}
   navReady=true;
@@ -4190,6 +4207,7 @@ $('#ob-go').onclick = () => {
     return;
   }
   S.aiEnabled = $('#ob-ai-use').checked ? 1 : 0;
+  S.viewMode = 'simple';
   S.types = obTypes.slice();
   S.dates = {};
   S.cum = {};
@@ -4200,6 +4218,7 @@ $('#ob-go').onclick = () => {
   S.goal = ($('#ob-goal').value || '').trim();
   S.hours = fam ? [] : obHours.slice();
   S.started = true;
+  applyViewMode();
   save();
   go('home');
   /* 시간대를 골랐다면 알림을 물어봅니다 — 고르기도 전에 물으면 거절만 부릅니다 */
@@ -4237,7 +4256,7 @@ function drawHome(){
   $('#halt-h').textContent = fam ? '지금 내 상태는 어떤가요?' : '지금 상태는 어떤가요?';
   $('#halt-d').textContent = fam
     ? '그 사람 말고 내 상태입니다. 가족도 배고프고 화나고 외롭고 피곤합니다.'
-    : '해당하는 것을 모두 누르고 [기록하기]를 눌러주세요. 하루에 몇 번이든 괜찮습니다.';
+    : '해당하는 것을 고르고 [기록하기]를 눌러주세요.';
   $('#go-relapse').style.display = fam ? 'none' : '';
 
   /* 회복일 · 금연 실천 — 둘 다 있으면 2열, 하나만 있으면 기존 1열 */
@@ -4382,7 +4401,7 @@ function drawHome(){
     sv.onclick = () => {
       S.halts.push({ t: Date.now(), v: haltSel.slice() });
       haltSel = [];                    /* 기록했으면 화면은 비웁니다 */
-      save(); drawHome(); toast('기록했습니다.');
+      save(); drawHome(); toast('저장했어요. 나중에 내 회복요약에서 다시 볼 수 있어요.');
     };
     ha.appendChild(sv);
   }
@@ -4400,11 +4419,28 @@ function drawHome(){
       ico(x.i) + '<span class="l">' + x.l + '</span>');
     b.onclick = () => {
       S.moods.push({ t: Date.now(), v: x.v });
-      save(); drawHome(); toast('기록했습니다.');
+      save(); drawHome(); toast('저장했어요. 나중에 내 회복요약에서 다시 볼 수 있어요.');
     };
     mb.appendChild(b);
   });
   $('#mood-st').textContent = countLine(S.moods);
+
+  const review=$('#home-review');
+  if(review){
+    review.style.display=fam?'none':'block';
+    if(!fam){
+      let label='내 기록 돌아보기 →';
+      const t=treatmentCfg();
+      if(t.outpatientOn){
+        const v=treatmentEffectiveVisit();
+        const dd=v?diffYmd(today(),v):null;
+        if(dd===1) label='내일 외래 일정이 있어요 · 내 기록 돌아보기 →';
+        else if(dd===0) label='오늘 외래 일정이 있어요 · 필요하면 내 기록 돌아보기 →';
+      }
+      review.textContent=label;
+      review.onclick=()=>go('recovery-summary');
+    }
+  }
 
   /* 기존 하단 오늘의 말 — 이쪽도 기기 로컬 날짜 기준으로 고정합니다. */
   const qd = new Date();
@@ -4567,6 +4603,14 @@ $('#top-me').onclick = () => go('my');
 function applyTheme(){
   document.body.classList.toggle('dark', S.theme === 'dark');
 }
+function applyViewMode(){
+  document.body.classList.toggle('simple-view', S.viewMode === 'simple');
+}
+function drawViewModeSetting(){
+  document.querySelectorAll('#me-view-mode [data-view-mode]').forEach(b => {
+    b.classList.toggle('on', (b.dataset.viewMode || '') === (S.viewMode === 'simple' ? 'simple' : ''));
+  });
+}
 function drawThemeSetting(){
   $$('#me-theme [data-theme]').forEach(b => {
     const k = b.dataset.theme;
@@ -4590,6 +4634,12 @@ $('#me-theme').addEventListener('click', e => {
   if(!b) return;
   S.theme = b.dataset.theme === 'dark' ? 'dark' : '';
   applyTheme(); save(); drawThemeSetting();
+});
+$('#me-view-mode').addEventListener('click', e => {
+  const b = e.target.closest('[data-view-mode]');
+  if(!b) return;
+  S.viewMode = b.dataset.viewMode === 'simple' ? 'simple' : '';
+  applyViewMode(); save(); drawViewModeSetting();
 });
 $('#me-ai-use').addEventListener('click', e => {
   const b = e.target.closest('[data-ai-use]');
@@ -5275,7 +5325,7 @@ function drawTodayScheduleHome(){
 
   const now=new Date(), nowMin=now.getHours()*60+now.getMinutes();
   const focusItems=homeTodayFocusItems(items,nowMin);
-  const homeLimit=5;
+  const homeLimit=S.viewMode==='simple'?3:5;
   const shown=homeTodayExpanded?items:focusItems.slice(0,homeLimit);
   const hiddenCount=Math.max(0,items.length-shown.length);
   const canToggle=homeTodayExpanded || hiddenCount>0;
@@ -9597,6 +9647,16 @@ $('#go-meet-fam').onclick = () => { mt.target = 'fam'; mt.mode = 'today'; mt.tod
 function drawHelp(){
   const R = S.res || {};
 
+  const fixed=[
+    {n:'응급 신고',t:'119',d:'몸이 위급하거나 경련·환각·심한 금단이 있을 때'},
+    {n:'자살예방 상담전화',t:'109',d:'24시간 · 무료 · 죽고 싶은 마음이 들 때'}
+  ];
+  $('#help-fixed-lines').innerHTML=fixed.map(l=>
+    '<a class="help urgent" href="tel:'+l.t+'">'+
+    '<span class="ic">'+ico('sos')+'</span>'+
+    '<span class="b"><b>'+esc(l.n)+' · '+esc(l.t)+'</b><span>'+esc(l.d)+'</span></span>'+
+    '<span class="go">전화</span></a>').join('');
+
   /* 가족 모드에서는 가족 모임을 위로 올립니다.
      자조모임을 먼저 보여주면 "내가 갈 곳은 없구나" 로 읽힙니다. */
   const me = $('#go-meet-me'), fm = $('#go-meet-fam');
@@ -9613,7 +9673,10 @@ function drawHelp(){
     '<a class="go" target="_blank" rel="noopener" href="' + mapURL(x.q) + '">지도 보기</a>' +
     '</span></div>').join('');
 
-  const lines = (R.lines && R.lines.length) ? R.lines : LINES;
+  const lines = ((R.lines && R.lines.length) ? R.lines : LINES).filter(l => {
+    const t=String(l.t||'').replace(/[^0-9]/g,'');
+    return t!=='109' && t!=='119';
+  });
   $('#help-lines').innerHTML = lines.map(l =>
     '<a class="help' + (l.u ? ' urgent' : '') + '" href="tel:' + esc(String(l.t).replace(/[^0-9\-]/g,'')) + '">' +
     '<span class="ic">' + ico(l.u ? 'sos' : 'phone') + '</span>' +
@@ -11581,6 +11644,7 @@ function fetchRes(url){
 function drawMe(){
   const fam = famMode();
   drawThemeSetting();
+  drawViewModeSetting();
   drawAIUseSetting();
   drawAiVoiceSetting();
   drawFeedbackStatus();
@@ -12566,7 +12630,7 @@ $('#me-file').onchange = e => {
         try{current=localStorage.getItem(KEY);}catch(err){}
         if(current!=null && current!==String(r.result) && !preserveRecoveryRaw_(current)) return;
         if(!commitImportedState_(next,recovering)) return;
-        applyTheme(); drawIntro(); drawUrge();
+        applyTheme(); applyViewMode(); drawIntro(); drawUrge();
         toast('백업 파일을 불러왔습니다.');
         if(recovering) finishStorageRecovery_(S.started?'home':'intro');
         else { closeModal(); go(S.started?'home':'intro'); }
@@ -12924,6 +12988,7 @@ function startBootRuntime_(){
 /* ══════════ 부팅 ══════════ */
 function boot(){
   applyTheme();
+  applyViewMode();
   $('#intro-ico').innerHTML = markSVG(52);
   $('#af-ico').innerHTML = ico('wave');
   refreshIcons();

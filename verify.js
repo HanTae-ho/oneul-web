@@ -41,12 +41,17 @@ ok(index.includes('function autoFoldInfo(')&&index.includes('function autoFoldIn
 ok(index.includes('emptyChecked')&&index.includes('커뮤니티 피드를 확인하는 중입니다.')&&index.includes('await new Promise(resolve=>setTimeout(resolve,1000));'),'커뮤니티 첫 빈 응답 1초 재확인');
 ok(index.includes('recovery-pattern-info')&&index.includes("autoFoldInfo('recovery-pattern-info','recovery-pattern',1100)"),'내 회복패턴 안내 자동 폴딩');
 ok(index.includes('recovery-summary-info')&&index.includes("autoFoldInfo('recovery-summary-info','recovery-summary',1100)"),'내 회복요약 안내 자동 폴딩');
-ok(/id="p-help"[\s\S]*?<div class="note b"/.test(index)&&index.includes("const safety = x.urgent ? '<div class=\"note b\""),'응급·긴급 경고는 자동 폴딩하지 않음');
+ok(/id="p-help"[\s\S]*?id="help-fixed-lines"/.test(index)&&index.includes("class=\"help urgent\"")&&index.includes("const safety = x.urgent ? '<div class=\"note b\""),'응급·긴급 경고와 헬프 고정 긴급전화 유지');
 ['qa-data.js','learning-data.js','screening-data.js','workbook-data.js'].forEach(f=>{
   ok(sw.includes("'./"+f+"'"),'서비스워커가 '+f+' 오프라인 캐시');
   ok(index.includes('<script src="./'+f+'"></script>'),'index가 '+f+' 로드');
 });
 ok(/function recoveryDay\(from, to\)/.test(index) && /daysBetween\(from, to\) \+ 1/.test(index),'회복 시작 당일 1일째 규칙 유지');
+ok(index.includes("viewMode: ''")&&index.includes("s.viewMode = s.viewMode === 'simple' ? 'simple' : '';")&&index.includes("S.viewMode = 'simple';"),'V9.2 보기 설정: 기존/구형 백업은 전체, 신규 시작은 간단히 보기');
+ok(index.includes("body.simple-view #home-daily,body.simple-view #home-quote{display:none}")&&index.includes("const homeLimit=S.viewMode==='simple'?3:5;"),'V9.2 간단히 보기 차이는 홈 숨김 2개 + 일정 3개 제한');
+ok(index.includes("내 기록 돌아보기 →")&&index.includes("내일 외래 일정이 있어요 · 내 기록 돌아보기 →")&&index.includes("오늘 외래 일정이 있어요 · 필요하면 내 기록 돌아보기 →"),'V9.2 홈 회복요약 링크와 외래 D-1/D-0 문구');
+ok(index.includes("저장했어요. 나중에 내 회복요약에서 다시 볼 수 있어요.")&&index.includes("누르면 바로 저장돼요."),'V9.2 기분/HALT 공통 저장 안내와 짧은 설명');
+ok(index.includes("id=\"help-fixed-lines\"")&&index.includes("t!=='109' && t!=='119'"),'V9.2 헬프 109·119 고정 및 동적 목록 중복 제외');
 ok(/도박문제 헬프라인', t:'1336', d:'365일 09:00~22:00/.test(index) && /가족 상담도 받습니다 · 365일 09:00~22:00/.test(index),'1336 운영시간 최신 표기 365일 09:00~22:00');
 ok(!/user-scalable=no/.test(index),'접근성: 사용자 화면 확대 차단 없음');
 ok(/ks\.filter\(k => k\.startsWith\('ohg-'\)\)/.test(index),'앱 새로고침은 오늘 한 걸음 캐시만 삭제');
