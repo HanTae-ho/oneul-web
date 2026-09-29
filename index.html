@@ -5304,7 +5304,7 @@ function drawTodayScheduleHome(){
 
   const now=new Date(), nowMin=now.getHours()*60+now.getMinutes();
   const focusItems=homeTodayFocusItems(items,nowMin);
-  const homeLimit=5;
+  const homeLimit=S.viewMode==='simple'?3:5;
   const shown=homeTodayExpanded?items:focusItems.slice(0,homeLimit);
   const hiddenCount=Math.max(0,items.length-shown.length);
   const canToggle=homeTodayExpanded || hiddenCount>0;
