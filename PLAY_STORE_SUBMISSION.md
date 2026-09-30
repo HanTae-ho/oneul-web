@@ -77,7 +77,7 @@ Play Console 요구사항: <https://support.google.com/googleplay/android-develo
 
 ## 2. Play App Signing — 기존 서명 연속성 유지가 중요
 
-현재 GitHub에서 직접 배포한 APK에는 기존 앱 서명키가 사용되고 있으며, V9.2.4 릴리스 과정에서도 V9.2.3과 서명 연속성을 검증하도록 고정합니다.
+현재 GitHub에서 직접 배포한 APK에는 기존 앱 서명키가 사용되고 있으며, V9.2.4 릴리스 과정에서도 V9.2.4과 서명 연속성을 검증하도록 고정합니다.
 
 Google Play 신규 앱은 기본적으로 Play App Signing에 등록됩니다. 그러나 `오늘 한 걸음`은 이미 동일 package의 APK를 외부에서 배포했으므로, **Google이 새롭고 다른 앱 서명키를 자동 생성한 상태로 그대로 공개하지 않는 것이 안전합니다.** 기존 직접설치 사용자가 Play 배포판으로 업데이트하려면 최종 설치 APK의 서명 계보가 맞아야 하기 때문입니다.
 
