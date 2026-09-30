@@ -63,8 +63,8 @@ Play Console 요구사항: <https://support.google.com/googleplay/android-develo
   - SHA-256: 정식 릴리스의 `SHA256SUMS.txt` 기준
 - APK: `oneul-v9.2.5.apk`
   - SHA-256: 정식 릴리스의 `SHA256SUMS.txt` 기준
-- V9.1.3 실제 Android 기기 설치·동작 확인: 완료
-- V9.2.5 실기기 확인: 릴리스 후 별도 확인
+- V9.2.5 실제 Android 기기 설치·주요 기능 정상 동작 확인: 완료
+- 현재 실기기 검증 완료 최신 정상 기준본: `V9.2.5`
 - Android 네이티브 알림·부팅복원·치료알림·TTS 계보: 기존 정상 계보 유지
 
 ### Target API 판정
@@ -288,7 +288,7 @@ GitHub 직접배포 APK의 자동 검증과 별개로, Google Play에 올린 AAB
 
 ### 별도 확인 필요
 
-- V9.2.5 실기기 설치·알림·TTS 동작 확인(릴리스 후)
+- Google Play AAB 설치본의 알림·TTS 포함 실기기 회귀검증(Play 배포 후)
 
 ### 현재 가장 먼저 해결할 외부 준비사항
 
