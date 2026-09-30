@@ -102,7 +102,7 @@ const srv = http.createServer((req, res) => {
     const isoPg=await isoCtx.newPage();
     const isoErrs=[]; isoPg.on('pageerror',e=>isoErrs.push(String(e&&e.message||e)));
     const seed={ver:1,dataSchema:7,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(10)},cum:{alcohol:0},goal:'분리테스트'};
-    await isoCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),JSON.stringify(seed));
+    await isoCtx.addInitScript(raw=>{if(!localStorage.getItem('ohg.v1'))localStorage.setItem('ohg.v1',raw);},JSON.stringify(seed));
     await isoPg.goto('http://localhost:8899/index.html'); await isoPg.waitForTimeout(450);
 
     const ids=await isoPg.evaluate(()=>{
