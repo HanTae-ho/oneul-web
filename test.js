@@ -690,6 +690,7 @@ const srv = http.createServer((req, res) => {
   await pg.evaluate(() => {
     S.role='self'; S.hours=[new Date().getHours()]; S.goal='SELF-RISK-GOAL'; save(); go('me'); drawMe();
   });
+  await pg.$eval('#me-role',el=>{const acc=el.closest('.acc');if(acc&&!acc.classList.contains('on'))acc.querySelector('.acc-h').click();});
   await pg.click('#me-role button:nth-child(2)'); await pg.waitForTimeout(80);
   const familyRiskIsolation=await pg.evaluate(() => {
     go('home'); drawHome();
@@ -702,7 +703,9 @@ const srv = http.createServer((req, res) => {
   });
   assert(familyRiskIsolation.role==='family'&&familyRiskIsolation.hours.length===1,'당사자 위험시간은 가족 역할 전환으로 삭제되지 않음');
   assert(!familyRiskIsolation.alertText.includes('예전에')&&!familyRiskIsolation.riskPing,'가족모드 홈·웹알림은 당사자 위험시간을 읽지 않음');
-  await pg.evaluate(()=>{go('me');drawMe();}); await pg.click('#me-role button:nth-child(1)'); await pg.waitForTimeout(80);
+  await pg.evaluate(()=>{go('me');drawMe();});
+  await pg.$eval('#me-role',el=>{const acc=el.closest('.acc');if(acc&&!acc.classList.contains('on'))acc.querySelector('.acc-h').click();});
+  await pg.click('#me-role button:nth-child(1)'); await pg.waitForTimeout(80);
   assert(await pg.evaluate(()=>S.role==='self'&&S.hours.length===1),'당사자 역할로 돌아오면 기존 위험시간이 그대로 보존');
   await pg.evaluate(()=>{S.hours=[];save();});
 
