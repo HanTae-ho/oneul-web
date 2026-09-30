@@ -28,6 +28,7 @@
 | 수면 설정 | `sleep` | `familySleep` | 완전 분리 |
 | 수면 체크 | `sleepLog` | `familySleepLog` | 완전 분리 |
 | SMART/가족 작성도구 | `smartWorks` | `familySmartWorks` | 완전 분리 |
+| 웹 알림 발송 이력 | `fired` | `familyFired` | 생활알림 역할 간 상호 억제 방지 |
 | 의미 돌아보기 | `wbDays` | `familyWbDays` | 기존 완전 분리 유지 |
 | 의미점검 | `meaningChecks` | `familyMeaningChecks` | 기존 완전 분리 유지 |
 | 의미점검 초안 | `meaningCheckDraft` | `familyMeaningCheckDraft` | 기존 완전 분리 유지 |
@@ -76,3 +77,4 @@
 8. 전체삭제 후 두 역할 저장소가 모두 비는지 확인
 9. 앱 종료→재실행(cold-start) 후 역할별 자료가 섞이지 않는지 확인
 10. Android 생활 알림 payload가 현재 역할의 습관·식사·수면만 사용하는지 확인
+11. 웹 알림의 발송 이력도 역할별로 분리되어 한 역할의 알림이 다른 역할의 알림을 억제하지 않는지 확인
