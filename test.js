@@ -686,7 +686,26 @@ const srv = http.createServer((req, res) => {
     S.smartWorks=[];S.familySmartWorks=[];S.role='self'; save(); go('home'); drawHome();
   });
 
-  // ① 자가점검: 같은 도구를 두 역할에서 저장해도 서로의 이력에 섞이지 않아야 함
+  // 당사자 전용 위험시간은 가족 전환 때 삭제하지 않고, 가족 화면·웹알림에서는 읽지 않습니다.
+  await pg.evaluate(() => {
+    S.role='self'; S.hours=[new Date().getHours()]; S.goal='SELF-RISK-GOAL'; save(); go('me'); drawMe();
+  });
+  await pg.click('#me-role button:nth-child(2)'); await pg.waitForTimeout(80);
+  const familyRiskIsolation=await pg.evaluate(() => {
+    go('home'); drawHome();
+    const alertText=($('#home-alert')&&$('#home-alert').innerText)||'';
+    const calls=[], oldPing=window.ping;
+    window.ping=(body,k)=>calls.push({body,k});
+    checkAlarms();
+    window.ping=oldPing;
+    return {role:S.role,hours:S.hours.slice(),alertText,riskPing:calls.some(x=>String(x.k||'').startsWith('h'))};
+  });
+  assert(familyRiskIsolation.role==='family'&&familyRiskIsolation.hours.length===1,'당사자 위험시간은 가족 역할 전환으로 삭제되지 않음');
+  assert(!familyRiskIsolation.alertText.includes('예전에')&&!familyRiskIsolation.riskPing,'가족모드 홈·웹알림은 당사자 위험시간을 읽지 않음');
+  await pg.evaluate(()=>{go('me');drawMe();}); await pg.click('#me-role button:nth-child(1)'); await pg.waitForTimeout(80);
+  assert(await pg.evaluate(()=>S.role==='self'&&S.hours.length===1),'당사자 역할로 돌아오면 기존 위험시간이 그대로 보존');
+
+    // ① 자가점검: 같은 도구를 두 역할에서 저장해도 서로의 이력에 섞이지 않아야 함
   await pg.evaluate(() => {
     screeningStore().push({id:'pgsi',t:Date.now()-2000,score:2,level:'당사자 전용'});
     S.role='family';
