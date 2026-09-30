@@ -55,6 +55,58 @@
 
 생활 알림의 실제 일정 데이터(습관·식사·수면)는 역할별 저장소를 사용한다. 당사자 치료 알림은 계속 당사자 전용이다.
 
+## 전체 `ohg.v1` 필드 결정표
+
+아래 표는 현재 개인상태 객체의 모든 주요 필드를 역할 관점에서 빠짐없이 분류한 최종 설계 기준이다.
+
+| 필드 | 분류 | 결정 |
+|---|---|---|
+| `ver / dataSchema / started` | 앱 메타데이터 | 공용 |
+| `role` | 현재 화면 역할 | 공용 |
+| `types` | 회복영역/가족이 지원하는 영역 | 공용 콘텐츠 맥락 |
+| `dates / cum / recoveryHome` | 회복일 계산 | 당사자 전용 표시·계산 |
+| `recordStart` | 앱 기록 시작 기준 | 공용 메타데이터 |
+| `goal` | 사용자가 적는 앱 전역 안내문구 | 현재는 공용 설정으로 유지. 통계/역할기록 집계에는 사용하지 않음 |
+| `smoking` | 금연 실천 | 당사자 전용 |
+| `hours` | 위험시간 | 당사자 전용 |
+| `treat / meds / medCnt / medLog` | 치료·복약·외래 | 당사자 전용 |
+| `eats / eatLog` | 식사 설정·체크 | 당사자 저장소 |
+| `familyEats / familyEatLog` | 식사 설정·체크 | 가족 저장소 |
+| `sleep / sleepLog` | 수면 설정·체크 | 당사자 저장소 |
+| `familySleep / familySleepLog` | 수면 설정·체크 | 가족 저장소 |
+| `habits` | 습관 정의·체크 | 당사자 저장소 |
+| `familyHabits` | 습관 정의·체크 | 가족 저장소 |
+| `moods / halts / nights` | 기분·HALT·하루마무리 | 당사자 저장소 |
+| `familyMoods / familyHalts / familyNights` | 기분·HALT·하루마무리 | 가족 저장소 |
+| `screenings` | 자가점검 결과 | 당사자 저장소 |
+| `familyScreenings` | 자가점검 결과 | 가족 저장소 |
+| `urges / urgeDraft` | 충동·충동일기 | 당사자 전용 |
+| `relapses` | 다시 시작/재발 | 당사자 전용 |
+| `stepWorks / stepDrafts` | 12단계 점검 | 당사자 저장소 |
+| `familyStepWorks / familyStepDrafts` | 12단계 점검 | 가족 저장소 |
+| `wbDays / meaningChecks / meaningCheckDraft` | 의미 돌아보기·의미점검 | 당사자 저장소 |
+| `familyWbDays / familyMeaningChecks / familyMeaningCheckDraft` | 의미 돌아보기·의미점검 | 가족 저장소 |
+| `smartWorks` | SMART 작성도구 | 당사자 저장소 |
+| `familySmartWorks` | SMART·가족 작성도구 | 가족 저장소 |
+| `timeCapsule` | 미래의 나에게 | 당사자 전용 |
+| `reclaim` | 내가 되찾은 것 | 당사자 전용 |
+| `aiChat` | 마음프로 대화기록 | 앱 전역 대화 이력으로 유지. 이번 회복도구 역할분리의 통계·내 발자취에는 포함하지 않음 |
+| `aiClient / aiConsent / aiEnabled / aiAutoRead` | AI 연결·사용 설정 | 공용 설정 |
+| `area` | 지역 | 공용 설정 |
+| `sheet / res / resAt / resVer` | 자원시트·캐시 | 공용 콘텐츠 캐시 |
+| `theme / viewMode` | 화면 설정 | 공용 설정 |
+| `notify` | 알림 사용 의사 | 공용 OS/앱 설정 |
+| `fired` | 웹 생활알림 발송 이력 | 당사자 저장소 |
+| `familyFired` | 웹 생활알림 발송 이력 | 가족 저장소 |
+| `admin / adminUrl` | 관리 기능 설정 | 공용 설정 |
+
+### 설계상 공용과 기록 분리의 경계
+
+- **공용 설정**은 역할별 통계·내 발자취에 합산되는 개인기록이 아니다.
+- **역할별 기록**은 입력·조회·통계·알림·백업복원에서 상대 역할의 저장소를 읽지 않는다.
+- **당사자 전용** 데이터는 가족모드 UI에서 기록·조회하지 않는다.
+- `aiChat`은 별도 AI 대화 도메인으로 유지하며, 이번 역할별 회복기록 통계에는 연결하지 않는다. 향후 AI 대화 자체를 역할별 대화방으로 분리하는 경우에는 별도 데이터 구조 변경으로 다룬다.
+
 ## 마이그레이션 6 → 7
 
 - `screenings/moods/halts/nights/habits/eats/eatLog/sleep/sleepLog`: 기존 값을 당사자 저장소에 그대로 둔다.
