@@ -2,14 +2,14 @@
 
 ## 실기기까지 확인된 정상 기준본
 
-- 앱 버전: `V9.2.1`
-- Android versionCode: `922`
-- Android versionName: `9.2.1`
-- 정식 GitHub Release: `v9.2.1`
+- 앱 버전: `V9.2.5`
+- Android versionCode: `926`
+- Android versionName: `9.2.5`
+- 정식 GitHub Release: `v9.2.5`
 - 웹 전체 회귀검증: 통과
 - Android APK/AAB 빌드·서명 연속성 검증: 통과
 - 실제 Android 기기 설치·동작 확인: 완료
-- 실기기에서 헬프콜 영역별 표시와 기기 안전백업 관리 오류 수정 동작 확인: 완료
+- V9.2.5 실제 Android 기기 정상 동작 확인: 완료
 
 ## V9.1.4 정합성 패치
 
@@ -149,7 +149,9 @@ V9.2.5는 V9.2.4 정식 릴리스 위에서 당사자와 가족·보호자의 �
 - 백업·복원·전체삭제와 역할전환, Android 생활알림 payload, cold-start 재실행까지 자동회귀검증
 - Android exact alarm·화면 OFF 알림·부팅 재등록·치료관리 알림·Relax TTS·MindPro Voice TTS 엔진 변경 없음
 - APK/AAB 빌드·서명 연속성·자동회귀검증 통과 후 GitHub Release `v9.2.5` 배포
-- 실기기 확인 전까지 실기기 검증 완료 기준본은 V9.2.1로 유지합니다.
+- V9.2.5 실제 Android 기기 정상 동작 확인이 완료되어 실기기 검증 완료 최신 정상 기준본으로 승격했습니다.
+
+> 참고: 위 V9.1.x~V9.2.4 섹션의 실기기 기준본 표기는 각 릴리스 당시의 상태 기록입니다. 현재 기준본은 V9.2.5입니다.
 
 ## 기준본 운영 원칙
 
@@ -161,7 +163,7 @@ V9.2.5는 V9.2.4 정식 릴리스 위에서 당사자와 가족·보호자의 �
 
 ## 보호 대상
 
-- `DATA_SCHEMA = 6`
+- `DATA_SCHEMA = 7`
 - 개인 저장키 `ohg.v1`
 - 커뮤니티 저장키 `ohg.social.v1`
 - Android package `io.github.hantae_ho.twa`
