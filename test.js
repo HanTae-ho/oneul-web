@@ -704,8 +704,9 @@ const srv = http.createServer((req, res) => {
   assert(!familyRiskIsolation.alertText.includes('예전에')&&!familyRiskIsolation.riskPing,'가족모드 홈·웹알림은 당사자 위험시간을 읽지 않음');
   await pg.evaluate(()=>{go('me');drawMe();}); await pg.click('#me-role button:nth-child(1)'); await pg.waitForTimeout(80);
   assert(await pg.evaluate(()=>S.role==='self'&&S.hours.length===1),'당사자 역할로 돌아오면 기존 위험시간이 그대로 보존');
+  await pg.evaluate(()=>{S.hours=[];save();});
 
-    // ① 자가점검: 같은 도구를 두 역할에서 저장해도 서로의 이력에 섞이지 않아야 함
+  // ① 자가점검: 같은 도구를 두 역할에서 저장해도 서로의 이력에 섞이지 않아야 함
   await pg.evaluate(() => {
     screeningStore().push({id:'pgsi',t:Date.now()-2000,score:2,level:'당사자 전용'});
     S.role='family';
