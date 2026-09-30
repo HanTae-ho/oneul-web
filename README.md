@@ -1,3 +1,15 @@
+## V9.2.5 — 당사자·가족 개인기록 저장 완전 분리
+- 개인기록 저장구조를 `DATA_SCHEMA=7`로 올리고, 당사자와 가족·보호자가 직접 남기는 기록을 역할별 물리 저장소로 분리했습니다.
+- 자가점검은 `screenings / familyScreenings`, 기분·HALT·하루마무리는 `moods/halts/nights / familyMoods/familyHalts/familyNights`로 분리합니다.
+- 습관·식사·수면의 설정과 체크기록도 `habits/eats/eatLog/sleep/sleepLog`와 각각의 `family*` 저장소로 분리합니다.
+- SMART·가족 작성도구는 기존 공용 `smartWorks`의 role 필터 방식에서 `smartWorks / familySmartWorks` 물리 분리로 전환했습니다.
+- 의미 돌아보기·의미점검·12단계의 기존 역할별 저장구조는 그대로 유지합니다.
+- 충동·다시 시작·치료관리/복약·외래·위험시간은 계속 당사자 전용입니다.
+- 스키마 6에서 역할표시가 없던 기존 공용 기록은 임의로 가족기록으로 추정하지 않고 당사자 저장소에 보존합니다. 기존 SMART만 명시된 `role:'family'` 기록을 가족 저장소로 안전 이동합니다.
+- 백업·복원·전체삭제, 내 발자취·통계, 생활알림 payload, 역할전환, 앱 종료→재실행(cold-start)까지 역할 혼합 여부를 자동검증합니다.
+- 개인 저장키 `ohg.v1`, 커뮤니티키 `ohg.social.v1`은 유지하고 Android exact alarm·화면 OFF·부팅 재등록·치료관리 알림·Relax/MindPro TTS 엔진은 변경하지 않습니다.
+- Android: versionCode 926 / versionName 9.2.5.
+
 ## V9.2.4 — 자가점검 결과 → 오늘 돌아보기 연결
 - 자가점검 결과 화면의 `오늘 상태 기록`을 `오늘 돌아보기`로 바꾸고, 내 발자취 감정 탭이 아니라 현재 역할의 `의미 돌아보기 → 오늘 돌아보기`로 연결합니다.
 - 당사자는 당사자용 의미 돌아보기, 가족·보호자는 가족용 의미 돌아보기로 이어지며 역할별 기록 저장소는 기존처럼 서로 분리됩니다.
