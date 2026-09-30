@@ -19,6 +19,7 @@ on:
       - '.github/workflows/release-android-v923.yml'
       - '.github/workflows/release-android-v924.yml'
       - '.github/workflows/release-android-v925.yml'
+      - '.github/workflows/release-android-v926.yml'
   pull_request:
     branches: [main]
     paths:
@@ -37,6 +38,7 @@ on:
       - '.github/workflows/release-android-v923.yml'
       - '.github/workflows/release-android-v924.yml'
       - '.github/workflows/release-android-v925.yml'
+      - '.github/workflows/release-android-v926.yml'
   workflow_dispatch:
 
 permissions:
