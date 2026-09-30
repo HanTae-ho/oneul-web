@@ -66,13 +66,24 @@ const srv = http.createServer((req, res) => {
     const oldRecord={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(40)},cum:{alcohol:0},
       goal:'기존 목표',hours:[],meds:[],medLog:[],eats:[],eatLog:[],sleep:{on:0,bed:'23:00',up:'07:00'},sleepLog:[],
       moods:[{t:Date.now()-86400000,v:3}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],stepDrafts:{},
-      wbDays:{},meaningChecks:[],smartWorks:[],familyStepWorks:[],familyStepDrafts:{},aiChat:[],fired:[]};
+      wbDays:{},meaningChecks:[],smartWorks:[
+        {id:'old-self-smart',kind:'abc',role:'self',ts:Date.now()-9000,updatedAt:Date.now()-9000},
+        {id:'old-family-smart',kind:'abc',role:'family',ts:Date.now()-8000,updatedAt:Date.now()-8000}
+      ],familyStepWorks:[],familyStepDrafts:{},aiChat:[],fired:[]};
     await oldCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),JSON.stringify(oldRecord));
     await oldPg.goto('http://localhost:8899/index.html'); await oldPg.waitForTimeout(500);
     assert(await oldPg.$eval('.pg.on',e=>e.id)==='p-home','recordStart 없는 V9.1.0 기존 데이터는 자동으로 홈에 복구되어야 함');
-    const oldState=await oldPg.evaluate(()=>({moods:S.moods.length,goal:S.goal,recordStart:S.recordStart,blocked:!!(storageRecovery&&storageRecovery.blocking),familyWbDays:S.familyWbDays,familyMeaningChecks:S.familyMeaningChecks,familyMeaningCheckDraft:S.familyMeaningCheckDraft}));
-    assert(oldState.moods===1&&oldState.goal==='기존 목표'&&/^\d{4}-\d{2}-\d{2}$/.test(oldState.recordStart),'V9.1.0 기록·목표를 보존하며 recordStart만 안전 추론');
-    assert(oldState.familyWbDays&&Object.keys(oldState.familyWbDays).length===0&&Array.isArray(oldState.familyMeaningChecks)&&oldState.familyMeaningChecks.length===0&&oldState.familyMeaningCheckDraft===null,'기존 데이터는 DATA_SCHEMA 변경 없이 가족 의미 저장소만 안전 초기화');
+    const oldState=await oldPg.evaluate(()=>({
+      dataSchema:S.dataSchema,moods:S.moods.length,goal:S.goal,recordStart:S.recordStart,blocked:!!(storageRecovery&&storageRecovery.blocking),
+      familyWbDays:S.familyWbDays,familyMeaningChecks:S.familyMeaningChecks,familyMeaningCheckDraft:S.familyMeaningCheckDraft,
+      familyMoods:S.familyMoods,familyHalts:S.familyHalts,familyNights:S.familyNights,familyScreenings:S.familyScreenings,
+      familyHabits:S.familyHabits,familyEats:S.familyEats,familyEatLog:S.familyEatLog,familySleepLog:S.familySleepLog,
+      smart:S.smartWorks.map(x=>x.id),familySmart:S.familySmartWorks.map(x=>x.id)
+    }));
+    assert(oldState.dataSchema===7&&oldState.moods===1&&oldState.goal==='기존 목표'&&/^\d{4}-\d{2}-\d{2}$/.test(oldState.recordStart),'스키마 6 기존 기록·목표를 보존하며 DATA_SCHEMA 7로 안전 마이그레이션');
+    assert(oldState.familyWbDays&&Object.keys(oldState.familyWbDays).length===0&&Array.isArray(oldState.familyMeaningChecks)&&oldState.familyMeaningChecks.length===0&&oldState.familyMeaningCheckDraft===null,'기존 의미 데이터는 역할별 저장소를 그대로 유지');
+    assert(oldState.familyMoods.length===0&&oldState.familyHalts.length===0&&oldState.familyNights.length===0&&oldState.familyScreenings.length===0&&oldState.familyHabits.length===0&&oldState.familyEats.length===0&&oldState.familyEatLog.length===0&&oldState.familySleepLog.length===0,'역할 정보가 없던 스키마 6 공용 기록은 가족으로 추정 이동하지 않고 가족 저장소를 빈 상태로 초기화');
+    assert(oldState.smart.length===1&&oldState.smart[0]==='old-self-smart'&&oldState.familySmart.length===1&&oldState.familySmart[0]==='old-family-smart','스키마 6 SMART는 명시된 role만 이용해 당사자·가족 물리 저장소로 분리');
     assert(!oldState.blocked,'정상 기존 데이터에는 복구 선택창을 띄우지 않음');
     assert(await oldPg.evaluate(()=>S.viewMode===''&&!document.body.classList.contains('simple-view')),'viewMode 없는 기존 사용자는 전체 보기를 유지');
     await oldCtx.close();
@@ -215,9 +226,13 @@ const srv = http.createServer((req, res) => {
     const old={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(20)},goal:'교체 전',
       moods:[{t:Date.now()-5000,v:2}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],meaningChecks:[],smartWorks:[],
       familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
-    const incoming={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(4)},goal:'불러온 기록',
+    const incoming={ver:1,dataSchema:7,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(4)},goal:'불러온 기록',
       moods:[{t:Date.now()-3000,v:5},{t:Date.now()-2000,v:4}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],
-      meaningChecks:[],smartWorks:[],familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+      meaningChecks:[],smartWorks:[{id:'restore-self',kind:'abc',role:'self',ts:1,updatedAt:1}],familySmartWorks:[{id:'restore-family',kind:'abc',role:'family',ts:2,updatedAt:2}],
+      familyMoods:[{t:Date.now()-1000,v:1}],familyHalts:[{t:Date.now()-900,v:['l']}],familyNights:[],familyScreenings:[{id:'nds-bv',t:Date.now()-800,score:1,level:'참고'}],
+      habits:[{id:'self-h',name:'self',start:daysAgo(1),done:[daysAgo(0)]}],familyHabits:[{id:'fam-h',name:'family',start:daysAgo(1),done:[daysAgo(0)]}],
+      eats:[],eatLog:[],sleep:{on:0,bed:'23:00',up:'07:00'},sleepLog:[],familyEats:[{s:'점심',t:'12:30'}],familyEatLog:[{t:Date.now()-700,n:'점심'}],familySleep:{on:1,bed:'22:30',up:'07:00'},familySleepLog:[{t:Date.now()-600,q:'good'}],
+      familyStepWorks:[],medLog:[]};
     const oldRaw=JSON.stringify(old);
     await imCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),oldRaw);
     await imPg.goto('http://localhost:8899/index.html'); await imPg.waitForTimeout(250);
@@ -225,8 +240,15 @@ const srv = http.createServer((req, res) => {
     await imPg.waitForTimeout(80);
     assert(await imPg.isVisible('#import-yes'),'정상 백업은 교체 전 확인을 요청');
     await imPg.click('#import-yes'); await imPg.waitForTimeout(150);
-    const result=await imPg.evaluate(()=>({goal:S.goal,moods:S.moods.length,backup:localStorage.getItem('ohg.v1.recovery-backup')}));
+    const result=await imPg.evaluate(()=>({
+      goal:S.goal,moods:S.moods.length,familyMoods:S.familyMoods.length,familyScreenings:S.familyScreenings.length,
+      selfHabits:S.habits.length,familyHabits:S.familyHabits.length,familyEats:S.familyEats.length,familySleepLog:S.familySleepLog.length,
+      selfSmart:S.smartWorks.map(x=>x.id),familySmart:S.familySmartWorks.map(x=>x.id),
+      backup:localStorage.getItem('ohg.v1.recovery-backup')
+    }));
     assert(result.goal==='불러온 기록'&&result.moods===2,'정상 백업을 현재 상태로 복원');
+    assert(result.familyMoods===1&&result.familyScreenings===1&&result.selfHabits===1&&result.familyHabits===1&&result.familyEats===1&&result.familySleepLog===1,'백업 복원 후 가족 역할별 생활·점검 저장소도 원위치에 복원');
+    assert(result.selfSmart.join(',')==='restore-self'&&result.familySmart.join(',')==='restore-family','백업 복원 후 SMART 물리 저장소 분리 유지');
     assert(result.backup===oldRaw,'불러오기 전 현재 원문을 안전백업으로 보존');
     await imCtx.close();
   }
@@ -296,10 +318,13 @@ const srv = http.createServer((req, res) => {
     await wPg.click('#me-wipe'); await wPg.click('#wipe-yes'); await wPg.waitForTimeout(100);
     const gone=await wPg.evaluate(()=>({
       p:localStorage.getItem('ohg.v1'),b:localStorage.getItem('ohg.v1.recovery-backup'),
-      q:localStorage.getItem('ohg.v1.recovery-quarantine'),social:localStorage.getItem('ohg.social.v1')
+      q:localStorage.getItem('ohg.v1.recovery-quarantine'),social:localStorage.getItem('ohg.social.v1'),
+      familyEmpty:S.familyMoods.length===0&&S.familyHalts.length===0&&S.familyNights.length===0&&S.familyScreenings.length===0&&
+        S.familyHabits.length===0&&S.familyEats.length===0&&S.familyEatLog.length===0&&S.familySleepLog.length===0&&S.familySmartWorks.length===0
     }));
     assert(gone.p===null&&gone.b===null&&gone.q===null,'전체 지우기는 개인 현재키와 안전백업 두 개를 모두 삭제');
     assert(gone.social!==null,'전체 지우기는 별도 커뮤니티 키를 삭제하지 않음');
+    assert(gone.familyEmpty,'전체 지우기 후 메모리의 가족 역할별 저장소도 모두 빈 상태로 초기화');
     await wCtx.close();
   }
 
@@ -651,7 +676,95 @@ const srv = http.createServer((req, res) => {
   assert(selfAgainText.includes('내가 지킬 한 걸음') && selfAgainText.includes('20/40'), '역할을 당사자로 돌리면 기존 당사자 의미기록을 그대로 다시 읽음');
   assert(!selfAgainText.includes('가족 기록 전용 문장') && !selfAgainText.includes('30/40'), '당사자 내 발자취에 가족 의미기록이 섞이지 않음');
 
-  // 앱 종료→재실행을 새 페이지로 시뮬레이션: 같은 브라우저 저장공간과 캐시에서 가족 의미기록/진입이 유지되어야 합니다.
+  // DATA_SCHEMA 7 역할별 저장 완전 분리 — 자가점검 → 기분/HALT·하루마무리 → 습관·식사·수면 → SMART 순서로 검증
+  await pg.evaluate(() => {
+    S.screenings=[];S.familyScreenings=[];
+    S.moods=[];S.familyMoods=[];S.halts=[];S.familyHalts=[];S.nights=[];S.familyNights=[];
+    S.habits=[];S.familyHabits=[];
+    S.eats=[];S.eatLog=[];S.sleep={on:0,bed:'23:00',up:'07:00'};S.sleepLog=[];
+    S.familyEats=[];S.familyEatLog=[];S.familySleep={on:0,bed:'23:00',up:'07:00'};S.familySleepLog=[];
+    S.smartWorks=[];S.familySmartWorks=[];S.role='self'; save(); go('home'); drawHome();
+  });
+
+  // ① 자가점검: 같은 도구를 두 역할에서 저장해도 서로의 이력에 섞이지 않아야 함
+  await pg.evaluate(() => {
+    screeningStore().push({id:'audit-k',t:Date.now()-2000,score:2,level:'당사자 전용'});
+    S.role='family';
+    screeningStore().push({id:'nds-bv',t:Date.now()-1000,score:1,level:'가족 전용'});
+    save();
+  });
+  const screenSplit=await pg.evaluate(()=>({
+    self:S.screenings.map(x=>x.id),family:S.familyScreenings.map(x=>x.id),
+    familyHistory:screenHistory('nds-bv').length,selfAuditHidden:screenHistory('audit-k').length
+  }));
+  assert(screenSplit.self.join(',')==='audit-k'&&screenSplit.family.join(',')==='nds-bv'&&screenSplit.familyHistory===1&&screenSplit.selfAuditHidden===0,'① 자가점검 저장·이력 조회가 역할별 물리 저장소에서 완전 분리');
+
+  // ② 기분/HALT: 실제 홈 버튼으로 각각 저장
+  await pg.evaluate(()=>{S.role='self';save();go('home');drawHome();});
+  await pg.click('#home-mood button:nth-child(5)');
+  await pg.click('#home-halt button:nth-child(1)'); await pg.click('#halt-act button'); await pg.waitForTimeout(50);
+  await pg.evaluate(()=>{drawNight();night={mood:5,urge:0,kept:1,praise:['hold']};$('#ni-note').value='SELF-NIGHT';$('#ni-save').click();});
+  await pg.waitForTimeout(60);
+  await pg.evaluate(()=>{S.role='family';save();go('home');drawHome();});
+  assert((await pg.$eval('#mood-st',e=>e.innerText)).includes('아직 기록이 없습니다'),'② 가족모드 홈은 당사자 기분기록을 읽지 않음');
+  await pg.click('#home-mood button:nth-child(1)');
+  await pg.click('#home-halt button:nth-child(3)'); await pg.click('#halt-act button'); await pg.waitForTimeout(50);
+  await pg.evaluate(()=>{drawNight();night={mood:1,urge:2,kept:1,praise:['hold']};$('#ni-note').value='FAMILY-NIGHT';$('#ni-save').click();});
+  await pg.waitForTimeout(60);
+  const emotionSplit=await pg.evaluate(()=>({
+    selfMood:S.moods.map(x=>x.v),familyMood:S.familyMoods.map(x=>x.v),
+    selfHalt:S.halts.map(x=>x.v.join('')),familyHalt:S.familyHalts.map(x=>x.v.join('')),
+    selfNight:S.nights.map(x=>x.n),familyNight:S.familyNights.map(x=>x.n),
+    familyUrge:S.familyNights.map(x=>x.u)
+  }));
+  assert(emotionSplit.selfMood.every(v=>v===5)&&emotionSplit.familyMood.every(v=>v===1),'② 당사자·가족 기분 저장 완전 분리');
+  assert(emotionSplit.selfHalt.join(',')==='h'&&emotionSplit.familyHalt.join(',')==='a','② 당사자·가족 HALT 저장 완전 분리');
+  assert(emotionSplit.selfNight.join(',')==='SELF-NIGHT'&&emotionSplit.familyNight.join(',')==='FAMILY-NIGHT'&&emotionSplit.familyUrge.every(v=>v==null),'② 하루마무리 저장 완전 분리 + 가족 충동값 비저장');
+
+  // ③ 습관·식사·수면: 역할별 설정·체크 및 홈 일정 조회
+  await pg.evaluate(()=>{
+    S.role='self';S.habits=[];S.familyHabits=[];S.eats=[];S.eatLog=[];S.sleep={on:0,bed:'23:00',up:'07:00'};S.sleepLog=[];
+    S.familyEats=[];S.familyEatLog=[];S.familySleep={on:0,bed:'23:00',up:'07:00'};S.familySleepLog=[];
+    habitList().push({id:'self-h',name:'SELF-HABIT',days:0,freq:'daily',weekdays:[0,1,2,3,4,5,6],check:'SELF-CHECK',notify:0,time:'18:00',start:today(),done:[today()]});
+    eatPlanStore().push({s:'아침',t:'08:00'});eatLogStore().push({t:Date.now(),n:'아침'});sleepStore().on=1;sleepLogStore().push({t:Date.now(),q:'good'});
+    S.role='family';
+    habitList().push({id:'family-h',name:'FAMILY-HABIT',days:0,freq:'daily',weekdays:[0,1,2,3,4,5,6],check:'FAMILY-CHECK',notify:0,time:'19:00',start:today(),done:[]});
+    eatPlanStore().push({s:'점심',t:'12:30'});eatLogStore().push({t:Date.now(),n:'점심'});sleepStore().on=1;sleepStore().bed='22:30';sleepLogStore().push({t:Date.now(),q:'bad'});save();drawTodayScheduleHome();
+  });
+  const familySchedule=await pg.$eval('#home-today',e=>e.innerText);
+  assert(familySchedule.includes('FAMILY-HABIT')&&!familySchedule.includes('SELF-HABIT')&&familySchedule.includes('점심 식사')&&!familySchedule.includes('아침 식사'),'③ 가족 홈 일정은 가족 습관·식사만 조회');
+  const lifeSplit=await pg.evaluate(()=>({
+    selfHabit:S.habits.map(x=>x.name),familyHabit:S.familyHabits.map(x=>x.name),
+    selfEats:S.eats.map(x=>x.s),familyEats:S.familyEats.map(x=>x.s),
+    selfEatLog:S.eatLog.map(x=>x.n),familyEatLog:S.familyEatLog.map(x=>x.n),
+    selfSleep:S.sleepLog.map(x=>x.q),familySleep:S.familySleepLog.map(x=>x.q),
+    payload:nativeReminderPayload()
+  }));
+  assert(lifeSplit.selfHabit.join(',')==='SELF-HABIT'&&lifeSplit.familyHabit.join(',')==='FAMILY-HABIT','③ 습관 저장소 완전 분리');
+  assert(lifeSplit.selfEats.join(',')==='아침'&&lifeSplit.familyEats.join(',')==='점심'&&lifeSplit.selfEatLog.join(',')==='아침'&&lifeSplit.familyEatLog.join(',')==='점심','③ 식사 설정·체크 저장소 완전 분리');
+  assert(lifeSplit.selfSleep.join(',')==='good'&&lifeSplit.familySleep.join(',')==='bad','③ 수면 기록 저장소 완전 분리');
+  assert(lifeSplit.payload.eats.includes('noon@12:30')&&!lifeSplit.payload.eats.includes('am@08:00')&&lifeSplit.payload.bed==='22:30'&&lifeSplit.payload.habits.includes('family-h'),'③ Android 생활알림 payload도 현재 가족 역할의 습관·식사·수면만 사용');
+
+  // ④ SMART: 한 배열 role 필터가 아니라 물리 저장소 자체를 분리
+  await pg.evaluate(()=>{
+    S.role='self';smartWorksStore().push({id:'self-smart',kind:'abc',role:'self',ts:Date.now()-100,updatedAt:Date.now()-100,a:'SELF-SMART'});
+    S.role='family';smartWorksStore().push({id:'family-smart',kind:'abc',role:'family',ts:Date.now(),updatedAt:Date.now(),a:'FAMILY-SMART'});
+    save();recTab='work';recPracticeFilter='smart';go('rec');
+  });
+  await pg.waitForTimeout(80);
+  const familySmartTrail=await pg.$eval('#rec-body',e=>e.innerText);
+  assert(familySmartTrail.includes('FAMILY-SMART')&&!familySmartTrail.includes('SELF-SMART'),'④ 가족 내 발자취는 familySmartWorks만 읽음');
+  await pg.evaluate(()=>{S.role='self';save();recTab='work';recPracticeFilter='smart';go('rec');}); await pg.waitForTimeout(80);
+  const selfSmartTrail=await pg.$eval('#rec-body',e=>e.innerText);
+  assert(selfSmartTrail.includes('SELF-SMART')&&!selfSmartTrail.includes('FAMILY-SMART'),'④ 당사자 내 발자취는 smartWorks만 읽음');
+  const physicalSmartSplit=await pg.evaluate(()=>({self:S.smartWorks.map(x=>x.id),family:S.familySmartWorks.map(x=>x.id)}));
+  assert(physicalSmartSplit.self.join(',')==='self-smart'&&physicalSmartSplit.family.join(',')==='family-smart','④ SMART 기록이 두 물리 배열에 완전 분리');
+
+  // 저장된 ohg.v1 자체에도 두 역할 저장소가 함께 존재하되 값은 섞이지 않아야 함
+  const rawRoleSplit=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ohg.v1')));
+  assert(rawRoleSplit.dataSchema===7&&rawRoleSplit.screenings.length===1&&rawRoleSplit.familyScreenings.length===1&&rawRoleSplit.smartWorks.length===1&&rawRoleSplit.familySmartWorks.length===1,'역할별 저장소가 DATA_SCHEMA 7 백업 원본에 각각 독립 필드로 저장');
+
+  // 앱 종료→재실행을 새 페이지로 시뮬레이션: 같은 브라우저 저장공간과 캐시에서 역할별 기록이 유지되어야 합니다.
   const coldRaw=await pg.evaluate(() => {
     const x=JSON.parse(JSON.stringify(S));
     x.role='family'; x.familyWbDays={}; x.familyMeaningChecks=[]; x.familyMeaningCheckDraft=null;
@@ -675,6 +788,18 @@ const srv = http.createServer((req, res) => {
   await coldPg.goto('http://localhost:8899/index.html'); await coldPg.waitForTimeout(650);
   assert(await coldPg.evaluate(()=>S.role==='family'),'앱 종료 후 재실행에서도 가족 역할 유지');
   assert(await coldPg.evaluate(()=>S.familyWbDays[wbToday()]&&S.familyWbDays[wbToday()].request==='재실행 뒤에도 남길 가족 의미기록'),'앱 종료 후 재실행에서도 가족 의미기록 유지');
+  const coldRoleSplit=await coldPg.evaluate(()=>({
+    selfScreen:S.screenings.map(x=>x.id),familyScreen:S.familyScreenings.map(x=>x.id),
+    selfMood:S.moods.map(x=>x.v),familyMood:S.familyMoods.map(x=>x.v),
+    selfNight:S.nights.map(x=>x.n),familyNight:S.familyNights.map(x=>x.n),
+    selfHabit:S.habits.map(x=>x.name),familyHabit:S.familyHabits.map(x=>x.name),
+    selfEat:S.eats.map(x=>x.s),familyEat:S.familyEats.map(x=>x.s),
+    selfSmart:S.smartWorks.map(x=>x.id),familySmart:S.familySmartWorks.map(x=>x.id)
+  }));
+  assert(coldRoleSplit.selfScreen.join(',')==='audit-k'&&coldRoleSplit.familyScreen.join(',')==='nds-bv','cold-start 후 자가점검 역할 분리 유지');
+  assert(coldRoleSplit.selfNight.join(',')==='SELF-NIGHT'&&coldRoleSplit.familyNight.join(',')==='FAMILY-NIGHT','cold-start 후 기분/HALT·하루마무리 역할 분리 유지');
+  assert(coldRoleSplit.selfHabit.join(',')==='SELF-HABIT'&&coldRoleSplit.familyHabit.join(',')==='FAMILY-HABIT'&&coldRoleSplit.selfEat.join(',')==='아침'&&coldRoleSplit.familyEat.join(',')==='점심','cold-start 후 습관·식사·수면 역할 분리 유지');
+  assert(coldRoleSplit.selfSmart.join(',')==='self-smart'&&coldRoleSplit.familySmart.join(',')==='family-smart','cold-start 후 SMART 물리 분리 유지');
   await coldPg.evaluate(()=>go('tools')); await coldPg.waitForTimeout(100);
   await coldPg.click('#tool-meaning'); await coldPg.waitForTimeout(120);
   assert((await coldPg.$eval('.pg.on',e=>e.id))==='p-meaning','재실행 후 가족 의미 돌아보기 버튼이 정상 작동');
