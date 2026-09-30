@@ -29,7 +29,7 @@ const c=document.getElementById('install-card');
 if(INSTALL.mode==='play'&&INSTALL.playUrl){
   c.innerHTML='<span class="badge">Google Play</span><h2 style="margin:0 0 6px;font-size:19px">Google Play에서 설치</h2><p class="tiny" style="margin:0">공식 스토어의 최신 버전을 설치합니다.</p><a class="btn" href="'+INSTALL.playUrl+'">Google Play 열기</a>';
 }else{
-  c.innerHTML='<span class="badge">정식 릴리스 · '+INSTALL.verifiedVersion+'</span><h2 style="margin:0 0 6px;font-size:19px">현재 정식 Android 설치 버전</h2><p class="tiny" style="margin:0">이 페이지는 GitHub 정식 릴리스 APK만 안내합니다. V9.2.6은 최신 정식 릴리스이며, 실기기 검증 완료 최신 정상 기준본은 V9.2.5입니다. V9.2.6 설치 후 협심자·후원자 전화 연결을 포함한 실기기 동작을 확인합니다.</p><a class="btn" href="'+INSTALL.apkUrl+'">Android APK '+INSTALL.verifiedVersion+' 받기</a><a class="btn sec" href="'+INSTALL.releaseUrl+'">릴리즈 정보 보기</a>';
+  c.innerHTML='<span class="badge">정식 릴리스 · '+INSTALL.verifiedVersion+'</span><h2 style="margin:0 0 6px;font-size:19px">현재 정식 Android 설치 버전</h2><p class="tiny" style="margin:0">이 페이지는 GitHub 정식 릴리스 APK만 안내합니다. V9.2.6은 실제 Android 기기에서 협심자·후원자 전화 연결을 포함한 주요 동작 확인을 마친 최신 정상 기준본입니다.</p><a class="btn" href="'+INSTALL.apkUrl+'">Android APK '+INSTALL.verifiedVersion+' 받기</a><a class="btn sec" href="'+INSTALL.releaseUrl+'">릴리즈 정보 보기</a>';
 }
 </script>
 </main></body></html>
