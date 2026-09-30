@@ -8787,7 +8787,7 @@ function recoverySummaryData(){
   const recentScreen=(S.screenings||[]).filter(timed);
   const screenIds=[...new Set(recentScreen.map(r=>r.id).filter(Boolean))];
   const screens=screenIds.map(id=>{
-    const tool=screenTool(id), hist=screenHistory(id); if(!tool||!hist.length) return null;
+    const tool=screenTool(id), hist=(S.screenings||[]).filter(x=>x&&x.id===id).sort((a,b)=>a.t-b.t); if(!tool||!hist.length) return null;
     const last=hist[hist.length-1]; if(!timed(last)) return null;
     const prev=hist.length>1?hist[hist.length-2]:null;
     return {tool,last,prev};
@@ -11418,7 +11418,7 @@ let rd = { tag: '', i: 0, back: 'home' };
 function pickTag(){
   const h = new Date().getHours();
   if(h >= 22 || h < 5) return 'night';
-  const last = (S.halts || []).slice(-1)[0];
+  const last = haltStore().slice(-1)[0];
   const v = last ? (last.v || []) : [];
   if(v.indexOf('l') >= 0) return 'alone';
   if(v.indexOf('a') >= 0) return 'angry';
