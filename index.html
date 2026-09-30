@@ -2769,7 +2769,7 @@ const BUILD='V9.2.4';
    향후 커뮤니티의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 커뮤니티 데이터는 포함되지 않습니다. */
 const KEY = 'ohg.v1';
-const DATA_SCHEMA = 6;
+const DATA_SCHEMA = 7;
 
 /* ══════════ V9.0 · 커뮤니티는 개인 회복기록과 별도 저장 ══════════
    ohg.v1/S에는 닉네임·사용자ID·차단목록을 넣지 않습니다.
@@ -2831,16 +2831,22 @@ const BLANK = {
   smoking: { mode:'', start:'', plan:'' },      /* 금연 실천 — 주 회복영역과 분리 */
   hours: [], meds: [], medCnt: 0, medLog: [], area: '',
   treat: null,                                  /* 치료관리 — migrate()에서 안전하게 초기화 */
-  eats: [], eatLog: [],                       /* 식사 — 복약과 같은 틀 */
+  eats: [], eatLog: [],                       /* 당사자 식사 */
   sleep: { on: 0, bed: '23:00', up: '07:00' },
-  sleepLog: [],                               /* [{t, q}] q: good|soso|bad */
+  sleepLog: [],                               /* 당사자 [{t, q}] q: good|soso|bad */
+  habits: [],
   moods: [], halts: [], urges: [], urgeDraft: null, nights: [], relapses: [], screenings: [],
+  familyEats: [], familyEatLog: [],
+  familySleep: { on: 0, bed: '23:00', up: '07:00' }, familySleepLog: [],
+  familyHabits: [],
+  familyMoods: [], familyHalts: [], familyNights: [], familyScreenings: [],
   stepWorks: [], stepDrafts: {},
   wbDays: {},                                 /* 당사자 의미 돌아보기 — 날짜(YYYY-MM-DD)가 열쇠. 하루 한 장 */
   meaningChecks: [], meaningCheckDraft: null,   /* 당사자 의미회복 간편점검 — 완료기록·중간저장 */
   familyWbDays: {},                           /* 가족 의미 돌아보기 — 당사자 기록과 별도 저장 */
   familyMeaningChecks: [], familyMeaningCheckDraft: null, /* 가족 의미회복 간편점검 — 완료기록·중간저장 */
-  smartWorks: [],                         /* SMART Recovery 작성형 도구 — [{tool, role, ...}] */
+  smartWorks: [],                         /* 당사자 SMART/작성형 도구 */
+  familySmartWorks: [],                   /* 가족 SMART/가족 작성형 도구 — 물리 분리 */
   familyStepWorks: [], familyStepDrafts: {},
   timeCapsule: { text:'', createdAt:0, updatedAt:0 }, /* 미래의 나에게 — 개인 회복기록, 기기 안에만 저장 */
   reclaim: { kind:'', timeOn:0, timePerDay:0, costOn:0, costPerDay:0 }, /* 내가 되찾은 것 — 선택 기준값, 기기 안에만 저장 */
@@ -2856,11 +2862,12 @@ let storageRecovery = null;
 function blankCopy_(){ return JSON.parse(JSON.stringify(BLANK)); }
 function personalRecordCount_(x){
   let n=0;
-  ['moods','halts','urges','nights','relapses','screenings','stepWorks','meaningChecks','familyMeaningChecks','smartWorks',
-   'familyStepWorks','medLog','eatLog','sleepLog'].forEach(k => { if(Array.isArray(x && x[k])) n += x[k].length; });
+  ['moods','halts','urges','nights','relapses','screenings','familyMoods','familyHalts','familyNights','familyScreenings',
+   'stepWorks','meaningChecks','familyMeaningChecks','smartWorks','familySmartWorks','familyStepWorks',
+   'medLog','eatLog','sleepLog','familyEatLog','familySleepLog'].forEach(k => { if(Array.isArray(x && x[k])) n += x[k].length; });
   if(x && x.wbDays && typeof x.wbDays === 'object' && !Array.isArray(x.wbDays)) n += Object.keys(x.wbDays).length;
   if(x && x.familyWbDays && typeof x.familyWbDays === 'object' && !Array.isArray(x.familyWbDays)) n += Object.keys(x.familyWbDays).length;
-  (Array.isArray(x && x.habits) ? x.habits : []).forEach(h => { if(Array.isArray(h && h.done)) n += h.done.length; });
+  ['habits','familyHabits'].forEach(k => (Array.isArray(x && x[k]) ? x[k] : []).forEach(h => { if(Array.isArray(h && h.done)) n += h.done.length; }));
   return n;
 }
 function personalDataSignal_(x){
@@ -2871,7 +2878,9 @@ function personalDataSignal_(x){
   if(Array.isArray(x.hours) && x.hours.length) return true;
   if(Array.isArray(x.meds) && x.meds.length) return true;
   if(Array.isArray(x.eats) && x.eats.length) return true;
+  if(Array.isArray(x.familyEats) && x.familyEats.length) return true;
   if(Array.isArray(x.habits) && x.habits.length) return true;
+  if(Array.isArray(x.familyHabits) && x.familyHabits.length) return true;
   if(String(x.goal||'').trim() || String(x.area||'').trim()) return true;
   if(x.timeCapsule && String(x.timeCapsule.text||'').trim()) return true;
   return false;
@@ -2949,8 +2958,9 @@ function inferRecordStart_(s){
     const n = Number(v || 0);
     if(n > 0 && Number.isFinite(n)) add(localYmd(n));
   };
-  ['moods','halts','urges','nights','relapses','screenings','stepWorks','smartWorks','familyStepWorks',
-   'medLog','eatLog','sleepLog','meaningChecks','familyMeaningChecks'].forEach(k => {
+  ['moods','halts','urges','nights','relapses','screenings','familyMoods','familyHalts','familyNights','familyScreenings',
+   'stepWorks','smartWorks','familySmartWorks','familyStepWorks','medLog','eatLog','sleepLog','familyEatLog','familySleepLog',
+   'meaningChecks','familyMeaningChecks'].forEach(k => {
     (Array.isArray(s[k]) ? s[k] : []).forEach(r => {
       if(!r) return;
       add(r.d); add(r.day); addTs(r.t); addTs(r.ts); addTs(r.savedAt);
@@ -2958,7 +2968,7 @@ function inferRecordStart_(s){
   });
   if(s.wbDays && typeof s.wbDays === 'object' && !Array.isArray(s.wbDays)) Object.keys(s.wbDays).forEach(add);
   if(s.familyWbDays && typeof s.familyWbDays === 'object' && !Array.isArray(s.familyWbDays)) Object.keys(s.familyWbDays).forEach(add);
-  (Array.isArray(s.habits) ? s.habits : []).forEach(h => (Array.isArray(h && h.done) ? h.done : []).forEach(add));
+  ['habits','familyHabits'].forEach(k => (Array.isArray(s[k]) ? s[k] : []).forEach(h => (Array.isArray(h && h.done) ? h.done : []).forEach(add)));
   if(s.timeCapsule) { addTs(s.timeCapsule.createdAt); addTs(s.timeCapsule.updatedAt); }
   return best || localYmd(Date.now());
 }
@@ -2968,6 +2978,7 @@ function inferRecordStart_(s){
    시간을 보고 알맞은 때로 옮겨 줍니다. 옮기지 않으면 화면이 비어 보입니다. */
 function migrate(s){
   /* 앱 버전과 개인 기록 형식의 버전은 별도로 관리합니다. 기존 백업도 불러오면 현재 스키마로 올립니다. */
+  const prevSchema=Number(s.dataSchema||0);
   s.dataSchema = DATA_SCHEMA;
   if(!s.treat || typeof s.treat !== 'object' || Array.isArray(s.treat)){
     const hadMeds = Array.isArray(s.meds) && s.meds.length > 0;
@@ -2978,6 +2989,25 @@ function migrate(s){
       alertD3:1, alertD1:1, alertDay:1, alertTime:'09:00' }, s.treat);
   }
   if(!Array.isArray(s.screenings)) s.screenings = [];
+  if(!Array.isArray(s.familyScreenings)) s.familyScreenings = [];
+  if(!Array.isArray(s.moods)) s.moods = [];
+  if(!Array.isArray(s.halts)) s.halts = [];
+  if(!Array.isArray(s.nights)) s.nights = [];
+  if(!Array.isArray(s.familyMoods)) s.familyMoods = [];
+  if(!Array.isArray(s.familyHalts)) s.familyHalts = [];
+  if(!Array.isArray(s.familyNights)) s.familyNights = [];
+  if(!Array.isArray(s.habits)) s.habits = [];
+  if(!Array.isArray(s.familyHabits)) s.familyHabits = [];
+  if(!Array.isArray(s.eats)) s.eats = [];
+  if(!Array.isArray(s.eatLog)) s.eatLog = [];
+  if(!s.sleep || typeof s.sleep!=='object' || Array.isArray(s.sleep)) s.sleep={on:0,bed:'23:00',up:'07:00'};
+  s.sleep=Object.assign({on:0,bed:'23:00',up:'07:00'},s.sleep);
+  if(!Array.isArray(s.sleepLog)) s.sleepLog = [];
+  if(!Array.isArray(s.familyEats)) s.familyEats = [];
+  if(!Array.isArray(s.familyEatLog)) s.familyEatLog = [];
+  if(!s.familySleep || typeof s.familySleep!=='object' || Array.isArray(s.familySleep)) s.familySleep={on:0,bed:'23:00',up:'07:00'};
+  s.familySleep=Object.assign({on:0,bed:'23:00',up:'07:00'},s.familySleep);
+  if(!Array.isArray(s.familySleepLog)) s.familySleepLog = [];
   if(s.urgeDraft && (typeof s.urgeDraft !== 'object' || Array.isArray(s.urgeDraft))) s.urgeDraft = null;
   if(!Array.isArray(s.stepWorks)) s.stepWorks = [];
   /* 의미 돌아보기 — 기존 당사자 기록은 그대로 두고 가족 기록 필드만 안전 초기화하므로 DATA_SCHEMA 는 6 그대로 둡니다. */
@@ -2988,6 +3018,15 @@ function migrate(s){
   if(!Array.isArray(s.familyMeaningChecks)) s.familyMeaningChecks = [];
   if(s.familyMeaningCheckDraft && (typeof s.familyMeaningCheckDraft !== 'object' || Array.isArray(s.familyMeaningCheckDraft))) s.familyMeaningCheckDraft = null;
   if(!Array.isArray(s.smartWorks)) s.smartWorks = [];
+  if(!Array.isArray(s.familySmartWorks)) s.familySmartWorks = [];
+  if(prevSchema < 7){
+    /* 스키마 6의 SMART는 한 배열에 role을 넣어 저장했습니다. role이 명확한 가족 기록만 안전하게 물리 분리합니다. */
+    const famOld=s.smartWorks.filter(r=>r&&r.role==='family');
+    const selfOld=s.smartWorks.filter(r=>!(r&&r.role==='family'));
+    const seen=new Set(s.familySmartWorks.map(r=>String((r&&r.rid)||(r&&r.id)||(r&&r.t)||'')));
+    famOld.forEach(r=>{const k=String((r&&r.rid)||(r&&r.id)||(r&&r.t)||'');if(!k||!seen.has(k)){s.familySmartWorks.push(r);if(k)seen.add(k);}});
+    s.smartWorks=selfOld;
+  }
   if(!s.stepDrafts || typeof s.stepDrafts !== 'object' || Array.isArray(s.stepDrafts)) s.stepDrafts = {};
   if(!Array.isArray(s.familyStepWorks)) s.familyStepWorks = [];
   if(!s.familyStepDrafts || typeof s.familyStepDrafts !== 'object' || Array.isArray(s.familyStepDrafts)) s.familyStepDrafts = {};
@@ -3792,7 +3831,9 @@ function preserveRecoveryRaw_(raw){
 function personalBackupShape_(j){
   if(!j || typeof j!=='object' || Array.isArray(j)) return false;
   const keys=['started','role','types','dates','moods','halts','urges','nights','relapses','screenings',
-    'stepWorks','meaningChecks','familyMeaningChecks','smartWorks','familyStepWorks','medLog','eatLog','sleepLog','wbDays','familyWbDays','timeCapsule','goal'];
+    'familyMoods','familyHalts','familyNights','familyScreenings','habits','familyHabits',
+    'stepWorks','meaningChecks','familyMeaningChecks','smartWorks','familySmartWorks','familyStepWorks',
+    'medLog','eatLog','sleepLog','familyEatLog','familySleepLog','wbDays','familyWbDays','timeCapsule','goal'];
   let hits=0;
   keys.forEach(k=>{ if(Object.prototype.hasOwnProperty.call(j,k)) hits++; });
   return hits>=2 && (Object.prototype.hasOwnProperty.call(j,'started') ||
@@ -4090,6 +4131,39 @@ let obTypes = [], obDates = {}, obArea = '', obHours = [], obRole = 'self';
 
 /* 가족 모드인가. 여기저기서 묻게 되므로 한 곳에 둡니다. */
 function famMode(){ return S.role === 'family'; }
+/* ══════════ DATA_SCHEMA 7 · 역할별 개인기록 접근자 ══════════
+   기존 스키마 6의 역할 미표시 공용 기록은 당사자 기록으로 보존합니다.
+   새 가족 기록은 family* 저장소만 사용하며 두 역할의 기록을 합쳐 읽지 않습니다. */
+function roleArray(selfKey,familyKey){
+  const k=famMode()?familyKey:selfKey;
+  if(!Array.isArray(S[k])) S[k]=[];
+  return S[k];
+}
+function setRoleArray(selfKey,familyKey,rows){ S[famMode()?familyKey:selfKey]=Array.isArray(rows)?rows:[]; }
+function screeningStore(){ return roleArray('screenings','familyScreenings'); }
+function moodStore(){ return roleArray('moods','familyMoods'); }
+function haltStore(){ return roleArray('halts','familyHalts'); }
+function nightStore(){ return roleArray('nights','familyNights'); }
+function habitStore(){
+  const k=famMode()?'familyHabits':'habits';
+  if(!Array.isArray(S[k])) S[k]=[];
+  return S[k];
+}
+function setHabitStore(rows){ S[famMode()?'familyHabits':'habits']=Array.isArray(rows)?rows:[]; }
+function eatPlanStore(){ return roleArray('eats','familyEats'); }
+function setEatPlanStore(rows){ setRoleArray('eats','familyEats',rows); }
+function eatLogStore(){ return roleArray('eatLog','familyEatLog'); }
+function setEatLogStore(rows){ setRoleArray('eatLog','familyEatLog',rows); }
+function sleepStore(){
+  const k=famMode()?'familySleep':'sleep';
+  if(!S[k]||typeof S[k]!=='object'||Array.isArray(S[k])) S[k]={on:0,bed:'23:00',up:'07:00'};
+  S[k]=Object.assign({on:0,bed:'23:00',up:'07:00'},S[k]);
+  return S[k];
+}
+function sleepLogStore(){ return roleArray('sleepLog','familySleepLog'); }
+function setSleepLogStore(rows){ setRoleArray('sleepLog','familySleepLog',rows); }
+function smartWorksStore(){ return roleArray('smartWorks','familySmartWorks'); }
+function setSmartWorksStore(rows){ setRoleArray('smartWorks','familySmartWorks',rows); }
 const ROLES = [
   {k:'self',   l:'제가 회복하고 있습니다', i:'sprout'},
   {k:'family', l:'가족 · 보호자입니다',    i:'family'}
@@ -7946,7 +8020,7 @@ function recWorkbook(){
 const SCREENINGS = Array.isArray(window.SCREENING_TOOLS) ? window.SCREENING_TOOLS : [];
 let screenRun = null;
 function screenTool(id){ return SCREENINGS.find(x=>x.id===id); }
-function screenHistory(id){ return (S.screenings || []).filter(x=>x && x.id===id).sort((a,b)=>a.t-b.t); }
+function screenHistory(id){ return screeningStore().filter(x=>x && x.id===id).sort((a,b)=>a.t-b.t); }
 function screenElapsedDays(t){ return t ? daysBetween(ymd(t), today()) : 0; }
 function screenRetestText(last){
   if(!last) return '';
@@ -8094,8 +8168,7 @@ function finishScreen(tool){
   const score=screenRun.a.reduce((a,b)=>a+Number(b||0),0);
   const lv=screenLevel(tool,score,screenRun.sex);
   const rec={id:tool.id,t:Date.now(),score:score,level:lv.label};
-  if(!Array.isArray(S.screenings)) S.screenings=[];
-  S.screenings.push(rec);
+  screeningStore().push(rec);
   /* 답변 원문과 AUDIT 성별 기준은 저장하지 않습니다. */
   save();
   screenRun.result={score:score,level:lv};
@@ -8140,7 +8213,7 @@ function trendSvg(tool, rows){
     '<div class="trend-labels"><span>'+esc((ymd(first.t)).slice(5).replace('-','.'))+'</span><span>'+esc((ymd(last.t)).slice(5).replace('-','.'))+'</span></div></div>';
 }
 function screeningStats(){
-  const ids=[...new Set((S.screenings||[]).map(x=>x.id))];
+  const ids=[...new Set(screeningStore().map(x=>x.id))];
   if(!ids.length) return null;
   const w=el('div');
   const title=el('div','card tight','<h3 style="margin:0 0 4px">자가점검 변화</h3><p class="tiny" style="margin:0">검사별 점수는 서로 척도가 다르므로 각각 따로 표시합니다. 점수 차이는 회복·악화의 진단이 아닙니다.</p>');
