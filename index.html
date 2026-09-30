@@ -4142,6 +4142,11 @@ function roleArray(selfKey,familyKey){
   if(!Array.isArray(S[k])) S[k]=[];
   return S[k];
 }
+function setRoleArray(selfKey,familyKey,rows){
+  const k=famMode()?familyKey:selfKey;
+  S[k]=Array.isArray(rows)?rows:[];
+  return S[k];
+}
 function roleMoods(){ return roleArray('moods','familyMoods'); }
 function roleHalts(){ return roleArray('halts','familyHalts'); }
 function roleNights(){ return roleArray('nights','familyNights'); }
@@ -4428,7 +4433,7 @@ function drawHome(){
     a.innerHTML = '<div class="note w" style="margin-bottom:12px">' +
       '지금은 예전에 ' + riskVerb(S.types) + ' 시간대입니다.<br>오늘은 어떻게 보내고 계신가요?' +
       (S.goal ? '<br><br><b>\u201c' + esc(S.goal) + '\u201d</b>' : '') + '</div>';
-  } else if(!todayRec(S.moods).length && h >= 20){
+  } else if(!todayRec(roleMoods()).length && h >= 20){
     a.innerHTML = '<div class="note" style="margin-bottom:12px">' +
       '오늘 아직 기분 체크를 안 하셨네요. 자기 전에 잠깐만요.</div>';
   }
@@ -4479,18 +4484,18 @@ function drawHome(){
     const sv = el('button', 'btn sec sm', '기록하기');
     sv.style.marginTop = '11px';
     sv.onclick = () => {
-      S.halts.push({ t: Date.now(), v: haltSel.slice() });
+      roleHalts().push({ t: Date.now(), v: haltSel.slice() });
       haltSel = [];                    /* 기록했으면 화면은 비웁니다 */
       save(); drawHome(); toast('저장했어요. 나중에 내 회복요약에서 다시 볼 수 있어요.');
     };
     ha.appendChild(sv);
   }
-  $('#halt-st').textContent = countLine(S.halts);
+  $('#halt-st').textContent = countLine(roleHalts());
 
   /* ── 기분 ──
      누를 때마다 그 시각으로 새 줄이 남습니다. 방금 누른 것만 잠깐 켜져 보이고,
      10분이 지나면 저절로 꺼집니다 — 아침 기분이 밤까지 남아 있으면 안 됩니다. */
-  const recent = S.moods.slice(-1)[0];
+  const recent = roleMoods().slice(-1)[0];
   const fresh = recent && (Date.now() - recent.t < 600000) ? recent.v : null;
   const mb = $('#home-mood');
   mb.innerHTML = '';
@@ -4498,12 +4503,12 @@ function drawHome(){
     const b = el('button', (fresh === x.v) ? 'on' : '',
       ico(x.i) + '<span class="l">' + x.l + '</span>');
     b.onclick = () => {
-      S.moods.push({ t: Date.now(), v: x.v });
+      roleMoods().push({ t: Date.now(), v: x.v });
       save(); drawHome(); toast('저장했어요. 나중에 내 회복요약에서 다시 볼 수 있어요.');
     };
     mb.appendChild(b);
   });
-  $('#mood-st').textContent = countLine(S.moods);
+  $('#mood-st').textContent = countLine(roleMoods());
 
   const review=$('#home-review');
   if(review){
@@ -5118,10 +5123,10 @@ $('#ni-save').onclick = () => {
     return;
   }
 
-  S.nights.push({ t: Date.now(), m: night.mood, u: night.urge, k: night.kept,
+  roleNights().push({ t: Date.now(), m: night.mood, u: famMode()?null:night.urge, k: night.kept,
                   p: night.praise.slice(), pn: $('#ni-praise-n').value.trim(),
                   n: $('#ni-note').value.trim() });
-  if(night.mood != null) S.moods.push({ t: Date.now(), v: night.mood });
+  if(night.mood != null) roleMoods().push({ t: Date.now(), v: night.mood });
   save();
   if(night.kept === 0 && famMode() && niAfter !== 'meaning'){
     modal('<h2>오늘은 그런 날이었군요</h2>' +
@@ -8018,7 +8023,7 @@ function recWorkbook(){
 const SCREENINGS = Array.isArray(window.SCREENING_TOOLS) ? window.SCREENING_TOOLS : [];
 let screenRun = null;
 function screenTool(id){ return SCREENINGS.find(x=>x.id===id); }
-function screenHistory(id){ return (S.screenings || []).filter(x=>x && x.id===id).sort((a,b)=>a.t-b.t); }
+function screenHistory(id){ return screeningStore().filter(x=>x && x.id===id).sort((a,b)=>a.t-b.t); }
 function screenElapsedDays(t){ return t ? daysBetween(ymd(t), today()) : 0; }
 function screenRetestText(last){
   if(!last) return '';
@@ -8166,8 +8171,7 @@ function finishScreen(tool){
   const score=screenRun.a.reduce((a,b)=>a+Number(b||0),0);
   const lv=screenLevel(tool,score,screenRun.sex);
   const rec={id:tool.id,t:Date.now(),score:score,level:lv.label};
-  if(!Array.isArray(S.screenings)) S.screenings=[];
-  S.screenings.push(rec);
+  screeningStore().push(rec);
   /* 답변 원문과 AUDIT 성별 기준은 저장하지 않습니다. */
   save();
   screenRun.result={score:score,level:lv};
@@ -8212,7 +8216,7 @@ function trendSvg(tool, rows){
     '<div class="trend-labels"><span>'+esc((ymd(first.t)).slice(5).replace('-','.'))+'</span><span>'+esc((ymd(last.t)).slice(5).replace('-','.'))+'</span></div></div>';
 }
 function screeningStats(){
-  const ids=[...new Set((S.screenings||[]).map(x=>x.id))];
+  const ids=[...new Set(screeningStore().map(x=>x.id))];
   if(!ids.length) return null;
   const w=el('div');
   const title=el('div','card tight','<h3 style="margin:0 0 4px">자가점검 변화</h3><p class="tiny" style="margin:0">검사별 점수는 서로 척도가 다르므로 각각 따로 표시합니다. 점수 차이는 회복·악화의 진단이 아닙니다.</p>');
@@ -8381,7 +8385,7 @@ function recScreening(){
      한 달 뒤에 "그때도 버텼구나" 를 보는 것이 이 탭의 값어치입니다.
    ★ 지키지 못한 날도 지웁니다 없이 그대로 둡니다. 골라 보여주면 기록이 아니라 전시가 됩니다. */
 function recDay(){
-  const ns = (S.nights || []).slice().reverse();
+  const ns = roleNights().slice().reverse();
   if(!ns.length) return emptyBox('아직 하루 마무리 기록이 없습니다.<br>홈 아래 [자기 전 하루 마무리]를 눌러보세요.');
 
   const w = el('div');
@@ -8579,8 +8583,8 @@ function emptyBox(msg){ return el('div', 'empty', msg); }
    같은 시각(3분 안)에 남긴 것은 한 줄로 묶습니다. */
 function recMood(){
   const ev = [];
-  S.moods.forEach(m => ev.push({ t: m.t, mood: m.v }));
-  S.halts.forEach(h => ev.push({ t: h.t, halt: h.v || [] }));
+  roleMoods().forEach(m => ev.push({ t: m.t, mood: m.v }));
+  roleHalts().forEach(h => ev.push({ t: h.t, halt: h.v || [] }));
   /* 자기 전 기록은 [하루] 탭으로 옮겼습니다 — 그 기분은 이미 S.moods 에도 들어가 있어
      여기 또 두면 같은 것이 두 번 보입니다. */
   if(!ev.length) return emptyBox('아직 기록이 없습니다.<br>홈에서 [지금 기분]이나 [지금 상태]를 눌러보세요.');
@@ -9051,20 +9055,20 @@ function recPattern(){
 }
 
 function recStatCore(){
-  const w = el('div');
-  if(!S.urges.length && !S.halts.length && !S.moods.length && !(S.screenings||[]).length)
+  const w = el('div'), moods=roleMoods(), halts=roleHalts(), nights=roleNights(), screens=screeningStore();
+  if((famMode() || !S.urges.length) && !halts.length && !moods.length && !screens.length && !nights.length)
     return emptyBox('기록이 쌓이면 여기에 통계가 보입니다.');
 
   /* KPI */
-  const kept = S.nights.filter(n => n.k === 1).length;
+  const kept = nights.filter(n => n.k === 1).length;
   const dropped = S.urges.filter(u => u.b > u.a).length;
   const k = el('div', 'card');
   k.innerHTML = famMode()
     ? '<h3>한눈에</h3><div class="kpi">' +
       '<div><b>' + kept + '</b><span>나를 챙긴 하루</span></div>' +
-      '<div><b>' + S.moods.length + '</b><span>기분 기록</span></div>' +
-      '<div><b>' + S.halts.length + '</b><span>상태 기록</span></div>' +
-      '<div><b>' + S.nights.length + '</b><span>하루 마무리</span></div>' +
+      '<div><b>' + moods.length + '</b><span>기분 기록</span></div>' +
+      '<div><b>' + halts.length + '</b><span>상태 기록</span></div>' +
+      '<div><b>' + nights.length + '</b><span>하루 마무리</span></div>' +
       '</div>'
     : '<h3>한눈에</h3><div class="kpi">' +
       '<div><b>' + S.urges.length + '</b><span>충동 기록</span></div>' +
@@ -9099,10 +9103,10 @@ function recStatCore(){
   }
 
   /* HALT 빈도 */
-  if(S.halts.length){
+  if(halts.length){
     const cnt = {};
     HALT.forEach(x => cnt[x.k] = 0);
-    S.halts.forEach(h => (h.v || []).forEach(k => { if(cnt[k] != null) cnt[k]++; }));
+    halts.forEach(h => (h.v || []).forEach(k => { if(cnt[k] != null) cnt[k]++; }));
     const mx = Math.max(...Object.values(cnt), 1);
     const c = el('div', 'card');
     let html = '<h3>무엇이 나를 무너뜨리나</h3>';
@@ -9146,11 +9150,11 @@ function recStatCore(){
   }
 
   /* 최근 14일 감정 */
-  if(S.moods.length >= 3){
+  if(moods.length >= 3){
     const days = [];
     for(let i = 13; i >= 0; i--){
       const d = ymd(Date.now() - i * 86400000);
-      const ms = S.moods.filter(m => ymd(m.t) === d);
+      const ms = moods.filter(m => ymd(m.t) === d);
       days.push(ms.length ? ms.reduce((s,m) => s + m.v, 0) / ms.length : 0);
     }
     const c = el('div', 'card');
