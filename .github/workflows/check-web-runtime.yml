@@ -124,7 +124,7 @@ jobs:
 
       - name: Fixed invariants
         run: |
-          grep -F "const DATA_SCHEMA = 6;" index.html
+          grep -F "const DATA_SCHEMA = 7;" index.html
           grep -F "const KEY = 'ohg.v1';" index.html
           grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
           ! grep -F 'HALTS.find' index.html
