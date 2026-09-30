@@ -64,15 +64,33 @@ const srv = http.createServer((req, res) => {
     const oldCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
     const oldPg=await oldCtx.newPage();
     const oldRecord={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(40)},cum:{alcohol:0},
-      goal:'기존 목표',hours:[],meds:[],medLog:[],eats:[],eatLog:[],sleep:{on:0,bed:'23:00',up:'07:00'},sleepLog:[],
-      moods:[{t:Date.now()-86400000,v:3}],halts:[],urges:[],nights:[],relapses:[],screenings:[],stepWorks:[],stepDrafts:{},
-      wbDays:{},meaningChecks:[],smartWorks:[],familyStepWorks:[],familyStepDrafts:{},aiChat:[],fired:[]};
+      goal:'기존 목표',hours:[],meds:[],medLog:[],eats:[{s:'아침',t:'07:30'}],eatLog:[{t:Date.now()-7000,n:'아침'}],sleep:{on:1,bed:'22:30',up:'07:00'},sleepLog:[{t:Date.now()-8000,q:'good'}],
+      habits:[{id:'old-habit',name:'기존 습관',start:daysAgo(3),days:21,freq:'daily',weekdays:[0,1,2,3,4,5,6],done:[daysAgo(1)]}],
+      moods:[{t:Date.now()-86400000,v:3}],halts:[{t:Date.now()-85000000,v:['h']}],urges:[],nights:[{t:Date.now()-84000000,m:3,k:1,p:['hold'],n:'기존 하루'}],relapses:[],
+      screenings:[{id:'legacy-screen',t:Date.now()-83000000,score:4,level:'기존'}],stepWorks:[],stepDrafts:{},
+      wbDays:{},meaningChecks:[],smartWorks:[
+        {id:'legacy-self-smart',kind:'smart-goal',role:'self',goal:'기존 당사자 SMART',ts:Date.now()-82000000},
+        {id:'legacy-family-smart',kind:'smart-goal',role:'family',goal:'기존 가족 SMART',ts:Date.now()-81000000},
+        {id:'legacy-no-role',kind:'smart-goal',goal:'역할 없는 기존 SMART',ts:Date.now()-80000000}
+      ],familyStepWorks:[],familyStepDrafts:{},aiChat:[],fired:[]};
     await oldCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),JSON.stringify(oldRecord));
     await oldPg.goto('http://localhost:8899/index.html'); await oldPg.waitForTimeout(500);
     assert(await oldPg.$eval('.pg.on',e=>e.id)==='p-home','recordStart 없는 V9.1.0 기존 데이터는 자동으로 홈에 복구되어야 함');
-    const oldState=await oldPg.evaluate(()=>({moods:S.moods.length,goal:S.goal,recordStart:S.recordStart,blocked:!!(storageRecovery&&storageRecovery.blocking),familyWbDays:S.familyWbDays,familyMeaningChecks:S.familyMeaningChecks,familyMeaningCheckDraft:S.familyMeaningCheckDraft}));
-    assert(oldState.moods===1&&oldState.goal==='기존 목표'&&/^\d{4}-\d{2}-\d{2}$/.test(oldState.recordStart),'V9.1.0 기록·목표를 보존하며 recordStart만 안전 추론');
-    assert(oldState.familyWbDays&&Object.keys(oldState.familyWbDays).length===0&&Array.isArray(oldState.familyMeaningChecks)&&oldState.familyMeaningChecks.length===0&&oldState.familyMeaningCheckDraft===null,'기존 데이터는 DATA_SCHEMA 변경 없이 가족 의미 저장소만 안전 초기화');
+    const oldState=await oldPg.evaluate(()=>({
+      schema:S.dataSchema,moods:S.moods.length,halts:S.halts.length,nights:S.nights.length,screenings:S.screenings.length,
+      habits:S.habits.length,eats:S.eats.length,eatLog:S.eatLog.length,sleepOn:S.sleep.on,sleepLog:S.sleepLog.length,
+      familyMoods:S.familyMoods.length,familyHalts:S.familyHalts.length,familyNights:S.familyNights.length,familyScreenings:S.familyScreenings.length,
+      familyHabits:S.familyHabits.length,familyEats:S.familyEats.length,familyEatLog:S.familyEatLog.length,familySleepOn:S.familySleep.on,familySleepLog:S.familySleepLog.length,
+      selfSmart:S.smartWorks.map(x=>x.id),familySmart:S.familySmartWorks.map(x=>x.id),
+      goal:S.goal,recordStart:S.recordStart,blocked:!!(storageRecovery&&storageRecovery.blocking),
+      familyWbDays:S.familyWbDays,familyMeaningChecks:S.familyMeaningChecks,familyMeaningCheckDraft:S.familyMeaningCheckDraft
+    }));
+    assert(oldState.schema===7&&oldState.moods===1&&oldState.halts===1&&oldState.nights===1&&oldState.screenings===1&&oldState.habits===1&&oldState.eats===1&&oldState.eatLog===1&&oldState.sleepOn===1&&oldState.sleepLog===1,'DATA_SCHEMA 6 공용기록은 역할을 추측하지 않고 당사자 저장소에 보존');
+    assert(oldState.familyMoods===0&&oldState.familyHalts===0&&oldState.familyNights===0&&oldState.familyScreenings===0&&oldState.familyHabits===0&&oldState.familyEats===0&&oldState.familyEatLog===0&&oldState.familySleepOn===0&&oldState.familySleepLog===0,'구버전 공용 생활·상태기록은 가족 저장소로 임의 복사하지 않음');
+    assert(oldState.selfSmart.includes('legacy-self-smart')&&oldState.selfSmart.includes('legacy-no-role')&&!oldState.selfSmart.includes('legacy-family-smart'),'SMART role=self 또는 role 없는 기존 기록은 당사자 저장소에 보존');
+    assert(oldState.familySmart.length===1&&oldState.familySmart[0]==='legacy-family-smart','SMART role=family 기존 기록만 familySmartWorks로 정확히 이동');
+    assert(oldState.goal==='기존 목표'&&/^\d{4}-\d{2}-\d{2}$/.test(oldState.recordStart),'기존 목표와 recordStart를 보존');
+    assert(oldState.familyWbDays&&Object.keys(oldState.familyWbDays).length===0&&Array.isArray(oldState.familyMeaningChecks)&&oldState.familyMeaningChecks.length===0&&oldState.familyMeaningCheckDraft===null,'기존 가족 의미 저장소 초기화도 유지');
     assert(!oldState.blocked,'정상 기존 데이터에는 복구 선택창을 띄우지 않음');
     assert(await oldPg.evaluate(()=>S.viewMode===''&&!document.body.classList.contains('simple-view')),'viewMode 없는 기존 사용자는 전체 보기를 유지');
     await oldCtx.close();
