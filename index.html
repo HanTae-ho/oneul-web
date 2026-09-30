@@ -3012,7 +3012,7 @@ function migrate(s){
   if(!Array.isArray(s.familySleepLog)) s.familySleepLog = [];
   if(s.urgeDraft && (typeof s.urgeDraft !== 'object' || Array.isArray(s.urgeDraft))) s.urgeDraft = null;
   if(!Array.isArray(s.stepWorks)) s.stepWorks = [];
-  /* 의미 돌아보기 — 기존 당사자 기록은 그대로 두고 가족 기록 필드만 안전 초기화하므로 DATA_SCHEMA 는 6 그대로 둡니다. */
+  /* 의미 돌아보기 — 기존 당사자 기록은 그대로 두고 가족 기록 필드를 역할별로 유지합니다. */
   if(!s.wbDays || typeof s.wbDays !== 'object' || Array.isArray(s.wbDays)) s.wbDays = {};
   if(!Array.isArray(s.meaningChecks)) s.meaningChecks = [];
   if(s.meaningCheckDraft && (typeof s.meaningCheckDraft !== 'object' || Array.isArray(s.meaningCheckDraft))) s.meaningCheckDraft = null;
@@ -9085,7 +9085,7 @@ function recStatCore(){
   /* 잠 막대는 [몸] 탭으로 옮겼습니다 — 몸은 몸끼리 모아놔야 읽힙니다. */
 
   /* 충동 시간대 */
-  if(S.urges.length){
+  if(!famMode() && S.urges.length){
     const by = new Array(24).fill(0);
     S.urges.forEach(u => { by[new Date(u.t).getHours()]++; });
     const mx = Math.max(...by, 1);
@@ -9125,9 +9125,9 @@ function recStatCore(){
 
   /* 허용 사고 */
   const th = {};
-  S.urges.forEach(u => (u.th || []).forEach(t => { th[t] = (th[t] || 0) + 1; }));
+  if(!famMode()) S.urges.forEach(u => (u.th || []).forEach(t => { th[t] = (th[t] || 0) + 1; }));
   const tl = Object.entries(th).sort((a,b) => b[1] - a[1]).slice(0, 5);
-  if(tl.length){
+  if(!famMode() && tl.length){
     const c = el('div', 'card');
     c.innerHTML = '<h3>자주 떠오르는 생각</h3>' +
       tl.map(([t, n]) => '<div class="sp" style="padding:5px 0"><span>"' + esc(t) +
@@ -9138,8 +9138,8 @@ function recStatCore(){
   }
 
   /* 타이머 효과 */
-  const withT = S.urges.filter(u => u.sec > 60 && u.src !== 'diary');
-  if(withT.length >= 2){
+  const withT = famMode()?[]:S.urges.filter(u => u.sec > 60 && u.src !== 'diary');
+  if(!famMode() && withT.length >= 2){
     const avgB = withT.reduce((s,u) => s + u.b, 0) / withT.length;
     const avgA = withT.reduce((s,u) => s + u.a, 0) / withT.length;
     const c = el('div', 'card');
