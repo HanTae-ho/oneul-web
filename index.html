@@ -6235,7 +6235,7 @@ function openSmartHovRecord(r){
   $('#smart-hov-delete').onclick=()=>{
     const key=r.rid||String(r.t);
     modal('<h2>이 가치 우선순위 기록을 삭제할까요?</h2><p class="muted" style="margin:6px 0 14px">이 기록 한 건만 기기에서 삭제하며 되돌릴 수 없습니다.</p><button class="btn danger" id="smart-hov-delete-ok">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
-    $('#smart-hov-delete-ok').onclick=()=>{ S.smartWorks=smartWorksStore().filter(x=>(x.rid||String(x.t))!==key); save(); closeModal(); drawSmartHov(); toast('삭제했습니다.'); };
+    $('#smart-hov-delete-ok').onclick=()=>{ setSmartWorksStore(smartWorksStore().filter(x=>(x.rid||String(x.t))!==key)); save(); closeModal(); drawSmartHov(); toast('삭제했습니다.'); };
   };
 }
 function openSmartHovEditor(record){
@@ -6323,7 +6323,7 @@ function openSmartCbaRecord(r){
   $('#smart-cba-delete').onclick=()=>{
     const key=r.rid||String(r.t);
     modal('<h2>이 의사결정 저울 기록을 삭제할까요?</h2><p class="muted" style="margin:6px 0 14px">이 기록 한 건만 기기에서 삭제하며 되돌릴 수 없습니다.</p><button class="btn danger" id="smart-cba-delete-ok">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
-    $('#smart-cba-delete-ok').onclick=()=>{ S.smartWorks=smartWorksStore().filter(x=>(x.rid||String(x.t))!==key); save(); closeModal(); drawSmartCba(); toast('삭제했습니다.'); };
+    $('#smart-cba-delete-ok').onclick=()=>{ setSmartWorksStore(smartWorksStore().filter(x=>(x.rid||String(x.t))!==key)); save(); closeModal(); drawSmartCba(); toast('삭제했습니다.'); };
   };
 }
 function smartCbaRowHtml(key,item){
@@ -6632,9 +6632,9 @@ function openSmartChangePlanEditor(record,seed){
       reasons:$('#cp-reasons').value.trim(), steps,
       help:$('#cp-help').value.trim(), signs:$('#cp-signs').value.trim(), obstacles:$('#cp-obstacles').value.trim()
     };
-    if(!Array.isArray(S.smartWorks)) S.smartWorks=[];
-    if(edit){ const i=S.smartWorks.findIndex(x=>x&&x.id===record.id); if(i>=0) S.smartWorks[i]=rec; else S.smartWorks.push(rec); }
-    else S.smartWorks.push(rec);
+    const smartRows=smartWorksStore();
+    if(edit){ const i=smartRows.findIndex(x=>x&&x.id===record.id); if(i>=0) smartRows[i]=rec; else smartRows.push(rec); }
+    else smartRows.push(rec);
     save(); closeModal(); drawSmartChangePlan(); toast(edit?'변화 계획을 수정했습니다.':'변화 계획을 저장했습니다.');
   };
 }
@@ -6710,9 +6710,9 @@ function openSmartThreeEditor(record){
       ts:edit?(record.ts||now):now, updatedAt:now,
       future, current, feelingNow, different, feelingAfter, gap:$('#three-gap').value.trim()
     };
-    if(!Array.isArray(S.smartWorks)) S.smartWorks=[];
-    if(edit){ const i=S.smartWorks.findIndex(x=>x&&x.id===record.id); if(i>=0) S.smartWorks[i]=rec; else S.smartWorks.push(rec); }
-    else S.smartWorks.push(rec);
+    const smartRows=smartWorksStore();
+    if(edit){ const i=smartRows.findIndex(x=>x&&x.id===record.id); if(i>=0) smartRows[i]=rec; else smartRows.push(rec); }
+    else smartRows.push(rec);
     save(); closeModal(); drawSmartThreeQuestions(); toast(edit?'기록을 수정했습니다.':'기록을 저장했습니다.');
   };
 }
@@ -6798,9 +6798,9 @@ function openSmartDeadsEditor(record){
       accept:$('#deads-accept').value.trim(), attack:$('#deads-attack').value.trim(), distract:$('#deads-distract').value.trim(), substitute:$('#deads-substitute').value.trim()
     };
     if(!smartDeadsFilled(rec)){ toast('내가 사용할 수 있는 전략을 한 가지 이상 적어주세요.'); return; }
-    if(!Array.isArray(S.smartWorks)) S.smartWorks=[];
-    if(record){ const i=S.smartWorks.findIndex(x=>x&&x.id===record.id); if(i>=0) S.smartWorks[i]=rec; else S.smartWorks.push(rec); }
-    else S.smartWorks.push(rec);
+    const smartRows=smartWorksStore();
+    if(record){ const i=smartRows.findIndex(x=>x&&x.id===record.id); if(i>=0) smartRows[i]=rec; else smartRows.push(rec); }
+    else smartRows.push(rec);
     save(); closeModal(); drawSmartDeads(); toast(record?'충동 대처 계획을 수정했습니다.':'충동 대처 계획을 저장했습니다.');
   };
 }
@@ -6921,9 +6921,9 @@ function openSmartDisarmEditor(record){
     };
     if(!rec.destructive){ toast('반복해서 나타나는 생각이나 이미지를 적어주세요.'); return; }
     if(!rec.refusal && !rec.replacement){ toast('거부 문장이나 현실적인 대체 생각을 하나 이상 적어주세요.'); return; }
-    if(!Array.isArray(S.smartWorks)) S.smartWorks=[];
-    if(record){ const i=S.smartWorks.findIndex(x=>x&&x.id===record.id); if(i>=0) S.smartWorks[i]=rec; else S.smartWorks.push(rec); }
-    else S.smartWorks.push(rec);
+    const smartRows=smartWorksStore();
+    if(record){ const i=smartRows.findIndex(x=>x&&x.id===record.id); if(i>=0) smartRows[i]=rec; else smartRows.push(rec); }
+    else smartRows.push(rec);
     save(); closeModal(); drawSmartDisarm(); toast(record?'거리두기 문장을 수정했습니다.':'거리두기 문장을 저장했습니다.');
   };
 }
@@ -7016,9 +7016,9 @@ function openSmartAbcEditor(record,seed){
     if(!rec.c){ toast('감정·행동의 결과(C)를 적어주세요.'); return; }
     if(!rec.d){ toast('생각에 질문하고 반박하는 내용(D)을 적어주세요.'); return; }
     if(!rec.e){ toast('효과적인 새로운 생각(E)을 적어주세요.'); return; }
-    if(!Array.isArray(S.smartWorks)) S.smartWorks=[];
-    if(record){ const i=S.smartWorks.findIndex(x=>x&&x.id===record.id); if(i>=0) S.smartWorks[i]=rec; else S.smartWorks.push(rec); }
-    else S.smartWorks.push(rec);
+    const smartRows=smartWorksStore();
+    if(record){ const i=smartRows.findIndex(x=>x&&x.id===record.id); if(i>=0) smartRows[i]=rec; else smartRows.push(rec); }
+    else smartRows.push(rec);
     save(); closeModal(); drawSmartAbc(); toast(record?'기록을 수정했습니다.':'기록을 저장했습니다.');
   };
 }
@@ -7058,7 +7058,7 @@ function openSmartDibsEditor(record,seed){
  +smartDibsField('5 · 논리와 장기적 도움 점검','dibs-test',r.test,'이 생각은 논리적인가? 이 생각대로 행동하면 장기적으로 내가 원하는 삶에 도움이 되는가?','사실성·논리성·장기적 도움 여부를 점검합니다.',900)
  +smartDibsField('6 · 더 균형 잡힌 합리적 신념','dibs-rb',r.rb,'예: “충동은 불쾌하지만 견딜 수 있다. 나는 사용하지 않기로 선택할 수 있다.”','현실적이고 유연하며, 장기적으로 내가 원하는 방향에 도움이 되는 문장으로 바꿉니다.',900)
  +'<button class="btn" id="dibs-save">'+(record?'수정 저장':'생각 점검 저장')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
- $('#dibs-save').onclick=()=>{const rec={id:record?record.id:('dibs-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'dibs',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),ib:$('#dibs-ib').value.trim(),impact:$('#dibs-impact').value.trim(),q:$('#dibs-q').value.trim(),evidence:$('#dibs-evidence').value.trim(),test:$('#dibs-test').value.trim(),rb:$('#dibs-rb').value.trim()};if(!rec.ib){toast('도움이 되지 않는 신념을 적어주세요.');return;}if(!rec.q){toast('그 신념을 질문으로 바꿔 적어주세요.');return;}if(!rec.rb){toast('더 균형 잡힌 합리적 신념을 적어주세요.');return;}if(!Array.isArray(S.smartWorks))S.smartWorks=[];if(record){const i=S.smartWorks.findIndex(x=>x&&x.id===record.id);if(i>=0)S.smartWorks[i]=rec;else S.smartWorks.push(rec);}else S.smartWorks.push(rec);save();closeModal();drawSmartDibs();toast(record?'생각 점검 기록을 수정했습니다.':'생각 점검 기록을 저장했습니다.');};
+ $('#dibs-save').onclick=()=>{const rec={id:record?record.id:('dibs-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'dibs',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),ib:$('#dibs-ib').value.trim(),impact:$('#dibs-impact').value.trim(),q:$('#dibs-q').value.trim(),evidence:$('#dibs-evidence').value.trim(),test:$('#dibs-test').value.trim(),rb:$('#dibs-rb').value.trim()};if(!rec.ib){toast('도움이 되지 않는 신념을 적어주세요.');return;}if(!rec.q){toast('그 신념을 질문으로 바꿔 적어주세요.');return;}if(!rec.rb){toast('더 균형 잡힌 합리적 신념을 적어주세요.');return;}const smartRows=smartWorksStore();if(record){const i=smartRows.findIndex(x=>x&&x.id===record.id);if(i>=0)smartRows[i]=rec;else smartRows.push(rec);}else smartRows.push(rec);save();closeModal();drawSmartDibs();toast(record?'생각 점검 기록을 수정했습니다.':'생각 점검 기록을 저장했습니다.');};
 }
 function openSmartDibsView(id){const r=smartWorksStore().find(x=>x&&x.id===id&&x.kind==='dibs');if(!r)return;const sec=(t,v)=>'<div class="card"><h3>'+esc(t)+'</h3><div style="white-space:pre-wrap">'+(String(v||'').trim()?esc(v):'<span class="muted">작성하지 않음</span>')+'</div></div>';modal('<h2>생각 점검 기록</h2><div class="muted" style="margin:-4px 0 12px">'+esc(smartDibsDate(r.updatedAt||r.ts))+'</div>'+sec('도움이 되지 않는 신념',r.ib)+sec('이 생각의 영향',r.impact)+sec('질문으로 바꾸기',r.q)+sec('사실과 증거 점검',r.evidence)+sec('논리와 장기적 도움 점검',r.test)+sec('균형 잡힌 합리적 신념',r.rb)+'<button class="btn sec" id="dibs-edit">수정</button><div style="height:8px"></div><button class="btn bad" id="dibs-delete">이 기록 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');$('#dibs-edit').onclick=()=>openSmartDibsEditor(r);$('#dibs-delete').onclick=()=>{if(!confirm('이 생각 점검 기록을 삭제할까요?'))return;smartDeleteRecords(x=>x&&x.id===r.id);save();closeModal();drawSmartDibs();toast('기록을 삭제했습니다.');};}
 
@@ -7100,7 +7100,7 @@ function openSmartThinkingEditor(record){
    const styles=$$('[data-thinking-style]').filter(x=>x.checked).map(x=>x.dataset.thinkingStyle), thought=$('#thinking-thought').value.trim();
    if(!styles.length){toast('내게 나타나는 사고방식을 하나 이상 골라주세요.');return;} if(!thought){toast('최근 실제로 떠오른 생각을 적어주세요.');return;}
    const rec={id:record?record.id:('thinking-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'thinking-styles',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),styles,thought,situation:$('#thinking-situation').value.trim(),impact:$('#thinking-impact').value.trim()};
-   if(!Array.isArray(S.smartWorks))S.smartWorks=[]; if(record){const i=S.smartWorks.findIndex(x=>x&&x.id===record.id);if(i>=0)S.smartWorks[i]=rec;else S.smartWorks.push(rec);}else S.smartWorks.push(rec);
+   const smartRows=smartWorksStore(); if(record){const i=smartRows.findIndex(x=>x&&x.id===record.id);if(i>=0)smartRows[i]=rec;else smartRows.push(rec);}else smartRows.push(rec);
    save();closeModal();drawSmartThinkingStyles();toast(record?'사고방식 점검을 수정했습니다.':'사고방식 점검을 저장했습니다.');
  };
 }
@@ -7154,7 +7154,7 @@ function openSmartProblemEditor(record){
  $('#ps-next-select').onclick=()=>openStep('select',true);
  $('#ps-next-plan').onclick=()=>openStep('plan',true);
  $('#ps-add').onclick=()=>{collectRows();strategies.push({id:'ps-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),text:'',feasible:0,ready:0,good:'',risk:'',score:0});renderRows(strategies.length-1);setTimeout(()=>{const rows=$$('[data-ps-row]');if(rows.length)rows[rows.length-1].scrollIntoView({behavior:'smooth',block:'center'});},30);};
- $('#ps-save').onclick=()=>{const rows=collectRows().filter(x=>x.text);const what=$('#ps-what').value.trim();if(!what){toast('보통 무슨 일이 일어나는지 적어주세요.');openStep('definition',true);return;}if(!rows.length){toast('가능한 전략을 하나 이상 적어주세요.');openStep('brainstorm',true);return;}const selected=rows.find(x=>x.id===selectedId);if(!selected){toast('시도할 전략 하나를 선택해주세요.');openStep('select',true);return;}const plan=$('#ps-plan').value.trim();if(!plan){toast('선택한 해결책의 실행 계획을 적어주세요.');openStep('plan',true);return;}const rec={id:record?record.id:('problem-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'problem-solving',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),when:$('#ps-when').value.trim(),who:$('#ps-who').value.trim(),what,thoughts:$('#ps-thoughts').value.trim(),strategies:rows.map(x=>({id:x.id,text:x.text,feasible:x.feasible,ready:x.ready,good:x.good,risk:x.risk,score:x.score})),selectedId:selected.id,selectedText:selected.text,plan,start:$('#ps-start').value,place:$('#ps-place').value.trim(),needs:$('#ps-needs').value.trim(),review:$('#ps-review').value.trim()};if(!Array.isArray(S.smartWorks))S.smartWorks=[];if(record){const i=S.smartWorks.findIndex(x=>x&&x.id===record.id);if(i>=0)S.smartWorks[i]=rec;else S.smartWorks.push(rec);}else S.smartWorks.push(rec);save();closeModal();drawSmartProblemSolving();toast(record?'문제 해결 기록을 수정했습니다.':'문제 해결 기록을 저장했습니다.');};
+ $('#ps-save').onclick=()=>{const rows=collectRows().filter(x=>x.text);const what=$('#ps-what').value.trim();if(!what){toast('보통 무슨 일이 일어나는지 적어주세요.');openStep('definition',true);return;}if(!rows.length){toast('가능한 전략을 하나 이상 적어주세요.');openStep('brainstorm',true);return;}const selected=rows.find(x=>x.id===selectedId);if(!selected){toast('시도할 전략 하나를 선택해주세요.');openStep('select',true);return;}const plan=$('#ps-plan').value.trim();if(!plan){toast('선택한 해결책의 실행 계획을 적어주세요.');openStep('plan',true);return;}const rec={id:record?record.id:('problem-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'problem-solving',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),when:$('#ps-when').value.trim(),who:$('#ps-who').value.trim(),what,thoughts:$('#ps-thoughts').value.trim(),strategies:rows.map(x=>({id:x.id,text:x.text,feasible:x.feasible,ready:x.ready,good:x.good,risk:x.risk,score:x.score})),selectedId:selected.id,selectedText:selected.text,plan,start:$('#ps-start').value,place:$('#ps-place').value.trim(),needs:$('#ps-needs').value.trim(),review:$('#ps-review').value.trim()};const smartRows=smartWorksStore();if(record){const i=smartRows.findIndex(x=>x&&x.id===record.id);if(i>=0)smartRows[i]=rec;else smartRows.push(rec);}else smartRows.push(rec);save();closeModal();drawSmartProblemSolving();toast(record?'문제 해결 기록을 수정했습니다.':'문제 해결 기록을 저장했습니다.');};
 }
 function smartProblemSection(title,text){return '<div class="card"><h3>'+esc(title)+'</h3><div style="white-space:pre-wrap">'+(String(text||'').trim()?esc(text):'<span class="muted">작성하지 않음</span>')+'</div></div>';}
 function openSmartProblemView(id){
@@ -7205,7 +7205,7 @@ function openSmartBalanceEditor(record){
  $('#balance-add').onclick=()=>{collectAreas();const inp=$('#balance-add-name'),name=inp.value.trim();if(!name){toast('추가할 삶의 영역 이름을 적어주세요.');return;}if(areas.some(a=>a.name===name)){toast('이미 있는 영역입니다.');return;}if(areas.length>=10){toast('삶의 영역은 10개까지 사용할 수 있습니다.');return;}areas.push({name,score:5});inp.value='';renderAreas();setTimeout(()=>{const rs=$$('[data-balance-row]');if(rs.length)rs[rs.length-1].scrollIntoView({behavior:'smooth',block:'center'});},30);};
  $('#balance-next-review').onclick=()=>{collectAreas();if(areas.length<3){toast('삶의 영역을 3개 이상 남겨주세요.');return;}openStep('review',true);};
  $('#balance-next-focus').onclick=()=>openStep('focus',true);
- $('#balance-save').onclick=()=>{collectAreas();focus=$('#balance-focus').value;if(!focus){openStep('focus',true);toast('가장 먼저 돌볼 영역 하나를 선택해주세요.');return;}const action=$('#balance-action').value.trim();if(!action){openStep('focus',true);toast('그 영역에서 시작할 작은 행동을 적어주세요.');return;}const rec={id:record?record.id:('balance-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'lifestyle-balance-pie',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),areas:areas.map(a=>({name:a.name,score:smartBalanceClamp(a.score)})),reflection:$('#balance-reflection').value.trim(),focus,barrier:$('#balance-barrier').value.trim(),action,start:$('#balance-start').value};if(!Array.isArray(S.smartWorks))S.smartWorks=[];if(record){const i=S.smartWorks.findIndex(x=>x&&x.id===record.id);if(i>=0)S.smartWorks[i]=rec;else S.smartWorks.push(rec);}else S.smartWorks.push(rec);save();closeModal();drawSmartBalancePie();toast(record?'삶의 균형 기록을 수정했습니다.':'삶의 균형 기록을 저장했습니다.');};
+ $('#balance-save').onclick=()=>{collectAreas();focus=$('#balance-focus').value;if(!focus){openStep('focus',true);toast('가장 먼저 돌볼 영역 하나를 선택해주세요.');return;}const action=$('#balance-action').value.trim();if(!action){openStep('focus',true);toast('그 영역에서 시작할 작은 행동을 적어주세요.');return;}const rec={id:record?record.id:('balance-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'lifestyle-balance-pie',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),areas:areas.map(a=>({name:a.name,score:smartBalanceClamp(a.score)})),reflection:$('#balance-reflection').value.trim(),focus,barrier:$('#balance-barrier').value.trim(),action,start:$('#balance-start').value};const smartRows=smartWorksStore();if(record){const i=smartRows.findIndex(x=>x&&x.id===record.id);if(i>=0)smartRows[i]=rec;else smartRows.push(rec);}else smartRows.push(rec);save();closeModal();drawSmartBalancePie();toast(record?'삶의 균형 기록을 수정했습니다.':'삶의 균형 기록을 저장했습니다.');};
 }
 function openSmartBalanceView(id){
  const r=smartBalanceRecords().find(x=>x.id===id);if(!r)return;const areas=Array.isArray(r.areas)?r.areas:[];
@@ -7264,7 +7264,7 @@ function openSmartVaciEditor(record){
  const ideasAdd=$('#vaci-ideas-add');
  if(ideasAdd)ideasAdd.onclick=()=>{collect();const picked=$$('#vaci-ideas [data-vaci-idea]:checked').map(x=>String(x.value||'').trim()).filter(Boolean);if(!picked.length){toast('추가할 활동을 선택해주세요.');return;}items=items.filter(x=>x.name||x.before!=null||x.after!=null||x.note);const existing=new Set(items.map(x=>String(x.name||'').trim()).filter(Boolean));const fresh=picked.filter(n=>!existing.has(n));if(!fresh.length){toast('선택한 활동이 이미 목록에 있습니다.');return;}const room=Math.max(0,12-items.length);if(!room){toast('관심사는 한 목록에 12개까지 추가할 수 있습니다.');return;}const added=fresh.slice(0,room);added.forEach(name=>items.push({id:'vi-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),name,before:null,after:null,note:''}));$$('#vaci-ideas [data-vaci-idea]:checked').forEach(x=>x.checked=false);render(items.length-1);toast(added.length+'개 활동을 목록에 추가했습니다.'+(fresh.length>added.length?' 나머지는 다음 목록에서 추가해주세요.':''));setTimeout(()=>{const rows=$$('#vaci-items [data-vaci-item]');if(rows.length)rows[rows.length-1].scrollIntoView({behavior:'smooth',block:'center'});},30);};
  $('#vaci-add').onclick=()=>{collect();if(items.length>=12){toast('관심사는 한 목록에 12개까지 추가할 수 있습니다.');return;}items.push({id:'vi-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),name:'',before:null,after:null,note:''});render(items.length-1);setTimeout(()=>{const rows=$$('#vaci-items [data-vaci-item]');if(rows.length)rows[rows.length-1].scrollIntoView({behavior:'smooth',block:'center'});},30);};
- $('#vaci-save').onclick=()=>{collect();const used=items.filter(x=>x.name||x.before!=null||x.after!=null||x.note);if(!used.length){toast('관심사를 하나 이상 적어주세요.');return;}const bad=items.findIndex(x=>(x.name||x.before!=null||x.after!=null||x.note)&&(!x.name||x.before==null));if(bad>=0){render(bad);toast(!items[bad].name?'활동 이름을 적어주세요.':'시도 전 관심도 1~10점을 선택해주세요.');return;}const rec={id:record?record.id:('vaci-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'vaci',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),items:used};if(!Array.isArray(S.smartWorks))S.smartWorks=[];if(record){const i=S.smartWorks.findIndex(x=>x&&x.id===record.id);if(i>=0)S.smartWorks[i]=rec;else S.smartWorks.push(rec);}else S.smartWorks.push(rec);save();closeModal();drawSmartVaci();toast(record?'건강한 관심사 목록을 수정했습니다.':'건강한 관심사 목록을 저장했습니다.');};
+ $('#vaci-save').onclick=()=>{collect();const used=items.filter(x=>x.name||x.before!=null||x.after!=null||x.note);if(!used.length){toast('관심사를 하나 이상 적어주세요.');return;}const bad=items.findIndex(x=>(x.name||x.before!=null||x.after!=null||x.note)&&(!x.name||x.before==null));if(bad>=0){render(bad);toast(!items[bad].name?'활동 이름을 적어주세요.':'시도 전 관심도 1~10점을 선택해주세요.');return;}const rec={id:record?record.id:('vaci-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'vaci',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),items:used};const smartRows=smartWorksStore();if(record){const i=smartRows.findIndex(x=>x&&x.id===record.id);if(i>=0)smartRows[i]=rec;else smartRows.push(rec);}else smartRows.push(rec);save();closeModal();drawSmartVaci();toast(record?'건강한 관심사 목록을 수정했습니다.':'건강한 관심사 목록을 저장했습니다.');};
 }
 function openSmartVaciView(id){
  const r=smartVaciRecords().find(x=>x.id===id);if(!r)return;const items=Array.isArray(r.items)?r.items:[];
@@ -7328,7 +7328,7 @@ function openSmartGoalEditor(record){
  $('#goal-criteria').querySelectorAll('[data-goal-crit]').forEach(b=>b.onclick=()=>{checks[b.dataset.goalCrit]=checks[b.dataset.goalCrit]?0:1;b.classList.toggle('on',!!checks[b.dataset.goalCrit]);b.setAttribute('aria-pressed',checks[b.dataset.goalCrit]?'true':'false');});
  const syncRepeat=()=>{const y=$('#goal-repeat-yes'),n=$('#goal-repeat-no'),note=$('#goal-repeat-note');if(y)y.classList.toggle('on',repeat);if(n)n.classList.toggle('on',!repeat);if(note)note.textContent=repeat?'저장 후 기록 보기에서 습관으로 연결할 수 있습니다.':'반복이 필요한 행동이면 습관으로 연결할 수 있습니다.';};
  $('#goal-repeat-no').onclick=()=>{repeat=false;syncRepeat();};$('#goal-repeat-yes').onclick=()=>{repeat=true;syncRepeat();};
- $('#goal-save').onclick=()=>{const goal=$('#goal-text').value.trim();if(!goal){openStep('direction',true);toast('목표를 적어주세요.');return;}const action=$('#goal-action').value.trim();if(!action){openStep('action',true);toast('실행할 행동을 적어주세요.');return;}const now=Date.now(),rec={id:record?record.id:('goal-'+now+'-'+Math.random().toString(36).slice(2,7)),kind:'smart-goal',role:famMode()?'family':'self',ts:record?(record.ts||now):now,updatedAt:now,category:$('#goal-category').value.trim(),value:$('#goal-value').value.trim(),goal,checks:Object.assign({},checks),revised:$('#goal-revised').value.trim(),action,task:$('#goal-task').value.trim(),start:$('#goal-start').value,repeat:repeat?1:0};if(!Array.isArray(S.smartWorks))S.smartWorks=[];if(record){const i=S.smartWorks.findIndex(x=>x&&x.id===record.id);if(i>=0)S.smartWorks[i]=rec;else S.smartWorks.push(rec);}else S.smartWorks.push(rec);save();closeModal();drawSmartGoal();toast(repeat?'실천 목표를 저장했습니다. 반복 행동은 기록 보기에서 습관으로 연결할 수 있습니다.':'실천 목표를 저장했습니다.');};
+ $('#goal-save').onclick=()=>{const goal=$('#goal-text').value.trim();if(!goal){openStep('direction',true);toast('목표를 적어주세요.');return;}const action=$('#goal-action').value.trim();if(!action){openStep('action',true);toast('실행할 행동을 적어주세요.');return;}const now=Date.now(),rec={id:record?record.id:('goal-'+now+'-'+Math.random().toString(36).slice(2,7)),kind:'smart-goal',role:famMode()?'family':'self',ts:record?(record.ts||now):now,updatedAt:now,category:$('#goal-category').value.trim(),value:$('#goal-value').value.trim(),goal,checks:Object.assign({},checks),revised:$('#goal-revised').value.trim(),action,task:$('#goal-task').value.trim(),start:$('#goal-start').value,repeat:repeat?1:0};const smartRows=smartWorksStore();if(record){const i=smartRows.findIndex(x=>x&&x.id===record.id);if(i>=0)smartRows[i]=rec;else smartRows.push(rec);}else smartRows.push(rec);save();closeModal();drawSmartGoal();toast(repeat?'실천 목표를 저장했습니다. 반복 행동은 기록 보기에서 습관으로 연결할 수 있습니다.':'실천 목표를 저장했습니다.');};
 }
 function openSmartGoalView(id){
  const r=smartGoalRecords().find(x=>x.id===id);if(!r)return;const c=r.checks||{};
