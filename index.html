@@ -4167,6 +4167,15 @@ function setSmartWorksStore(rows){
   else S.smartWorks=Array.isArray(rows)?rows:[];
   return smartWorksStore();
 }
+function smartSaveRecord(rec,match){
+  const rows=smartWorksStore(), i=typeof match==='function'?rows.findIndex(match):-1;
+  if(i>=0) rows[i]=rec; else rows.push(rec);
+  return rec;
+}
+function smartDeleteRecords(match){
+  if(typeof match!=='function') return smartWorksStore();
+  return setSmartWorksStore(smartWorksStore().filter(x=>!match(x)));
+}
 const ROLES = [
   {k:'self',   l:'제가 회복하고 있습니다', i:'sprout'},
   {k:'family', l:'가족 · 보호자입니다',    i:'family'}
@@ -5845,7 +5854,7 @@ function drawFamilyTools(){
 
 /* ══════════ 가족 · 내 경계 정리 V8.2.33 ══════════
    경계는 상대에게 지키게 할 규칙이 아니라 가족인 내가 실행할 보호 행동으로 작성합니다.
-   기존 S.smartWorks를 재사용하며 DATA_SCHEMA는 바꾸지 않습니다. */
+   DATA_SCHEMA 7부터 가족 SMART 기록은 familySmartWorks에 물리 분리합니다. */
 function familyBoundaryRows(){
   return smartWorksStore()
     .filter(r=>r && r.tool==='family-boundary' && r.role==='family')
@@ -5902,7 +5911,7 @@ function openFamilyReturnPlanView(key){
   $('#frp-edit').onclick=()=>{ closeModal(); openFamilyReturnPlanEditor(r); };
   $('#frp-delete').onclick=()=>{
     modal('<h2>이 대응계획을 삭제할까요?</h2><p class="muted" style="margin:6px 0 14px">이 계획 한 건만 기기에서 삭제하며 되돌릴 수 없습니다.</p><button class="btn danger" id="frp-delete-ok">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
-    $('#frp-delete-ok').onclick=()=>{ const k=r.rid||String(r.t); S.smartWorks=smartWorksStore().filter(x=>(x.rid||String(x.t))!==k); save(); closeModal(); drawFamilyReturnPlan(); toast('삭제했습니다.'); };
+    $('#frp-delete-ok').onclick=()=>{ const k=r.rid||String(r.t); setSmartWorksStore(smartWorksStore().filter(x=>(x.rid||String(x.t))!==k)); save(); closeModal(); drawFamilyReturnPlan(); toast('삭제했습니다.'); };
   };
 }
 function openFamilyReturnPlanEditor(record){
@@ -5932,10 +5941,8 @@ function openFamilyReturnPlanEditor(record){
     if(!support){ toast('연락하거나 도움받을 사람·곳을 적어주세요.'); return; }
     const now=Date.now();
     const rec={rid:edit?(record.rid||smartWorkId()):smartWorkId(),tool:'family-return-plan',role:'family',t:edit?Number(record.t||now):now,updatedAt:now,situation,risk:riskVal,avoid,action,support,next};
-    if(!Array.isArray(S.smartWorks)) S.smartWorks=[];
     const key=edit?(record.rid||String(record.t)):'';
-    const i=edit?S.smartWorks.findIndex(x=>(x.rid||String(x.t))===key):-1;
-    if(i>=0) S.smartWorks[i]=rec; else S.smartWorks.push(rec);
+    smartSaveRecord(rec,edit?(x=>(x.rid||String(x.t))===key):null);
     save(); closeModal(); drawFamilyReturnPlan(); toast(edit?'대응계획을 수정했습니다.':'내 대응계획을 저장했습니다.');
   };
 }
@@ -5988,7 +5995,7 @@ function openFamilyConversationView(key){
   $('#fc-edit').onclick=()=>{ closeModal(); openFamilyConversationEditor(r); };
   $('#fc-delete').onclick=()=>{
     modal('<h2>이 대화 준비 기록을 삭제할까요?</h2><p class="muted" style="margin:6px 0 14px">이 기록 한 건만 기기에서 삭제하며 되돌릴 수 없습니다.</p><button class="btn danger" id="fc-delete-ok">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
-    $('#fc-delete-ok').onclick=()=>{ const k=r.rid||String(r.t); S.smartWorks=smartWorksStore().filter(x=>(x.rid||String(x.t))!==k); save(); closeModal(); drawFamilyConversation(); toast('삭제했습니다.'); };
+    $('#fc-delete-ok').onclick=()=>{ const k=r.rid||String(r.t); setSmartWorksStore(smartWorksStore().filter(x=>(x.rid||String(x.t))!==k)); save(); closeModal(); drawFamilyConversation(); toast('삭제했습니다.'); };
   };
 }
 function openFamilyConversationEditor(record){
@@ -6020,10 +6027,8 @@ function openFamilyConversationEditor(record){
     if(timingVal==='ready' && !sentence){ toast('실제로 말할 한 문장을 적어주세요.'); return; }
     const now=Date.now();
     const rec={rid:edit?(record.rid||smartWorkId()):smartWorkId(),tool:'family-conversation',role:'family',t:edit?Number(record.t||now):now,updatedAt:now,topic,timing:timingVal,fact,feeling,request,sentence};
-    if(!Array.isArray(S.smartWorks)) S.smartWorks=[];
     const key=edit?(record.rid||String(record.t)):'';
-    const i=edit?S.smartWorks.findIndex(x=>(x.rid||String(x.t))===key):-1;
-    if(i>=0) S.smartWorks[i]=rec; else S.smartWorks.push(rec);
+    smartSaveRecord(rec,edit?(x=>(x.rid||String(x.t))===key):null);
     save(); closeModal(); drawFamilyConversation(); toast(edit?'대화 준비를 수정했습니다.':'대화 준비를 저장했습니다.');
   };
 }
@@ -6063,7 +6068,7 @@ function openFamilyBoundaryView(key){
   $('#fb-edit').onclick=()=>openFamilyBoundaryEditor(r);
   $('#fb-delete').onclick=()=>{
     modal('<h2>이 경계 기록을 삭제할까요?</h2><p class="muted" style="margin:6px 0 14px">이 기록 한 건만 기기에서 삭제하며 되돌릴 수 없습니다.</p><button class="btn danger" id="fb-delete-ok">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
-    $('#fb-delete-ok').onclick=()=>{ const k=r.rid||String(r.t); S.smartWorks=smartWorksStore().filter(x=>(x.rid||String(x.t))!==k); save(); closeModal(); drawFamilyBoundary(); toast('삭제했습니다.'); };
+    $('#fb-delete-ok').onclick=()=>{ const k=r.rid||String(r.t); setSmartWorksStore(smartWorksStore().filter(x=>(x.rid||String(x.t))!==k)); save(); closeModal(); drawFamilyBoundary(); toast('삭제했습니다.'); };
   };
 }
 function openFamilyBoundaryEditor(record){
@@ -6090,10 +6095,8 @@ function openFamilyBoundaryEditor(record){
     if(feasibleVal==='smaller' && !smaller){ toast('조금 더 작게 지킬 행동을 적어주세요.'); return; }
     const now=Date.now();
     const rec={rid:edit?(record.rid||smartWorkId()):smartWorkId(),tool:'family-boundary',role:'family',t:edit?Number(record.t||now):now,updatedAt:now,situation,protect,request,action,feasible:feasibleVal,smaller,safety:safetyVal};
-    if(!Array.isArray(S.smartWorks)) S.smartWorks=[];
     const key=edit?(record.rid||String(record.t)):'';
-    const i=edit?S.smartWorks.findIndex(x=>(x.rid||String(x.t))===key):-1;
-    if(i>=0) S.smartWorks[i]=rec; else S.smartWorks.push(rec);
+    smartSaveRecord(rec,edit?(x=>(x.rid||String(x.t))===key):null);
     save(); closeModal(); drawFamilyBoundary(); toast(edit?'경계를 수정했습니다.':'내 경계를 저장했습니다.');
   };
 }
@@ -6253,11 +6256,9 @@ function openSmartHovEditor(record){
     if(values.some(x=>!x)){ toast('가장 중요한 가치 다섯 가지를 모두 적어주세요.'); return; }
     const now=Date.now();
     const rec={rid:edit?(record.rid||smartWorkId()):smartWorkId(),tool:'hov',role:smartRole(),t:edit?Number(record.t||now):now,updatedAt:now,values:values.slice(0,5),conflict:$('#hov-conflict').value.trim(),protect:$('#hov-protect').value.trim(),action:$('#hov-action').value.trim()};
-    const rows=S.smartWorks||[];
     const key=edit?(record.rid||String(record.t)):'';
-    const i=edit?rows.findIndex(x=>(x.rid||String(x.t))===key):-1;
-    if(i>=0) rows[i]=rec; else rows.push(rec);
-    S.smartWorks=rows; save(); closeModal(); drawSmartHov(); toast(edit?'가치 우선순위를 수정했습니다.':'가치 우선순위를 저장했습니다.');
+    smartSaveRecord(rec,edit?(x=>(x.rid||String(x.t))===key):null);
+    save(); closeModal(); drawSmartHov(); toast(edit?'가치 우선순위를 수정했습니다.':'가치 우선순위를 저장했습니다.');
   };
 }
 
@@ -6376,10 +6377,9 @@ function openSmartCbaEditor(record){
     }
     const now=Date.now();
     const rec={rid:edit?(record.rid||smartWorkId()):smartWorkId(),tool:'cba',role:smartRole(),t:edit?Number(record.t||now):now,updatedAt:now,subject,nextStep:$('#cba-next').value.trim(),...data};
-    const rows=S.smartWorks||[], key=edit?(record.rid||String(record.t)):'';
-    const i=edit?rows.findIndex(x=>(x.rid||String(x.t))===key):-1;
-    if(i>=0) rows[i]=rec; else rows.push(rec);
-    S.smartWorks=rows; save(); closeModal(); drawSmartCba(); toast(edit?'의사결정 저울을 수정했습니다.':'의사결정 저울을 저장했습니다.');
+    const key=edit?(record.rid||String(record.t)):'';
+    smartSaveRecord(rec,edit?(x=>(x.rid||String(x.t))===key):null);
+    save(); closeModal(); drawSmartCba(); toast(edit?'의사결정 저울을 수정했습니다.':'의사결정 저울을 저장했습니다.');
   };
 }
 
@@ -6652,7 +6652,7 @@ function openSmartChangePlanView(id){
   $('#cp-edit').onclick=()=>openSmartChangePlanEditor(r);
   $('#cp-delete').onclick=()=>{
     if(!confirm('이 변화 계획 기록을 삭제할까요?')) return;
-    S.smartWorks=smartWorksStore().filter(x=>!(x&&x.id===r.id));
+    smartDeleteRecords(x=>x&&x.id===r.id);
     save(); closeModal(); drawSmartChangePlan(); toast('기록을 삭제했습니다.');
   };
 }
@@ -6735,7 +6735,7 @@ function openSmartThreeView(id){
   $('#three-edit').onclick=()=>openSmartThreeEditor(r);
   $('#three-delete').onclick=()=>{
     if(!confirm('이 질문 기록을 삭제할까요?')) return;
-    S.smartWorks=smartWorksStore().filter(x=>!(x&&x.id===r.id));
+    smartDeleteRecords(x=>x&&x.id===r.id);
     save(); closeModal(); drawSmartThreeQuestions(); toast('기록을 삭제했습니다.');
   };
 }
@@ -6818,7 +6818,7 @@ function openSmartDeadsView(id){
   $('#deads-edit').onclick=()=>openSmartDeadsEditor(r);
   $('#deads-delete').onclick=()=>{
     if(!confirm('이 충동 대처 계획을 삭제할까요?')) return;
-    S.smartWorks=smartWorksStore().filter(x=>!(x&&x.id===r.id)); save(); closeModal(); drawSmartDeads(); toast('기록을 삭제했습니다.');
+    smartDeleteRecords(x=>x&&x.id===r.id); save(); closeModal(); drawSmartDeads(); toast('기록을 삭제했습니다.');
   };
 }
 const SMART_DEADS_META={
@@ -6940,7 +6940,7 @@ function openSmartDisarmView(id){
   $('#disarm-edit').onclick=()=>openSmartDisarmEditor(r);
   $('#disarm-delete').onclick=()=>{
     if(!confirm('이 거리두기 문장을 삭제할까요?')) return;
-    S.smartWorks=smartWorksStore().filter(x=>!(x&&x.id===r.id)); save(); closeModal(); drawSmartDisarm(); toast('기록을 삭제했습니다.');
+    smartDeleteRecords(x=>x&&x.id===r.id); save(); closeModal(); drawSmartDisarm(); toast('기록을 삭제했습니다.');
   };
 }
 function openSmartDisarmNow(plan){
@@ -7033,7 +7033,7 @@ function openSmartAbcView(id){
   $('#abc-edit').onclick=()=>openSmartAbcEditor(r);
   $('#abc-delete').onclick=()=>{
     if(!confirm('이 상황·생각·감정 기록을 삭제할까요?')) return;
-    S.smartWorks=smartWorksStore().filter(x=>!(x&&x.id===r.id));
+    smartDeleteRecords(x=>x&&x.id===r.id);
     save(); closeModal(); drawSmartAbc(); toast('기록을 삭제했습니다.');
   };
 }
@@ -7060,7 +7060,7 @@ function openSmartDibsEditor(record,seed){
  +'<button class="btn" id="dibs-save">'+(record?'수정 저장':'생각 점검 저장')+'</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
  $('#dibs-save').onclick=()=>{const rec={id:record?record.id:('dibs-'+Date.now()+'-'+Math.random().toString(36).slice(2,7)),kind:'dibs',role:famMode()?'family':'self',ts:record?(record.ts||Date.now()):Date.now(),updatedAt:Date.now(),ib:$('#dibs-ib').value.trim(),impact:$('#dibs-impact').value.trim(),q:$('#dibs-q').value.trim(),evidence:$('#dibs-evidence').value.trim(),test:$('#dibs-test').value.trim(),rb:$('#dibs-rb').value.trim()};if(!rec.ib){toast('도움이 되지 않는 신념을 적어주세요.');return;}if(!rec.q){toast('그 신념을 질문으로 바꿔 적어주세요.');return;}if(!rec.rb){toast('더 균형 잡힌 합리적 신념을 적어주세요.');return;}if(!Array.isArray(S.smartWorks))S.smartWorks=[];if(record){const i=S.smartWorks.findIndex(x=>x&&x.id===record.id);if(i>=0)S.smartWorks[i]=rec;else S.smartWorks.push(rec);}else S.smartWorks.push(rec);save();closeModal();drawSmartDibs();toast(record?'생각 점검 기록을 수정했습니다.':'생각 점검 기록을 저장했습니다.');};
 }
-function openSmartDibsView(id){const r=smartWorksStore().find(x=>x&&x.id===id&&x.kind==='dibs');if(!r)return;const sec=(t,v)=>'<div class="card"><h3>'+esc(t)+'</h3><div style="white-space:pre-wrap">'+(String(v||'').trim()?esc(v):'<span class="muted">작성하지 않음</span>')+'</div></div>';modal('<h2>생각 점검 기록</h2><div class="muted" style="margin:-4px 0 12px">'+esc(smartDibsDate(r.updatedAt||r.ts))+'</div>'+sec('도움이 되지 않는 신념',r.ib)+sec('이 생각의 영향',r.impact)+sec('질문으로 바꾸기',r.q)+sec('사실과 증거 점검',r.evidence)+sec('논리와 장기적 도움 점검',r.test)+sec('균형 잡힌 합리적 신념',r.rb)+'<button class="btn sec" id="dibs-edit">수정</button><div style="height:8px"></div><button class="btn bad" id="dibs-delete">이 기록 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');$('#dibs-edit').onclick=()=>openSmartDibsEditor(r);$('#dibs-delete').onclick=()=>{if(!confirm('이 생각 점검 기록을 삭제할까요?'))return;S.smartWorks=smartWorksStore().filter(x=>!(x&&x.id===r.id));save();closeModal();drawSmartDibs();toast('기록을 삭제했습니다.');};}
+function openSmartDibsView(id){const r=smartWorksStore().find(x=>x&&x.id===id&&x.kind==='dibs');if(!r)return;const sec=(t,v)=>'<div class="card"><h3>'+esc(t)+'</h3><div style="white-space:pre-wrap">'+(String(v||'').trim()?esc(v):'<span class="muted">작성하지 않음</span>')+'</div></div>';modal('<h2>생각 점검 기록</h2><div class="muted" style="margin:-4px 0 12px">'+esc(smartDibsDate(r.updatedAt||r.ts))+'</div>'+sec('도움이 되지 않는 신념',r.ib)+sec('이 생각의 영향',r.impact)+sec('질문으로 바꾸기',r.q)+sec('사실과 증거 점검',r.evidence)+sec('논리와 장기적 도움 점검',r.test)+sec('균형 잡힌 합리적 신념',r.rb)+'<button class="btn sec" id="dibs-edit">수정</button><div style="height:8px"></div><button class="btn bad" id="dibs-delete">이 기록 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');$('#dibs-edit').onclick=()=>openSmartDibsEditor(r);$('#dibs-delete').onclick=()=>{if(!confirm('이 생각 점검 기록을 삭제할까요?'))return;smartDeleteRecords(x=>x&&x.id===r.id);save();closeModal();drawSmartDibs();toast('기록을 삭제했습니다.');};}
 
 /* ── SMART Recovery · Unhelpful Thinking Styles V8.2.16 ── */
 const SMART_THINKING_STYLES=[
@@ -7111,7 +7111,7 @@ function openSmartThinkingView(id){
  const selected=(Array.isArray(r.styles)?r.styles:[]).map(id=>SMART_THINKING_STYLES.find(x=>x.id===id)).filter(Boolean);
  const sec=(t,v)=>'<div class="card"><h3>'+esc(t)+'</h3><div style="white-space:pre-wrap">'+(String(v||'').trim()?esc(v):'<span class="muted">작성하지 않음</span>')+'</div></div>';
  modal('<h2>생각의 함정 알아차리기</h2><div class="muted" style="margin:-4px 0 12px">'+esc(smartThinkingDate(r.updatedAt||r.ts))+'</div><div class="card"><h3>내가 알아차린 유형</h3>'+selected.map(x=>'<div style="padding:7px 0"><b>'+esc(x.name)+'</b><div class="tiny">'+esc(x.en)+'</div></div>').join('')+'</div>'+sec('최근 실제 생각',r.thought)+sec('그때의 상황',r.situation)+sec('감정·행동에 미친 영향',r.impact)+'<button class="btn" id="thinking-to-abc">이 상황·생각·감정 돌아보기</button><div style="height:8px"></div><button class="btn sec" id="thinking-to-dibs">이 생각 점검하기</button><div style="height:8px"></div><button class="btn ghost" id="thinking-edit">수정</button><div style="height:8px"></div><button class="btn bad" id="thinking-delete">이 기록 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
- $('#thinking-to-abc').onclick=()=>smartThinkingOpenAbc(r);$('#thinking-to-dibs').onclick=()=>smartThinkingOpenDibs(r);$('#thinking-edit').onclick=()=>openSmartThinkingEditor(r);$('#thinking-delete').onclick=()=>{if(!confirm('이 생각의 함정 기록을 삭제할까요?'))return;S.smartWorks=smartWorksStore().filter(x=>!(x&&x.id===r.id));save();closeModal();drawSmartThinkingStyles();toast('기록을 삭제했습니다.');};
+ $('#thinking-to-abc').onclick=()=>smartThinkingOpenAbc(r);$('#thinking-to-dibs').onclick=()=>smartThinkingOpenDibs(r);$('#thinking-edit').onclick=()=>openSmartThinkingEditor(r);$('#thinking-delete').onclick=()=>{if(!confirm('이 생각의 함정 기록을 삭제할까요?'))return;smartDeleteRecords(x=>x&&x.id===r.id);save();closeModal();drawSmartThinkingStyles();toast('기록을 삭제했습니다.');};
 }
 
 /* ── SMART Recovery · Problem Solving V8.2.17 ──
@@ -7161,7 +7161,7 @@ function openSmartProblemView(id){
  const r=smartProblemRecords().find(x=>x.id===id);if(!r)return;const rows=Array.isArray(r.strategies)?r.strategies:[];
  const evals=rows.map((x,i)=>'<div style="padding:10px 0;'+(i?'border-top:1px solid var(--line)':'')+'"><b>'+(x.id===r.selectedId?'✓ ':'')+esc(x.text||('전략 '+(i+1)))+'</b><div class="tiny" style="margin-top:4px">실행 가능성 '+smartProblemClamp(x.feasible)+'/10 · 시도 준비 '+smartProblemClamp(x.ready)+'/10 · 종합 '+smartProblemClamp(x.score)+'/10</div>'+(x.good?'<div class="muted" style="margin-top:4px">좋은 점 · '+esc(x.good)+'</div>':'')+(x.risk?'<div class="muted" style="margin-top:3px">위험 · '+esc(x.risk)+'</div>':'')+'</div>').join('');
  modal('<h2>문제 해결하기</h2><div class="muted" style="margin:-4px 0 12px">'+esc(smartProblemDate(r.updatedAt||r.ts))+'</div>'+smartProblemSection('1-1 · 언제 발생하나요?',r.when)+smartProblemSection('1-2 · 누가 관련되어 있나요?',r.who)+smartProblemSection('1-3 · 무슨 일이 일어나나요?',r.what)+smartProblemSection('1-4 · 생각과 감정',r.thoughts)+'<div class="card"><h3>2·3 · 브레인스토밍과 평가</h3>'+(evals||'<span class="muted">작성하지 않음</span>')+'</div>'+smartProblemSection('4 · 선택한 전략',smartProblemStrategyLabel(r))+smartProblemSection('5 · 실행 계획',r.plan)+smartProblemSection('시작 날짜·장소',[r.start,r.place].filter(Boolean).join(' · '))+smartProblemSection('필요한 것·도움',r.needs)+smartProblemSection('실행 후 결과 점검',r.review)+'<button class="btn sec" id="ps-edit">수정</button><div style="height:8px"></div><button class="btn bad" id="ps-delete">이 기록 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
- $('#ps-edit').onclick=()=>openSmartProblemEditor(r);$('#ps-delete').onclick=()=>{if(!confirm('이 문제 해결 기록을 삭제할까요?'))return;S.smartWorks=smartWorksStore().filter(x=>!(x&&x.id===r.id));save();closeModal();drawSmartProblemSolving();toast('문제 해결 기록을 삭제했습니다.');};
+ $('#ps-edit').onclick=()=>openSmartProblemEditor(r);$('#ps-delete').onclick=()=>{if(!confirm('이 문제 해결 기록을 삭제할까요?'))return;smartDeleteRecords(x=>x&&x.id===r.id);save();closeModal();drawSmartProblemSolving();toast('문제 해결 기록을 삭제했습니다.');};
 }
 
 /* ── SMART Recovery · Lifestyle Balance Pie V8.2.20 ──
@@ -7211,7 +7211,7 @@ function openSmartBalanceView(id){
  const r=smartBalanceRecords().find(x=>x.id===id);if(!r)return;const areas=Array.isArray(r.areas)?r.areas:[];
  const sec=(t,v)=>'<div class="card"><h3>'+esc(t)+'</h3><div style="white-space:pre-wrap">'+(String(v||'').trim()?esc(v):'<span class="muted">작성하지 않음</span>')+'</div></div>';
  modal('<h2>삶의 균형 살펴보기</h2><div class="muted" style="margin:-4px 0 12px">'+esc(smartBalanceDate(r.updatedAt||r.ts))+'</div>'+smartBalanceWheel(areas)+sec('전체 균형에서 알아차린 점',r.reflection)+sec('먼저 돌볼 영역',r.focus)+sec('막히는 점',r.barrier)+sec('시작할 작은 행동',r.action)+sec('시작 날짜',r.start)+'<button class="btn sec" id="balance-edit">수정</button><div style="height:8px"></div><button class="btn bad" id="balance-delete">이 기록 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
- $('#balance-edit').onclick=()=>openSmartBalanceEditor(r);$('#balance-delete').onclick=()=>{if(!confirm('이 삶의 균형 기록을 삭제할까요?'))return;S.smartWorks=smartWorksStore().filter(x=>!(x&&x.id===r.id));save();closeModal();drawSmartBalancePie();toast('삶의 균형 기록을 삭제했습니다.');};
+ $('#balance-edit').onclick=()=>openSmartBalanceEditor(r);$('#balance-delete').onclick=()=>{if(!confirm('이 삶의 균형 기록을 삭제할까요?'))return;smartDeleteRecords(x=>x&&x.id===r.id);save();closeModal();drawSmartBalancePie();toast('삶의 균형 기록을 삭제했습니다.');};
 }
 
 /* ── SMART Recovery · VACI V8.2.22 ──
@@ -7275,7 +7275,7 @@ function openSmartVaciView(id){
    $$('[data-vaci-view-item]').forEach(other=>{if(other!==d&&other.open)other.open=false;});
    setTimeout(()=>{const v=$('#view');if(v)v.scrollTo({top:Math.max(0,v.scrollTop+d.getBoundingClientRect().top-66),behavior:'smooth'});},30);
  });
- $('#vaci-edit').onclick=()=>openSmartVaciEditor(r);$('#vaci-delete').onclick=()=>{if(!confirm('이 건강한 관심사 목록을 삭제할까요?'))return;S.smartWorks=smartWorksStore().filter(x=>!(x&&x.id===r.id));save();closeModal();drawSmartVaci();toast('건강한 관심사 목록을 삭제했습니다.');};
+ $('#vaci-edit').onclick=()=>openSmartVaciEditor(r);$('#vaci-delete').onclick=()=>{if(!confirm('이 건강한 관심사 목록을 삭제할까요?'))return;smartDeleteRecords(x=>x&&x.id===r.id);save();closeModal();drawSmartVaci();toast('건강한 관심사 목록을 삭제했습니다.');};
 }
 
 /* ══════════ SMART Recovery · 실천 목표 세우기 V8.2.25 ══════════
@@ -7337,7 +7337,7 @@ function openSmartGoalView(id){
  modal('<h2>실천 목표 세우기</h2><div class="muted" style="margin:-4px 0 12px">'+esc(smartGoalDate(r.updatedAt||r.ts))+'</div>'+sec('삶의 카테고리',r.category)+sec('관련 가치',r.value)+sec('목표',r.goal)+criteria+sec('수정된 목표',r.revised)+sec('실행할 행동',r.action)+sec('언제 · 어디서 · 얼마나',r.task)+sec('시작 날짜',r.start)+(r.repeat?'<button class="btn" id="smart-goal-habit">이 실행을 습관으로 추가</button><div style="height:8px"></div>':'')+'<button class="btn sec" id="smart-goal-edit">수정</button><div style="height:8px"></div><button class="btn bad" id="smart-goal-delete">이 목표 삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">닫기</button>');
  const hb=$('#smart-goal-habit');if(hb)hb.onclick=()=>smartGoalToHabit(r);
  $('#smart-goal-edit').onclick=()=>openSmartGoalEditor(r);
- $('#smart-goal-delete').onclick=()=>{if(!confirm('이 실천 목표를 삭제할까요?'))return;S.smartWorks=smartWorksStore().filter(x=>!(x&&x.id===r.id));save();closeModal();drawSmartGoal();toast('실천 목표를 삭제했습니다.');};
+ $('#smart-goal-delete').onclick=()=>{if(!confirm('이 실천 목표를 삭제할까요?'))return;smartDeleteRecords(x=>x&&x.id===r.id);save();closeModal();drawSmartGoal();toast('실천 목표를 삭제했습니다.');};
 }
 function smartGoalToHabit(r){
  const name=String(r.action||r.revised||r.goal||'실천 목표 실천').replace(/\s+/g,' ').trim().slice(0,40)||'실천 목표 실천';
