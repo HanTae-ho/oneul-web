@@ -443,6 +443,10 @@ addEventListener('appinstalled', function(){
   .help.mindrx{align-items:flex-start}
   .help.mindrx .rxacts{display:flex;gap:7px;margin-top:9px}
   .help.mindrx .rxacts .btn{flex:1;width:auto;margin:0;padding:9px 8px;font-size:12.5px}
+  .help.support{align-items:flex-start}
+  .help.support .supportacts{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+  .help.support .supportacts .btn{flex:1 1 110px;width:auto;margin:0;padding:9px 8px;font-size:12.5px}
+  .help.support .supportmanage{width:100%;margin:7px 0 0}
 
   /* 통계 */
   .bars{display:flex;align-items:flex-end;gap:2px;height:96px;margin:10px 0 4px}
@@ -1065,6 +1069,15 @@ addEventListener('appinstalled', function(){
         <button class="btn sec sm" id="go-listen">듣는 글</button>
       </div>
       <button class="btn sec sm hide" id="go-capsule-panic" style="width:100%;margin-top:7px">초심 다시 보기</button>
+    </div>
+  </div>
+
+  <div class="help support hide" id="pk-support">
+    <span class="ic" data-ico="people"></span>
+    <div class="b"><b>협심자·후원자에게 전화하기</b>
+      <span id="pk-support-note">혼자 버티기 어려울 때 내가 정해둔 사람에게 바로 연락합니다.</span>
+      <div class="supportacts" id="pk-support-actions"></div>
+      <button class="btn ghost sm supportmanage" id="pk-support-manage" type="button">연락할 사람 등록하기</button>
     </div>
   </div>
 
@@ -2683,7 +2696,7 @@ addEventListener('appinstalled', function(){
       <p><b>헬프</b>에는 헬프콜과 자조모임, 센터·병원처럼 실제 도움으로 연결되는 자원이 모여 있습니다. 맨 위의 <b>119</b>와 <b>109</b>는 설명문 없이 항상 고정되어 있습니다.</p>
       <p style="margin-top:8px"><b>헬프콜</b>은 기본으로 <b>정신건강 상담전화 1577-0199</b>와 <b>보건복지상담센터 129</b>를 보여줍니다. 회복영역에 도박이 있으면 <b>1336</b>, 약물이 있으면 <b>1342</b>가 추가되며, 여러 영역을 선택하면 해당 전화가 중복 없이 함께 표시됩니다.</p>
       <p style="margin-top:8px"><b>내 주변에서 찾기</b>는 별도 설명문 없이 센터·병원·모임의 지도 보기 버튼으로 바로 연결합니다.</p>
-      <p style="margin-top:8px"><b>지금 위험해요</b>는 충동이 매우 강하거나 즉시 도움이 필요한 때의 대응 흐름입니다. 생명이나 신체에 즉각적인 위험이 있으면 앱에 머물지 말고 <b>112 또는 119</b>, 가까운 응급의료기관 등 즉시 연결 가능한 도움을 이용하세요. 가족·보호자 모드의 폭력·타해·즉각적 위협 안내에서는 기존 <b>112</b> 연결을 유지합니다.</p>
+      <p style="margin-top:8px"><b>지금 위험해요</b>는 충동이 매우 강하거나 즉시 도움이 필요한 때의 대응 흐름입니다. 당사자 모드에서는 마음 처방전 아래의 <b>협심자·후원자에게 전화하기</b>에서 회복을 도와주는 사람을 최대 3명까지 직접 등록하고 바로 전화할 수 있습니다. 이름·전화번호는 현재 기기에만 저장되고 연락처 권한은 사용하지 않습니다. 생명이나 신체에 즉각적인 위험이 있으면 앱에 머물지 말고 <b>112 또는 119</b>, 가까운 응급의료기관 등 즉시 연결 가능한 도움을 이용하세요. 가족·보호자 모드의 폭력·타해·즉각적 위협 안내에서는 기존 <b>112</b> 연결을 유지합니다.</p>
       <button class="btn ghost sm faq-go" type="button" onclick="go('help')">헬프 열기</button>
       <button class="btn danger sm faq-go" type="button" onclick="go('panic')">지금 위험해요 열기</button>
     </div></details>
@@ -2850,6 +2863,7 @@ const BLANK = {
   familySmartWorks: [],                   /* 가족 SMART/가족 작성형 도구 — 물리 분리 */
   familyStepWorks: [], familyStepDrafts: {},
   timeCapsule: { text:'', createdAt:0, updatedAt:0 }, /* 미래의 나에게 — 개인 회복기록, 기기 안에만 저장 */
+  supportContacts: [],                           /* 협심자·후원자 — 당사자 전용, 이름·전화번호 최대 3명 */
   reclaim: { kind:'', timeOn:0, timePerDay:0, costOn:0, costPerDay:0 }, /* 내가 되찾은 것 — 선택 기준값, 기기 안에만 저장 */
   aiChat: [], aiClient: '', aiConsent: 0, aiEnabled: 1, aiAutoRead: 0, /* AI 대화·음성 기본설정은 이 기기에만 저장 */
   sheet: '', res: null, resAt: 0, resVer: '', theme: '', viewMode: '',
@@ -2884,6 +2898,7 @@ function personalDataSignal_(x){
   if(Array.isArray(x.familyHabits) && x.familyHabits.length) return true;
   if(String(x.goal||'').trim() || String(x.area||'').trim()) return true;
   if(x.timeCapsule && String(x.timeCapsule.text||'').trim()) return true;
+  if(Array.isArray(x.supportContacts) && x.supportContacts.length) return true;
   return false;
 }
 function storedCandidate_(raw, source){
@@ -3036,6 +3051,11 @@ function migrate(s){
   if(!s.timeCapsule || typeof s.timeCapsule !== 'object' || Array.isArray(s.timeCapsule)) s.timeCapsule = { text:'', createdAt:0, updatedAt:0 };
   s.timeCapsule = Object.assign({ text:'', createdAt:0, updatedAt:0 }, s.timeCapsule);
   s.timeCapsule.text = String(s.timeCapsule.text || '');
+  if(!Array.isArray(s.supportContacts)) s.supportContacts = [];
+  s.supportContacts = s.supportContacts.slice(0,3).map(x=>({
+    name:String(x&&x.name||'').trim().slice(0,40),
+    phone:String(x&&x.phone||'').trim().slice(0,30)
+  })).filter(x=>x.name && String(x.phone).replace(/\D/g,'').length>=3);
   if(!s.reclaim || typeof s.reclaim !== 'object' || Array.isArray(s.reclaim)) s.reclaim = {};
   s.reclaim = Object.assign({ kind:'', timeOn:0, timePerDay:0, costOn:0, costPerDay:0 }, s.reclaim);
   s.recoveryHome = s.recoveryHome === 0 ? 0 : 1;
@@ -3836,7 +3856,7 @@ function personalBackupShape_(j){
   const keys=['started','role','types','dates','moods','halts','urges','nights','relapses','screenings',
     'familyMoods','familyHalts','familyNights','familyScreenings','habits','familyHabits',
     'stepWorks','meaningChecks','familyMeaningChecks','smartWorks','familySmartWorks','familyStepWorks',
-    'medLog','eatLog','sleepLog','familyEatLog','familySleepLog','wbDays','familyWbDays','timeCapsule','goal'];
+    'medLog','eatLog','sleepLog','familyEatLog','familySleepLog','wbDays','familyWbDays','timeCapsule','supportContacts','goal'];
   let hits=0;
   keys.forEach(k=>{ if(Object.prototype.hasOwnProperty.call(j,k)) hits++; });
   return hits>=2 && (Object.prototype.hasOwnProperty.call(j,'started') ||
@@ -4762,6 +4782,56 @@ function riskVerb(types){
   }
   return '자주 힘들던';
 }
+function supportContacts_(){
+  if(!Array.isArray(S.supportContacts)) S.supportContacts=[];
+  return S.supportContacts.slice(0,3);
+}
+function supportTel_(v){
+  const raw=String(v||'').trim(), digits=raw.replace(/\D/g,'');
+  return (raw.startsWith('+')?'+':'')+digits;
+}
+function drawSupportContacts_(){
+  const card=$('#pk-support'), acts=$('#pk-support-actions'), note=$('#pk-support-note'), manage=$('#pk-support-manage');
+  if(!card||!acts||!note||!manage) return;
+  if(famMode()){
+    card.classList.add('hide');
+    acts.innerHTML='';
+    return;
+  }
+  card.classList.remove('hide');
+  const rows=supportContacts_().filter(x=>x&&x.name&&supportTel_(x.phone).replace(/\D/g,'').length>=3);
+  acts.innerHTML=rows.map(x=>'<a class="btn sec sm" href="tel:'+esc(supportTel_(x.phone))+'" aria-label="'+esc(x.name)+'에게 전화">'+esc(x.name)+' 전화</a>').join('');
+  note.textContent=rows.length
+    ? '혼자 버티기 어려울 때 내가 정해둔 사람에게 바로 연락합니다.'
+    : '회복을 도와주는 사람을 최대 3명까지 미리 정해둘 수 있습니다.';
+  manage.textContent=rows.length?'등록·수정':'연락할 사람 등록하기';
+}
+function openSupportContactsEditor_(){
+  if(famMode()) return;
+  const cur=supportContacts_(), blocks=[0,1,2].map(i=>{
+    const x=cur[i]||{};
+    return '<div class="card tight" style="margin-bottom:9px"><div class="field" style="margin:0"><label>이름 '+(i+1)+'</label><input id="support-name-'+i+'" maxlength="40" value="'+esc(x.name||'')+'" placeholder="예: 홍길동"></div><div class="field" style="margin:10px 0 0"><label>전화번호</label><input id="support-phone-'+i+'" type="tel" inputmode="tel" maxlength="30" value="'+esc(x.phone||'')+'" placeholder="예: 010-1234-5678"></div></div>';
+  }).join('');
+  modal('<h2>협심자·후원자</h2>'+
+    '<p class="muted" style="margin:6px 0 14px">혼자 버티기 어려울 때 바로 연락할 사람을 최대 3명까지 직접 적어둘 수 있습니다.</p>'+
+    '<div class="note" style="margin-bottom:12px">이름과 전화번호는 이 기기에만 저장합니다. 연락처 권한을 요청하지 않고, 자동 문자·자동 통화·마음프로·커뮤니티 전송을 하지 않습니다.</div>'+
+    blocks+
+    '<button class="btn" id="support-save">저장</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
+  $('#support-save').onclick=()=>{
+    const out=[];
+    for(let i=0;i<3;i++){
+      const name=$('#support-name-'+i).value.trim(), phone=$('#support-phone-'+i).value.trim();
+      if(!name&&!phone) continue;
+      if(!name||!phone){ toast('이름과 전화번호를 함께 입력해주세요.'); return; }
+      if(supportTel_(phone).replace(/\D/g,'').length<7){ toast('전화번호를 확인해주세요.'); return; }
+      out.push({name:name.slice(0,40),phone:phone.slice(0,30)});
+    }
+    S.supportContacts=out;
+    if(!save()) return;
+    closeModal(); drawPanic();
+    toast(out.length?'연락할 사람을 저장했습니다.':'등록한 연락처를 모두 지웠습니다.');
+  };
+}
 function drawPanic(){
   const w = (S.types || []).map(k => URGEWORD[k]).filter(Boolean);
   $('#pk-urge-t').textContent = w.length
@@ -4769,10 +4839,12 @@ function drawPanic(){
     : '충동이 올라와요';
   const cp=$('#go-capsule-panic');
   if(cp) cp.classList.toggle('hide', famMode() || !capsuleHas());
+  drawSupportContacts_();
 }
 
 $('#pk-urge').onclick = () => { drawUrgeCapsuleInline(false); go('urge'); };
 $('#go-capsule-panic').onclick = () => openCapsule('panic',false);
+$('#pk-support-manage').onclick = openSupportContactsEditor_;
 
 $('#pk-with').onclick = () => modal(
   '<h2>지금 확인해주세요</h2>' +

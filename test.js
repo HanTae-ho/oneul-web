@@ -78,12 +78,13 @@ const srv = http.createServer((req, res) => {
       familyWbDays:S.familyWbDays,familyMeaningChecks:S.familyMeaningChecks,familyMeaningCheckDraft:S.familyMeaningCheckDraft,
       familyMoods:S.familyMoods,familyHalts:S.familyHalts,familyNights:S.familyNights,familyScreenings:S.familyScreenings,
       familyHabits:S.familyHabits,familyEats:S.familyEats,familyEatLog:S.familyEatLog,familySleepLog:S.familySleepLog,
-      smart:S.smartWorks.map(x=>x.id),familySmart:S.familySmartWorks.map(x=>x.id)
+      smart:S.smartWorks.map(x=>x.id),familySmart:S.familySmartWorks.map(x=>x.id),supportContacts:S.supportContacts
     }));
     assert(oldState.dataSchema===7&&oldState.moods===1&&oldState.goal==='기존 목표'&&/^\d{4}-\d{2}-\d{2}$/.test(oldState.recordStart),'스키마 6 기존 기록·목표를 보존하며 DATA_SCHEMA 7로 안전 마이그레이션');
     assert(oldState.familyWbDays&&Object.keys(oldState.familyWbDays).length===0&&Array.isArray(oldState.familyMeaningChecks)&&oldState.familyMeaningChecks.length===0&&oldState.familyMeaningCheckDraft===null,'기존 의미 데이터는 역할별 저장소를 그대로 유지');
     assert(oldState.familyMoods.length===0&&oldState.familyHalts.length===0&&oldState.familyNights.length===0&&oldState.familyScreenings.length===0&&oldState.familyHabits.length===0&&oldState.familyEats.length===0&&oldState.familyEatLog.length===0&&oldState.familySleepLog.length===0,'역할 정보가 없던 스키마 6 공용 기록은 가족으로 추정 이동하지 않고 가족 저장소를 빈 상태로 초기화');
     assert(oldState.smart.length===1&&oldState.smart[0]==='old-self-smart'&&oldState.familySmart.length===1&&oldState.familySmart[0]==='old-family-smart','스키마 6 SMART는 명시된 role만 이용해 당사자·가족 물리 저장소로 분리');
+    assert(Array.isArray(oldState.supportContacts)&&oldState.supportContacts.length===0,'기존 데이터는 협심자·후원자 연락처를 빈 당사자 전용 저장소로 안전 초기화');
     assert(!oldState.blocked,'정상 기존 데이터에는 복구 선택창을 띄우지 않음');
     assert(await oldPg.evaluate(()=>S.viewMode===''&&!document.body.classList.contains('simple-view')),'viewMode 없는 기존 사용자는 전체 보기를 유지');
     await oldCtx.close();
@@ -232,7 +233,7 @@ const srv = http.createServer((req, res) => {
       familyMoods:[{t:Date.now()-1000,v:1}],familyHalts:[{t:Date.now()-900,v:['l']}],familyNights:[],familyScreenings:[{id:'nds-bv',t:Date.now()-800,score:1,level:'참고'}],
       habits:[{id:'self-h',name:'self',start:daysAgo(1),done:[daysAgo(0)]}],familyHabits:[{id:'fam-h',name:'family',start:daysAgo(1),done:[daysAgo(0)]}],
       eats:[],eatLog:[],sleep:{on:0,bed:'23:00',up:'07:00'},sleepLog:[],familyEats:[{s:'점심',t:'12:30'}],familyEatLog:[{t:Date.now()-700,n:'점심'}],familySleep:{on:1,bed:'22:30',up:'07:00'},familySleepLog:[{t:Date.now()-600,q:'good'}],
-      familyStepWorks:[],medLog:[]};
+      familyStepWorks:[],supportContacts:[{name:'후원자 김',phone:'010-1111-2222'},{name:'협심자 박',phone:'010 3333 4444'}],medLog:[]};
     const oldRaw=JSON.stringify(old);
     await imCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),oldRaw);
     await imPg.goto('http://localhost:8899/index.html'); await imPg.waitForTimeout(250);
@@ -244,11 +245,13 @@ const srv = http.createServer((req, res) => {
       goal:S.goal,moods:S.moods.length,familyMoods:S.familyMoods.length,familyScreenings:S.familyScreenings.length,
       selfHabits:S.habits.length,familyHabits:S.familyHabits.length,familyEats:S.familyEats.length,familySleepLog:S.familySleepLog.length,
       selfSmart:S.smartWorks.map(x=>x.id),familySmart:S.familySmartWorks.map(x=>x.id),
+      supportContacts:S.supportContacts.map(x=>x.name+'|'+x.phone),
       backup:localStorage.getItem('ohg.v1.recovery-backup')
     }));
     assert(result.goal==='불러온 기록'&&result.moods===2,'정상 백업을 현재 상태로 복원');
     assert(result.familyMoods===1&&result.familyScreenings===1&&result.selfHabits===1&&result.familyHabits===1&&result.familyEats===1&&result.familySleepLog===1,'백업 복원 후 가족 역할별 생활·점검 저장소도 원위치에 복원');
     assert(result.selfSmart.join(',')==='restore-self'&&result.familySmart.join(',')==='restore-family','백업 복원 후 SMART 물리 저장소 분리 유지');
+    assert(result.supportContacts.join(',')==='후원자 김|010-1111-2222,협심자 박|010 3333 4444','백업 복원 후 협심자·후원자 연락처가 원위치에 복원');
     assert(result.backup===oldRaw,'불러오기 전 현재 원문을 안전백업으로 보존');
     await imCtx.close();
   }
@@ -301,7 +304,7 @@ const srv = http.createServer((req, res) => {
     const wCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
     const wPg=await wCtx.newPage();
     const current={ver:1,dataSchema:6,started:true,role:'self',types:['alcohol'],dates:{},goal:'삭제대상',moods:[],halts:[],urges:[],
-      nights:[],relapses:[],screenings:[],stepWorks:[],meaningChecks:[],smartWorks:[],familyStepWorks:[],medLog:[],eatLog:[],sleepLog:[]};
+      nights:[],relapses:[],screenings:[],stepWorks:[],meaningChecks:[],smartWorks:[],familyStepWorks:[],supportContacts:[{name:'삭제할 후원자',phone:'010-9999-0000'}],medLog:[],eatLog:[],sleepLog:[]};
     await wCtx.addInitScript(raw=>{
       localStorage.setItem('ohg.v1',raw);
       localStorage.setItem('ohg.v1.recovery-backup',raw);
@@ -319,11 +322,13 @@ const srv = http.createServer((req, res) => {
     const gone=await wPg.evaluate(()=>({
       p:localStorage.getItem('ohg.v1'),b:localStorage.getItem('ohg.v1.recovery-backup'),
       q:localStorage.getItem('ohg.v1.recovery-quarantine'),social:localStorage.getItem('ohg.social.v1'),
+      supportEmpty:Array.isArray(S.supportContacts)&&S.supportContacts.length===0,
       familyEmpty:S.familyMoods.length===0&&S.familyHalts.length===0&&S.familyNights.length===0&&S.familyScreenings.length===0&&
         S.familyHabits.length===0&&S.familyEats.length===0&&S.familyEatLog.length===0&&S.familySleepLog.length===0&&S.familySmartWorks.length===0
     }));
     assert(gone.p===null&&gone.b===null&&gone.q===null,'전체 지우기는 개인 현재키와 안전백업 두 개를 모두 삭제');
     assert(gone.social!==null,'전체 지우기는 별도 커뮤니티 키를 삭제하지 않음');
+    assert(gone.supportEmpty,'전체 지우기 후 협심자·후원자 연락처도 메모리에서 비움');
     assert(gone.familyEmpty,'전체 지우기 후 메모리의 가족 역할별 저장소도 모두 빈 상태로 초기화');
     await wCtx.close();
   }
@@ -531,8 +536,25 @@ const srv = http.createServer((req, res) => {
   console.log('4. 위기 분기 =', await seen());
   assert(await pg.isVisible('#pk-mindrx'), '위기 화면에 마음 처방전 카드가 보여야 함');
   assert(await pg.isVisible('#go-read') && await pg.isVisible('#go-listen'), '마음 처방전에 도움글·듣는 글 버튼이 보여야 함');
-  const panicOrder = await pg.$$eval('#p-panic > *', els => els.map(e => e.id).filter(Boolean));
-  assert(panicOrder.indexOf('pk-urge') < panicOrder.indexOf('pk-mindrx') && panicOrder.indexOf('pk-mindrx') < panicOrder.indexOf('pk-with') && panicOrder.indexOf('pk-with') < panicOrder.indexOf('pk-life'), '위기 도움 순서가 충동→마음 처방전→몸 이상→죽고 싶어요여야 함');
+  assert(await pg.isVisible('#pk-support'), '당사자 위기 화면에는 협심자·후원자 카드가 보여야 함');
+  const panicOrder = await pg.locator('#p-panic > *').evaluateAll(els => els.map(e => e.id).filter(Boolean));
+  assert(panicOrder.indexOf('pk-urge') < panicOrder.indexOf('pk-mindrx') && panicOrder.indexOf('pk-mindrx') < panicOrder.indexOf('pk-support') && panicOrder.indexOf('pk-support') < panicOrder.indexOf('pk-with') && panicOrder.indexOf('pk-with') < panicOrder.indexOf('pk-life'), '위기 도움 순서가 충동→마음 처방전→협심자·후원자→몸 이상→죽고 싶어요여야 함');
+  await pg.click('#pk-support-manage'); await pg.waitForTimeout(80);
+  await pg.fill('#support-name-0','후원자 김'); await pg.fill('#support-phone-0','010-1234-5678');
+  await pg.fill('#support-name-1','협심자 박'); await pg.fill('#support-phone-1','010 9876 5432');
+  await pg.click('#support-save'); await pg.waitForTimeout(80);
+  const supportUi=await pg.evaluate(()=>({
+    rows:S.supportContacts.map(x=>x.name+'|'+x.phone),
+    hrefs:Array.from(document.querySelectorAll('#pk-support-actions a')).map(a=>a.getAttribute('href')),
+    text:document.querySelector('#pk-support').innerText
+  }));
+  assert(supportUi.rows.join(',')==='후원자 김|010-1234-5678,협심자 박|010 9876 5432','협심자·후원자 최대 3명 저장소에 직접 입력값 저장');
+  assert(supportUi.hrefs.join(',')==='tel:01012345678,tel:01098765432'&&supportUi.text.includes('후원자 김 전화')&&supportUi.text.includes('협심자 박 전화'),'등록한 사람은 tel 링크로만 바로 전화 연결');
+  await pg.evaluate(()=>{S.role='family';save();drawPanic();});
+  assert(await pg.$eval('#pk-support',e=>e.classList.contains('hide')),'가족모드에서는 당사자 협심자·후원자 카드를 노출하지 않음');
+  assert(await pg.evaluate(()=>S.supportContacts.length===2),'가족모드 전환이 당사자 연락처를 삭제하지 않음');
+  await pg.evaluate(()=>{S.role='self';save();drawPanic();});
+  assert(await pg.isVisible('#pk-support'),'당사자모드로 돌아오면 저장한 협심자·후원자 카드가 다시 표시');
   await shot('4-panic');
 
   // 금단 모달
@@ -786,6 +808,7 @@ const srv = http.createServer((req, res) => {
   // 저장된 ohg.v1 자체에도 두 역할 저장소가 함께 존재하되 값은 섞이지 않아야 함
   const rawRoleSplit=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ohg.v1')));
   assert(rawRoleSplit.dataSchema===7&&rawRoleSplit.screenings.length===1&&rawRoleSplit.familyScreenings.length===1&&rawRoleSplit.smartWorks.length===1&&rawRoleSplit.familySmartWorks.length===1,'역할별 저장소가 DATA_SCHEMA 7 백업 원본에 각각 독립 필드로 저장');
+  assert(Array.isArray(rawRoleSplit.supportContacts)&&rawRoleSplit.supportContacts.length===2,'협심자·후원자 연락처도 ohg.v1 원본에 당사자 전용 필드로 저장');
 
   // 앱 종료→재실행을 새 페이지로 시뮬레이션: 같은 브라우저 저장공간과 캐시에서 역할별 기록이 유지되어야 합니다.
   const coldRaw=await pg.evaluate(() => {
@@ -817,12 +840,16 @@ const srv = http.createServer((req, res) => {
     selfNight:S.nights.map(x=>x.n),familyNight:S.familyNights.map(x=>x.n),
     selfHabit:S.habits.map(x=>x.name),familyHabit:S.familyHabits.map(x=>x.name),
     selfEat:S.eats.map(x=>x.s),familyEat:S.familyEats.map(x=>x.s),
-    selfSmart:S.smartWorks.map(x=>x.id),familySmart:S.familySmartWorks.map(x=>x.id)
+    selfSmart:S.smartWorks.map(x=>x.id),familySmart:S.familySmartWorks.map(x=>x.id),
+    supportContacts:S.supportContacts.map(x=>x.name)
   }));
   assert(coldRoleSplit.selfScreen.join(',')==='pgsi'&&coldRoleSplit.familyScreen.join(',')==='nds-bv','cold-start 후 자가점검 역할 분리 유지');
   assert(coldRoleSplit.selfNight.join(',')==='SELF-NIGHT'&&coldRoleSplit.familyNight.join(',')==='FAMILY-NIGHT','cold-start 후 기분/HALT·하루마무리 역할 분리 유지');
   assert(coldRoleSplit.selfHabit.join(',')==='SELF-HABIT'&&coldRoleSplit.familyHabit.join(',')==='FAMILY-HABIT'&&coldRoleSplit.selfEat.join(',')==='아침'&&coldRoleSplit.familyEat.join(',')==='점심','cold-start 후 습관·식사·수면 역할 분리 유지');
   assert(coldRoleSplit.selfSmart.join(',')==='self-smart'&&coldRoleSplit.familySmart.join(',')==='family-smart','cold-start 후 SMART 물리 분리 유지');
+  assert(coldRoleSplit.supportContacts.join(',')==='후원자 김,협심자 박','cold-start 후 협심자·후원자 연락처 유지');
+  await coldPg.evaluate(()=>go('panic')); await coldPg.waitForTimeout(80);
+  assert(await coldPg.$eval('#pk-support',e=>e.classList.contains('hide')),'cold-start 가족모드에서도 당사자 협심자·후원자 카드 비노출');
   await coldPg.evaluate(()=>go('tools')); await coldPg.waitForTimeout(100);
   await coldPg.click('#tool-meaning'); await coldPg.waitForTimeout(120);
   assert((await coldPg.$eval('.pg.on',e=>e.id))==='p-meaning','재실행 후 가족 의미 돌아보기 버튼이 정상 작동');
