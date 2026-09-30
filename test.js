@@ -96,6 +96,100 @@ const srv = http.createServer((req, res) => {
     await oldCtx.close();
   }
 
+  // DATA_SCHEMA 7 역할별 저장 완전 분리 — 당사자/가족 입력·조회·알림 payload·백업 roundtrip·cold-start를 한 번에 검증합니다.
+  {
+    const isoCtx=await b.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,locale:'ko-KR',timezoneId:'Asia/Seoul'});
+    const isoPg=await isoCtx.newPage();
+    const isoErrs=[]; isoPg.on('pageerror',e=>isoErrs.push(String(e&&e.message||e)));
+    const seed={ver:1,dataSchema:7,started:true,role:'self',types:['alcohol'],dates:{alcohol:daysAgo(10)},cum:{alcohol:0},goal:'분리테스트'};
+    await isoCtx.addInitScript(raw=>localStorage.setItem('ohg.v1',raw),JSON.stringify(seed));
+    await isoPg.goto('http://localhost:8899/index.html'); await isoPg.waitForTimeout(450);
+
+    const ids=await isoPg.evaluate(()=>{
+      const tool=SCREENINGS.find(x=>x&&x.group==='common')||SCREENINGS[0];
+      const sid=tool?tool.id:'role-test-screen', now=Date.now();
+      S.role='self';
+      roleMoods().push({t:now-9000,v:1});
+      roleHalts().push({t:now-8000,v:['h']});
+      roleNights().push({t:now-7000,m:1,u:1,k:1,p:['hold'],n:'SELF-NIGHT-ONLY'});
+      screeningStore().push({id:sid,t:now-6000,score:2,level:'SELF-SCREEN'});
+      roleHabits().push({id:'self-habit',name:'SELF-HABIT-ONLY',start:today(),days:21,freq:'daily',weekdays:[0,1,2,3,4,5,6],done:[today()],notify:1,time:'17:11',check:'self'});
+      roleEats().push({s:'아침',t:'07:11'}); roleEatLog().push({t:now-5000,n:'아침'});
+      const ss=roleSleep(); ss.on=1;ss.bed='22:11';ss.up='06:11'; roleSleepLog().push({t:now-4000,q:'good'});
+      smartSaveRecord({id:'self-smart',kind:'smart-goal',role:'self',goal:'SELF-SMART-ONLY',ts:now-3000,updatedAt:now-3000},null);
+      save();
+
+      S.role='family';
+      roleMoods().push({t:now-2000,v:5});
+      roleHalts().push({t:now-1900,v:['l']});
+      roleNights().push({t:now-1800,m:5,u:null,k:1,p:['hold'],n:'FAMILY-NIGHT-ONLY'});
+      screeningStore().push({id:sid,t:now-1700,score:9,level:'FAMILY-SCREEN'});
+      roleHabits().push({id:'family-habit',name:'FAMILY-HABIT-ONLY',start:today(),days:21,freq:'daily',weekdays:[0,1,2,3,4,5,6],done:[today()],notify:1,time:'18:22',check:'family'});
+      roleEats().push({s:'점심',t:'12:22'}); roleEatLog().push({t:now-1600,n:'점심'});
+      const fs=roleSleep(); fs.on=1;fs.bed='23:22';fs.up='07:22'; roleSleepLog().push({t:now-1500,q:'bad'});
+      smartSaveRecord({id:'family-smart',kind:'smart-goal',role:'family',goal:'FAMILY-SMART-ONLY',ts:now-1400,updatedAt:now-1400},null);
+      save();
+      return {sid};
+    });
+
+    const split=await isoPg.evaluate(({sid})=>({
+      schema:S.dataSchema,
+      self:{m:S.moods.length,h:S.halts.length,n:S.nights.length,s:S.screenings.length,hab:S.habits.length,e:S.eats.map(x=>x.t),el:S.eatLog.length,sl:S.sleepLog.length,bed:S.sleep.bed,smart:S.smartWorks.map(x=>x.id)},
+      family:{m:S.familyMoods.length,h:S.familyHalts.length,n:S.familyNights.length,s:S.familyScreenings.length,hab:S.familyHabits.length,e:S.familyEats.map(x=>x.t),el:S.familyEatLog.length,sl:S.familySleepLog.length,bed:S.familySleep.bed,smart:S.familySmartWorks.map(x=>x.id)},
+      currentScreen:screenHistory(sid).map(x=>x.score),
+      familyPayload:nativeReminderPayload()
+    }),ids);
+    assert(split.schema===7,'역할 분리 저장은 DATA_SCHEMA 7');
+    assert(split.self.m===1&&split.self.h===1&&split.self.n===1&&split.self.s===1&&split.self.hab===1&&split.self.el===1&&split.self.sl===1&&split.self.bed==='22:11'&&split.self.smart.includes('self-smart'),'당사자 기록은 기존 당사자 저장소에만 기록');
+    assert(split.family.m===1&&split.family.h===1&&split.family.n===1&&split.family.s===1&&split.family.hab===1&&split.family.el===1&&split.family.sl===1&&split.family.bed==='23:22'&&split.family.smart.includes('family-smart'),'가족 기록은 family* 저장소에만 기록');
+    assert(split.currentScreen.length===1&&split.currentScreen[0]===9,'가족 자가점검 이력은 가족 점수만 읽음');
+    assert(split.familyPayload.eats.includes('noon@12:22')&&!split.familyPayload.eats.includes('am@07:11')&&split.familyPayload.bed==='23:22'&&split.familyPayload.habits.includes('family-habit'),'가족 역할 알림 payload는 가족 식사·수면·습관만 사용');
+
+    await isoPg.evaluate(()=>{recTab='day';go('rec');}); await isoPg.waitForTimeout(90);
+    let txt=await isoPg.$eval('#rec-body',e=>e.innerText);
+    assert(txt.includes('FAMILY-NIGHT-ONLY')&&!txt.includes('SELF-NIGHT-ONLY'),'가족 내 발자취 하루에는 가족 하루마무리만 표시');
+
+    await isoPg.evaluate(()=>{recTab='work';recPracticeFilter='smart';go('rec');}); await isoPg.waitForTimeout(90);
+    txt=await isoPg.$eval('#rec-body',e=>e.innerText);
+    assert(txt.includes('FAMILY-SMART-ONLY')&&!txt.includes('SELF-SMART-ONLY'),'가족 내 발자취 SMART에는 가족 SMART만 표시');
+
+    await isoPg.evaluate(()=>go('habit')); await isoPg.waitForTimeout(90);
+    txt=await isoPg.$eval('#habit-my',e=>e.innerText);
+    assert(txt.includes('FAMILY-HABIT-ONLY')&&!txt.includes('SELF-HABIT-ONLY'),'가족 습관 화면에는 가족 습관만 표시');
+
+    const familyDelete=await isoPg.evaluate(()=>{
+      smartDeleteRecords(x=>x&&x.id==='family-smart');save();
+      return {self:S.smartWorks.map(x=>x.id),family:S.familySmartWorks.map(x=>x.id)};
+    });
+    assert(familyDelete.self.includes('self-smart')&&!familyDelete.family.includes('family-smart'),'가족 SMART 삭제가 당사자 SMART 저장소를 건드리지 않음');
+    await isoPg.evaluate(()=>{smartSaveRecord({id:'family-smart-2',kind:'smart-goal',role:'family',goal:'FAMILY-SMART-COLD',ts:Date.now(),updatedAt:Date.now()},null);save();});
+
+    const selfView=await isoPg.evaluate(({sid})=>{
+      S.role='self';save();
+      return {scores:screenHistory(sid).map(x=>x.score),payload:nativeReminderPayload(),habits:habitList().map(x=>x.name),smart:smartWorksStore().map(x=>x.id)};
+    },ids);
+    assert(selfView.scores.length===1&&selfView.scores[0]===2,'당사자 자가점검 이력은 당사자 점수만 읽음');
+    assert(selfView.payload.eats.includes('am@07:11')&&!selfView.payload.eats.includes('noon@12:22')&&selfView.payload.bed==='22:11'&&selfView.payload.habits.includes('self-habit'),'당사자 알림 payload는 당사자 식사·수면·습관만 사용');
+    assert(selfView.habits.includes('SELF-HABIT-ONLY')&&!selfView.habits.includes('FAMILY-HABIT-ONLY')&&selfView.smart.includes('self-smart'),'역할을 당사자로 돌리면 당사자 저장소만 다시 읽음');
+
+    const round=await isoPg.evaluate(()=>{
+      const raw=JSON.stringify(S), j=JSON.parse(raw), next=migrate(Object.assign(blankCopy_(),j));
+      return {shape:personalBackupShape_(j),schema:next.dataSchema,selfMood:next.moods.length,famMood:next.familyMoods.length,selfSmart:next.smartWorks.map(x=>x.id),famSmart:next.familySmartWorks.map(x=>x.id),famHabit:next.familyHabits.map(x=>x.id)};
+    });
+    assert(round.shape&&round.schema===7&&round.selfMood===1&&round.famMood===1&&round.selfSmart.includes('self-smart')&&round.famSmart.includes('family-smart-2')&&round.famHabit.includes('family-habit'),'JSON 백업→마이그레이션 roundtrip 후 역할별 저장소가 그대로 복구');
+
+    await isoPg.evaluate(()=>{S.role='family';save();});
+    await isoPg.close();
+    const isoPg2=await isoCtx.newPage(); isoPg2.on('pageerror',e=>isoErrs.push(String(e&&e.message||e)));
+    await isoPg2.goto('http://localhost:8899/index.html'); await isoPg2.waitForTimeout(500);
+    const coldFamily=await isoPg2.evaluate(()=>({role:S.role,m:roleMoods().length,n:roleNights().map(x=>x.n),hab:habitList().map(x=>x.name),smart:smartWorksStore().map(x=>x.id),bed:roleSleep().bed}));
+    assert(coldFamily.role==='family'&&coldFamily.m===1&&coldFamily.n.includes('FAMILY-NIGHT-ONLY')&&coldFamily.hab.includes('FAMILY-HABIT-ONLY')&&coldFamily.smart.includes('family-smart-2')&&coldFamily.bed==='23:22','cold-start 후 가족 역할과 가족 전용 기록만 복구');
+    const coldSelf=await isoPg2.evaluate(()=>{S.role='self';save();return {m:roleMoods().length,n:roleNights().map(x=>x.n),hab:habitList().map(x=>x.name),smart:smartWorksStore().map(x=>x.id),bed:roleSleep().bed};});
+    assert(coldSelf.m===1&&coldSelf.n.includes('SELF-NIGHT-ONLY')&&coldSelf.hab.includes('SELF-HABIT-ONLY')&&coldSelf.smart.includes('self-smart')&&coldSelf.bed==='22:11','cold-start 뒤 역할 전환 시 당사자 전용 기록만 복구');
+    assert(isoErrs.length===0,'역할 분리 및 cold-start 시뮬레이션에서 JavaScript pageerror 없음');
+    await isoCtx.close();
+  }
+
   // started=false인데 실제 개인기록이 있으면 자동 덮어쓰기 대신 복구 게이트에서 선택하게 합니다.
   {
     const gateCtx=await b.newContext({viewport:{width:390,height:844},locale:'ko-KR',timezoneId:'Asia/Seoul'});
