@@ -703,13 +703,13 @@ const srv = http.createServer((req, res) => {
   await pg.evaluate(()=>{S.role='self';save();go('home');drawHome();});
   await pg.click('#home-mood button:nth-child(5)');
   await pg.click('#home-halt button:nth-child(1)'); await pg.click('#halt-act button'); await pg.waitForTimeout(50);
-  await pg.evaluate(()=>{drawNight();night={mood:5,urge:0,kept:1,praise:['hold']};$('#ni-note').value='SELF-NIGHT';$('#ni-save').click();});
+  await pg.evaluate(()=>{drawNight();night={mood:1,urge:0,kept:1,praise:['hold']};$('#ni-note').value='SELF-NIGHT';$('#ni-save').click();});
   await pg.waitForTimeout(60);
   await pg.evaluate(()=>{S.role='family';save();go('home');drawHome();});
   assert((await pg.$eval('#mood-st',e=>e.innerText)).includes('아직 기록이 없습니다'),'② 가족모드 홈은 당사자 기분기록을 읽지 않음');
   await pg.click('#home-mood button:nth-child(1)');
   await pg.click('#home-halt button:nth-child(3)'); await pg.click('#halt-act button'); await pg.waitForTimeout(50);
-  await pg.evaluate(()=>{drawNight();night={mood:1,urge:2,kept:1,praise:['hold']};$('#ni-note').value='FAMILY-NIGHT';$('#ni-save').click();});
+  await pg.evaluate(()=>{drawNight();night={mood:5,urge:2,kept:1,praise:['hold']};$('#ni-note').value='FAMILY-NIGHT';$('#ni-save').click();});
   await pg.waitForTimeout(60);
   const emotionSplit=await pg.evaluate(()=>({
     selfMood:S.moods.map(x=>x.v),familyMood:S.familyMoods.map(x=>x.v),
@@ -717,8 +717,8 @@ const srv = http.createServer((req, res) => {
     selfNight:S.nights.map(x=>x.n),familyNight:S.familyNights.map(x=>x.n),
     familyUrge:S.familyNights.map(x=>x.u)
   }));
-  assert(emotionSplit.selfMood.every(v=>v===5)&&emotionSplit.familyMood.every(v=>v===1),'② 당사자·가족 기분 저장 완전 분리');
-  assert(emotionSplit.selfHalt.join(',')==='h'&&emotionSplit.familyHalt.join(',')==='a','② 당사자·가족 HALT 저장 완전 분리');
+  assert(emotionSplit.selfMood.length===2&&emotionSplit.selfMood.every(v=>v===1)&&emotionSplit.familyMood.length===2&&emotionSplit.familyMood.every(v=>v===5),'② 당사자·가족 기분 저장 완전 분리');
+  assert(emotionSplit.selfHalt.join(',')==='h'&&emotionSplit.familyHalt.join(',')==='l','② 당사자·가족 HALT 저장 완전 분리');
   assert(emotionSplit.selfNight.join(',')==='SELF-NIGHT'&&emotionSplit.familyNight.join(',')==='FAMILY-NIGHT'&&emotionSplit.familyUrge.every(v=>v==null),'② 하루마무리 저장 완전 분리 + 가족 충동값 비저장');
 
   // ③ 습관·식사·수면: 역할별 설정·체크 및 홈 일정 조회
