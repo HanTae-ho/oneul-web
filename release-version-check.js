@@ -36,7 +36,7 @@ ok(cacheVersion.startsWith(cachePrefix), 'sw cache prefix matches BUILD: ' + cac
 ok(index.includes("([vV]\\d+(?:\\.\\d+){1,2})"), 'checkUpdate parser accepts Vx.y and Vx.y.z');
 ok(!index.includes("([vV]\\d+(?:\\.\\d+)?)"), 'legacy two-component-only APP_VERSION parser is absent');
 
-ok(index.includes("const DATA_SCHEMA = 6;"), 'DATA_SCHEMA remains 6');
+ok(index.includes("const DATA_SCHEMA = 7;"), 'DATA_SCHEMA is 7 for role-separated recovery records');
 ok(index.includes("const KEY = 'ohg.v1';"), 'personal recovery key remains ohg.v1');
 ok(index.includes("const SOCIAL_KEY = 'ohg.social.v1';"), 'social key remains ohg.social.v1');
 
