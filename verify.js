@@ -62,6 +62,14 @@ ok(/id="screen-log-go">오늘 돌아보기<\/button>/.test(index)&&/\$\('#screen
 ok(index.includes('자가점검을 마친 뒤 결과 화면의 <b>오늘 돌아보기</b>')&&index.includes('결과 화면의 <b>오늘 돌아보기</b>는 현재 역할에 맞는 <b>의미 돌아보기 → 오늘 돌아보기</b>'),'자가점검→오늘 돌아보기 경로가 FAQ·사용설명서에 반영');
 ok(/당사자 자가점검 결과의 오늘 돌아보기는 의미 돌아보기로 이동/.test(test)&&/가족 자가점검 결과의 오늘 돌아보기도 의미 돌아보기로 이동/.test(test),'test.js 당사자·가족 자가점검 결과 행동 연결 시뮬레이션 포함');
 ok(/앱 종료→재실행을 새 페이지로 시뮬레이션/.test(test)&&/재실행 후 가족 의미 돌아보기 버튼이 정상 작동/.test(test)&&/재실행 후 가족 의미점검도 정상 작동/.test(test),'test.js cold-start 재실행 시뮬레이션 포함');
+ok(index.includes("const DATA_SCHEMA = 7;")&&index.includes("familyScreenings: []")&&index.includes("familyMoods: [], familyHalts: [], familyNights: []")&&index.includes("familySleepLog: [], familyHabits: []")&&index.includes("familySmartWorks: []"),'DATA_SCHEMA 7 역할별 물리 저장소 존재');
+ok(index.includes("function screeningStore(){ return roleArray('screenings','familyScreenings'); }")&&index.includes("function roleMoods(){ return roleArray('moods','familyMoods'); }")&&index.includes("function roleNights(){ return roleArray('nights','familyNights'); }"),'자가점검·기분/HALT·하루마무리 역할별 저장소 선택');
+ok(index.includes("function roleHabits(){ return roleArray('habits','familyHabits'); }")&&index.includes("function roleEats(){ return roleArray('eats','familyEats'); }")&&index.includes("function roleSleepLog(){ return roleArray('sleepLog','familySleepLog'); }"),'습관·식사·수면 역할별 저장소 선택');
+ok(index.includes("function smartWorksStore(){ return roleArray('smartWorks','familySmartWorks'); }")&&index.includes("function smartSaveRecord(rec,match)")&&index.includes("function smartDeleteRecords(match)"),'SMART 역할별 물리 저장소 CRUD');
+ok(index.includes("if(prevSchema < 7)")&&index.includes("r.role==='family'")&&index.includes("s.smartWorks=selfSmart;"),'DATA_SCHEMA 6 SMART role 태그를 schema 7에서 정확히 분리');
+ok(index.includes("기존 구버전 공용기록은 역할을 추측하지 않고 당사자 기록으로 보존")&&index.includes("SMART/가족도구 기록은 당사자와 가족 저장소를 물리적으로 분리"),'역할분리 마이그레이션·사용설명서 원칙 반영');
+ok(/DATA_SCHEMA 7 역할별 저장 완전 분리/.test(test)&&/가족 자가점검 이력은 가족 점수만 읽음/.test(test)&&/가족 역할 알림 payload는 가족 식사·수면·습관만 사용/.test(test),'test.js 역할별 입력·조회·알림 payload 시뮬레이션 포함');
+ok(/JSON 백업→마이그레이션 roundtrip 후 역할별 저장소가 그대로 복구/.test(test)&&/cold-start 후 가족 역할과 가족 전용 기록만 복구/.test(test)&&/cold-start 뒤 역할 전환 시 당사자 전용 기록만 복구/.test(test),'test.js 백업 roundtrip·cold-start 역할분리 시뮬레이션 포함');
 ok(index.includes("const fixed=[\n    {n:'응급 신고',t:'119'},\n    {n:'자살예방 상담전화',t:'109'}")&&index.includes("'<span class=\"b\"><b>'+esc(l.n)+' · '+esc(l.t)+'</b></span>'"),'헬프 상단 119·109 고정 카드 자체에는 설명문을 렌더링하지 않음');
 ok(index.includes("const wantedPhones=['15770199','129'];")&&index.includes("selectedTypes.includes('gambling')")&&index.includes("selectedTypes.includes('drug')"),'헬프콜은 기본 1577-0199·129 + 선택 영역 1336·1342');
 ok(index.includes('헬프콜에는 어떤 전화가 보이나요?')&&index.includes('회복영역에 <b>도박</b>이 있으면 <b>도박문제 헬프라인 1336</b>')&&index.includes('약물</b>이 있으면 <b>마약류 중독 상담 1342</b>'),'헬프콜 영역별 표시 규칙이 FAQ에 반영');
