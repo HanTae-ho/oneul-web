@@ -182,7 +182,8 @@ const srv = http.createServer((req, res) => {
     await isoPg.close();
     const isoPg2=await isoCtx.newPage(); isoPg2.on('pageerror',e=>isoErrs.push(String(e&&e.message||e)));
     await isoPg2.goto('http://localhost:8899/index.html'); await isoPg2.waitForTimeout(500);
-    const coldFamily=await isoPg2.evaluate(()=>({role:S.role,m:roleMoods().length,n:roleNights().map(x=>x.n),hab:habitList().map(x=>x.name),smart:smartWorksStore().map(x=>x.id),bed:roleSleep().bed}));
+    const coldFamily=await isoPg2.evaluate(()=>({role:S.role,m:roleMoods().length,n:roleNights().map(x=>x.n),hab:habitList().map(x=>x.name),smart:smartWorksStore().map(x=>x.id),bed:roleSleep().bed,schema:S.dataSchema,rawFamilySmart:(S.familySmartWorks||[]).map(x=>x.id),rawFamilyHabits:(S.familyHabits||[]).map(x=>x.name)}));
+    console.log('ROLE_ISOLATION_COLD_FAMILY',JSON.stringify(coldFamily));
     assert(coldFamily.role==='family'&&coldFamily.m===1&&coldFamily.n.includes('FAMILY-NIGHT-ONLY')&&coldFamily.hab.includes('FAMILY-HABIT-ONLY')&&coldFamily.smart.includes('family-smart-2')&&coldFamily.bed==='23:22','cold-start 후 가족 역할과 가족 전용 기록만 복구');
     const coldSelf=await isoPg2.evaluate(()=>{S.role='self';save();return {m:roleMoods().length,n:roleNights().map(x=>x.n),hab:habitList().map(x=>x.name),smart:smartWorksStore().map(x=>x.id),bed:roleSleep().bed};});
     assert(coldSelf.m===1&&coldSelf.n.includes('SELF-NIGHT-ONLY')&&coldSelf.hab.includes('SELF-HABIT-ONLY')&&coldSelf.smart.includes('self-smart')&&coldSelf.bed==='22:11','cold-start 뒤 역할 전환 시 당사자 전용 기록만 복구');
