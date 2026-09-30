@@ -6,6 +6,7 @@ const read=f=>fs.readFileSync(path.join(root,f),'utf8');
 const index=read('index.html'), privacy=read('privacy.html'), sw=read('sw.js'), test=read('test.js'), manifest=read('manifest.json');
 const qaSrc=read('qa-data.js'), learningSrc=read('learning-data.js'), screeningSrc=read('screening-data.js'), workbookSrc=read('workbook-data.js');
 const meaningDataSrc=read('meaning-data.js'), meaningFeatureSrc=read('meaning-feature.js'), meaningCheckSrc=read('meaning-check-feature.js');
+const rolePolicySrc=read('ROLE_STORAGE_POLICY.md');
 const readIf=f=>fs.existsSync(path.join(root,f))?read(f):'';
 const storageDiagnostic=readIf('storage-diagnostic.html');
 const feedbackGs=readIf('오늘한걸음_의견_v1.0.gs'), resourceGs=readIf('오늘한걸음_자원시트_v1.8.gs');
@@ -186,6 +187,17 @@ ok(fwb.step4.safety.includes('폭력·학대 등 위해 행동의 책임은 행�
 ok(!workbookSrc.includes('구원자 역할')&&fwb.step12.subtitle.includes('다른 사람의 문제를 대신 책임지는 역할'),'가족 12단계 나눔을 구원자 역할이 아닌 책임 경계 언어로 정제');
 ok(/familyStepWorks: \[\], familyStepDrafts: \{\}/.test(index),'가족 12단계 기록·초안 별도 로컬 저장소');
 ok(/familyWbDays: \{\}/.test(index)&&/familyMeaningChecks: \[\], familyMeaningCheckDraft: null/.test(index),'가족 의미 돌아보기·의미점검 별도 로컬 저장소');
+ok(index.includes("const DATA_SCHEMA = 7;")&&index.includes("const KEY = 'ohg.v1';"),'DATA_SCHEMA 7·개인키 ohg.v1 유지');
+ok(/familyScreenings: \[\]/.test(index)&&/familyMoods: \[\], familyHalts: \[\], familyNights: \[\], familyScreenings: \[\]/.test(index),'자가점검·기분·HALT·하루마무리 가족 물리 저장소');
+ok(/familyHabits: \[\]/.test(index)&&/familyEats: \[\], familyEatLog: \[\]/.test(index)&&/familySleep: \{ on: 0, bed: '23:00', up: '07:00' \}, familySleepLog: \[\]/.test(index),'습관·식사·수면 가족 물리 저장소');
+ok(/familySmartWorks: \[\]/.test(index),'SMART·가족 작성도구 가족 물리 저장소');
+ok(/function screeningStore\(\)/.test(index)&&/function moodStore\(\)/.test(index)&&/function haltStore\(\)/.test(index)&&/function nightStore\(\)/.test(index),'상태·점검 역할별 접근자');
+ok(/function habitStore\(\)/.test(index)&&/function eatPlanStore\(\)/.test(index)&&/function eatLogStore\(\)/.test(index)&&/function sleepStore\(\)/.test(index)&&/function sleepLogStore\(\)/.test(index),'생활기록 역할별 접근자');
+ok(/function smartWorksStore\(\)/.test(index)&&/function setSmartWorksStore\(rows\)/.test(index),'SMART 역할별 물리 저장 접근자');
+ok(!/S\.smartWorks/.test(index),'SMART 런타임이 공용 S.smartWorks 직접 접근을 사용하지 않음');
+ok(/const prevSchema=Number\(s\.dataSchema\|\|0\)/.test(index)&&/if\(prevSchema < 7\)/.test(index)&&/r&&r\.role==='family'/.test(index),'스키마 6→7 SMART role 기반 안전 마이그레이션');
+ok(rolePolicySrc.includes('자가점검')&&rolePolicySrc.includes('familyScreenings')&&rolePolicySrc.includes('기존 스키마 6')&&rolePolicySrc.includes('당사자 저장소에 그대로 보존'),'ROLE_STORAGE_POLICY에 전체 역할분리·마이그레이션 원칙 명시');
+ok(/앱 종료→재실행을 새 페이지로 시뮬레이션/.test(test)&&/① 자가점검/.test(test)&&/② 기분\/HALT/.test(test)&&/③ 습관·식사·수면/.test(test)&&/④ SMART/.test(test),'역할분리 4단계 + cold-start 브라우저 시뮬레이션 포함');
 ok(/const key=meaningFamilyMode\(\)\?'familyWbDays':'wbDays'/.test(meaningFeatureSrc),'의미 돌아보기 역할별 저장소 분기');
 ok(/function mcRecordStore\(\).*familyMeaningChecks/.test(meaningCheckSrc)&&/function mcDraftValue\(\).*familyMeaningCheckDraft/.test(meaningCheckSrc),'의미점검 역할별 완료기록·초안 분리');
 ok(/const MCQ_FAMILY=\[/.test(meaningCheckSrc)&&/그 사람의 변화 여부와 별개로 내 삶에서 기대해 볼 만한 것이 있다고 느낀다/.test(meaningCheckSrc),'가족 의미점검 10문항 별도 구성');
@@ -240,7 +252,7 @@ ok(sc.find(x=>x.id==='smartphone-habit').levels[0].max===48,'스마트폰 고위
 
 ok(/id="p-screening"/.test(index)&&/id="p-screen-test"/.test(index),'자가점검 목록/검사 화면 존재');
 ok(/function drawScreening\(\)/.test(index)&&/function drawScreenTest\(\)/.test(index),'자가점검 실행 UI 함수 존재');
-ok(/screenings: \[\]/.test(index)&&/답변 하나하나는 저장하지 않고/.test(index),'자가점검 결과 로컬 저장 + 문항응답 미저장');
+ok(/screenings: \[\]/.test(index)&&/familyScreenings: \[\]/.test(index)&&/function screenHistory\(id\)\{ return screeningStore\(\)/.test(index)&&/답변 하나하나는 저장하지 않고/.test(index),'자가점검 결과 역할별 저장 + 문항응답 미저장');
 ok(/function screeningStats\(\)/.test(index)&&/trendSvg\(tool,h\)/.test(index),'통계 점수 변화 + 꺾은선 그래프 존재');
 ok(/function screenRetestText\(last\)/.test(index)&&/약 4주 후 다시 점검해볼 수 있습니다/.test(index),'최근 검사일·경과관찰 재점검 안내 존재');
 ok(/id="screen-log-go"/.test(index)&&/id="screen-help-go"/.test(index)&&/id="screen-ai-go"/.test(index),'검사결과에서 기록·도움·마음프로 행동 연결');
