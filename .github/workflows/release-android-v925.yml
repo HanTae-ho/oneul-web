@@ -55,7 +55,7 @@ jobs:
           grep -F '② 기분/HALT' test.js
           grep -F '③ 습관·식사·수면' test.js
           grep -F '④ SMART' test.js
-          grep -F '전체 ohg.v1 필드 결정표' ROLE_STORAGE_POLICY.md
+          grep -F '전체 `ohg.v1` 필드 결정표' ROLE_STORAGE_POLICY.md
           node verify.js
           node verify-meaning.js
           echo "RELEASE_SOURCE_SHA=$GITHUB_SHA" >> "$GITHUB_ENV"
