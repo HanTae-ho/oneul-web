@@ -168,7 +168,7 @@ jobs:
           echo "BUILT_AAB=$AAB" >> "$GITHUB_ENV"
           AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
           "$AAPT" dump badging "$APK" | tee /tmp/badging.txt
-          grep -F "package: name='io.github.hantae_ho.twa' versionCode='926' versionName='9.2.6'" /tmp/badging.txt
+          grep -F "package: name='io.github.hantae_ho.twa' versionCode='927' versionName='9.2.6'" /tmp/badging.txt
           "$AAPT" dump permissions "$APK" | tee /tmp/permissions.txt
           grep -F 'android.permission.SCHEDULE_EXACT_ALARM' /tmp/permissions.txt
           grep -F 'android.permission.WAKE_LOCK' /tmp/permissions.txt
@@ -252,4 +252,4 @@ jobs:
           gh release download v9.2.6 --repo "$GITHUB_REPOSITORY" --pattern 'oneul-v9.2.6.apk' --dir released
           sha256sum dist/oneul-v9.2.6.apk released/oneul-v9.2.6.apk
           test "$(sha256sum dist/oneul-v9.2.6.apk | awk '{print $1}')" = "$(sha256sum released/oneul-v9.2.6.apk | awk '{print $1}')"
-          echo 'ANDROID_V9_2_5_RELEASE_PASS'
+          echo 'ANDROID_V9_2_6_RELEASE_PASS'
