@@ -688,16 +688,16 @@ const srv = http.createServer((req, res) => {
 
   // ① 자가점검: 같은 도구를 두 역할에서 저장해도 서로의 이력에 섞이지 않아야 함
   await pg.evaluate(() => {
-    screeningStore().push({id:'audit-k',t:Date.now()-2000,score:2,level:'당사자 전용'});
+    screeningStore().push({id:'pgsi',t:Date.now()-2000,score:2,level:'당사자 전용'});
     S.role='family';
     screeningStore().push({id:'nds-bv',t:Date.now()-1000,score:1,level:'가족 전용'});
     save();
   });
   const screenSplit=await pg.evaluate(()=>({
     self:S.screenings.map(x=>x.id),family:S.familyScreenings.map(x=>x.id),
-    familyHistory:screenHistory('nds-bv').length,selfAuditHidden:screenHistory('audit-k').length
+    familyHistory:screenHistory('nds-bv').length,selfPgsiHidden:screenHistory('pgsi').length
   }));
-  assert(screenSplit.self.join(',')==='audit-k'&&screenSplit.family.join(',')==='nds-bv'&&screenSplit.familyHistory===1&&screenSplit.selfAuditHidden===0,'① 자가점검 저장·이력 조회가 역할별 물리 저장소에서 완전 분리');
+  assert(screenSplit.self.join(',')==='pgsi'&&screenSplit.family.join(',')==='nds-bv'&&screenSplit.familyHistory===1&&screenSplit.selfPgsiHidden===0,'① 자가점검 저장·이력 조회가 역할별 물리 저장소에서 완전 분리');
 
   // ② 기분/HALT: 실제 홈 버튼으로 각각 저장
   await pg.evaluate(()=>{S.role='self';save();go('home');drawHome();});
@@ -796,7 +796,7 @@ const srv = http.createServer((req, res) => {
     selfEat:S.eats.map(x=>x.s),familyEat:S.familyEats.map(x=>x.s),
     selfSmart:S.smartWorks.map(x=>x.id),familySmart:S.familySmartWorks.map(x=>x.id)
   }));
-  assert(coldRoleSplit.selfScreen.join(',')==='audit-k'&&coldRoleSplit.familyScreen.join(',')==='nds-bv','cold-start 후 자가점검 역할 분리 유지');
+  assert(coldRoleSplit.selfScreen.join(',')==='pgsi'&&coldRoleSplit.familyScreen.join(',')==='nds-bv','cold-start 후 자가점검 역할 분리 유지');
   assert(coldRoleSplit.selfNight.join(',')==='SELF-NIGHT'&&coldRoleSplit.familyNight.join(',')==='FAMILY-NIGHT','cold-start 후 기분/HALT·하루마무리 역할 분리 유지');
   assert(coldRoleSplit.selfHabit.join(',')==='SELF-HABIT'&&coldRoleSplit.familyHabit.join(',')==='FAMILY-HABIT'&&coldRoleSplit.selfEat.join(',')==='아침'&&coldRoleSplit.familyEat.join(',')==='점심','cold-start 후 습관·식사·수면 역할 분리 유지');
   assert(coldRoleSplit.selfSmart.join(',')==='self-smart'&&coldRoleSplit.familySmart.join(',')==='family-smart','cold-start 후 SMART 물리 분리 유지');
