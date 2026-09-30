@@ -1,4 +1,4 @@
-# 오늘 한 걸음 V9.2.4 — Google Play 제출 준비서
+# 오늘 한 걸음 V9.2.5 — Google Play 제출 준비서
 
 기준일: 2026-09-22  
 대상: `오늘 한 걸음` Android 앱을 Google Play에 최초 등록하기 위한 사전 점검 및 Play Console 입력 준비
@@ -51,25 +51,25 @@ Play Console 요구사항: <https://support.google.com/googleplay/android-develo
 
 ## 1. 현재 제출 기준본
 
-- 앱 버전: `V9.2.4`
+- 앱 버전: `V9.2.5`
 - Android package/applicationId: `io.github.hantae_ho.twa`
-- Android versionCode: `925`
-- Android versionName: `9.2.4`
+- Android versionCode: `926`
+- Android versionName: `9.2.5`
 - minSdk: `23`
 - compileSdk: `36`
 - targetSdk: `36`
-- 정식 GitHub Release: `v9.2.4`
-- AAB: `oneul-v9.2.4.aab`
+- 정식 GitHub Release: `v9.2.5`
+- AAB: `oneul-v9.2.5.aab`
   - SHA-256: 정식 릴리스의 `SHA256SUMS.txt` 기준
-- APK: `oneul-v9.2.4.apk`
+- APK: `oneul-v9.2.5.apk`
   - SHA-256: 정식 릴리스의 `SHA256SUMS.txt` 기준
 - V9.1.3 실제 Android 기기 설치·동작 확인: 완료
-- V9.2.4 실기기 확인: 릴리스 후 별도 확인
+- V9.2.5 실기기 확인: 릴리스 후 별도 확인
 - Android 네이티브 알림·부팅복원·치료알림·TTS 계보: 기존 정상 계보 유지
 
 ### Target API 판정
 
-2026-08-31부터 Google Play의 새 Android 모바일 앱과 앱 업데이트는 Android 16 / API 36 이상을 target 해야 합니다. 현재 V9.2.4는 `targetSdk 36`이므로 이 요건을 충족합니다.
+2026-08-31부터 Google Play의 새 Android 모바일 앱과 앱 업데이트는 Android 16 / API 36 이상을 target 해야 합니다. 현재 V9.2.5는 `targetSdk 36`이므로 이 요건을 충족합니다.
 
 공식 정책: <https://support.google.com/googleplay/android-developer/answer/11926878>
 
@@ -77,7 +77,7 @@ Play Console 요구사항: <https://support.google.com/googleplay/android-develo
 
 ## 2. Play App Signing — 기존 서명 연속성 유지가 중요
 
-현재 GitHub에서 직접 배포한 APK에는 기존 앱 서명키가 사용되고 있으며, V9.2.4 릴리스 과정에서도 V9.2.4과 서명 연속성을 검증하도록 고정합니다.
+현재 GitHub에서 직접 배포한 APK에는 기존 앱 서명키가 사용되고 있으며, V9.2.5 릴리스 과정에서도 V9.2.4와 서명 연속성을 검증하도록 고정합니다.
 
 Google Play 신규 앱은 기본적으로 Play App Signing에 등록됩니다. 그러나 `오늘 한 걸음`은 이미 동일 package의 APK를 외부에서 배포했으므로, **Google이 새롭고 다른 앱 서명키를 자동 생성한 상태로 그대로 공개하지 않는 것이 안전합니다.** 기존 직접설치 사용자가 Play 배포판으로 업데이트하려면 최종 설치 APK의 서명 계보가 맞아야 하기 때문입니다.
 
@@ -253,9 +253,9 @@ Play Console에서 별도로 준비/입력해야 할 항목:
 
 GitHub 직접배포 APK의 자동 검증과 별개로, Google Play에 올린 AAB에서 생성된 설치본을 실제 기기에 설치하여 아래를 다시 확인합니다.
 
-- 기존 직접설치 V9.2.4에서 Play 설치본으로 업데이트 가능 여부(서명 연속성)
+- 기존 직접설치 V9.2.5에서 Play 설치본으로 업데이트 가능 여부(서명 연속성)
 - 앱 실행 및 기존 `ohg.v1` 데이터 유지
-- `DATA_SCHEMA = 6` 유지
+- `DATA_SCHEMA = 7` 유지
 - 화면 OFF 상태 예약 알림
 - exact alarm
 - 부팅 후 알림 재등록
@@ -276,7 +276,7 @@ GitHub 직접배포 APK의 자동 검증과 별개로, Google Play에 올린 AAB
 
 ### 이미 완료/충족
 
-- V9.2.4 정식 배포 기준본 확정
+- V9.2.5 정식 배포 기준본 확정
 - signed APK/AAB 생성
 - GitHub Actions 웹 전체 회귀검증 통과
 - package/version 정합성
@@ -288,7 +288,7 @@ GitHub 직접배포 APK의 자동 검증과 별개로, Google Play에 올린 AAB
 
 ### 별도 확인 필요
 
-- V9.2.4 실기기 설치·알림·TTS 동작 확인(릴리스 후)
+- V9.2.5 실기기 설치·알림·TTS 동작 확인(릴리스 후)
 
 ### 현재 가장 먼저 해결할 외부 준비사항
 
@@ -298,7 +298,7 @@ GitHub 직접배포 APK의 자동 검증과 별개로, Google Play에 올린 AAB
 4. 이미 Personal Play 계정을 만들었다면 Organization 전환 완료
 5. 올바른 조직 계정에서 앱 생성 및 package `io.github.hantae_ho.twa` 확정
 6. **기존 app signing key를 Play App Signing에 제공하여 서명 계보 유지**
-7. V9.2.4 AAB 업로드
+7. V9.2.5 AAB 업로드
 8. Privacy / Data Safety / Health apps declaration 입력
 9. 스토어 설명에 건강·의료 고지 반영
 10. Content rating / Target audience / Ads / App access 작성
@@ -309,9 +309,9 @@ GitHub 직접배포 APK의 자동 검증과 별개로, Google Play에 올린 AAB
 
 ---
 
-## 11. V9.2.4 릴리스에서도 유지하는 보호 항목
+## 11. V9.2.5 릴리스에서도 유지하는 보호 항목
 
-- `DATA_SCHEMA = 6`
+- `DATA_SCHEMA = 7`
 - `ohg.v1`
 - `ohg.social.v1`
 - 기존 회복기록 구조
