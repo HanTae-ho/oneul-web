@@ -2765,7 +2765,7 @@ addEventListener('appinstalled', function(){
    오늘 한 걸음 — 중독 회복 지원 웹앱
    개인 회복기록은 기본적으로 이 기기 안에 저장되며 서버로 자동 전송하지 않습니다.
    ═══════════════════════════════════════════════════════ */
-const BUILD='V9.2.4';
+const BUILD='V9.2.5';
 /* 개인 회복기록 S의 저장 키와 데이터 스키마입니다.
    향후 커뮤니티의 닉네임·게시글·댓글·인증정보는 이 KEY/S에 넣지 않고 별도 서버 영역으로 분리합니다.
    따라서 현재의 회복기록 백업(JSON)에도 커뮤니티 데이터는 포함되지 않습니다. */
@@ -3013,7 +3013,7 @@ function migrate(s){
   if(!Array.isArray(s.familyFired)) s.familyFired=[];
   if(s.urgeDraft && (typeof s.urgeDraft !== 'object' || Array.isArray(s.urgeDraft))) s.urgeDraft = null;
   if(!Array.isArray(s.stepWorks)) s.stepWorks = [];
-  /* 의미 돌아보기 — 기존 당사자 기록은 그대로 두고 가족 기록 필드만 안전 초기화하므로 DATA_SCHEMA 는 6 그대로 둡니다. */
+  /* 의미 돌아보기의 기존 역할별 저장소는 그대로 보존하고, DATA_SCHEMA 7의 추가 역할 저장소만 안전 초기화합니다. */
   if(!s.wbDays || typeof s.wbDays !== 'object' || Array.isArray(s.wbDays)) s.wbDays = {};
   if(!Array.isArray(s.meaningChecks)) s.meaningChecks = [];
   if(s.meaningCheckDraft && (typeof s.meaningCheckDraft !== 'object' || Array.isArray(s.meaningCheckDraft))) s.meaningCheckDraft = null;
@@ -13126,7 +13126,7 @@ boot();
 
 /* ═══════════════════════════════════════════════════════
    V9.0.2 · 커뮤니티 2단계 — 댓글 / 신고 / 작성자 차단 / 운영 검토
-   - 회복기록 ohg.v1 / DATA_SCHEMA=6 은 읽거나 전송하지 않습니다.
+   - 회복기록 ohg.v1 / DATA_SCHEMA=7 은 읽거나 전송하지 않습니다.
    - 댓글도 기존 커뮤니티 프로필의 userId/token만 사용합니다.
    - DM·친구·팔로우·답글·그룹·하이브는 추가하지 않습니다.
    ═══════════════════════════════════════════════════════ */
