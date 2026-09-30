@@ -194,6 +194,7 @@ ok(/familySmartWorks: \[\]/.test(index),'SMART·가족 작성도구 가족 물�
 ok(/function screeningStore\(\)/.test(index)&&/function moodStore\(\)/.test(index)&&/function haltStore\(\)/.test(index)&&/function nightStore\(\)/.test(index),'상태·점검 역할별 접근자');
 ok(/function habitStore\(\)/.test(index)&&/function eatPlanStore\(\)/.test(index)&&/function eatLogStore\(\)/.test(index)&&/function sleepStore\(\)/.test(index)&&/function sleepLogStore\(\)/.test(index),'생활기록 역할별 접근자');
 ok(/function smartWorksStore\(\)/.test(index)&&/function setSmartWorksStore\(rows\)/.test(index),'SMART 역할별 물리 저장 접근자');
+ok(!/if\(r\.k === 'family'\) S\.hours = \[\]/.test(index)&&/if\(!fam && \(S\.hours \|\| \[\]\)\.includes\(h\)\)/.test(index)&&/if\(!famMode\(\) && \(S\.hours \|\| \[\]\)\.indexOf\(h\) >= 0\)/.test(index),'당사자 위험시간은 가족전환 시 보존하고 가족 홈·웹알림에서 비노출');
 ok(!/S\.smartWorks/.test(index),'SMART 런타임이 공용 S.smartWorks 직접 접근을 사용하지 않음');
 ok(/const prevSchema=Number\(s\.dataSchema\|\|0\)/.test(index)&&/if\(prevSchema < 7\)/.test(index)&&/r&&r\.role==='family'/.test(index),'스키마 6→7 SMART role 기반 안전 마이그레이션');
 ok(rolePolicySrc.includes('자가점검')&&rolePolicySrc.includes('familyScreenings')&&rolePolicySrc.includes('기존 스키마 6')&&rolePolicySrc.includes('당사자 저장소에 그대로 보존'),'ROLE_STORAGE_POLICY에 전체 역할분리·마이그레이션 원칙 명시');
