@@ -58,6 +58,10 @@ ok(index.includes('내 회복요약의 최근 4주와 90일은 무엇을 뜻하�
 ok(index.includes('<b>최근 4주</b>는 최근 상태를 돌아보기 위한 사실 요약이고, <b>최근 90일 반복된 흐름</b>은 기록에서 함께 나타난 항목을 보여주는 참고'),'V9.2.2 회복요약 설명이 사용설명서에 반영');
 ok(index.includes("id=\"help-fixed-lines\"")&&index.includes("const wantedPhones=['15770199','129'];")&&!index.includes("wantedPhones=['109'")&&!index.includes("wantedPhones=['119'"),'헬프 109·119는 고정 영역에만 두고 일반 헬프콜 목록에서 분리');
 ok(index.includes('홈 간단히 보기는 무엇인가요?')&&index.includes('나 → 내 정보 · 설정 → 앱 → 홈 간단히 보기')&&index.includes('사용설명서')&&index.includes('상담 때 보여주기 (선택)'),'V9.2 기능 변경이 앱 내 FAQ·사용설명서에 함께 반영');
+ok(/id="screen-log-go">오늘 돌아보기<\/button>/.test(index)&&/\$\('#screen-log-go'\)\.onclick=\(\)=>\{ screenRun=null; go\('meaning'\); \};/.test(index),'자가점검 결과의 오늘 돌아보기는 의미 돌아보기로 직접 연결');
+ok(index.includes('자가점검을 마친 뒤 결과 화면의 <b>오늘 돌아보기</b>')&&index.includes('결과 화면의 <b>오늘 돌아보기</b>는 현재 역할에 맞는 <b>의미 돌아보기 → 오늘 돌아보기</b>'),'자가점검→오늘 돌아보기 경로가 FAQ·사용설명서에 반영');
+ok(/당사자 자가점검 결과의 오늘 돌아보기는 의미 돌아보기로 이동/.test(test)&&/가족 자가점검 결과의 오늘 돌아보기도 의미 돌아보기로 이동/.test(test),'test.js 당사자·가족 자가점검 결과 행동 연결 시뮬레이션 포함');
+ok(/앱 종료→재실행을 새 페이지로 시뮬레이션/.test(test)&&/재실행 후 가족 의미 돌아보기 버튼이 정상 작동/.test(test)&&/재실행 후 가족 의미점검도 정상 작동/.test(test),'test.js cold-start 재실행 시뮬레이션 포함');
 ok(index.includes("const fixed=[\n    {n:'응급 신고',t:'119'},\n    {n:'자살예방 상담전화',t:'109'}")&&index.includes("'<span class=\"b\"><b>'+esc(l.n)+' · '+esc(l.t)+'</b></span>'"),'헬프 상단 119·109 고정 카드 자체에는 설명문을 렌더링하지 않음');
 ok(index.includes("const wantedPhones=['15770199','129'];")&&index.includes("selectedTypes.includes('gambling')")&&index.includes("selectedTypes.includes('drug')"),'헬프콜은 기본 1577-0199·129 + 선택 영역 1336·1342');
 ok(index.includes('헬프콜에는 어떤 전화가 보이나요?')&&index.includes('회복영역에 <b>도박</b>이 있으면 <b>도박문제 헬프라인 1336</b>')&&index.includes('약물</b>이 있으면 <b>마약류 중독 상담 1342</b>'),'헬프콜 영역별 표시 규칙이 FAQ에 반영');
