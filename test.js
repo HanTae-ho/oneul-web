@@ -824,8 +824,8 @@ const srv = http.createServer((req, res) => {
   assert((await seen()) === 'p-rec', '자가점검 결과에서 내 발자취 통계로 이동');
   const statTextV7 = await pg.$eval('#rec-body', e => e.innerText);
   assert(statTextV7.includes('자가점검 변화') && statTextV7.includes('AUDIT-K') && statTextV7.includes('이전보다 1점 증가'), '통계에 자가점검 최근점수와 이전 대비 변화 표시');
-  assert((await pg.$eval('#rec-body .trend-svg', a => a.length)) >= 1, '자가점검 통계에 검사별 꺾은선 그래프 표시');
-  assert((await pg.$eval('#rec-body .screen-record-row', a => a.length)) >= 2, '자가점검 통계에 최근 검사일·점수 목록 표시');
+  assert((await pg.locator('#rec-body .trend-svg').count()) >= 1, '자가점검 통계에 검사별 꺾은선 그래프 표시');
+  assert((await pg.locator('#rec-body .screen-record-row').count()) >= 2, '자가점검 통계에 최근 검사일·점수 목록 표시');
   await shot('10-screening-stat');
 
   // 가족도 같은 결과 행동을 쓰되 가족용 의미 돌아보기로 분기합니다.
