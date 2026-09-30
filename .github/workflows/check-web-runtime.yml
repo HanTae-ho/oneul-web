@@ -9,6 +9,7 @@ on:
       - '*.json'
       - '*.gs'
       - 'README.md'
+      - 'ROLE_STORAGE_POLICY.md'
       - 'icon-*.png'
       - '.github/workflows/check-web-runtime.yml'
       - '.github/workflows/release-android-v911.yml'
@@ -25,6 +26,7 @@ on:
       - '*.json'
       - '*.gs'
       - 'README.md'
+      - 'ROLE_STORAGE_POLICY.md'
       - 'icon-*.png'
       - '.github/workflows/check-web-runtime.yml'
       - '.github/workflows/release-android-v911.yml'
@@ -124,7 +126,7 @@ jobs:
 
       - name: Fixed invariants
         run: |
-          grep -F "const DATA_SCHEMA = 6;" index.html
+          grep -F "const DATA_SCHEMA = 7;" index.html
           grep -F "const KEY = 'ohg.v1';" index.html
           grep -F "const SOCIAL_KEY = 'ohg.social.v1';" index.html
           ! grep -F 'HALTS.find' index.html
