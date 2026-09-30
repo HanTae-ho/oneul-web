@@ -729,7 +729,7 @@ const srv = http.createServer((req, res) => {
     eatPlanStore().push({s:'아침',t:'08:00'});eatLogStore().push({t:Date.now(),n:'아침'});sleepStore().on=1;sleepLogStore().push({t:Date.now(),q:'good'});
     S.role='family';
     habitList().push({id:'family-h',name:'FAMILY-HABIT',days:0,freq:'daily',weekdays:[0,1,2,3,4,5,6],check:'FAMILY-CHECK',notify:0,time:'19:00',start:today(),done:[]});
-    eatPlanStore().push({s:'점심',t:'12:30'});eatLogStore().push({t:Date.now(),n:'점심'});sleepStore().on=1;sleepStore().bed='22:30';sleepLogStore().push({t:Date.now(),q:'bad'});save();drawTodayScheduleHome();
+    eatPlanStore().push({s:'점심',t:'12:30'});eatLogStore().push({t:Date.now(),n:'점심'});sleepStore().on=1;sleepStore().bed='22:30';sleepLogStore().push({t:Date.now(),q:'bad'});homeTodayExpanded=true;save();drawTodayScheduleHome();
   });
   const familySchedule=await pg.$eval('#home-today',e=>e.innerText);
   assert(familySchedule.includes('FAMILY-HABIT')&&!familySchedule.includes('SELF-HABIT')&&familySchedule.includes('점심 식사')&&!familySchedule.includes('아침 식사'),'③ 가족 홈 일정은 가족 습관·식사만 조회');
