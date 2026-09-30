@@ -1,0 +1,23 @@
+name: Music 15 audit
+on:
+  push:
+    branches: [ops/external-connectivity-audit]
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe replacement audio
+        shell: bash
+        run: |
+          set -e
+          UA='Mozilla/5.0 (TodayOneStep Music Audit)'
+          probe() {
+            url="$1"
+            code=$(curl -L --fail --silent --show-error --connect-timeout 10 --max-time 40 --retry 1 --retry-all-errors -A "$UA" -H 'Range: bytes=0-1023' -o /dev/null -w '%{http_code}' "$url")
+            echo "$code $url"
+            test "$code" = "200" -o "$code" = "206"
+          }
+          probe 'https://upload.wikimedia.org/wikipedia/commons/transcoded/e/e4/Pomp_and_circumstances_No._1.ogg/Pomp_and_circumstances_No._1.ogg.mp3'
+          probe 'https://upload.wikimedia.org/wikipedia/commons/e/e4/Pomp_and_circumstances_No._1.ogg'
