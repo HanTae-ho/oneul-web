@@ -4537,15 +4537,15 @@ function drawHome(){
    ★ 못 챙긴 것을 빨갛게 표시하지 않습니다. 회복 초기에는 끼니를 자주 거릅니다.
      그것을 매일 붉게 보여주면 앱을 여는 것 자체가 벌이 됩니다. */
 function drawBodyHome(box){
-  const eats = S.eats || [];
-  const sp = S.sleep || {};
-  const sleptToday = todayRec(S.sleepLog || []).length > 0;
+  const eats = roleEats();
+  const sp = roleSleep();
+  const sleptToday = todayRec(roleSleepLog()).length > 0;
   const askSleep = !!sp.on && !sleptToday;
   if(!eats.length && !askSleep) return;
 
   const ord = EATSLOT.map(x => x.k);
   const list = eats.slice().sort((x, y) => ord.indexOf(x.s) - ord.indexOf(y.s));
-  const done = todayRec(S.eatLog || []).map(m => m.n);
+  const done = todayRec(roleEatLog()).map(m => m.n);
 
   let html = '<div class="card tight"><h3>오늘 몸 챙기기</h3>';
   list.forEach(m => {
@@ -4568,13 +4568,11 @@ function drawBodyHome(box){
   box.insertAdjacentHTML('beforeend', html);
 
   box.querySelectorAll('[data-eat]').forEach(b => b.onclick = () => {
-    S.eatLog = S.eatLog || [];
-    S.eatLog.push({ t: Date.now(), n: b.dataset.eat });
+    roleEatLog().push({ t: Date.now(), n: b.dataset.eat });
     save(); drawHome();
   });
   box.querySelectorAll('[data-sleep]').forEach(b => b.onclick = () => {
-    S.sleepLog = S.sleepLog || [];
-    S.sleepLog.push({ t: Date.now(), q: b.dataset.sleep });
+    roleSleepLog().push({ t: Date.now(), q: b.dataset.sleep });
     save(); drawHome();
     toast(b.dataset.sleep === 'bad'
       ? '기록했습니다. 오늘은 무리하지 마세요.'
@@ -5302,9 +5300,9 @@ const HABIT_TEMPLATES = [
 let habitEditState = null;
 let habitTemplatesOpen = false; /* V8.1.9: 추천 습관은 기본 접힘. 개인 습관 데이터에는 저장하지 않습니다. */
 function habitList(){
-  if(!Array.isArray(S.habits)) S.habits=[];
-  S.habits.forEach(h=>{ if(!Array.isArray(h.done)) h.done=[]; if(!Array.isArray(h.weekdays)) h.weekdays=[0,1,2,3,4,5,6]; if(!h.start) h.start=today(); });
-  return S.habits;
+  const rows=roleHabits();
+  rows.forEach(h=>{ if(!Array.isArray(h.done)) h.done=[]; if(!Array.isArray(h.weekdays)) h.weekdays=[0,1,2,3,4,5,6]; if(!h.start) h.start=today(); });
+  return rows;
 }
 function habitClone(x){ return JSON.parse(JSON.stringify(x)); }
 function habitNewId(){ return 'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
@@ -5352,7 +5350,7 @@ function homeTodayFocusItems(items,nowMin){
     const i=EATSLOT.findIndex(s=>s.k===x.id);
     if(i<0 || i>=EATSLOT.length-1) return true;
     const next=EATSLOT[i+1];
-    const configured=(S.eats||[]).find(m=>m.s===next.k);
+    const configured=roleEats().find(m=>m.s===next.k);
     const boundary=homeTimeKey((configured&&configured.t)||next.d);
     return nowMin<boundary;
   });
@@ -5376,13 +5374,13 @@ function drawTodayScheduleHome(){
     });
   }
 
-  const eord=EATSLOT.map(x=>x.k), edone=todayRec(S.eatLog||[]).map(x=>x.n);
-  (S.eats||[]).slice().sort((a,b)=>eord.indexOf(a.s)-eord.indexOf(b.s)).forEach(m=>{
+  const eord=EATSLOT.map(x=>x.k), edone=todayRec(roleEatLog()).map(x=>x.n);
+  roleEats().slice().sort((a,b)=>eord.indexOf(a.s)-eord.indexOf(b.s)).forEach(m=>{
     const slot=EATSLOT.find(x=>x.k===m.s)||{l:m.s}, ok=edone.indexOf(m.s)>=0; actionable++; if(ok) completed++;
     items.push({kind:'eat',id:m.s,time:m.t||'',label:slot.l,sub:'식사',done:ok,action:1});
   });
 
-  const sp=S.sleep||{};
+  const sp=roleSleep();
   if(sp.on && /^\d{2}:\d{2}$/.test(String(sp.bed||'')))
     items.push({kind:'sleep',id:'bed',time:sp.bed,label:'잠자리',sub:'잘 시간',done:false,action:0});
 
@@ -5404,7 +5402,7 @@ function drawTodayScheduleHome(){
     }
   }
 
-  const askSleep=!!sp.on && todayRec(S.sleepLog||[]).length===0;
+  const askSleep=!!sp.on && todayRec(roleSleepLog()).length===0;
   const configured=items.length || visitHtml || askSleep;
   if(!configured){ box.innerHTML=''; return; }
 
@@ -5450,7 +5448,7 @@ function drawTodayScheduleHome(){
     }else if(kind==='med'){
       S.medLog=S.medLog||[]; if(todayRec(S.medLog).map(x=>x.n).indexOf(id)<0) S.medLog.push({t:Date.now(),n:id});
     }else if(kind==='eat'){
-      S.eatLog=S.eatLog||[]; if(todayRec(S.eatLog).map(x=>x.n).indexOf(id)<0) S.eatLog.push({t:Date.now(),n:id});
+      const rows=roleEatLog(); if(todayRec(rows).map(x=>x.n).indexOf(id)<0) rows.push({t:Date.now(),n:id});
     }
     save(); drawTodayScheduleHome(); drawTools();
   }
@@ -5459,7 +5457,7 @@ function drawTodayScheduleHome(){
       if(!confirm('복약 완료 기록을 취소할까요?\n실제로 복용하지 않았거나 잘못 체크한 경우에만 취소하세요.')) return false;
       S.medLog=removeTodayNamed(S.medLog,id);
     }else if(kind==='eat'){
-      S.eatLog=removeTodayNamed(S.eatLog,id);
+      setRoleArray('eatLog','familyEatLog',removeTodayNamed(roleEatLog(),id));
     }else if(kind==='habit'){
       const h=habitList().find(x=>x.id===id); if(h && habitDoneOn(h,d)) habitToggle(h,d);
     }else return false;
@@ -5487,7 +5485,7 @@ function drawTodayScheduleHome(){
     };
   });
   box.querySelectorAll('[data-today-sleep]').forEach(b=>b.onclick=()=>{
-    S.sleepLog=S.sleepLog||[]; S.sleepLog.push({t:Date.now(),q:b.dataset.todaySleep}); save(); drawTodayScheduleHome();
+    roleSleepLog().push({t:Date.now(),q:b.dataset.todaySleep}); save(); drawTodayScheduleHome();
     toast(b.dataset.todaySleep==='bad'?'기록했습니다. 오늘은 무리하지 마세요.':'기록했습니다.');
   });
   refreshIcons();
@@ -5504,7 +5502,7 @@ function useHabitTemplate(id,edit){ const t=HABIT_TEMPLATES.find(x=>x.id===id); 
 function deleteHabit(id){
   const h=habitList().find(x=>x.id===id); if(!h)return;
   modal('<h2>습관을 삭제할까요?</h2><p class="muted" style="margin:7px 0 14px">'+esc(h.name)+'의 체크 기록도 함께 삭제됩니다.</p><button class="btn danger" id="habit-del-ok">삭제</button><div style="height:8px"></div><button class="btn ghost" onclick="closeModal()">취소</button>');
-  $('#habit-del-ok').onclick=()=>{ S.habits=habitList().filter(x=>x.id!==id);save();closeModal();drawHabits();drawTools();toast('삭제했습니다.'); };
+  $('#habit-del-ok').onclick=()=>{ setRoleArray('habits','familyHabits',habitList().filter(x=>x.id!==id));save();closeModal();drawHabits();drawTools();toast('삭제했습니다.'); };
 }
 function drawHabits(){
   const mine=$('#habit-my'), tmp=$('#habit-templates'); if(!mine||!tmp)return; const rows=habitList();
@@ -5662,7 +5660,7 @@ function drawTools(){
   const ss = $('#tool-schedule-s');
   if(ss){
     const t = treatmentCfg();
-    const nLife = (S.eats||[]).length + ((S.sleep||{}).on ? 1 : 0) + ((!famMode() && (S.hours||[]).length) ? 1 : 0);
+    const nLife = roleEats().length + (roleSleep().on ? 1 : 0) + ((!famMode() && (S.hours||[]).length) ? 1 : 0);
     const nTreat = !famMode() ? ((t.medOn && (S.meds||[]).length ? 1 : 0) + (t.outpatientOn ? 1 : 0)) : 0;
     ss.textContent = (nLife + nTreat) ? '설정된 일정 ' + (nLife+nTreat) + '종 · 눌러서 관리' : '생활 · 치료 일정을 한곳에서 관리';
   }
@@ -6389,8 +6387,8 @@ function drawScheduleHub(){
   const fam = famMode();
   const life = [];
   if(!fam && (S.hours||[]).length) life.push('위험시간 ' + S.hours.length + '개');
-  if((S.eats||[]).length) life.push('식사 ' + S.eats.length + '끼');
-  if((S.sleep||{}).on) life.push('잠');
+  if(roleEats().length) life.push('식사 ' + roleEats().length + '끼');
+  if(roleSleep().on) life.push('잠');
   const ls = $('#schedule-life-s'); if(ls) ls.textContent = life.length ? life.join(' · ') : '위험시간 · 식사 · 잠';
   const tc = $('#schedule-treatment'); if(tc) tc.style.display = fam ? 'none' : '';
   if(!fam){
@@ -8451,8 +8449,8 @@ function recDay(){
      매일 붉은 줄을 보게 하면 앱을 여는 것 자체가 벌이 됩니다.
      챙긴 날만 색으로 채웁니다. */
 function recBody(){
-  const meds = S.meds || [], eats = S.eats || [], sp = S.sleep || {};
-  const medLog = S.medLog || [], eatLog = S.eatLog || [], sleepLog = S.sleepLog || [];
+  const meds = famMode()?[]:(S.meds||[]), eats = roleEats(), sp = roleSleep();
+  const medLog = famMode()?[]:(S.medLog||[]), eatLog = roleEatLog(), sleepLog = roleSleepLog();
 
   if(!meds.length && !eats.length && !sp.on && !medLog.length && !eatLog.length && !sleepLog.length){
     return emptyBox('회복도구 → 일정·알림에서 복약과 식사·잠을 정해두면 여기에 쌓입니다.');
@@ -11870,10 +11868,10 @@ function drawMe(){
    복약과 같은 틀입니다(때 + 시간 + 알림). 다른 점은 '하루 몇 회' 를 안 묻는다는 것.
    끼니는 세 때가 정해져 있고, 억지로 횟수를 맞추게 하면 그것대로 부담이 됩니다. */
 function drawBody(){
-  S.eats = S.eats || [];
+  const eats=roleEats();
   const eb = $('#me-eats'); eb.innerHTML = '';
   EATSLOT.forEach(s => {
-    const cur = S.eats.filter(m => m.s === s.k)[0];
+    const cur = eats.filter(m => m.s === s.k)[0];
     const r = el('div', 'sp');
     r.style.padding = '5px 0';
     const b = el('button', 'opt' + (cur ? ' on' : ''),
@@ -11881,8 +11879,8 @@ function drawBody(){
     b.style.flex = '1';
     b.style.justifyContent = 'flex-start';
     b.onclick = () => {
-      if(cur) S.eats = S.eats.filter(m => m.s !== s.k);
-      else S.eats.push({ s: s.k, t: s.d });
+      if(cur) setRoleArray('eats','familyEats',roleEats().filter(m => m.s !== s.k));
+      else roleEats().push({ s: s.k, t: s.d });
       save(); drawBody();
     };
     r.appendChild(b);
@@ -11896,11 +11894,11 @@ function drawBody(){
     }
     eb.appendChild(r);
   });
-  $('#me-eat-hint').textContent = S.eats.length
-    ? '고르신 ' + S.eats.length + '끼가 홈 화면에 나옵니다.'
+  $('#me-eat-hint').textContent = roleEats().length
+    ? '고르신 ' + roleEats().length + '끼가 홈 화면에 나옵니다.'
     : '하나도 안 고르시면 홈 화면에 식사 칸이 안 나옵니다.';
 
-  const sp = S.sleep || (S.sleep = { on: 0, bed: '23:00', up: '07:00' });
+  const sp = roleSleep();
   const ob = $('#me-sleep-on'); ob.innerHTML = '';
   const t0 = el('button', 'opt' + (sp.on ? ' on' : ''),
     ico(sp.on ? 'check' : 'box') + '<span>잘 시간 챙기기</span>');
@@ -12127,7 +12125,7 @@ function nativeReminderPayload(){
     const t = String((x && x.t) || '');
     return c && /^\d{2}:\d{2}$/.test(t) ? c + '@' + t : '';
   }).filter(Boolean).join('|');
-  const sp = S.sleep || {};
+  const sp = roleSleep();
   const habitsPacked = habitNotifyPack();
   const tr = treatmentCfg();
   const visitDate = treatmentEffectiveVisit();
@@ -12135,7 +12133,7 @@ function nativeReminderPayload(){
   return {
     risk: (S.role === 'family' ? [] : (S.hours || [])).filter(h => Number.isInteger(+h)).map(Number).join(','),
     meds: treatmentMedOn() ? pack(S.meds) : '',
-    eats: pack(S.eats),
+    eats: pack(roleEats()),
     bed: sp.on && /^\d{2}:\d{2}$/.test(String(sp.bed || '')) ? String(sp.bed) : '',
     habits: habitsPacked,
     visit: visitActive ? visitDate : '',
@@ -12864,8 +12862,8 @@ function checkAlarms(){
   });
 
   /* 식사 — 복약과 같은 규칙(10분 안에는 잡습니다) */
-  const ateToday = todayRec(S.eatLog || []).map(x => x.n);
-  (S.eats || []).forEach(m => {
+  const ateToday = todayRec(roleEatLog()).map(x => x.n);
+  roleEats().forEach(m => {
     const t = hmToMin(m.t);
     if(t < 0) return;
     if(nm - t < 0 || nm - t >= 10) return;
@@ -12875,7 +12873,7 @@ function checkAlarms(){
   });
 
   /* 잘 시간 — 하루 한 번. 이것만은 30분까지 봐줍니다. */
-  const sp = S.sleep || {};
+  const sp = roleSleep();
   if(sp.on){
     const t = hmToMin(sp.bed);
     if(t >= 0 && nm - t >= 0 && nm - t < 30){
