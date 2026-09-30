@@ -205,7 +205,7 @@ ok(/family:\s*\{[\s\S]*?hard:\s*\[/.test(meaningDataSrc)&&/대신 수습하지 �
 ok(!/if\(p==='meaning' && famMode\(\)\)/.test(index)&&/if\(mnb\) mnb\.style\.display='flex'/.test(index),'가족모드 의미 돌아보기 진입 허용');
 ok(/\{v:'meaning',l:'의미'\}/.test(index)&&/scope==='family'[\s\S]{0,500}familyWbDays/.test(index),'가족 내 발자취 의미 필터·역할별 기록 조회');
 ok(index.includes('가족모드에서는 상대의 중독상태를 평가하지 않고 내 마음·경계·자기돌봄과 생활을 돌아봅니다.'),'가족 의미영역 FAQ 역할 경계 설명');
-ok(index.includes('가족의 변화 여부가 아니라 내 상태·경계·자기돌봄과 삶의 방향'),'가족 의미점검 사용설명서 역할 경계 설명');
+ok(meaningCheckSrc.includes('가족의 변화 여부가 아니라')&&index.includes('가족이 직접 남기는 <b>자가점검 · 기분/HALT · 하루마무리 · 습관 · 식사·수면 · 의미 · 12단계 · SMART/가족도구</b>'),'가족 의미점검·전체 역할분리 사용설명서 경계 설명');
 ok(/function workbookDefs\(scope\)/.test(index)&&/FAMILY_WORKSHEETS/.test(index),'역할별 workbook 정의 선택 엔진');
 ok(/workbookState = \{kind:'step1', from:'learn-topic', scope:'self'\}/.test(index),'workbook 역할 scope 상태 분리');
 ok(/mt\.target=famMode\(\)\?'fam':'me'/.test(index),'가족 12단계 모임 action이 가족모임으로 분기');
