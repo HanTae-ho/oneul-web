@@ -537,7 +537,7 @@ const srv = http.createServer((req, res) => {
   assert(await pg.isVisible('#pk-mindrx'), '위기 화면에 마음 처방전 카드가 보여야 함');
   assert(await pg.isVisible('#go-read') && await pg.isVisible('#go-listen'), '마음 처방전에 도움글·듣는 글 버튼이 보여야 함');
   assert(await pg.isVisible('#pk-support'), '당사자 위기 화면에는 협심자·후원자 카드가 보여야 함');
-  const panicOrder = await pg.$eval('#p-panic > *', els => els.map(e => e.id).filter(Boolean));
+  const panicOrder = await pg.locator('#p-panic > *').evaluateAll(els => els.map(e => e.id).filter(Boolean));
   assert(panicOrder.indexOf('pk-urge') < panicOrder.indexOf('pk-mindrx') && panicOrder.indexOf('pk-mindrx') < panicOrder.indexOf('pk-support') && panicOrder.indexOf('pk-support') < panicOrder.indexOf('pk-with') && panicOrder.indexOf('pk-with') < panicOrder.indexOf('pk-life'), '위기 도움 순서가 충동→마음 처방전→협심자·후원자→몸 이상→죽고 싶어요여야 함');
   await pg.click('#pk-support-manage'); await pg.waitForTimeout(80);
   await pg.fill('#support-name-0','후원자 김'); await pg.fill('#support-phone-0','010-1234-5678');
