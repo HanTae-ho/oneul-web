@@ -20,7 +20,7 @@ ok(!allowed(['gambling']).some(x=>/(술|알코올|단주)/.test(x.text)),'도박
 ok(!allowed(['drug']).some(x=>/(술|알코올|단주)/.test(x.text)),'약물 단일영역에 술·단주 문장 없음');
 ok(allowed(['alcohol','gambling']).every(x=>x.scope.includes('all')),'복수 회복영역은 공통 문장만 사용');
 
-ok(index.includes("const DATA_SCHEMA = 6;")&&index.includes("const KEY = 'ohg.v1';"),'DATA_SCHEMA 6·ohg.v1 유지');
+ok(index.includes("const DATA_SCHEMA = 7;")&&index.includes("const KEY = 'ohg.v1';"),'DATA_SCHEMA 7·ohg.v1 유지');
 ok(/wbDays: \{\}/.test(index)&&/if\(!s\.wbDays \|\| typeof s\.wbDays !== 'object'/.test(index),'wbDays 기본값·마이그레이션');
 ok(!/window\.WB_BASE/.test(workbook),'12단계 workbook-data와 의미 데이터 분리');
 ok(index.includes('<script src="./meaning-data.js"></script>')&&index.includes('<script src="./meaning-feature.js"></script>'),'의미 데이터·실행 로직 로드');
