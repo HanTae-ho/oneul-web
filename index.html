@@ -2882,6 +2882,7 @@ function personalDataSignal_(x){
   if(Array.isArray(x.familyEats) && x.familyEats.length) return true;
   if(Array.isArray(x.habits) && x.habits.length) return true;
   if(Array.isArray(x.familyHabits) && x.familyHabits.length) return true;
+  if(x.familySleep && typeof x.familySleep==='object' && x.familySleep.on) return true;
   if(String(x.goal||'').trim() || String(x.area||'').trim()) return true;
   if(x.timeCapsule && String(x.timeCapsule.text||'').trim()) return true;
   return false;
@@ -3837,7 +3838,10 @@ function preserveRecoveryRaw_(raw){
 function personalBackupShape_(j){
   if(!j || typeof j!=='object' || Array.isArray(j)) return false;
   const keys=['started','role','types','dates','moods','halts','urges','nights','relapses','screenings',
-    'stepWorks','meaningChecks','familyMeaningChecks','smartWorks','familyStepWorks','medLog','eatLog','sleepLog','wbDays','familyWbDays','timeCapsule','goal'];
+    'familyMoods','familyHalts','familyNights','familyScreenings','habits','familyHabits',
+    'eats','eatLog','sleep','sleepLog','familyEats','familyEatLog','familySleep','familySleepLog',
+    'stepWorks','meaningChecks','familyMeaningChecks','smartWorks','familySmartWorks','familyStepWorks',
+    'medLog','wbDays','familyWbDays','timeCapsule','goal'];
   let hits=0;
   keys.forEach(k=>{ if(Object.prototype.hasOwnProperty.call(j,k)) hits++; });
   return hits>=2 && (Object.prototype.hasOwnProperty.call(j,'started') ||
@@ -8786,7 +8790,7 @@ function recoverySummaryData(){
   const recentScreen=(S.screenings||[]).filter(timed);
   const screenIds=[...new Set(recentScreen.map(r=>r.id).filter(Boolean))];
   const screens=screenIds.map(id=>{
-    const tool=screenTool(id), hist=screenHistory(id); if(!tool||!hist.length) return null;
+    const tool=screenTool(id), hist=(S.screenings||[]).filter(x=>x&&x.id===id).sort((a,b)=>a.t-b.t); if(!tool||!hist.length) return null;
     const last=hist[hist.length-1]; if(!timed(last)) return null;
     const prev=hist.length>1?hist[hist.length-2]:null;
     return {tool,last,prev};
@@ -11415,7 +11419,7 @@ let rd = { tag: '', i: 0, back: 'home' };
 function pickTag(){
   const h = new Date().getHours();
   if(h >= 22 || h < 5) return 'night';
-  const last = (S.halts || []).slice(-1)[0];
+  const last = roleHalts().slice(-1)[0];
   const v = last ? (last.v || []) : [];
   if(v.indexOf('l') >= 0) return 'alone';
   if(v.indexOf('a') >= 0) return 'angry';
